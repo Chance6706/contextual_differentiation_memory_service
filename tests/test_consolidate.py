@@ -125,14 +125,33 @@ def test_gist_decays_through_idle_cycles_not_wallclock(service, cfg):
 
 
 def test_absence_does_not_age_identity(service, cfg):
-    # The whole point: NO consolidation cycles (user away) => a gist must NOT decay,
-    # no matter how much wall-clock time passes.
+    # Identity (L2 gist) decay is measured in CONSOLIDATION CYCLES, never wall-clock.
+    # Guards against a regression to wall-clock decay: a gist survives a year of
+    # absence because only the cycle count matters, while raw L1 episodic memory DOES
+    # fade by wall-clock over the same span. (The prior version of this test was
+    # vacuous — it never advanced a cycle, so it passed even with decay disabled.)
     from datetime import datetime, timedelta, timezone
-    cfg.gist_decay_per_cycle = 0.5   # would evict fast IF cycles advanced
-    service.upsert_fact("workspace", "handles_well", "the core architecture")
-    # simulate a year passing with the user away (no consolidation runs at all)
-    g = service.db.find_gist_by_so("workspace", "the core architecture")
-    assert g is not None   # still here; identity preserved across the absence
+
+    from cdms.salience import accessibility
+
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    acts = ["build the core architecture module", "refactor the core architecture layer",
+            "test the core architecture flow"]  # share topic (cluster), differ (no dedup)
+    for a in acts:
+        service.ingest(TurnEvent("work on the core architecture", a, "passed cleanly",
+                                 tool_name="Bash", success=True, valence_hint=0.9, project="D:/Repo/app",
+                                 timestamp=base.strftime("%Y-%m-%dT%H:%M:%SZ")))
+    _consolidator(service, cfg).run(now=base)             # cycle 1 — gist forms
+    assert _gist_for(service, "app") is not None
+
+    # ONE consolidation a YEAR later, no new reinforcing episodes: the gist decays by
+    # ONE idle cycle (gentle), NOT by 365 wall-clock days — so it survives. If decay
+    # were wall-clock based this would evict it.
+    _consolidator(service, cfg).run(now=base + timedelta(days=365))
+    assert _gist_for(service, "app") is not None, "absence (wall-clock) wrongly aged the gist"
+
+    # Contrast: an L1 episodic trace of the same age HAS faded heavily by wall-clock.
+    assert accessibility(1.0, 365, 0, cfg) < 0.001 * accessibility(1.0, 0, 0, cfg)
 
 
 def test_dedup_supersession(service, cfg):

@@ -257,10 +257,19 @@ def dispatch(event_name: str, payload: dict, cfg: Config | None = None) -> dict:
     return {}
 
 
+_LOG_MAX_BYTES = 5_000_000  # rotate at ~5 MB so the log can't grow unbounded over months
+
+
 def _log(cfg: Config, msg: str) -> None:
     try:
-        with open(cfg.log_path, "a", encoding="utf-8") as f:
-            from .models import utc_now_iso
+        from .models import utc_now_iso
+        p = cfg.log_path
+        try:
+            if p.exists() and p.stat().st_size > _LOG_MAX_BYTES:
+                p.replace(p.with_name(p.name + ".1"))  # keep one previous generation
+        except OSError:
+            pass
+        with open(p, "a", encoding="utf-8") as f:
             f.write(f"{utc_now_iso()} {msg}\n")
     except OSError:
         pass
