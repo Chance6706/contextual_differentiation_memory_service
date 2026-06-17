@@ -212,6 +212,22 @@ def _hook_command(event: str) -> str:
 
 
 def cmd_install(args) -> int:
+    scope = getattr(args, "scope", "project") or "project"
+    if scope == "user":
+        # Global wiring: active in EVERY project. Hooks -> ~/.claude/settings.json,
+        # MCP -> ~/.claude.json mcpServers (the user-scope registry).
+        home_claude = Path.home() / ".claude"
+        home_claude.mkdir(parents=True, exist_ok=True)
+        if not args.no_hooks:
+            _install_hooks(home_claude / "settings.json")
+            print(f"✓ user-scope hooks written to {home_claude / 'settings.json'}")
+        if not args.no_mcp:
+            _install_mcp_user(Path.home() / ".claude.json")
+            print(f"✓ user-scope MCP server written to {Path.home() / '.claude.json'}")
+        print("\nCDMS is now active across ALL your projects (one shared store at ~/.local_memory).")
+        print("Restart Claude Code; approve 'cdms-memory' once. Verify with `cdms doctor`.")
+        return 0
+
     project = Path(args.project or Path.cwd()).resolve()
     claude_dir = project / ".claude"
     claude_dir.mkdir(parents=True, exist_ok=True)
@@ -227,7 +243,25 @@ def cmd_install(args) -> int:
     print("  1. Restart Claude Code in this project (or run /hooks to reload).")
     print("  2. Approve the 'cdms-memory' MCP server when prompted (or `claude mcp list`).")
     print("  3. Run `cdms doctor` to verify, and `cdms stats` to watch memory grow.")
+    print("  (Tip: `cdms install --scope user` wires CDMS into ALL projects at once.)")
     return 0
+
+
+def _install_mcp_user(claude_json: Path) -> None:
+    """Register the MCP server at user scope by editing ~/.claude.json mcpServers.
+
+    Preserves every other key in the (large) global config file.
+    """
+    config = {}
+    if claude_json.exists():
+        try:
+            config = json.loads(claude_json.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            config = {}
+    servers = config.setdefault("mcpServers", {})
+    py, *rest = _python_invocation()
+    servers["cdms-memory"] = {"type": "stdio", "command": py, "args": rest + ["serve"], "env": {}}
+    claude_json.write_text(json.dumps(config, indent=2), encoding="utf-8")
 
 
 def _install_hooks(settings_path: Path) -> None:
@@ -270,30 +304,43 @@ def _install_mcp(mcp_path: Path) -> None:
     mcp_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
 
 
+def _remove_cdms_hooks(settings_path: Path) -> None:
+    if not settings_path.exists():
+        return
+    try:
+        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return
+    hooks = settings.get("hooks", {})
+    for event in list(hooks.keys()):
+        hooks[event] = [e for e in hooks[event] if not _is_cdms_entry(e)]
+        if not hooks[event]:
+            del hooks[event]
+    settings_path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    print(f"✓ removed CDMS hooks from {settings_path}")
+
+
+def _remove_cdms_mcp(json_path: Path) -> None:
+    if not json_path.exists():
+        return
+    try:
+        config = json.loads(json_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return
+    if config.get("mcpServers", {}).pop("cdms-memory", None) is not None:
+        json_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+        print(f"✓ removed cdms-memory MCP server from {json_path}")
+
+
 def cmd_uninstall(args) -> int:
+    scope = getattr(args, "scope", "project") or "project"
+    if scope == "user":
+        _remove_cdms_hooks(Path.home() / ".claude" / "settings.json")
+        _remove_cdms_mcp(Path.home() / ".claude.json")
+        return 0
     project = Path(args.project or Path.cwd()).resolve()
-    settings_path = project / ".claude" / "settings.json"
-    mcp_path = project / ".mcp.json"
-    if settings_path.exists():
-        try:
-            settings = json.loads(settings_path.read_text(encoding="utf-8"))
-            hooks = settings.get("hooks", {})
-            for event in list(hooks.keys()):
-                hooks[event] = [e for e in hooks[event] if not _is_cdms_entry(e)]
-                if not hooks[event]:
-                    del hooks[event]
-            settings_path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
-            print(f"✓ removed CDMS hooks from {settings_path}")
-        except json.JSONDecodeError:
-            pass
-    if mcp_path.exists():
-        try:
-            config = json.loads(mcp_path.read_text(encoding="utf-8"))
-            config.get("mcpServers", {}).pop("cdms-memory", None)
-            mcp_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
-            print(f"✓ removed cdms-memory MCP server from {mcp_path}")
-        except json.JSONDecodeError:
-            pass
+    _remove_cdms_hooks(project / ".claude" / "settings.json")
+    _remove_cdms_mcp(project / ".mcp.json")
     return 0
 
 
@@ -339,13 +386,16 @@ def build_parser() -> argparse.ArgumentParser:
     ing.add_argument("--failure", action="store_true")
     ing.set_defaults(func=cmd_ingest)
 
-    ins = sub.add_parser("install", help="wire CDMS into Claude Code for a project")
+    ins = sub.add_parser("install", help="wire CDMS into Claude Code (project or user scope)")
+    ins.add_argument("--scope", choices=["project", "user"], default="project",
+                     help="'project' (this repo only) or 'user' (ALL projects, shared store)")
     ins.add_argument("--project", default="", help="project dir (default: cwd)")
     ins.add_argument("--no-hooks", action="store_true")
     ins.add_argument("--no-mcp", action="store_true")
     ins.set_defaults(func=cmd_install)
 
-    un = sub.add_parser("uninstall", help="remove CDMS wiring from a project")
+    un = sub.add_parser("uninstall", help="remove CDMS wiring (project or user scope)")
+    un.add_argument("--scope", choices=["project", "user"], default="project")
     un.add_argument("--project", default="")
     un.set_defaults(func=cmd_uninstall)
 

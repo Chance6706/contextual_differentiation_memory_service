@@ -139,8 +139,9 @@ uv pip install -e .
 # 2. Verify the environment (checks SQLite >= 3.41, sqlite-vec, embedder)
 cdms doctor
 
-# 3. Wire CDMS into a project's Claude Code config (hooks + MCP server)
-cdms install --project /path/to/your/project
+# 3. Wire CDMS into Claude Code (hooks + MCP server)
+cdms install --project /path/to/your/project   # this repo only
+cdms install --scope user                       # ALL repos (one shared global store)
 
 # 4. Restart Claude Code in that project; approve the 'cdms-memory' MCP server.
 #    Watch memory accumulate:
