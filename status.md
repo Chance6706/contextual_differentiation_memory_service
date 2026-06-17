@@ -56,6 +56,8 @@ per-project psyches (trait overlap **0.00**).
 - Deference = **independence-within-limits** (archetype-dependent); dreams **cooler-but-integrative**.
 - Archetype drift = **bounded** ("anchored but evolving" at all 3 layers).
 - Multi-project budget = **capped-proportional** (cap default 50%, `project_budget_cap`).
+- Temperament drift log (the "degenerative orbit") = **deferred, not built** — instrument for an unbuilt machine, unfalsifiable per CLAUDE.md §9 (no real-history oracle). Recorded in `docs/DESIGN.md` §8.7 / §10.3. Reframed as *"drift decoupled from reality-coupling"*; degeneration is detectable from **trajectory statistics** coupled to the **outcome signal**, not the unbuilt provenance pillar. When/if built: **operator-only**, **structured-cause (not prose)**, **activity-clock-only**.
+- **Design fix to fold into the genotype layer (`§8.3` joint-leash):** per-dial bounds do **not** prevent *joint* corner-migration (a "Co-pilot" can drift into a functional "Maverick" corner); add a Euclidean/Mahalanobis **leash of `current` to the archetype `seed`** — the missing `conserve_budget` analog at the genotype layer. §1.3 "one law at every layer" is the target, not yet the spec (`DESIGN.md` §1.3, §8.3, §8.6).
 
 ## 🔲 OPEN — pick up here
 
@@ -68,6 +70,11 @@ per-project psyches (trait overlap **0.00**).
    invariant, provenance origin, drift, archetype coupling.
 3. Then: **start implementing** a pillar. Cheapest first = novelty-surfacing + gap-tracking
    (no models, Pattern-A-native), which the rest feeds.
+4. **Phenotype-drift trajectory** (`DESIGN.md` §8.7, §5.6) — cheapest *honest* next build and
+   the empirical input to (1): snapshot `Store.all_gist()` across K consolidation cycles over
+   real seeded history (`tools/seed_from_jsonl.py` → repeated `Consolidator.run`). **No new
+   table.** Falsifiable against the 0.00 real-project oracle. Answers "does identity
+   degenerate / homogenize over many nights?" using the *built* machine.
 
 ## Real-data findings (all fixed)
 
