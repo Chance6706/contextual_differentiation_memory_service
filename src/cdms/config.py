@@ -87,6 +87,12 @@ class Config:
     default_top_k: int = 8
     rrf_k: int = 60                     # reciprocal-rank-fusion constant for hybrid search
 
+    # ---- Input bounds ------------------------------------------------------
+    # Cap stored field length so a single huge note (MCP `store`, a multi-MB tool
+    # dump) cannot freeze the server on embedding or bloat the DB. Generous enough
+    # for any real turn; hook capture already pre-truncates via _brief.
+    max_field_chars: int = 4000
+
     # ---- Optional local "Dreamer" LLM (prose rendering only; never authoritative) ---
     dreamer_enabled: bool = False
     dreamer_base_url: str = "http://127.0.0.1:8081/v1"

@@ -122,12 +122,17 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     # Write path
     # ------------------------------------------------------------------ #
+    def _clip(self, text: str) -> str:
+        """Bound a stored field: redact secrets, then cap length (anti-DoS)."""
+        return redact_secrets(text or "")[: self.cfg.max_field_chars]
+
     def ingest(self, ev: TurnEvent) -> Episodic:
         self._reconcile_embedder()
-        # Scrub credentials before they are persisted / embedded / re-injected.
-        ev.trigger_prompt = redact_secrets(ev.trigger_prompt)
-        ev.action_taken = redact_secrets(ev.action_taken)
-        ev.outcome_feedback = redact_secrets(ev.outcome_feedback)
+        # Scrub credentials and cap size before anything is persisted / embedded /
+        # re-injected (a multi-MB field would otherwise freeze the embed + bloat DB).
+        ev.trigger_prompt = self._clip(ev.trigger_prompt)
+        ev.action_taken = self._clip(ev.action_taken)
+        ev.outcome_feedback = self._clip(ev.outcome_feedback)
         text = "\n".join(p for p in (ev.trigger_prompt, ev.action_taken, ev.outcome_feedback) if p)
         emb = self.embedder.embed_one(text)
 
@@ -230,8 +235,9 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     def pin_scar(self, crisis_trigger: str, remediation_rule: str, project: str = "") -> Scar:
         self._reconcile_embedder()
-        scar = Scar(id=new_id("scar"), crisis_trigger=crisis_trigger,
-                    remediation_rule=remediation_rule, project=project)
+        # Redact + cap: scars are re-injected into context at every SessionStart.
+        scar = Scar(id=new_id("scar"), crisis_trigger=self._clip(crisis_trigger),
+                    remediation_rule=self._clip(remediation_rule), project=project)
         emb = self.embedder.embed_one(scar.search_text())
         self.db.insert_scar(scar, emb)
         return scar
@@ -239,6 +245,8 @@ class MemoryService:
     def upsert_fact(self, subject: str, relation: str, object_: str,
                     valence: float = 0.0, project: str = "") -> Gist:
         self._reconcile_embedder()
+        # Redact + cap each field (facts feed the PersonaTree, rendered into context).
+        subject, relation, object_ = self._clip(subject), self._clip(relation), self._clip(object_)
         cycle = int(self.db.get_meta("cycle", "0") or "0")
         existing = self.db.find_gist_by_so(subject, object_)
         if existing:
