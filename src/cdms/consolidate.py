@@ -63,6 +63,9 @@ _STOPWORDS = {
     "workflow", "convention", "working", "note", "noted", "remember", "every",
     "before", "after", "small", "issue", "log", "exception", "build", "commit",
     "passed", "failed", "works", "correct", "updated", "update", "thing", "stuff",
+    # conversational + transcript/tool-call filler seen on real Claude Code logs
+    "let", "lets", "session", "activity", "assistant", "turn", "tool", "file_path",
+    "started", "going", "looks", "good", "okay", "yeah", "sure", "please",
 }
 
 
@@ -338,8 +341,16 @@ class Consolidator:
                 counts[tok] += 1
         if not counts:
             return None
-        top = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:2]
-        object_ = " ".join(t for t, _ in top)
+        # Pick up to two dominant terms, skipping singular/plural duplicates of an
+        # already-chosen term ("tiles"/"tile" -> one) so objects read cleanly.
+        picked: list[str] = []
+        for tok, _c in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            if any(tok == p or tok == p + "s" or p == tok + "s" for p in picked):
+                continue
+            picked.append(tok)
+            if len(picked) == 2:
+                break
+        object_ = " ".join(picked)
         if not object_:
             return None
 
