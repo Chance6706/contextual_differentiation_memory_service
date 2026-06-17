@@ -93,6 +93,13 @@ per-project psyches (trait overlap **0.00**).
    one valence-differentiated into handles_well / frequently_works_on / has_trouble_with);
    recall discriminates by project ("database migration"→alpha, "react component"→beta,
    "drift trajectory"→real). **Ready for the local CLI with more history and the sandbox.**
+6. ✅ **Integration surface verified** (the local-CLI wiring). `pip install -e .` (documented
+   in README) → all 38 tests pass with no `PYTHONPATH`; `cdms hook SessionStart` runs clean;
+   `cdms install --scope project` writes correct `.claude/settings.json` + `.mcp.json`;
+   `cdms serve` MCP handshake lists all 5 tools (store/retrieve/history/list_paths/create_link);
+   `cdms doctor` HEALTHY; the persistent store survives a cold reopen.
+   ⚠️ Hooks invoke `python -m cdms` — so **`pip install -e .` is mandatory** locally; a
+   source-only (`PYTHONPATH=src`) env would have silently no-op hooks.
 
 ## Real-data findings (all fixed)
 
