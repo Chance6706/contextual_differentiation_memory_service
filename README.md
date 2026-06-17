@@ -1,2 +1,230 @@
-# contextual_differentiation_memory_service
+# Contextual Differentiation Memory Service (CDMS)
 
+A **local-first, forgetting-driven cognitive memory daemon** for the
+[Claude Code](https://claude.com/claude-code) CLI.
+
+CDMS gives an otherwise stateless cloud reasoning model a persistent, evolving
+"Ego": it silently captures what happens across terminal sessions, lets those
+memories **decay** along an Ebbinghaus forgetting curve, and **consolidates** the
+survivors during idle "sleep" passes into a compact, structured identity. The
+service runs entirely on the **CPU (0 GPU VRAM)** so your GPU stays free for
+whatever else you run locally.
+
+> **Identity = f(History)** — identity does not come from perfect recall. It is
+> the structural residue left behind when a cheap, idiosyncratic *discard policy*
+> (`f`, the genotype) is applied to a unique lived history. Two CDMS instances fed
+> different histories diverge into different "selves." Forgetting is the feature.
+
+---
+
+## Why forgetting?
+
+An agent that retains every raw turn drowns in retrieval noise, memory
+interference, and context-window bloat — the *cognitive curse of perfect recall*.
+Human expertise comes from selective compression, not infinite logging. CDMS
+implements that compression as three hierarchical tiers, modeled on the
+complementary-learning-systems account of hippocampus → neocortex consolidation:
+
+```
+            HIERARCHICAL COGNITIVE MEMORY TIERING
+
+  L1  mem_episodic   raw turn-by-turn logs        high decay   (hippocampal trace)
+        │
+        │  ── asynchronous "sleep" consolidation ──►
+        ▼
+  L2  mem_gist       PersonaTree relational tuples  slow decay  (cortical gist)
+        │
+  L3  mem_scars      pinned crisis-remediation rules  no decay  (engineering pin)
+```
+
+---
+
+## Architecture
+
+```
+                         Claude Code CLI
+        ┌───────────────────────┴───────────────────────┐
+        │ lifecycle hooks (deterministic capture)        │ MCP stdio (model-driven)
+        ▼                                                ▼
+  SessionStart   PostToolUse   PreCompact/SessionEnd   store · retrieve · history
+  (inject ctx)   (spool turn)  (drain + consolidate)   list_paths · create_link
+        │              │              │                        │
+        └──────────────┴──────┬───────┴────────────────────────┘
+                              ▼
+                    ┌──────────────────────┐
+                    │   CDMS service        │  single `cdms` binary, subcommands
+                    │  ┌────────────────┐   │
+                    │  │ write path     │   │  surprisal-gated S0
+                    │  │ read path      │   │  hybrid recall + accessibility
+                    │  │ sleep/dream    │   │  evict · compete · renorm · gist
+                    │  └────────────────┘   │
+                    └──────────┬───────────┘
+                               ▼
+        SQLite (WAL) + sqlite-vec (cosine KNN) + FTS5 (BM25)   ·   CPU ONNX embedder
+                       ~/.local_memory/memory.db                  (fastembed, 0 VRAM)
+```
+
+### The cognitive model
+
+**Write-time salience (surprisal gating).** Every captured turn gets an initial
+salience `S0`. Goal-relevance is a *multiplicative veto* — a loud but irrelevant
+event is actively suppressed:
+
+```
+S0 = G_goal · (S_surprise + C_contingency + W_self-ref + A_affect)
+```
+
+Because Claude is a closed hosted model we cannot read its logit entropy, so the
+drivers are derived from signals the hooks *can* observe: **surprise** ≈ embedding
+novelty (cosine distance to the nearest existing memory); **contingency** ≈ did a
+state-mutating tool run and did it succeed; **self-reference** ≈ does the turn
+touch the agent's own rules/identity; **affect** ≈ lexical valence of the outcome.
+
+**Decay-driven accessibility.** Memories are never hard-deleted on read; they
+become progressively harder to reach (Ebbinghaus), with retrieval-induced
+reinforcement (the testing effect), saturated by a cap so one hot memory can't
+dominate attention:
+
+```
+A(m,t) = S0 · e^(−λt) · min(α^c, Cap)      λ ← 29-day half-life, α = 1.15, Cap = 2.0
+```
+
+**Sleep consolidation** (the "dreaming" pass), run at a rest boundary:
+
+1. **Scar elevation** — high-salience *negative* crises are pinned to L3 verbatim.
+2. **Temporal eviction** — episodes with `A(m,t) < floor` are permanently dropped.
+3. **Hierarchical competition** — session- then epoch-level softmax protects
+   highlights from quiet periods against a single noisy debugging marathon.
+4. **Conserved-budget renormalization** — all saliences are proportionally
+   rescaled to a fixed budget `K`. This *zero-sum* law (SHY-style synaptic
+   downscaling) makes runaway reinforcement — "neural howlround" — mathematically
+   impossible: boosting one memory forces unrelated stale ones to fade faster.
+5. **Mechanical tuple aggregation** — survivor clusters (pure vector geometry) are
+   distilled into de-adjectived `⟨Subject, Relation, Object, Valence, Frequency,
+   Support⟩` tuples with traceable support edges back to L1. The tuple is the
+   authoritative truth; prose is rendered on-the-fly at read time. Extraction is
+   **geometry/lexicon only** — the LLM never authors the tuple, which prevents
+   *generative self-fiction* (summarizing toward pretrained personality clichés).
+
+---
+
+## Claude Code integration
+
+CDMS hooks into Claude Code two ways, which work together:
+
+**1. Lifecycle hooks (deterministic, extractive capture).** Registered in
+`.claude/settings.json`. Capture never depends on the model *choosing* to call a
+tool:
+
+| Hook | What CDMS does |
+|---|---|
+| `SessionStart` | Injects guardrails (scars) + PersonaTree gist + recent salient activity as read-only `additionalContext`. Pure DB reads — no model load, instant. |
+| `UserPromptSubmit` | Spools the user's intent (anchors later tool turns). |
+| `PostToolUse` | Spools the tool trajectory + outcome (~100 ms, no model). |
+| `Stop` | Spools a turn boundary. |
+| `PreCompact` | Drains the spool and ingests before context is compacted. |
+| `SessionEnd` | Drains, ingests, and runs the full consolidation/dream pass. |
+
+**2. MCP stdio server (model-driven recall & notes).** Five tools, JSON-RPC 2.0:
+`store`, `retrieve`, `history`, `list_paths`, `create_link`. The model can
+explicitly save a fact/scar or query memory mid-task.
+
+### Quickstart
+
+```bash
+# 1. Install (uv recommended). From the repo root:
+uv venv --python 3.11
+uv pip install -e .
+
+# 2. Verify the environment (checks SQLite >= 3.41, sqlite-vec, embedder)
+cdms doctor
+
+# 3. Wire CDMS into a project's Claude Code config (hooks + MCP server)
+cdms install --project /path/to/your/project
+
+# 4. Restart Claude Code in that project; approve the 'cdms-memory' MCP server.
+#    Watch memory accumulate:
+cdms stats
+cdms retrieve "what do I know about the build system"
+```
+
+`cdms install` writes `.claude/settings.json` (hooks) and `.mcp.json` (the MCP
+server entry) into the target project, pointing at the current Python
+interpreter. `cdms uninstall --project ...` removes both cleanly.
+
+### CLI reference
+
+```
+cdms serve              run the MCP stdio server (used by Claude Code)
+cdms hook <Event>       handle a lifecycle hook (reads JSON on stdin)
+cdms consolidate        drain the queue and run the sleep/dream pass
+cdms drain              ingest spooled events without consolidating
+cdms retrieve <q> [-k]  query memory from the terminal
+cdms history [-n]       recent episodic timeline
+cdms paths              show the PersonaTree (subject/relation) paths
+cdms stats              store statistics
+cdms doctor             verify environment + warm the embedder
+cdms install/uninstall  wire/unwire CDMS into a project's Claude Code config
+cdms ingest ...         manually ingest a turn (scripting/testing)
+```
+
+### Configuration
+
+All cognitive parameters live in `cdms/config.py` and are overridable via
+`CDMS_*` environment variables or `$CDMS_HOME/config.json`. Highlights:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `CDMS_HOME` | `~/.local_memory` | Data directory (DB, queue, logs). |
+| `CDMS_EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | CPU ONNX embedding model. |
+| `CDMS_EMBED_DIM` | `384` | Vector dimension (must match the model). |
+| `CDMS_DECAY_HALFLIFE_DAYS` | `29` | Forgetting-curve half-life. |
+| `CDMS_RETENTION_FLOOR` | `0.10` | Accessibility below which episodes are evictable. |
+| `CDMS_CRISIS_THRESHOLD` | `3.0` | S0 above which a *negative* event becomes a scar. |
+| `CDMS_SALIENCE_BUDGET` | `1000` | Conserved global salience `K`. |
+| `CDMS_EMBED_BACKEND` | _(unset)_ | Set to `hash` to force the offline deterministic embedder (tests/CI). |
+
+---
+
+## Hardware & the 12 GB VRAM budget
+
+The memory service itself uses **0 GB VRAM** — embeddings run on CPU via ONNX
+Runtime. The 12 GB budget only matters for *optional* local models:
+
+* **Dreamer (optional):** a small consolidation LLM for nicer gist prose, e.g.
+  `llama-3.2-3b-instruct` Q4 (~2–3 GB). CDMS works fully without it (tuple
+  extraction is mechanical by design).
+* **Pattern B (not required for Claude Code):** if you instead drive a *local*
+  open-weights model (Ollama / llama.cpp), CDMS can act as an OpenAI-compatible
+  proxy. For a 12 GB card, a realistic primary coder is `Qwen2.5-Coder-14B` Q4
+  (~9 GB) or `-7B` Q4 (~5.7 GB). **30B/32B-class models do *not* fit at Q4 in
+  12 GB.** With Claude Code (Pattern A) the cloud model does all reasoning, so no
+  local primary model is needed at all.
+
+See [`docs/VALIDATION.md`](docs/VALIDATION.md) for the full research-backed
+review of the original design doc, including corrections.
+
+---
+
+## Development
+
+```bash
+uv pip install -e ".[dev]"
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # 27 tests, offline, no downloads
+```
+
+The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use
+a deterministic hashing embedder so they run offline.
+
+## Status & roadmap
+
+This is a working reference implementation (Python). Per the spec's
+production-hardening directive, a future pass could rewrite the daemon in Rust/Go
+for a single ~27 MB dependency-free binary and `<40 MB` RAM footprint; the
+algorithms and schema port directly. AES-256-GCM at-rest encryption and a
+loopback HTTP/REST surface are also on the roadmap. The current build binds no
+network sockets (MCP is stdio; data is a local SQLite file).
+
+## License
+
+MIT

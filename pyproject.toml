@@ -1,0 +1,38 @@
+[project]
+name = "cdms"
+version = "0.1.0"
+description = "Contextual Differentiation Memory Service — a local-first, forgetting-driven memory daemon for Claude Code CLI"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Josh Nissen" }]
+keywords = ["memory", "claude-code", "mcp", "sqlite-vec", "agent", "consolidation"]
+
+# Runtime dependencies are intentionally lean. The memory service runs entirely
+# on CPU (0 GPU VRAM) per design directive #4.
+dependencies = [
+    "mcp>=1.28,<2",        # Official MCP SDK (FastMCP stdio server); v2 alpha pinned out
+    "sqlite-vec>=0.1.9",   # In-process vector search extension (>=0.1.9 has the DELETE fix)
+    "fastembed>=0.4.0",    # CPU-only ONNX text embeddings (onnxruntime backed)
+    "numpy>=1.26",         # Vector math for clustering / softmax / RRF
+]
+
+[project.optional-dependencies]
+# Optional local "Dreamer" LLM client for prose rendering of gist tuples and
+# richer consolidation. Talks to any OpenAI-compatible endpoint (llama.cpp / Ollama).
+dream = ["httpx>=0.27"]
+dev = ["pytest>=8.0", "httpx>=0.27"]
+
+[project.scripts]
+cdms = "cdms.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cdms"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

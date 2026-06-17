@@ -1,0 +1,283 @@
+"""Asynchronous sleep-consolidation: the physical lifecycle of memory.
+
+Triggered at a "rest boundary" (session end / terminal idle), this runs the five
+algorithmic steps that turn a noisy episodic log into a compact, differentiated
+identity:
+
+    1. Flashbulb scar elevation   — pin crisis episodes as permanent guardrails
+    2. Temporal eviction          — delete episodes that have decayed out of reach
+    3. Hierarchical competition   — session- then epoch-level softmax to protect
+                                    highlights from quiet periods
+    4. Conserved-budget renorm    — SHY-style proportional downscaling to K_budget
+    5. Mechanical tuple aggregation— geometry-only gist extraction (no LLM imagination)
+
+Step 5 deliberately extracts structural invariants from the raw logs rather than
+asking an LLM to "summarize", which would invite generative self-fiction. The
+optional Dreamer LLM is used *only* to render prose at read time, never to author
+the authoritative tuple.
+"""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+
+import numpy as np
+
+from .config import Config
+from .db import Database
+from .embeddings import Embedder, cosine, get_embedder
+from .models import Episodic, Gist, Scar, new_id
+from .salience import (
+    accessibility,
+    age_days,
+    conserve_budget,
+    hierarchical_competition,
+)
+
+_STOPWORDS = {
+    "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in", "on",
+    "for", "with", "is", "are", "was", "were", "be", "been", "it", "this", "that",
+    "i", "you", "we", "they", "he", "she", "as", "at", "by", "from", "up", "out",
+    "so", "do", "does", "did", "not", "no", "yes", "can", "will", "would", "should",
+    "have", "has", "had", "get", "got", "use", "used", "using", "run", "ran",
+    "file", "files", "code", "line", "lines", "add", "added", "set", "new", "now",
+    "make", "made", "want", "need", "like", "just", "also", "into", "out", "your",
+    "what", "when", "where", "which", "how", "why", "all", "any", "more", "some",
+}
+
+
+@dataclass
+class ConsolidationReport:
+    scars_created: int = 0
+    episodes_evicted: int = 0
+    deduped: int = 0
+    gists_created: int = 0
+    gists_reinforced: int = 0
+    episodes_remaining: int = 0
+    clusters: int = 0
+    notes: list[str] = field(default_factory=list)
+
+    def as_dict(self) -> dict:
+        return {
+            "scars_created": self.scars_created,
+            "episodes_evicted": self.episodes_evicted,
+            "deduped": self.deduped,
+            "gists_created": self.gists_created,
+            "gists_reinforced": self.gists_reinforced,
+            "episodes_remaining": self.episodes_remaining,
+            "clusters": self.clusters,
+            "notes": self.notes,
+        }
+
+
+class Consolidator:
+    def __init__(self, cfg: Config, db: Database | None = None, embedder: Embedder | None = None):
+        self.cfg = cfg
+        self.db = db or Database(cfg)
+        self.embedder = embedder or get_embedder(cfg)
+
+    def run(self, now: datetime | None = None) -> ConsolidationReport:
+        now = now or datetime.now(timezone.utc)
+        rep = ConsolidationReport()
+
+        episodes = self.db.all_episodic()
+        if not episodes:
+            rep.notes.append("no episodic memories; nothing to consolidate")
+            return rep
+
+        self._elevate_scars(episodes, rep)
+        episodes = self.db.all_episodic()  # refresh after scar removal
+
+        self._dedup(episodes, rep)
+        episodes = self.db.all_episodic()
+
+        evicted = self._evict(episodes, now, rep)
+        episodes = [e for e in episodes if e.id not in evicted]
+
+        self._compete_and_renormalize(episodes, rep)
+        episodes = self.db.all_episodic()
+
+        self._aggregate_gists(episodes, rep)
+
+        rep.episodes_remaining = len(self.db.all_episodic())
+        return rep
+
+    # -- Step 1: Flashbulb scar elevation ---------------------------------- #
+    def _elevate_scars(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
+        for e in episodes:
+            # A scar is a *negative* crisis (failure/warning/severe error), not just
+            # any high-salience memory. Positive high-salience patterns flow to gist.
+            if e.base_salience >= self.cfg.crisis_threshold and e.valence <= self.cfg.crisis_valence_max:
+                scar = Scar(
+                    id=new_id("scar"),
+                    crisis_trigger=e.trigger_prompt[:500],
+                    remediation_rule=(e.outcome_feedback or e.action_taken)[:500],
+                    project=e.project,
+                )
+                emb = self.db.get_embedding("episodic", e.id)
+                if emb is None:
+                    emb = self.embedder.embed_one(scar.search_text())
+                self.db.insert_scar(scar, emb)
+                self.db.delete_episodic([e.id])
+                rep.scars_created += 1
+
+    # -- Step 2a: Deduplication / supersession ----------------------------- #
+    def _dedup(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
+        vecs = self._embeddings_for(episodes)
+        keep: list[tuple[Episodic, np.ndarray]] = []
+        to_delete: list[str] = []
+        for e, v in zip(episodes, vecs):
+            dup_of = None
+            for ke, kv in keep:
+                if cosine(v, kv) >= self.cfg.dedup_sim_threshold:
+                    dup_of = ke
+                    break
+            if dup_of is not None:
+                # supersede: fold access + salience into the survivor, drop the dup
+                survivor = self.db.get_episodic(dup_of.id)
+                if survivor is not None:
+                    merged = max(survivor.base_salience, e.base_salience)
+                    self.db.set_salience([(survivor.id, merged)])
+                    self.db.touch_episodic(survivor.id, survivor.timestamp)
+                to_delete.append(e.id)
+            else:
+                keep.append((e, v))
+        if to_delete:
+            rep.deduped = self.db.delete_episodic(to_delete)
+
+    # -- Step 2: Temporal eviction ----------------------------------------- #
+    def _evict(self, episodes: list[Episodic], now: datetime, rep: ConsolidationReport) -> set[str]:
+        doomed: list[str] = []
+        for e in episodes:
+            acc = accessibility(e.base_salience, age_days(e.timestamp, now), e.access_count, self.cfg)
+            if acc < self.cfg.retention_floor:
+                doomed.append(e.id)
+        rep.episodes_evicted = self.db.delete_episodic(doomed)
+        return set(doomed)
+
+    # -- Step 3 + 4: Competition then conserved-budget renormalization ----- #
+    def _compete_and_renormalize(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
+        if not episodes:
+            return
+        # Step 3: hierarchical softmax competition over sessions / epoch.
+        grouped: dict[str, list[tuple[str, float]]] = defaultdict(list)
+        for e in episodes:
+            grouped[e.session_id or "_"].append((e.id, e.base_salience))
+        comp = hierarchical_competition(grouped)
+        # Fold competition score in multiplicatively (winners retain more salience).
+        boosted = {e.id: e.base_salience * (0.5 + comp.get(e.id, 0.0)) for e in episodes}
+
+        # Step 4: SHY-style proportional renormalization to the conserved budget.
+        ids = list(boosted.keys())
+        renorm = conserve_budget([boosted[i] for i in ids], self.cfg.salience_budget)
+        self.db.set_salience(list(zip(ids, renorm)))
+        rep.notes.append(f"renormalized {len(ids)} episodes to K_budget={self.cfg.salience_budget:g}")
+
+    # -- Step 5: Mechanical tuple aggregation (gist extraction) ------------ #
+    def _aggregate_gists(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
+        if len(episodes) < self.cfg.min_cluster_support:
+            return
+        vecs = self._embeddings_for(episodes)
+        clusters = self._greedy_cluster(list(zip(episodes, vecs)))
+        rep.clusters = len(clusters)
+
+        for members in clusters:
+            if len(members) < self.cfg.min_cluster_support:
+                continue
+            tuple_ = self._extract_tuple(members)
+            if tuple_ is None:
+                continue
+            subject, relation, object_, valence = tuple_
+            existing = self.db.find_gist_by_tuple(subject, relation, object_)
+            if existing:
+                existing.frequency += 1
+                existing.support_count = max(existing.support_count, len(members))
+                existing.survived_cycles += 1
+                existing.valence = 0.5 * existing.valence + 0.5 * valence
+                emb = self.embedder.embed_one(existing.search_text())
+                self.db.insert_gist(existing, emb)
+                rep.gists_reinforced += 1
+                gid = existing.id
+            else:
+                g = Gist(id=new_id("gist"), subject=subject, relation=relation, object=object_,
+                         valence=valence, frequency=1, support_count=len(members),
+                         project=members[0][0].project)
+                emb = self.embedder.embed_one(g.search_text())
+                self.db.insert_gist(g, emb)
+                rep.gists_created += 1
+                gid = g.id
+            # traceable support edges L1 -> L2
+            for e, _v in members:
+                self.db.add_support_edge(e.id, gid)
+
+    def _greedy_cluster(self, items: list[tuple[Episodic, np.ndarray]]) -> list[list[tuple[Episodic, np.ndarray]]]:
+        clusters: list[list[tuple[Episodic, np.ndarray]]] = []
+        centroids: list[np.ndarray] = []
+        for e, v in items:
+            best, best_sim = -1, -1.0
+            for ci, c in enumerate(centroids):
+                s = cosine(v, c)
+                if s > best_sim:
+                    best_sim, best = s, ci
+            if best >= 0 and best_sim >= self.cfg.cluster_sim_threshold:
+                clusters[best].append((e, v))
+                members = clusters[best]
+                centroids[best] = np.mean([m[1] for m in members], axis=0)
+            else:
+                clusters.append([(e, v)])
+                centroids.append(v.astype(np.float32))
+        return clusters
+
+    def _extract_tuple(self, members: list[tuple[Episodic, np.ndarray]]) -> tuple[str, str, str, float] | None:
+        """Geometry-first, lexicon-only SRO extraction (no generative imagination).
+
+        Subject  = the stable entity (project/workspace).
+        Object   = the cluster's dominant content term(s).
+        Relation = derived from the cluster's mean affect sign (outcome valence).
+        """
+        eps = [e for e, _ in members]
+        valence = float(np.mean([e.valence for e in eps]))
+
+        counts: dict[str, int] = defaultdict(int)
+        for e in eps:
+            for tok in _content_terms(e.search_text()):
+                counts[tok] += 1
+        if not counts:
+            return None
+        top = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:2]
+        object_ = " ".join(t for t, _ in top)
+        if not object_:
+            return None
+
+        subject = (eps[0].project.replace("\\", "/").rstrip("/").split("/")[-1] or "workspace")
+        if valence > 0.15:
+            relation = "handles_well"
+        elif valence < -0.15:
+            relation = "has_trouble_with"
+        else:
+            relation = "frequently_works_on"
+        return subject, relation, object_, valence
+
+    # -- helpers ----------------------------------------------------------- #
+    def _embeddings_for(self, episodes: list[Episodic]) -> list[np.ndarray]:
+        vecs: list[np.ndarray] = []
+        for e in episodes:
+            v = self.db.get_embedding("episodic", e.id)
+            if v is None:
+                v = self.embedder.embed_one(e.search_text())
+            vecs.append(np.asarray(v, dtype=np.float32))
+        return vecs
+
+    def close(self) -> None:
+        self.db.close()
+
+
+def _content_terms(text: str) -> list[str]:
+    out = []
+    for raw in "".join(c.lower() if (c.isalnum() or c in "._/-") else " " for c in text).split():
+        tok = raw.strip("._/-")
+        if len(tok) > 2 and tok not in _STOPWORDS and not tok.isdigit():
+            out.append(tok)
+    return out
