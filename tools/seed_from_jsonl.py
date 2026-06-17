@@ -71,14 +71,11 @@ def tool_results(content) -> str:
 
 
 def infer_success(text: str):
-    low = text.lower()
-    e = any(m in low for m in _ERR)
-    o = any(m in low for m in _OK)
-    if e and not o:
-        return False
-    if o and not e:
-        return True
-    return None
+    # Reuse the negation-aware inference from the live capture path so seeded
+    # history is labelled the same way the daemon would (a negation-blind copy
+    # inverted "no errors found" -> failure, poisoning seeded valence/traits).
+    from cdms.pipeline import _infer_success
+    return _infer_success(text)
 
 
 def _brief(s: str, n: int) -> str:
@@ -144,10 +141,14 @@ def parse_file(path: Path, mc: int, remaining: int = 0) -> list[TurnEvent]:
                 ev = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if not isinstance(ev, dict):   # a top-level array/scalar line -> skip, don't crash
+                continue
             typ = ev.get("type")
             if typ not in ("user", "assistant"):
                 continue
-            msg = ev.get("message") or {}
+            msg = ev.get("message")
+            if not isinstance(msg, dict):
+                continue
             content = msg.get("content")
             ts = ev.get("timestamp")
             sid = ev.get("sessionId") or path.stem
@@ -200,8 +201,14 @@ def main() -> int:
     t0 = time.time()
     total = 0
     by_project: dict[str, int] = {}
+    skipped = 0
     for i, fp in enumerate(files, 1):
-        n = process_file(fp, svc, args.max_chars, args.limit)
+        try:                               # per-file isolation: one bad file must not
+            n = process_file(fp, svc, args.max_chars, args.limit)
+        except Exception as exc:           # abort the whole multi-file seed
+            skipped += 1
+            print(f"  ! skipped {fp}: {exc}")
+            continue
         total += n
         by_project[project_of(fp)] = by_project.get(project_of(fp), 0) + n
         if i % 5 == 0 or i == len(files):

@@ -27,6 +27,26 @@ __all__ = ["spool_event", "reconstruct_turns", "drain_and_ingest"]
 _ERR_MARKERS = ("error", "failed", "failure", "exception", "traceback", "fatal",
                 "denied", "cannot", "not found", "no such", "panic")
 _OK_MARKERS = ("passed", "success", "succeeded", "ok", "done", "completed", "0 errors")
+_NEGATORS = ("no", "not", "zero", "without", "n't", "free of", "free from")
+# Phrases where an _ERR token actually signals the GOOD outcome (bug is gone).
+_POSITIVE_OVERRIDE = ("cannot reproduce", "can't reproduce", "cannot repro", "no longer fails",
+                      "no longer errors", "works fine", "works as expected", "no errors")
+
+
+def _marker_unnegated(low: str, marker: str) -> bool:
+    """True if ``marker`` occurs at least once NOT immediately preceded by a negator.
+
+    'no errors found' / 'zero failures' / 'without errors' should not count as
+    failure — negation-blind matching otherwise inverts a success into a failure
+    and poisons the stored valence (which the gist-relation and temperament layers
+    depend on)."""
+    i = low.find(marker)
+    while i != -1:
+        window = low[max(0, i - 10):i]
+        if not any(n in window for n in _NEGATORS):
+            return True
+        i = low.find(marker, i + 1)
+    return False
 
 
 def _brief(value, limit: int = 300) -> str:
@@ -39,9 +59,15 @@ def _brief(value, limit: int = 300) -> str:
 
 
 def _infer_success(text: str) -> Optional[bool]:
+    """Best-effort, NEGATION-AWARE success inference. Deliberately conservative:
+    when the signal is mixed/ambiguous it returns None (a weak/neutral signal) rather
+    than guessing — an inverted guess is worse than no guess. This is a crude lexical
+    proxy (the design says so) and must never be the sole driver of temperament drift."""
     low = text.lower()
-    has_err = any(m in low for m in _ERR_MARKERS)
-    has_ok = any(m in low for m in _OK_MARKERS)
+    if any(p in low for p in _POSITIVE_OVERRIDE):
+        return True
+    has_err = any(_marker_unnegated(low, m) for m in _ERR_MARKERS)
+    has_ok = any(_marker_unnegated(low, m) for m in _OK_MARKERS)
     if has_err and not has_ok:
         return False
     if has_ok and not has_err:
