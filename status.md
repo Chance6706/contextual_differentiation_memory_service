@@ -32,7 +32,8 @@ per-project psyches (trait overlap **0.00**).
   `cdms install --scope project|user`.
 - **Tooling** — `tools/seed_from_hermes.py`, `tools/seed_from_jsonl.py` (imports
   `~/.claude/projects/**/*.jsonl`), `tools/individuation_experiment.py`,
-  `tools/analyze_psyches.py`.
+  `tools/analyze_psyches.py`, `tools/drift_trajectory.py` (self-validating
+  phenotype-drift trajectory across consolidation cycles; see below).
 
 ## 📐 Designed, documented, NOT built (`docs/DESIGN.md` §6–§8)
 
@@ -70,11 +71,15 @@ per-project psyches (trait overlap **0.00**).
    invariant, provenance origin, drift, archetype coupling.
 3. Then: **start implementing** a pillar. Cheapest first = novelty-surfacing + gap-tracking
    (no models, Pattern-A-native), which the rest feeds.
-4. **Phenotype-drift trajectory** (`DESIGN.md` §8.7, §5.6) — cheapest *honest* next build and
-   the empirical input to (1): snapshot `Store.all_gist()` across K consolidation cycles over
-   real seeded history (`tools/seed_from_jsonl.py` → repeated `Consolidator.run`). **No new
-   table.** Falsifiable against the 0.00 real-project oracle. Answers "does identity
-   degenerate / homogenize over many nights?" using the *built* machine.
+4. ✅ **Phenotype-drift trajectory — DONE** (`tools/drift_trajectory.py`; `DESIGN.md` §8.7).
+   Self-validating harness (built posit→break→build→break→fix): snapshots
+   `Store.all_gist()` across K cycles, **no new table**. Every detector is proven to fire
+   on a matched control — EROSION (deep absence → 0), THRASH (in-place relation flip →
+   persistence 1.00→0.00), DIFFERENTIATION (clone overlap ~0.76 vs distinct ~0.11).
+   Findings: steady-state identity persists & stays individuated; absence fades only
+   late/gracefully (onset past ~137 cycles), confirming the §5.3 invariant. Deterministic
+   under `CDMS_EMBED_BACKEND=hash`. **Next on this thread:** run the same trajectory over
+   *real* seeded history (`tools/seed_from_jsonl.py` output) for the real-project oracle.
 
 ## Real-data findings (all fixed)
 
