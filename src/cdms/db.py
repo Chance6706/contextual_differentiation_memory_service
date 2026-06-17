@@ -28,7 +28,11 @@ from .models import Episodic, Gist, Scar, utc_now_iso
 
 SCHEMA_VERSION = 3
 
-_FTS_TOKEN = re.compile(r"[A-Za-z0-9_]+")
+# Unicode-aware: the FTS5 index uses unicode61 and DOES store non-Latin terms, but
+# an ASCII-only token pattern stripped Cyrillic/CJK/accented queries to an empty
+# MATCH — so those users silently lost the BM25 arm of hybrid recall. \w (+UNICODE)
+# still excludes quotes/operators/parens, so the query stays injection-safe.
+_FTS_TOKEN = re.compile(r"\w+", re.UNICODE)
 
 
 def _ddl(dim: int) -> list[str]:

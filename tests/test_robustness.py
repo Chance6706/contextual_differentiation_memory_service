@@ -54,6 +54,18 @@ def test_atomic_write_concurrent_no_race_no_leftover(tmp_path):
     assert not list(tmp_path.glob("*.tmp"))                            # no orphaned temp
 
 
+def test_fts_handles_non_latin_queries(cfg):
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    try:
+        svc.ingest(TurnEvent(trigger_prompt="исправил парсер", action_taken="отладка парсера",
+                             outcome_feedback="готово", project="p"))
+        assert len(svc.db.fts("episodic", "парсер", 10)) == 1   # Cyrillic reaches the index
+        q = svc.db._fts_query('"; DROP TABLE x; -- парсер')      # still injection-safe
+        assert "DROP" in q and '";' not in q and "--" not in q
+    finally:
+        svc.close()
+
+
 def test_create_link_validates_endpoints(cfg):
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
