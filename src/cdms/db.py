@@ -431,12 +431,17 @@ class Database:
             c.execute(f"DELETE FROM fts_scars WHERE id IN ({q})", ids)
         return len(ids)
 
-    def add_support_edge(self, leaf_id: str, gist_id: str) -> None:
+    def exists(self, table: str, item_id: str) -> bool:
+        t = {"episodic": "mem_episodic", "gist": "mem_gist", "scar": "mem_scars"}[table]
+        return self.conn.execute(f"SELECT 1 FROM {t} WHERE id = ? LIMIT 1", (item_id,)).fetchone() is not None
+
+    def add_support_edge(self, leaf_id: str, gist_id: str) -> bool:
         with self.tx() as c:
-            c.execute(
+            cur = c.execute(
                 "INSERT OR IGNORE INTO mem_support_edges(source_leaf_id, target_gist_id) VALUES (?, ?)",
                 (leaf_id, gist_id),
             )
+            return cur.rowcount > 0
 
     def list_paths(self, project: str | None = None) -> list[tuple[str, str, int]]:
         """PersonaTree paths: distinct (subject, relation) with aggregate support."""

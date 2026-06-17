@@ -14,6 +14,7 @@ import contextlib
 import logging
 import os
 import sys
+import threading
 
 # Keep stdout pristine for JSON-RPC and silence HF download bars BEFORE imports.
 os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
@@ -38,11 +39,18 @@ _CFG = load_config()
 # across projects in a shared (`--scope user`) store.
 _LAUNCH_CWD = os.getcwd()
 _SERVICE: MemoryService | None = None
+_SERVICE_LOCK = threading.Lock()
 
 
 def service() -> MemoryService:
     global _SERVICE
-    if _SERVICE is None:
+    if _SERVICE is not None:
+        return _SERVICE
+    # Double-checked lock: avoid two concurrent first-calls each building a separate
+    # MemoryService (and leaking SQLite connections).
+    with _SERVICE_LOCK:
+        if _SERVICE is not None:
+            return _SERVICE
         # Warm the (CPU-only) embedder with stdout redirected to stderr so any
         # first-run model download chatter cannot corrupt the JSON-RPC stream.
         svc = MemoryService(_CFG)
@@ -50,9 +58,14 @@ def service() -> MemoryService:
             try:
                 svc.embedder.embed_one("warmup")
             except Exception as exc:  # pragma: no cover - non-fatal
-                log.warning("embedder warmup failed (%s); using fallback", exc)
+                # The hash fallback was removed (no silent space contamination), so a
+                # failure here means vector tools (store/retrieve) will return errors
+                # until the model is reachable or CDMS_EMBED_BACKEND=hash is set.
+                # Non-vector tools (history/list_paths/create_link) still work.
+                log.error("embedder unavailable (%s): vector tools disabled until the model "
+                          "is reachable or CDMS_EMBED_BACKEND=hash is set", exc)
         _SERVICE = svc
-    return _SERVICE
+        return _SERVICE
 
 
 # --------------------------------------------------------------------------- #

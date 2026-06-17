@@ -50,11 +50,22 @@ def _read_json_safe(path: Path) -> dict:
 
 
 def _atomic_write_json(path: Path, obj) -> None:
-    """Write JSON via a temp file + os.replace so a crash/disk-full mid-write can
-    never leave the user's settings truncated or empty."""
-    tmp = path.with_name(path.name + ".cdms-tmp")
-    tmp.write_text(json.dumps(obj, indent=2), encoding="utf-8")
-    os.replace(tmp, path)
+    """Write JSON via a UNIQUE temp file + os.replace so a crash/disk-full mid-write
+    can never leave the user's settings truncated, and two concurrent writers don't
+    race a shared temp name. The temp is same-directory (same fs => atomic replace)."""
+    import tempfile
+
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(json.dumps(obj, indent=2))
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 HOOK_EVENTS = {
     "SessionStart": 30,

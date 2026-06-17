@@ -369,8 +369,15 @@ class MemoryService:
         return self.db.list_paths()
 
     def create_link(self, source_id: str, target_id: str) -> bool:
-        self.db.add_support_edge(source_id, target_id)
-        return True
+        # Validate both endpoints exist before linking — otherwise dangling/typo'd
+        # edges silently inflate support_count and pollute provenance (foreign_keys
+        # is a no-op on the FK-less edges table). Source = an L1 leaf or L2 gist;
+        # target = an L2 gist. Returns whether an edge was actually created.
+        if not (self.db.exists("episodic", source_id) or self.db.exists("gist", source_id)):
+            return False
+        if not self.db.exists("gist", target_id):
+            return False
+        return self.db.add_support_edge(source_id, target_id)
 
     # ------------------------------------------------------------------ #
     # Deletion / right-to-forget (operator-only; not exposed to the model)

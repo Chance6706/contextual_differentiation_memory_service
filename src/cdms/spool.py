@@ -25,6 +25,13 @@ def spool_event(cfg: Config, payload: dict) -> None:
     data = (json.dumps(payload, ensure_ascii=False, default=str) + "\n").encode("utf-8")
     fd = os.open(cfg.queue_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
     try:
-        os.write(fd, data)
+        # Loop until the whole record (incl. its trailing newline) is written.
+        # os.write may short-write under RLIMIT_FSIZE / ENOSPC / EINTR; a single
+        # call could leave a newline-less partial line that swallows the NEXT
+        # event when it concatenates onto it. The loop guarantees the newline lands.
+        view = memoryview(data)
+        off = 0
+        while off < len(view):
+            off += os.write(fd, view[off:])
     finally:
         os.close(fd)
