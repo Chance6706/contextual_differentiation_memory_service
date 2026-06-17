@@ -154,6 +154,32 @@ class Database:
         with self.tx() as c:
             c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES (?, ?)", (key, str(value)))
 
+    def reconcile_embedder(self, fingerprint: str) -> None:
+        """Pin the embedder's vector-space identity on first write; refuse to mix.
+
+        The hash fallback and the real fastembed model produce geometrically
+        incompatible vectors of the same dimension. Mixing them in one store
+        silently destroys cosine recall forever. We record ``{backend:model:dim}``
+        the first time a store is written and raise on any later mismatch, so a
+        backend/model/dimension change is caught at open instead of corrupting
+        recall row-by-row.
+        """
+        pinned = self.get_meta("embed_fingerprint")
+        if pinned is None:
+            # First reconciliation. If the store predates pinning and already
+            # holds vectors, we cannot retro-verify their space — adopt the
+            # current fingerprint so all FUTURE writes stay consistent.
+            self.set_meta("embed_fingerprint", fingerprint)
+            return
+        if pinned != fingerprint:
+            raise RuntimeError(
+                f"Embedding-space mismatch: this store was built with "
+                f"'{pinned}' but the current embedder is '{fingerprint}'. "
+                f"Refusing to mix incompatible vector spaces (it would silently "
+                f"corrupt recall). Use the original backend/model/dim, or rebuild "
+                f"the store from scratch."
+            )
+
     @contextmanager
     def tx(self) -> Iterator[sqlite3.Connection]:
         """Transaction context; commits on success, rolls back on error."""
@@ -341,9 +367,18 @@ class Database:
                 f"SELECT id, distance FROM {vt} WHERE embedding MATCH ? AND k = ? ORDER BY distance",
                 (blob, k),
             ).fetchall()
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as exc:
+            # A dimension mismatch is a real misconfiguration (wrong embed_dim
+            # against a baked vec0 table), not an empty result — surface it
+            # loudly instead of silently "remembering nothing". Other operational
+            # errors (malformed tier query) still degrade to the other arm.
+            if "dimension" in str(exc).lower():
+                raise
             return []
-        return [(r["id"], float(r["distance"])) for r in rows]
+        # Defensive: a stored degenerate (zero) vector returns distance=NULL,
+        # which would crash float(None). The embedder now prevents zero vectors,
+        # but skip any NULL here so a legacy bad row can't poison the tier.
+        return [(r["id"], float(r["distance"])) for r in rows if r["distance"] is not None]
 
     def fts(self, tier: str, query_text: str, k: int) -> list[tuple[str, float]]:
         """BM25 keyword search within a tier. Returns [(id, bm25)] (lower = better)."""

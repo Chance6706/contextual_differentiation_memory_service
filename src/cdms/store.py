@@ -73,11 +73,25 @@ class MemoryService:
         self.cfg = cfg
         self.db = db or Database(cfg)
         self.embedder = embedder or get_embedder(cfg)
+        self._reconciled = False
+
+    def _reconcile_embedder(self) -> None:
+        """Verify the embedder's vector space matches the store, once per service.
+
+        Called lazily on the first vector-producing operation (not in __init__),
+        so the SessionStart read path — pure DB reads, no model — never loads the
+        model or triggers this check.
+        """
+        if self._reconciled:
+            return
+        self.db.reconcile_embedder(self.embedder.fingerprint())
+        self._reconciled = True
 
     # ------------------------------------------------------------------ #
     # Write path
     # ------------------------------------------------------------------ #
     def ingest(self, ev: TurnEvent) -> Episodic:
+        self._reconcile_embedder()
         text = "\n".join(p for p in (ev.trigger_prompt, ev.action_taken, ev.outcome_feedback) if p)
         emb = self.embedder.embed_one(text)
 
@@ -179,6 +193,7 @@ class MemoryService:
     # Explicit pins (scars) and facts (gist)
     # ------------------------------------------------------------------ #
     def pin_scar(self, crisis_trigger: str, remediation_rule: str, project: str = "") -> Scar:
+        self._reconcile_embedder()
         scar = Scar(id=new_id("scar"), crisis_trigger=crisis_trigger,
                     remediation_rule=remediation_rule, project=project)
         emb = self.embedder.embed_one(scar.search_text())
@@ -187,6 +202,7 @@ class MemoryService:
 
     def upsert_fact(self, subject: str, relation: str, object_: str,
                     valence: float = 0.0, project: str = "") -> Gist:
+        self._reconcile_embedder()
         cycle = int(self.db.get_meta("cycle", "0") or "0")
         existing = self.db.find_gist_by_so(subject, object_)
         if existing:
@@ -212,6 +228,7 @@ class MemoryService:
                  tiers: tuple[str, ...] = ("scar", "gist", "episodic"),
                  reinforce: bool = True) -> list[SearchHit]:
         top_k = top_k or self.cfg.default_top_k
+        self._reconcile_embedder()  # querying with a mismatched backend recalls nothing
         qvec = self.embedder.embed_one(query)
         pool = max(top_k * 3, 20)
 

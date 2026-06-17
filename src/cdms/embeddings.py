@@ -53,14 +53,38 @@ class Embedder:
 
                 self._model = TextEmbedding(model_name=self.cfg.embed_model)
                 self._backend = "fastembed"
-            except Exception:
-                # Model not downloadable / package missing: degrade gracefully.
-                self._backend = "hash"
+            except Exception as exc:
+                # CRITICAL: do NOT silently fall back to the hash backend here.
+                # A transient fastembed failure (model download hiccup, OOM,
+                # import error) would otherwise write hash-space vectors into a
+                # real bge-space store, permanently corrupting recall for those
+                # rows with no detection or self-heal. Failing loudly means the
+                # caller (hooks swallow it; CLI/doctor surface it) skips this
+                # write and retries later instead of poisoning the store. The
+                # only way to get the hash backend is to ask for it explicitly
+                # via CDMS_EMBED_BACKEND=hash.
+                self._backend = "uninitialized"  # allow a later retry
+                raise RuntimeError(
+                    f"fastembed model '{self.cfg.embed_model}' is unavailable "
+                    f"({exc!r}). Refusing to silently degrade to the hash backend, "
+                    f"which would corrupt this store's vector space. Ensure network/"
+                    f"model access, or set CDMS_EMBED_BACKEND=hash to opt in to the "
+                    f"deterministic offline embedder for the WHOLE life of this store."
+                ) from exc
 
     @property
     def backend(self) -> str:
         self._ensure_model()
         return self._backend
+
+    def fingerprint(self) -> str:
+        """Stable identity of the vector space this embedder produces.
+
+        Pinned in the store (``cdms_meta``) on first write and verified on every
+        later open so a backend/model/dimension change cannot silently mix
+        incompatible vector spaces in one database.
+        """
+        return f"{self.backend}:{self.cfg.embed_model}:{self.dim}"
 
     # -- embedding API -------------------------------------------------------
     def embed(self, texts: Sequence[str]) -> np.ndarray:
@@ -72,7 +96,17 @@ class Embedder:
             vecs = np.asarray(list(self._model.embed(list(texts))), dtype=np.float32)
         else:
             vecs = np.stack([self._hash_embed(t) for t in texts]).astype(np.float32)
-        return _l2_normalize(vecs)
+        vecs = _l2_normalize(vecs)
+        # Guard: empty / whitespace / punctuation-only / emoji text yields an
+        # all-zero vector. Stored in sqlite-vec it returns distance=NULL, which
+        # sorts AHEAD of real matches and crashes the KNN consumer (float(None)),
+        # poisoning the whole tier. Map any degenerate row to a stable unit
+        # sentinel so it embeds harmlessly instead of corrupting recall.
+        zero_rows = ~vecs.any(axis=1)
+        if zero_rows.any():
+            vecs[zero_rows] = 0.0
+            vecs[zero_rows, 0] = 1.0
+        return vecs
 
     def embed_one(self, text: str) -> np.ndarray:
         """Return a single (dim,) float32 normalized embedding."""

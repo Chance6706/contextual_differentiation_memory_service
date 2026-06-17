@@ -107,6 +107,9 @@ class Consolidator:
     def run(self, now: datetime | None = None) -> ConsolidationReport:
         now = now or datetime.now(timezone.utc)
         rep = ConsolidationReport()
+        # Verify the embedder's vector space matches the store before writing any
+        # gist/scar vectors (refuses to mix hash- and model-space embeddings).
+        self.db.reconcile_embedder(self.embedder.fingerprint())
 
         # Advance the consolidation-cycle counter. Gist decay is measured in these
         # cycles (activity), NOT wall-clock — so being away never ages identity.
