@@ -58,6 +58,11 @@ _STOPWORDS = {
     "file", "files", "code", "line", "lines", "add", "added", "set", "new", "now",
     "make", "made", "want", "need", "like", "just", "also", "into", "out", "your",
     "what", "when", "where", "which", "how", "why", "all", "any", "more", "some",
+    # generic dev/outcome filler that must not become a gist "object"
+    "work", "working", "about", "cleanly", "correctly", "green", "red", "agreement",
+    "workflow", "convention", "working", "note", "noted", "remember", "every",
+    "before", "after", "small", "issue", "log", "exception", "build", "commit",
+    "passed", "failed", "works", "correct", "updated", "update", "thing", "stuff",
 }
 
 
@@ -258,9 +263,12 @@ class Consolidator:
         eps = [e for e, _ in members]
         valence = float(np.mean([e.valence for e in eps]))
 
+        # Object terms come from what the work is ABOUT (trigger + action), not the
+        # outcome — outcomes are full of generic success/failure boilerplate that
+        # would otherwise leak in as spurious objects.
         counts: dict[str, int] = defaultdict(int)
         for e in eps:
-            for tok in _content_terms(e.search_text()):
+            for tok in _content_terms(f"{e.trigger_prompt} {e.action_taken}"):
                 counts[tok] += 1
         if not counts:
             return None
