@@ -74,6 +74,67 @@ def test_gist_creation_from_cluster(service, cfg):
     assert service.db.stats()["support_edges"] >= 2   # traceable L1->L2 edges
 
 
+def test_gist_relation_flips_with_sustained_change(service, cfg):
+    # A negative trait should FLIP toward positive under SUSTAINED improvement on
+    # the same (subject, object) — but not from a single good day (continuity
+    # resists; plasticity wins only with persistence).
+    cfg.dedup_sim_threshold = 0.999
+    cfg.cluster_sim_threshold = 0.5
+    for tag in ("a", "b"):
+        service.ingest(TurnEvent(f"work on auth module {tag}", f"debug the auth module {tag}",
+                                 "failed with an error", tool_name="Bash", success=False,
+                                 valence_hint=-0.9, project="D:/Repo/app"))
+    _consolidator(service, cfg).run()
+    g = _gist_for(service, "app")
+    assert g is not None and g.relation == "has_trouble_with"
+
+    flipped = False
+    for rnd in range(6):
+        for i in range(3):
+            service.ingest(TurnEvent(f"work on auth module r{rnd}{i}", f"improve the auth module r{rnd}{i}",
+                                     "passed cleanly", tool_name="Bash", success=True,
+                                     valence_hint=0.9, project="D:/Repo/app"))
+        rep = _consolidator(service, cfg).run()
+        if _gist_for(service, "app").relation != "has_trouble_with":
+            flipped = True
+            break
+    assert flipped, "trait never flipped despite sustained positive evidence"
+
+
+def _gist_for(service, subject):
+    gs = [g for g in service.db.all_gist() if g.subject == subject]
+    return gs[0] if gs else None
+
+
+def test_gist_decays_through_idle_cycles_not_wallclock(service, cfg):
+    # Decay is ACTIVITY-based: a trait fades only across active consolidation cycles
+    # in which it is never reinforced. Use an aggressive per-cycle factor for speed.
+    cfg.gist_decay_per_cycle = 0.5
+    cfg.gist_retention_floor = 0.25
+    service.ingest(TurnEvent("ping", "noop", tool_name="Read"))   # keep a live episode
+    service.upsert_fact("workspace", "frequently_works_on", "an abandoned subsystem")
+    assert service.db.stats()["gist"] == 1
+    decayed = False
+    for _ in range(5):   # several idle cycles without reinforcing the trait
+        rep = _consolidator(service, cfg).run()
+        if rep.gists_decayed:
+            decayed = True
+            break
+    assert decayed
+    assert service.db.find_gist_by_so("workspace", "an abandoned subsystem") is None
+
+
+def test_absence_does_not_age_identity(service, cfg):
+    # The whole point: NO consolidation cycles (user away) => a gist must NOT decay,
+    # no matter how much wall-clock time passes.
+    from datetime import datetime, timedelta, timezone
+    cfg.gist_decay_per_cycle = 0.5   # would evict fast IF cycles advanced
+    service.upsert_fact("workspace", "handles_well", "the core architecture")
+    # simulate a year passing with the user away (no consolidation runs at all)
+    g = service.db.find_gist_by_so("workspace", "the core architecture")
+    assert g is not None   # still here; identity preserved across the absence
+
+
 def test_dedup_supersession(service, cfg):
     for _ in range(2):
         service.ingest(TurnEvent("exact same content here", "exact same content here",

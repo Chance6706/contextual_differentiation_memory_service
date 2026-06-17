@@ -187,15 +187,20 @@ class MemoryService:
 
     def upsert_fact(self, subject: str, relation: str, object_: str,
                     valence: float = 0.0, project: str = "") -> Gist:
-        existing = self.db.find_gist_by_tuple(subject, relation, object_)
+        cycle = int(self.db.get_meta("cycle", "0") or "0")
+        existing = self.db.find_gist_by_so(subject, object_)
         if existing:
             existing.frequency += 1
             existing.support_count += 1
+            existing.relation = relation        # explicit facts keep their stated relation
+            existing.valence = (1 - self.cfg.gist_valence_ema) * existing.valence + self.cfg.gist_valence_ema * valence
+            existing.last_reinforced = utc_now_iso()
+            existing.last_cycle = cycle
             emb = self.embedder.embed_one(existing.search_text())
             self.db.insert_gist(existing, emb)
             return existing
         g = Gist(id=new_id("gist"), subject=subject, relation=relation, object=object_,
-                 valence=valence, project=project)
+                 valence=valence, project=project, last_cycle=cycle)
         emb = self.embedder.embed_one(g.search_text())
         self.db.insert_gist(g, emb)
         return g

@@ -73,6 +73,8 @@ class ConsolidationReport:
     deduped: int = 0
     gists_created: int = 0
     gists_reinforced: int = 0
+    gists_flipped: int = 0
+    gists_decayed: int = 0
     episodes_remaining: int = 0
     clusters: int = 0
     notes: list[str] = field(default_factory=list)
@@ -84,6 +86,8 @@ class ConsolidationReport:
             "deduped": self.deduped,
             "gists_created": self.gists_created,
             "gists_reinforced": self.gists_reinforced,
+            "gists_flipped": self.gists_flipped,
+            "gists_decayed": self.gists_decayed,
             "episodes_remaining": self.episodes_remaining,
             "clusters": self.clusters,
             "notes": self.notes,
@@ -100,24 +104,31 @@ class Consolidator:
         now = now or datetime.now(timezone.utc)
         rep = ConsolidationReport()
 
+        # Advance the consolidation-cycle counter. Gist decay is measured in these
+        # cycles (activity), NOT wall-clock — so being away never ages identity.
+        cycle = int(self.db.get_meta("cycle", "0") or "0") + 1
+        self.db.set_meta("cycle", cycle)
+
         episodes = self.db.all_episodic()
-        if not episodes:
-            rep.notes.append("no episodic memories; nothing to consolidate")
-            return rep
+        if episodes:
+            self._elevate_scars(episodes, rep)
+            episodes = self.db.all_episodic()  # refresh after scar removal
 
-        self._elevate_scars(episodes, rep)
-        episodes = self.db.all_episodic()  # refresh after scar removal
+            self._dedup(episodes, rep)
+            episodes = self.db.all_episodic()
 
-        self._dedup(episodes, rep)
-        episodes = self.db.all_episodic()
+            evicted = self._evict(episodes, now, rep)
+            episodes = [e for e in episodes if e.id not in evicted]
 
-        evicted = self._evict(episodes, now, rep)
-        episodes = [e for e in episodes if e.id not in evicted]
+            self._compete_and_renormalize(episodes, rep)
+            episodes = self.db.all_episodic()
 
-        self._compete_and_renormalize(episodes, rep)
-        episodes = self.db.all_episodic()
+            self._aggregate_gists(episodes, rep, now, cycle)
+        else:
+            rep.notes.append("no episodic memories; gist maintenance only")
 
-        self._aggregate_gists(episodes, rep)
+        # Gentle activity-based L2 decay (only fades traits idle across many cycles).
+        self._decay_gists(rep, cycle)
 
         rep.episodes_remaining = len(self.db.all_episodic())
         return rep
@@ -199,12 +210,15 @@ class Consolidator:
         rep.notes.append(f"renormalized {len(ids)} episodes to K_budget={self.cfg.salience_budget:g}")
 
     # -- Step 5: Mechanical tuple aggregation (gist extraction) ------------ #
-    def _aggregate_gists(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
+    def _aggregate_gists(self, episodes: list[Episodic], rep: ConsolidationReport,
+                         now: datetime, cycle: int) -> None:
         if len(episodes) < self.cfg.min_cluster_support:
             return
+        now_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         vecs = self._embeddings_for(episodes)
         clusters = self._greedy_cluster(list(zip(episodes, vecs)))
         rep.clusters = len(clusters)
+        ema = self.cfg.gist_valence_ema
 
         for members in clusters:
             if len(members) < self.cfg.min_cluster_support:
@@ -212,21 +226,30 @@ class Consolidator:
             tuple_ = self._extract_tuple(members)
             if tuple_ is None:
                 continue
-            subject, relation, object_, valence = tuple_
-            existing = self.db.find_gist_by_tuple(subject, relation, object_)
+            subject, _relation, object_, valence = tuple_
+            existing = self.db.find_gist_by_so(subject, object_)
             if existing:
+                # Gists are keyed on (subject, object); the relation is DERIVED from a
+                # running valence, so new contradicting evidence can FLIP the trait.
+                old_relation = existing.relation
                 existing.frequency += 1
                 existing.support_count = max(existing.support_count, len(members))
                 existing.survived_cycles += 1
-                existing.valence = 0.5 * existing.valence + 0.5 * valence
+                existing.valence = (1 - ema) * existing.valence + ema * valence
+                existing.relation = self.cfg.relation_from_valence(existing.valence)
+                existing.last_reinforced = now_iso
+                existing.last_cycle = cycle
                 emb = self.embedder.embed_one(existing.search_text())
                 self.db.insert_gist(existing, emb)
                 rep.gists_reinforced += 1
+                if existing.relation != old_relation:
+                    rep.gists_flipped += 1
                 gid = existing.id
             else:
+                relation = self.cfg.relation_from_valence(valence)
                 g = Gist(id=new_id("gist"), subject=subject, relation=relation, object=object_,
                          valence=valence, frequency=1, support_count=len(members),
-                         project=members[0][0].project)
+                         project=members[0][0].project, last_reinforced=now_iso, last_cycle=cycle)
                 emb = self.embedder.embed_one(g.search_text())
                 self.db.insert_gist(g, emb)
                 rep.gists_created += 1
@@ -234,6 +257,23 @@ class Consolidator:
             # traceable support edges L1 -> L2
             for e, _v in members:
                 self.db.add_support_edge(e.id, gid)
+
+    # -- Step 6: Gentle activity-based L2 decay (plasticity) --------------- #
+    def _decay_gists(self, rep: ConsolidationReport, cycle: int) -> None:
+        """Disused traits fade — but only through ACTIVE consolidation cycles in
+        which they are never reinforced, never through wall-clock absence. A gist's
+        effective strength = support * decay_per_cycle ^ (idle cycles). Below the
+        floor it is forgotten. Heavily-supported / recently-reinforced traits
+        persist for hundreds of idle cycles (continuity); identity is not lost just
+        because the user stepped away from the keyboard."""
+        doomed: list[str] = []
+        for g in self.db.all_gist():
+            idle = max(0, cycle - g.last_cycle)
+            strength = g.support_count * (self.cfg.gist_decay_per_cycle ** idle)
+            if strength < self.cfg.gist_retention_floor:
+                doomed.append(g.id)
+        if doomed:
+            rep.gists_decayed = self.db.delete_gist(doomed)
 
     def _greedy_cluster(self, items: list[tuple[Episodic, np.ndarray]]) -> list[list[tuple[Episodic, np.ndarray]]]:
         clusters: list[list[tuple[Episodic, np.ndarray]]] = []
@@ -278,12 +318,7 @@ class Consolidator:
             return None
 
         subject = (eps[0].project.replace("\\", "/").rstrip("/").split("/")[-1] or "workspace")
-        if valence > 0.15:
-            relation = "handles_well"
-        elif valence < -0.15:
-            relation = "has_trouble_with"
-        else:
-            relation = "frequently_works_on"
+        relation = self.cfg.relation_from_valence(valence)
         return subject, relation, object_, valence
 
     # -- helpers ----------------------------------------------------------- #

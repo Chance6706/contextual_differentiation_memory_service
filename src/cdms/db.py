@@ -24,9 +24,9 @@ from typing import Iterable, Iterator, Sequence
 
 from .config import Config
 from .embeddings import serialize_f32
-from .models import Episodic, Gist, Scar
+from .models import Episodic, Gist, Scar, utc_now_iso
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 _FTS_TOKEN = re.compile(r"[A-Za-z0-9_]+")
 
@@ -63,7 +63,9 @@ def _ddl(dim: int) -> list[str]:
             frequency INTEGER NOT NULL DEFAULT 1,
             support_count INTEGER NOT NULL DEFAULT 1,
             survived_cycles INTEGER NOT NULL DEFAULT 0,
-            project TEXT DEFAULT ''
+            project TEXT DEFAULT '',
+            last_reinforced TEXT,
+            last_cycle INTEGER NOT NULL DEFAULT 0
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_gist USING vec0(
             id TEXT PRIMARY KEY,
@@ -91,6 +93,8 @@ def _ddl(dim: int) -> list[str]:
         "CREATE VIRTUAL TABLE IF NOT EXISTS fts_scars USING fts5(id UNINDEXED, content, tokenize='porter unicode61')",
         "CREATE INDEX IF NOT EXISTS idx_ep_session ON mem_episodic(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_ep_project ON mem_episodic(project)",
+        # small key/value store (e.g. the consolidation cycle counter for gist decay)
+        "CREATE TABLE IF NOT EXISTS cdms_meta (key TEXT PRIMARY KEY, value TEXT)",
     ]
 
 
@@ -130,6 +134,25 @@ class Database:
         with self.tx() as c:
             for stmt in _ddl(self.cfg.embed_dim):
                 c.execute(stmt)
+            self._migrate(c)
+
+    @staticmethod
+    def _migrate(c: sqlite3.Connection) -> None:
+        """Lightweight, idempotent column additions for stores created pre-v2."""
+        cols = {r[1] for r in c.execute("PRAGMA table_info(mem_gist)")}
+        if "last_reinforced" not in cols:
+            c.execute("ALTER TABLE mem_gist ADD COLUMN last_reinforced TEXT")
+        if "last_cycle" not in cols:
+            c.execute("ALTER TABLE mem_gist ADD COLUMN last_cycle INTEGER NOT NULL DEFAULT 0")
+
+    # -- key/value meta (cycle counter, etc.) --------------------------------
+    def get_meta(self, key: str, default: str | None = None) -> str | None:
+        r = self.conn.execute("SELECT value FROM cdms_meta WHERE key = ?", (key,)).fetchone()
+        return r[0] if r else default
+
+    def set_meta(self, key: str, value) -> None:
+        with self.tx() as c:
+            c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES (?, ?)", (key, str(value)))
 
     @contextmanager
     def tx(self) -> Iterator[sqlite3.Connection]:
@@ -220,10 +243,11 @@ class Database:
         with self.tx() as c:
             c.execute(
                 """INSERT OR REPLACE INTO mem_gist
-                   (id, subject, relation, object, valence, frequency, support_count, survived_cycles, project)
-                   VALUES (?,?,?,?,?,?,?,?,?)""",
+                   (id, subject, relation, object, valence, frequency, support_count,
+                    survived_cycles, project, last_reinforced, last_cycle)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                 (g.id, g.subject, g.relation, g.object, g.valence, g.frequency,
-                 g.support_count, g.survived_cycles, g.project),
+                 g.support_count, g.survived_cycles, g.project, g.last_reinforced, g.last_cycle),
             )
             c.execute("DELETE FROM vec_gist WHERE id = ?", (g.id,))
             c.execute("INSERT INTO vec_gist(id, embedding) VALUES (?, ?)", (g.id, blob))
@@ -249,12 +273,26 @@ class Database:
             ).fetchall()
         return [self._row_to_gist(r) for r in rows]
 
-    def find_gist_by_tuple(self, subject: str, relation: str, object_: str) -> Gist | None:
+    def find_gist_by_so(self, subject: str, object_: str) -> Gist | None:
+        """Gists are keyed on (subject, object); the relation is a derived attribute
+        that can flip as the running valence changes."""
         r = self.conn.execute(
-            "SELECT * FROM mem_gist WHERE subject = ? AND relation = ? AND object = ?",
-            (subject, relation, object_),
+            "SELECT * FROM mem_gist WHERE subject = ? AND object = ?",
+            (subject, object_),
         ).fetchone()
         return self._row_to_gist(r) if r else None
+
+    def delete_gist(self, ids: Iterable[str]) -> int:
+        ids = list(ids)
+        if not ids:
+            return 0
+        q = ",".join("?" for _ in ids)
+        with self.tx() as c:
+            c.execute(f"DELETE FROM mem_gist WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM vec_gist WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM fts_gist WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM mem_support_edges WHERE target_gist_id IN ({q})", ids)
+        return len(ids)
 
     def add_support_edge(self, leaf_id: str, gist_id: str) -> None:
         with self.tx() as c:
@@ -346,10 +384,14 @@ class Database:
 
     @staticmethod
     def _row_to_gist(r: sqlite3.Row) -> Gist:
+        keys = r.keys()
+        lr = r["last_reinforced"] if "last_reinforced" in keys else None
+        lc = r["last_cycle"] if "last_cycle" in keys else 0
         return Gist(
             id=r["id"], subject=r["subject"], relation=r["relation"], object=r["object"],
             valence=r["valence"], frequency=r["frequency"], support_count=r["support_count"],
             survived_cycles=r["survived_cycles"], project=r["project"] or "",
+            last_reinforced=lr or utc_now_iso(), last_cycle=lc or 0,
         )
 
     @staticmethod
