@@ -1,13 +1,61 @@
 # Red-Team Audit & Remediation (pre-Phase-0)
 
-A full adversarial audit of the built package was run before building the §8
-temperament layer, on the premise that latent defects in the always-running core
-compound silently *over time*. Five focused agents ran experiments against the live
-code (storage durability, embedder integrity, long-horizon consolidation, capture
-concurrency, security/injection); a sixth pass reviewed the temperament plan. Gemini
-contributed three Round-2 attacks. This file records what was found, what was fixed,
-and what is deliberately deferred. The CI suite forces the hash embedder, so a
-non-hash test path (`tests/test_real_embedder.py`) was added to cover the real model.
+Three adversarial cycles were run before building the §8 temperament layer, on the
+premise that latent defects in the always-running core compound silently *over time*.
+This file records what was found, fixed, and deliberately deferred. The CI suite
+forces the hash embedder, so a non-hash test path (`tests/test_real_embedder.py`)
+covers the real model. Suite: 38 → 77 (Cycle 1) → 110 (Cycle 2) tests, all green.
+
+## Cycle 1 — core surfaces
+
+Five focused agents ran experiments against the live code (storage durability,
+embedder integrity, long-horizon consolidation, capture concurrency,
+security/injection); a sixth pass reviewed the temperament plan; Gemini contributed
+three Round-2 attacks.
+
+## Cycle 2 — broadened (every angle) + audit of the Cycle-1 fixes
+
+Seven agents covered new angles (MCP protocol, scale/performance, cognitive-math
+correctness, environment/clock/config, data isolation/lifecycle, seeders on untrusted
+data, packaging/recovery/test-integrity) AND adversarially re-audited the eight
+Cycle-1 fixes — which is how three Cycle-1 fixes were found incomplete/overcorrected.
+
+**Fixed in Cycle 2 (commits `ce783ff..HEAD`):**
+
+| Sev | Defect | Fix |
+|-----|--------|-----|
+| HIGH | Fence-escape: `</memory:*>` in content closed the trust fence | `_sanitize` escapes angle brackets + strips zero-width/bidi |
+| HIGH | SessionStart truncation dropped the close fence + trust disclaimer | block-packing keeps fences balanced + disclaimer within budget |
+| HIGH | Cross-project gist contamination (clustering ignored project) | partition episodes by project before clustering |
+| HIGH | Subject-basename collision merged distinct repos | gist identity keyed by `(subject, object, project)` |
+| HIGH | `retrieve()` had no project scoping (cross-project exfiltration) | `retrieve(project=)`; MCP tools default to launch cwd |
+| HIGH | No right-to-forget (scars unremovable; uninstall kept data) | `delete_scar`, `MemoryService.forget`, `cdms forget`, `uninstall --purge` |
+| HIGH | JSON config bypassed coercion (stringified dim bricked store) | coerce JSON values to field type |
+| HIGH | `SALIENCE_BUDGET=0`/negative silently wiped memory | `_validate()` repairs out-of-range; `conserve_budget` K<=0 no-op |
+| HIGH | `doctor` blind to fingerprint mismatch (silent capture refusal) | doctor compares pinned fingerprint + `quick_check` |
+| HIGH | Corrupt `memory.db` silently halted capture, spool grew | quarantine corrupt file + start fresh, loudly |
+| HIGH | unbounded `store` content = event-loop DoS | cap fields to `max_field_chars` before embed |
+| HIGH | `_infer_success` negation-blind (live capture + seeders) | negation-aware + positive-override; conservative None |
+| HIGH | (Cycle-1 H4) deed-gate overcorrected → false-negatives | regex tier for phrasing/verb-order variants |
+| HIGH | (Cycle-1 H1) gist identity-creep (frozen label vs drifting centroid) | refresh label to track content; support-weighted centroid blend |
+| HIGH | (Cycle-1 L1) spool `os.write` short-write swallowed next turn | loop the write |
+| MED | redaction gap on `upsert_fact`/`pin_scar` | shared `_clip` redacts+caps all stored fields |
+| MED | `create_link` fabricated dangling edges, always "created" | validate endpoints; return real result |
+| MED | FTS ASCII-only tokenizer (non-Latin recall lost) | unicode-aware `\w+` (still injection-safe) |
+| MED | seeder crashed whole run on one non-dict line | isinstance guards + per-file isolation; stream Hermes cursor |
+| MED | empty-cwd dumped every project's scars | empty cwd => global-only scoping |
+| MED | vacuous/weak tests; zero MCP coverage | rewrote absence test (mutation-sensitive); added MCP suite |
+| LOW | atomic-write fixed tmp race; `_SERVICE` init race; stale warmup msg; unbounded log; numpy unpinned | unique tmp; init lock; accurate msg; log rotation; numpy `<3` |
+
+**Cycle-2 verified-sound (no change):** MCP protocol robustness holds (C1/M7 raises
+become clean JSON-RPC errors, stdout stays pristine); cognitive math correct
+(20k-case property test on the capped-proportional allocator; M2 clamp exactly
+behavior-preserving; clock-skew/malformed timestamps handled); the store is NOT
+unbounded while consolidation runs (conserved-budget renorm self-bounds the live
+set); WAL crash-recovery sound; M1 negative-idle correctly clamped; seeders route
+through redaction; auto-scar injection from transcripts is genuinely hard.
+
+## Cycle 1 details
 
 ## Fixed (built code)
 
@@ -55,6 +103,13 @@ budget reaches a stable K equilibrium; decay underflow clean.
   need `isolation_level=None` + explicit BEGIN/COMMIT.
 - **Insertion-order-invariant clustering** — M3 pins a deterministic order; making
   greedy clustering independent of capture order is a separate algorithmic change.
+- **Case-insensitive-FS subject splitting** (Cycle 2) — `C:\Dev\Foo` vs `c:\dev\foo`
+  yield two subjects on Windows/macOS; safe cross-platform case normalization is risky
+  (a store can move between platforms) and the incidence is low — documented, not fixed.
+- **CJK gist tokenization** (Cycle 2) — space-less scripts collapse to one token / drop
+  2-codepoint words; needs real segmentation. Cyrillic/accented now handled (FTS fix).
+- **Dreamer/httpx path is dead code** (Cycle 2) — `dreamer_*`/`http_*` config is never
+  imported; no runtime risk. Left as a documented placeholder for the designed feature.
 
 ## Plan-level corrections
 Recorded in `docs/TEMPERAMENT_PLAN.md` §8 (P1–P7 + Gemini's "Boiling Frog" exit-gate).

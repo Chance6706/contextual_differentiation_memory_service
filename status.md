@@ -6,18 +6,28 @@ files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-servic
 
 ## TL;DR
 
-The **memory core is built, tested (77 tests), and validated on real history.** The
+The **memory core is built, tested (110 tests), and validated on real history.** The
 **proactive pillars** (curiosity/dream-research, emotion/proposals/provenance,
 archetypes/genotype) are **fully designed and documented but not yet implemented.**
 Two design threads remain open.
 
-**Pre-Phase-0 hardening (this session):** a full red-team audit fixed 3 CRITICAL, 5
-HIGH, and 8 MEDIUM/LOW latent "over time" defects in the built core (silent embedder
-space-contamination, stored-memory prompt injection, gist proliferation, concurrent-
-drain data loss, scar abuse, crash-safe decay clock, config-write safety, secret
-redaction, …) and added a non-hash CI path. Full inventory + deferred items:
-[`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections (P1–P7 +
-the "Boiling Frog" leash test) are in [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md) §8.
+**Pre-Phase-0 hardening — two red-team cycles complete (Cycle 3 not yet run):**
+- **Cycle 1** fixed 3 CRITICAL + 5 HIGH + MEDIUM/LOW "over time" defects (silent
+  embedder space-contamination, stored-memory prompt injection, gist proliferation,
+  concurrent-drain data loss, scar abuse, crash-safe decay clock, config/secret
+  safety) and added a non-hash CI path.
+- **Cycle 2** broadened to every angle (MCP, scale, cognitive-math, env/clock/config,
+  data isolation/lifecycle, seeders, packaging/recovery/test-integrity) AND re-audited
+  the Cycle-1 fixes — landing ~16 HIGH + several MED/LOW fixes across 9 commits:
+  cross-project isolation (clustering partition, project-keyed gists, scoped
+  `retrieve`), **right-to-forget** (`cdms forget`, `uninstall --purge`), config
+  validation + corrupt-DB quarantine + `doctor` fingerprint check, fence-escape /
+  truncation hardening, negation-aware outcome inference, unicode FTS, and refinements
+  to three Cycle-1 fixes (H4 false-negatives, H1 identity-creep, L1 spool short-write).
+- Full inventory + verified-sound + deferred items:
+  [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections
+  (P1–P7 + the "Boiling Frog" leash test) are in
+  [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md) §8.
 
 The central thesis — **Identity = f(History)** — is empirically confirmed: seeding
 ~8.6k real Claude Code turns across 4 projects produced distinct, *recognizable*
