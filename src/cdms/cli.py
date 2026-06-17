@@ -20,10 +20,41 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 from .config import load_config
+
+
+def _read_json_safe(path: Path) -> dict:
+    """Read a JSON config file, aborting LOUDLY on malformed JSON.
+
+    Previously a parse error reset the config to ``{}`` and the install then
+    overwrote the file — so a transient typo in (e.g.) ``~/.claude.json`` silently
+    destroyed the user's model/permissions/MCP approvals. Refuse instead.
+    """
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        return {}
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(
+            f"ERROR: {path} contains invalid JSON ({exc}).\n"
+            f"Refusing to overwrite it and lose your settings — fix or remove the "
+            f"file, then re-run."
+        )
+
+
+def _atomic_write_json(path: Path, obj) -> None:
+    """Write JSON via a temp file + os.replace so a crash/disk-full mid-write can
+    never leave the user's settings truncated or empty."""
+    tmp = path.with_name(path.name + ".cdms-tmp")
+    tmp.write_text(json.dumps(obj, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
 
 HOOK_EVENTS = {
     "SessionStart": 30,
@@ -252,25 +283,15 @@ def _install_mcp_user(claude_json: Path) -> None:
 
     Preserves every other key in the (large) global config file.
     """
-    config = {}
-    if claude_json.exists():
-        try:
-            config = json.loads(claude_json.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            config = {}
+    config = _read_json_safe(claude_json)
     servers = config.setdefault("mcpServers", {})
     py, *rest = _python_invocation()
     servers["cdms-memory"] = {"type": "stdio", "command": py, "args": rest + ["serve"], "env": {}}
-    claude_json.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    _atomic_write_json(claude_json, config)
 
 
 def _install_hooks(settings_path: Path) -> None:
-    settings = {}
-    if settings_path.exists():
-        try:
-            settings = json.loads(settings_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            settings = {}
+    settings = _read_json_safe(settings_path)
     hooks = settings.setdefault("hooks", {})
     for event, timeout in HOOK_EVENTS.items():
         matcher = "*" if event == "PostToolUse" else ""
@@ -281,7 +302,7 @@ def _install_hooks(settings_path: Path) -> None:
         # replace any existing CDMS entry for this event, keep foreign ones
         existing = [e for e in hooks.get(event, []) if not _is_cdms_entry(e)]
         hooks[event] = existing + [entry]
-    settings_path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    _atomic_write_json(settings_path, settings)
 
 
 def _is_cdms_entry(entry: dict) -> bool:
@@ -292,16 +313,11 @@ def _is_cdms_entry(entry: dict) -> bool:
 
 
 def _install_mcp(mcp_path: Path) -> None:
-    config = {}
-    if mcp_path.exists():
-        try:
-            config = json.loads(mcp_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            config = {}
+    config = _read_json_safe(mcp_path)
     servers = config.setdefault("mcpServers", {})
     py, *rest = _python_invocation()
     servers["cdms-memory"] = {"command": py, "args": rest + ["serve"]}
-    mcp_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    _atomic_write_json(mcp_path, config)
 
 
 def _remove_cdms_hooks(settings_path: Path) -> None:
@@ -316,7 +332,7 @@ def _remove_cdms_hooks(settings_path: Path) -> None:
         hooks[event] = [e for e in hooks[event] if not _is_cdms_entry(e)]
         if not hooks[event]:
             del hooks[event]
-    settings_path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    _atomic_write_json(settings_path, settings)
     print(f"✓ removed CDMS hooks from {settings_path}")
 
 
@@ -328,7 +344,7 @@ def _remove_cdms_mcp(json_path: Path) -> None:
     except json.JSONDecodeError:
         return
     if config.get("mcpServers", {}).pop("cdms-memory", None) is not None:
-        json_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+        _atomic_write_json(json_path, config)
         print(f"✓ removed cdms-memory MCP server from {json_path}")
 
 
