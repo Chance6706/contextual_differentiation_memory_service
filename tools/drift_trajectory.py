@@ -320,7 +320,7 @@ def _parse_dt(ts: str | None) -> datetime | None:
         return None
 
 
-def real_history(path: str, embedder, n_windows: int) -> int:
+def real_history(path: str, embedder, n_windows: int, limit: int = 0) -> int:
     """Replay REAL seeded history in time order, consolidating at N windows, and
     report the developmental trajectory per project. This is OBSERVATIONAL — real
     history is not a controlled experiment, so there is no pass/fail verdict (unlike
@@ -330,7 +330,7 @@ def real_history(path: str, embedder, n_windows: int) -> int:
     root = Path(os.path.expanduser(path))
     by_proj: dict[str, list[TurnEvent]] = defaultdict(list)
     for fp in iter_files(root):
-        for t in parse_file(fp, 1200):
+        for t in parse_file(fp, 1200, limit):
             by_proj[t.project].append(t)
     projs = {p: sorted(ts, key=lambda e: e.timestamp or "")
              for p, ts in by_proj.items() if len(ts) >= 2 * n_windows}
@@ -397,11 +397,13 @@ def main() -> int:
                     help="observational trajectory over real seeded history "
                          "(a .jsonl file, a project dir, or ~/.claude/projects)")
     ap.add_argument("--windows", type=int, default=6, help="replay windows for --real")
+    ap.add_argument("--limit", type=int, default=0,
+                    help="max turns PER FILE for --real (0 = all; useful for large histories)")
     args = ap.parse_args()
 
     embedder = get_embedder(Config())
     if args.real:
-        return real_history(args.real, embedder, args.windows)
+        return real_history(args.real, embedder, args.windows, args.limit)
 
     root = Path(tempfile.mkdtemp(prefix="cdms_drift_"))
 
