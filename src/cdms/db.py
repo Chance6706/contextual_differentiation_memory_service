@@ -105,8 +105,43 @@ class Database:
     def __init__(self, cfg: Config):
         self.cfg = cfg
         cfg.ensure_home()
-        self.conn = self._open(cfg.db_path)
-        self._init_schema()
+        try:
+            self.conn = self._open(cfg.db_path)
+            self._init_schema()
+        except sqlite3.DatabaseError as exc:
+            # A corrupted store ("file is not a database" / "malformed") otherwise
+            # makes every command crash and silently halts capture while the spool
+            # grows forever. Quarantine the bad file (preserve it for recovery) and
+            # start fresh, loudly — so the daemon keeps working and the operator is told.
+            self._quarantine_corrupt(cfg.db_path, exc)
+            self.conn = self._open(cfg.db_path)
+            self._init_schema()
+
+    @staticmethod
+    def _quarantine_corrupt(path, exc) -> None:
+        import os
+        import sys
+        import time
+
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        for suffix in ("", "-wal", "-shm"):
+            p = f"{path}{suffix}"
+            if os.path.exists(p):
+                try:
+                    os.replace(p, f"{p}.corrupt-{stamp}")
+                except OSError:
+                    pass
+        print(f"cdms: memory store at {path} is corrupt ({exc}); quarantined to "
+              f"*.corrupt-{stamp} and starting fresh. Restore from a backup if you have one.",
+              file=sys.stderr)
+
+    def integrity_ok(self) -> bool:
+        """On-demand integrity check (slow on large stores; used by `cdms doctor`)."""
+        try:
+            row = self.conn.execute("PRAGMA quick_check").fetchone()
+            return bool(row) and row[0] == "ok"
+        except sqlite3.DatabaseError:
+            return False
 
     # -- connection setup ----------------------------------------------------
     @staticmethod

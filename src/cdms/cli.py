@@ -229,14 +229,34 @@ def cmd_doctor(args) -> int:
         v = emb.embed_one("doctor warmup test")
         print(f"embedder backend    : {emb.backend} (dim={len(v)}) OK")
         if emb.backend == "hash":
-            print("  NOTE: using deterministic fallback (fastembed model not loaded).")
+            print("  NOTE: deterministic offline backend (CDMS_EMBED_BACKEND=hash).")
     except Exception as exc:
+        emb = None
         ok = False
         print(f"embedder            : FAILED ({exc})")
     try:
         from .store import MemoryService
         svc = MemoryService(cfg)
         print(f"store               : {json.dumps(svc.db.stats())} OK")
+        # Integrity (catches subtle corruption that open() alone misses).
+        if not svc.db.integrity_ok():
+            ok = False
+            print("integrity           : FAILED (quick_check not ok — store may be corrupt)")
+        else:
+            print("integrity           : ok")
+        # Embedding-space fingerprint: a hash-vs-real / dim / model mismatch makes
+        # every capture refuse — the silent failure doctor previously missed.
+        pinned = svc.db.get_meta("embed_fingerprint")
+        if pinned is None:
+            print("embed fingerprint   : (unpinned — no vectors written yet)")
+        elif emb is not None:
+            current = emb.fingerprint()
+            if pinned == current:
+                print(f"embed fingerprint   : {pinned} MATCH")
+            else:
+                ok = False
+                print(f"embed fingerprint   : MISMATCH (store={pinned} current={current}) "
+                      "— captures will be REFUSED until the original embedder is restored")
         svc.close()
     except Exception as exc:
         ok = False

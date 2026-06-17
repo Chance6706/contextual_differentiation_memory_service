@@ -148,6 +148,52 @@ _ENV_COERCE = {
 }
 
 
+def _coerce(current, value):
+    """Coerce a JSON/env value to the type of the field's current (default) value."""
+    if isinstance(current, bool):
+        return value if isinstance(value, bool) else str(value).strip().lower() in ("1", "true", "yes", "on")
+    if isinstance(current, Path):
+        return Path(str(value)).expanduser()
+    if isinstance(current, int):
+        return int(value)
+    if isinstance(current, float):
+        return float(value)
+    return value if isinstance(value, str) else str(value)
+
+
+def _validate(cfg: "Config") -> None:
+    """Clamp out-of-range/nonsensical values to their defaults, loudly.
+
+    A single bad value (a stringified number from JSON, K=0, decay>=1, a negative
+    dim) otherwise silently bricks the store or wipes memory. We repair to the
+    default and warn on stderr rather than corrupt or crash.
+    """
+    import sys as _sys
+
+    d = Config()
+    checks = [
+        ("embed_dim", lambda v: isinstance(v, int) and v > 0),
+        ("salience_budget", lambda v: isinstance(v, (int, float)) and v > 0),
+        ("project_budget_cap", lambda v: isinstance(v, (int, float)) and 0 < v <= 1),
+        ("gist_decay_per_cycle", lambda v: isinstance(v, (int, float)) and 0 < v < 1),
+        ("gist_retention_floor", lambda v: isinstance(v, (int, float)) and v >= 0),
+        ("retention_floor", lambda v: isinstance(v, (int, float)) and v >= 0),
+        ("reinforce_alpha", lambda v: isinstance(v, (int, float)) and v > 1.0),
+        ("reinforce_cap", lambda v: isinstance(v, (int, float)) and v >= 1.0),
+        ("decay_halflife_days", lambda v: isinstance(v, (int, float)) and v > 0),
+        ("max_field_chars", lambda v: isinstance(v, int) and v > 0),
+        ("min_cluster_support", lambda v: isinstance(v, int) and v >= 1),
+        ("gist_valence_ema", lambda v: isinstance(v, (int, float)) and 0 < v <= 1),
+        ("rrf_k", lambda v: isinstance(v, int) and v > 0),
+        ("default_top_k", lambda v: isinstance(v, int) and v > 0),
+    ]
+    for name, ok in checks:
+        val = getattr(cfg, name)
+        if isinstance(val, bool) or not ok(val):  # bool sneaks past int/float checks
+            print(f"cdms config: invalid {name}={val!r}; using default {getattr(d, name)!r}", file=_sys.stderr)
+            setattr(cfg, name, getattr(d, name))
+
+
 def load_config() -> Config:
     """Build config from defaults, optional JSON file, then ``CDMS_`` env overrides."""
     cfg = Config()
@@ -159,7 +205,13 @@ def load_config() -> Config:
             data = json.loads(cfg_file.read_text(encoding="utf-8"))
             for f in fields(cfg):
                 if f.name in data:
-                    setattr(cfg, f.name, data[f.name])
+                    # Coerce to the field's type — JSON has no int/float distinction
+                    # and tooling often stringifies numbers; a raw setattr left e.g.
+                    # embed_dim a str, which bricks every ingest/retrieve.
+                    try:
+                        setattr(cfg, f.name, _coerce(getattr(cfg, f.name), data[f.name]))
+                    except (ValueError, TypeError):
+                        pass
         except (json.JSONDecodeError, OSError):
             pass  # never let a bad config file crash the daemon
 
@@ -184,4 +236,5 @@ def load_config() -> Config:
         except (ValueError, TypeError):
             pass
 
+    _validate(cfg)
     return cfg

@@ -115,7 +115,9 @@ def conserve_budget(saliences: list[float], k_budget: float) -> list[float]:
     reinforcement loop becomes mathematically impossible.
     """
     total = sum(saliences)
-    if total <= 0.0:
+    if total <= 0.0 or k_budget <= 0.0:
+        # A non-positive budget would renormalize every salience to <=0 and then
+        # evict the entire store on the next pass — never silently wipe memory.
         return list(saliences)
     scale = k_budget / total
     return [s * scale for s in saliences]
