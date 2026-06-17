@@ -111,10 +111,14 @@ class Consolidator:
         # gist/scar vectors (refuses to mix hash- and model-space embeddings).
         self.db.reconcile_embedder(self.embedder.fingerprint())
 
-        # Advance the consolidation-cycle counter. Gist decay is measured in these
-        # cycles (activity), NOT wall-clock — so being away never ages identity.
+        # Compute the consolidation-cycle counter (gist decay is measured in these
+        # cycles, NOT wall-clock — so being away never ages identity). The counter
+        # is PERSISTED at the very end, after the pass succeeds: consolidation is
+        # not atomic across its steps, so advancing it up-front meant a crash mid-
+        # pass aged the decay clock without reinforcing this cycle's gists, eroding
+        # identity over repeated interruptions. Persisting last makes a crashed pass
+        # a no-op for the decay clock.
         cycle = int(self.db.get_meta("cycle", "0") or "0") + 1
-        self.db.set_meta("cycle", cycle)
 
         episodes = self.db.all_episodic()
         if episodes:
@@ -136,6 +140,9 @@ class Consolidator:
 
         # Gentle activity-based L2 decay (only fades traits idle across many cycles).
         self._decay_gists(rep, cycle)
+
+        # Persist the advanced cycle counter only now that the pass has completed.
+        self.db.set_meta("cycle", cycle)
 
         rep.episodes_remaining = len(self.db.all_episodic())
         return rep

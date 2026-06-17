@@ -67,6 +67,25 @@ def test_scar_requires_deed_not_discussion(cfg):
         svc.close()
 
 
+def test_emotional_but_false_belief_not_elevated_as_directive(cfg):
+    """Gemini "Poisoned Scar" R2: a highly emotional but factually-incorrect belief
+    (the model FEELS a catastrophe that did not actually happen) must not be
+    auto-elevated into an authoritative guardrail — elevation needs a real deed."""
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    try:
+        con = Consolidator(cfg, db=svc.db, embedder=svc.embedder)
+        panic = Episodic(
+            id=new_id("ep"),
+            trigger_prompt="I'm terrified I just deleted production and caused total data loss!",
+            action_taken="checked the deployment logs",
+            outcome_feedback="false alarm — nothing was deleted, the service is healthy",
+            valence=-0.95, base_salience=6.0)
+        con._elevate_scars([panic], ConsolidationReport())
+        assert svc.db.all_scars() == []  # belief/discussion, not a deed -> no pin
+    finally:
+        svc.close()
+
+
 def test_elevated_scar_marked_origin(cfg):
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:

@@ -33,7 +33,6 @@ _FTS_TOKEN = re.compile(r"[A-Za-z0-9_]+")
 
 def _ddl(dim: int) -> list[str]:
     return [
-        f"PRAGMA user_version = {SCHEMA_VERSION}",
         # ---- L1: episodic --------------------------------------------------
         """CREATE TABLE IF NOT EXISTS mem_episodic (
             id TEXT PRIMARY KEY,
@@ -137,6 +136,13 @@ class Database:
             for stmt in _ddl(self.cfg.embed_dim):
                 c.execute(stmt)
             self._migrate(c)
+            # Set the schema version LAST — after CREATEs and idempotent ALTERs all
+            # succeed. Python's sqlite3 autocommits DDL, so an interrupted migration
+            # is not rolled back; setting user_version up-front (as before) could
+            # leave a store reporting the new version while missing new columns. The
+            # column adds are idempotent (gated on table_info), so an interrupted run
+            # re-heals on next open; recording the version last keeps it honest.
+            c.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
     @staticmethod
     def _migrate(c: sqlite3.Connection) -> None:
@@ -229,7 +235,13 @@ class Database:
             c.execute("INSERT INTO fts_episodic(id, content) VALUES (?, ?)", (rec.id, rec.search_text()))
 
     def all_episodic(self) -> list[Episodic]:
-        rows = self.conn.execute("SELECT * FROM mem_episodic").fetchall()
+        # Explicit rowid order: order-sensitive greedy clustering/dedup in
+        # consolidation must be reproducible for a given store. Without ORDER BY,
+        # SQLite's row order is not contractual across DELETE/INSERT/VACUUM, so a
+        # vacuum could silently change the consolidated identity. (This pins the
+        # de-facto capture order; making clustering insertion-order-INVARIANT is a
+        # separate, larger change tracked for future work.)
+        rows = self.conn.execute("SELECT * FROM mem_episodic ORDER BY rowid").fetchall()
         return [self._row_to_episodic(r) for r in rows]
 
     def get_episodic(self, ep_id: str) -> Episodic | None:
@@ -294,7 +306,7 @@ class Database:
             c.execute("INSERT INTO fts_gist(id, content) VALUES (?, ?)", (g.id, g.search_text()))
 
     def all_gist(self) -> list[Gist]:
-        rows = self.conn.execute("SELECT * FROM mem_gist").fetchall()
+        rows = self.conn.execute("SELECT * FROM mem_gist ORDER BY rowid").fetchall()
         return [self._row_to_gist(r) for r in rows]
 
     def top_gist(self, limit: int, project: str | None = None) -> list[Gist]:
@@ -335,7 +347,8 @@ class Database:
         import numpy as np
 
         rows = self.conn.execute(
-            "SELECT * FROM mem_gist WHERE subject = ? AND centroid IS NOT NULL", (subject,)
+            "SELECT * FROM mem_gist WHERE subject = ? AND centroid IS NOT NULL ORDER BY rowid",
+            (subject,),
         ).fetchall()
         out = []
         for r in rows:
