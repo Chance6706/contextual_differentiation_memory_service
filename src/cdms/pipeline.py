@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -101,7 +102,13 @@ def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
     q = cfg.queue_path
     if not q.exists() or q.stat().st_size == 0:
         return 0
-    claimed = Path(str(q) + ".processing")
+    # Unique claim name per drain. A single fixed ".processing" path let two
+    # concurrent drains (two sessions ending/compacting at once) clobber each
+    # other: drain B's os.replace overwrote the file drain A was still reading,
+    # silently dropping a whole session's captured turns. With a unique name, the
+    # atomic os.replace picks exactly one winner per queue snapshot; the loser
+    # simply finds the queue already claimed (FileNotFoundError) and returns.
+    claimed = Path(f"{q}.{os.getpid()}-{uuid.uuid4().hex[:8]}.processing")
     try:
         os.replace(q, claimed)  # atomic on Windows + POSIX
     except (FileNotFoundError, PermissionError):
