@@ -17,6 +17,7 @@ deterministic tool outcomes, self-reference patterns, and affect lexicon.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Optional
 
@@ -51,6 +52,37 @@ _SELF_REF = {
     "guideline", "you should", "do not", "don't", "must", "from now on",
 }
 _CONTINGENT_TOOLS = {"bash", "edit", "write", "multiedit", "notebookedit", "applypatch"}
+
+# Secret patterns redacted at capture time. Tool output (e.g. an `env` dump) can
+# carry live credentials; without this they would be persisted to plaintext
+# SQLite and re-injected into context at every SessionStart indefinitely. This is
+# a best-effort scrubber for the common high-signal shapes, not a guarantee.
+_SECRET_PATTERNS = [
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),                       # AWS access key id
+    re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}\b"),  # GitHub tokens
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),           # Slack tokens
+    re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),                    # OpenAI-style keys
+    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),  # JWT
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
+               re.DOTALL),
+    # KEY/SECRET/TOKEN/PASSWORD assignments: redact the value, keep the name.
+    re.compile(r"(?i)\b([A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
+               r"[A-Z0-9_]*)\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
+]
+
+
+def redact_secrets(text: str) -> str:
+    """Scrub high-signal credential shapes from captured text."""
+    if not text:
+        return text
+    out = text
+    for pat in _SECRET_PATTERNS:
+        if pat.groups >= 2:
+            out = pat.sub(lambda m: f"{m.group(1)}=[REDACTED]", out)
+        else:
+            out = pat.sub("[REDACTED]", out)
+    return out
 
 
 @dataclass
@@ -92,6 +124,10 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     def ingest(self, ev: TurnEvent) -> Episodic:
         self._reconcile_embedder()
+        # Scrub credentials before they are persisted / embedded / re-injected.
+        ev.trigger_prompt = redact_secrets(ev.trigger_prompt)
+        ev.action_taken = redact_secrets(ev.action_taken)
+        ev.outcome_feedback = redact_secrets(ev.outcome_feedback)
         text = "\n".join(p for p in (ev.trigger_prompt, ev.action_taken, ev.outcome_feedback) if p)
         emb = self.embedder.embed_one(text)
 

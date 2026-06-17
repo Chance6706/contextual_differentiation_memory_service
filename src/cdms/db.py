@@ -26,7 +26,7 @@ from .config import Config
 from .embeddings import serialize_f32
 from .models import Episodic, Gist, Scar, utc_now_iso
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 _FTS_TOKEN = re.compile(r"[A-Za-z0-9_]+")
 
@@ -84,7 +84,8 @@ def _ddl(dim: int) -> list[str]:
             timestamp TEXT NOT NULL,
             crisis_trigger TEXT NOT NULL,
             remediation_rule TEXT NOT NULL,
-            project TEXT DEFAULT ''
+            project TEXT DEFAULT '',
+            origin TEXT NOT NULL DEFAULT 'pinned'
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_scars USING vec0(
             id TEXT PRIMARY KEY,
@@ -144,6 +145,11 @@ class Database:
             c.execute("ALTER TABLE mem_gist ADD COLUMN last_reinforced TEXT")
         if "last_cycle" not in cols:
             c.execute("ALTER TABLE mem_gist ADD COLUMN last_cycle INTEGER NOT NULL DEFAULT 0")
+        scar_cols = {r[1] for r in c.execute("PRAGMA table_info(mem_scars)")}
+        if "origin" not in scar_cols:
+            # Pre-v3 scars were all deliberate-or-elevated with no marker; treat
+            # legacy rows as 'pinned' so existing guardrails keep priority.
+            c.execute("ALTER TABLE mem_scars ADD COLUMN origin TEXT NOT NULL DEFAULT 'pinned'")
 
     # -- key/value meta (cycle counter, etc.) --------------------------------
     def get_meta(self, key: str, default: str | None = None) -> str | None:
@@ -343,8 +349,9 @@ class Database:
         with self.tx() as c:
             c.execute(
                 """INSERT OR REPLACE INTO mem_scars
-                   (id, timestamp, crisis_trigger, remediation_rule, project) VALUES (?,?,?,?,?)""",
-                (s.id, s.timestamp, s.crisis_trigger, s.remediation_rule, s.project),
+                   (id, timestamp, crisis_trigger, remediation_rule, project, origin)
+                   VALUES (?,?,?,?,?,?)""",
+                (s.id, s.timestamp, s.crisis_trigger, s.remediation_rule, s.project, s.origin),
             )
             c.execute("DELETE FROM vec_scars WHERE id = ?", (s.id,))
             c.execute("INSERT INTO vec_scars(id, embedding) VALUES (?, ?)", (s.id, blob))
@@ -431,9 +438,10 @@ class Database:
 
     @staticmethod
     def _row_to_scar(r: sqlite3.Row) -> Scar:
+        origin = r["origin"] if "origin" in r.keys() else "pinned"
         return Scar(
             id=r["id"], crisis_trigger=r["crisis_trigger"], remediation_rule=r["remediation_rule"],
-            timestamp=r["timestamp"], project=r["project"] or "",
+            timestamp=r["timestamp"], project=r["project"] or "", origin=origin or "pinned",
         )
 
     def stats(self) -> dict:

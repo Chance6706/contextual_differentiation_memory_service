@@ -146,8 +146,16 @@ class Consolidator:
             # A scar requires a genuine catastrophe signal AND negative valence AND
             # high salience. Routine failures (failed compiles, "no results") are
             # negative+salient but are NOT crises — they must not be auto-pinned.
-            blob = f"{e.trigger_prompt}\n{e.action_taken}\n{e.outcome_feedback}".lower()
-            is_catastrophe = any(m in blob for m in _CATASTROPHE)
+            #
+            # Critically, the catastrophe marker must appear in what was actually
+            # DONE or what actually HAPPENED (action_taken / outcome_feedback), not
+            # in the trigger_prompt. Otherwise mere discussion ("explain why rm -rf
+            # is dangerous", "the docs warn force push can cause data loss") gets
+            # permanently pinned — a false-positive that floods L3 and (via the
+            # SessionStart cap) can evict real guardrails. The deed/result is the
+            # reliable crisis signal; the question that prompted it is not.
+            deed = f"{e.action_taken}\n{e.outcome_feedback}".lower()
+            is_catastrophe = any(m in deed for m in _CATASTROPHE)
             if (is_catastrophe
                     and e.valence <= self.cfg.crisis_valence_max
                     and e.base_salience >= self.cfg.crisis_threshold):
@@ -156,6 +164,7 @@ class Consolidator:
                     crisis_trigger=e.trigger_prompt[:500],
                     remediation_rule=(e.outcome_feedback or e.action_taken)[:500],
                     project=e.project,
+                    origin="elevated",
                 )
                 emb = self.db.get_embedding("episodic", e.id)
                 if emb is None:
