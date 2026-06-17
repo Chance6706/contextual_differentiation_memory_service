@@ -61,6 +61,8 @@ class Config:
     crisis_threshold: float = 3.0       # s_crisis: S0 >= this is a candidate for scar elevation
     crisis_valence_max: float = -0.4    # ...but only if valence <= this (scars are negative crises)
     salience_budget: float = 1000.0     # K_budget: total conserved salience across all live episodes
+    project_budget_cap: float = 0.5     # no single project/subject may hold > this fraction of K
+                                        # (capped-proportional: primaries keep focus, smalls aren't starved)
     assoc_eta: float = 0.20             # η: retroactive association boost coefficient
     assoc_sim_floor: float = 0.60       # only boost past episodes more similar than this
     cluster_sim_threshold: float = 0.78 # cosine link threshold for gist clustering

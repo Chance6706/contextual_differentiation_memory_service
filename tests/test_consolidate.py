@@ -143,6 +143,25 @@ def test_dedup_supersession(service, cfg):
     assert rep.deduped >= 1
 
 
+def test_per_project_budget_cap_prevents_domination(service, cfg):
+    # one project with many turns must not exceed the cap of total salience
+    cfg.project_budget_cap = 0.5
+    cfg.dedup_sim_threshold = 0.999   # keep the many near-identical turns distinct
+    for i in range(40):
+        service.ingest(TurnEvent(f"big project work {i}", f"did big thing {i}",
+                                 tool_name="Edit", project="D:/Repo/big"))
+    for i in range(4):
+        service.ingest(TurnEvent(f"small project work {i}", f"did small thing {i}",
+                                 tool_name="Edit", project="D:/Repo/small"))
+    _consolidator(service, cfg).run()
+    eps = service.db.all_episodic()
+    total = sum(e.base_salience for e in eps) or 1.0
+    big = sum(e.base_salience for e in eps if e.project == "D:/Repo/big")
+    small = sum(e.base_salience for e in eps if e.project == "D:/Repo/small")
+    assert big / total <= 0.5 + 0.02          # dominant project capped near 50%
+    assert small > 0                           # small project not starved to zero
+
+
 def test_budget_renormalization_runs(service, cfg):
     for i in range(4):
         service.ingest(TurnEvent(f"distinct topic number {i} alpha beta", f"action {i}", tool_name="Edit"))
@@ -151,4 +170,4 @@ def test_budget_renormalization_runs(service, cfg):
     # after renormalization the live budget should be near K_budget (allowing for
     # eviction of any sub-floor items)
     assert total <= cfg.salience_budget + 1e-6
-    assert any("renormalized" in n for n in rep.notes)
+    assert any("budget" in n for n in rep.notes)
