@@ -20,6 +20,25 @@ def test_scar_elevation_on_negative_crisis(service, cfg):
     assert service.db.get_episodic(rec.id) is None  # promoted out of episodic
 
 
+def test_routine_failure_is_not_a_scar(service, cfg):
+    # A failed compile / "no results" is negative + salient but NOT a catastrophe.
+    rec = service.ingest(TurnEvent("run the build", "ran the compiler",
+                                   "error CS0246: type or namespace not found; build failed",
+                                   tool_name="Bash", success=False))
+    service.db.set_salience([(rec.id, cfg.crisis_threshold + 1.0)])
+    rep = _consolidator(service, cfg).run()
+    assert rep.scars_created == 0   # routine failure, no catastrophe lexicon match
+
+
+def test_catastrophe_is_a_scar(service, cfg):
+    rec = service.ingest(TurnEvent("clean up the repo", "ran git push --force",
+                                   "force push overwrote teammates commits, data loss",
+                                   tool_name="Bash", success=False, valence_hint=-1.0))
+    service.db.set_salience([(rec.id, cfg.crisis_threshold + 1.0)])
+    rep = _consolidator(service, cfg).run()
+    assert rep.scars_created == 1   # genuine catastrophe -> pinned
+
+
 def test_positive_high_salience_not_a_scar(service, cfg):
     rec = service.ingest(TurnEvent("great success shipping the feature", "merged", "all green",
                                    tool_name="Bash", success=True, valence_hint=0.9))

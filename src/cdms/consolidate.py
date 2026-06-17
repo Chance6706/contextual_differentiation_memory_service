@@ -36,6 +36,19 @@ from .salience import (
     hierarchical_competition,
 )
 
+# Genuine catastrophe markers. Auto scar-elevation requires one of these — a
+# negative-valence high-salience turn alone is NOT a crisis (a failed compile or
+# "no results found" is routine). Deliberate pins go through pin_scar() instead.
+_CATASTROPHE = (
+    "data loss", "lost data", "lost work", "rm -rf", "force push", "force-push",
+    "overwrote", "wiped the", "dropped the database", "dropped table",
+    "deleted the prod", "deleted production", "deleted the database",
+    "prod is down", "production down", "production is down",
+    "broke production", "broke main", "irreversible", "cannot recover",
+    "could not recover", "corrupted the", "exposed credential",
+    "exposed secret", "exposed the key", "leaked the secret", "leaked credential",
+)
+
 _STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in", "on",
     "for", "with", "is", "are", "was", "were", "be", "been", "it", "this", "that",
@@ -107,9 +120,14 @@ class Consolidator:
     # -- Step 1: Flashbulb scar elevation ---------------------------------- #
     def _elevate_scars(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
         for e in episodes:
-            # A scar is a *negative* crisis (failure/warning/severe error), not just
-            # any high-salience memory. Positive high-salience patterns flow to gist.
-            if e.base_salience >= self.cfg.crisis_threshold and e.valence <= self.cfg.crisis_valence_max:
+            # A scar requires a genuine catastrophe signal AND negative valence AND
+            # high salience. Routine failures (failed compiles, "no results") are
+            # negative+salient but are NOT crises — they must not be auto-pinned.
+            blob = f"{e.trigger_prompt}\n{e.action_taken}\n{e.outcome_feedback}".lower()
+            is_catastrophe = any(m in blob for m in _CATASTROPHE)
+            if (is_catastrophe
+                    and e.valence <= self.cfg.crisis_valence_max
+                    and e.base_salience >= self.cfg.crisis_threshold):
                 scar = Scar(
                     id=new_id("scar"),
                     crisis_trigger=e.trigger_prompt[:500],
