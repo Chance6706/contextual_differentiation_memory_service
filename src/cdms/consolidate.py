@@ -19,6 +19,7 @@ the authoritative tuple.
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -49,6 +50,24 @@ _CATASTROPHE = (
     "could not recover", "corrupted the", "exposed credential",
     "exposed secret", "exposed the key", "leaked the secret", "leaked credential",
 )
+
+# Regex tier — catches catastrophes the literal list misses due to verb order or
+# phrasing (e.g. "git push --force", "DROP SCHEMA", credentials in git history).
+_CATASTROPHE_RE = re.compile(
+    r"drop\s+(table|schema|database)"
+    r"|truncate\s+table"
+    r"|push\s+(--force|-f)\b|--force(-with-lease)?\b.*\bpush|\bpush\b.*--force"
+    r"|reset\s+--hard"
+    r"|delete\s+from\s+\w+\s*;?\s*$"
+    r"|(credential|secret|token|api[_ ]?key|password)s?\b.*\b(git history|public repo|committed|pushed)"
+    r"|committed\b.*\b(credential|secret|token|api[_ ]?key|password)",
+    re.IGNORECASE,
+)
+
+
+def _matches_catastrophe(text: str) -> bool:
+    low = text.lower()
+    return any(m in low for m in _CATASTROPHE) or bool(_CATASTROPHE_RE.search(text))
 
 _STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in", "on",
@@ -120,21 +139,26 @@ class Consolidator:
         # a no-op for the decay clock.
         cycle = int(self.db.get_meta("cycle", "0") or "0") + 1
 
+        # Load the live episodic set ONCE (in rowid order) and track removals in
+        # memory, instead of re-materializing the whole table after every step
+        # (the dominant consolidation cost at scale was 5x all_episodic() loads).
+        # In-memory filtering preserves the exact rowid order, so clustering/dedup
+        # behaviour is identical to the prior re-query approach.
         episodes = self.db.all_episodic()
+        remaining = 0
         if episodes:
-            self._elevate_scars(episodes, rep)
-            episodes = self.db.all_episodic()  # refresh after scar removal
+            removed = self._elevate_scars(episodes, rep)
+            episodes = [e for e in episodes if e.id not in removed]
 
-            self._dedup(episodes, rep)
-            episodes = self.db.all_episodic()
+            deduped = self._dedup(episodes, rep)
+            episodes = [e for e in episodes if e.id not in deduped]
 
             evicted = self._evict(episodes, now, rep)
             episodes = [e for e in episodes if e.id not in evicted]
 
-            self._compete_and_renormalize(episodes, rep)
-            episodes = self.db.all_episodic()
-
-            self._aggregate_gists(episodes, rep, now, cycle)
+            self._compete_and_renormalize(episodes, rep)  # mutates DB salience only
+            self._aggregate_gists(episodes, rep, now, cycle)  # uses vecs/valence, not salience
+            remaining = len(episodes)
         else:
             rep.notes.append("no episodic memories; gist maintenance only")
 
@@ -144,26 +168,29 @@ class Consolidator:
         # Persist the advanced cycle counter only now that the pass has completed.
         self.db.set_meta("cycle", cycle)
 
-        rep.episodes_remaining = len(self.db.all_episodic())
+        rep.episodes_remaining = remaining
         return rep
 
     # -- Step 1: Flashbulb scar elevation ---------------------------------- #
-    def _elevate_scars(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
+    def _is_catastrophe(self, e: Episodic) -> bool:
+        """True if a genuine crisis actually HAPPENED — the marker must be in what was
+        DONE or what RESULTED (action_taken / outcome_feedback), not the trigger.
+
+        Scanning the deed/result (not the prompt) excludes both casual discussion
+        ("explain why rm -rf is dangerous") and emotional-but-false beliefs ("I think
+        I deleted prod!" → outcome: "false alarm"). The catastrophe matcher combines
+        the literal lexicon with a regex tier so verb-order/phrasing variants
+        ("git push --force", "DROP SCHEMA", credentials in git history) are caught —
+        fixing the brittle false-negatives without reintroducing the trigger-path
+        false-positives. A real disaster narrated only in the trigger should be
+        pinned deliberately via `store kind=scar`.
+        """
+        return _matches_catastrophe(f"{e.action_taken}\n{e.outcome_feedback}")
+
+    def _elevate_scars(self, episodes: list[Episodic], rep: ConsolidationReport) -> set[str]:
+        removed: set[str] = set()
         for e in episodes:
-            # A scar requires a genuine catastrophe signal AND negative valence AND
-            # high salience. Routine failures (failed compiles, "no results") are
-            # negative+salient but are NOT crises — they must not be auto-pinned.
-            #
-            # Critically, the catastrophe marker must appear in what was actually
-            # DONE or what actually HAPPENED (action_taken / outcome_feedback), not
-            # in the trigger_prompt. Otherwise mere discussion ("explain why rm -rf
-            # is dangerous", "the docs warn force push can cause data loss") gets
-            # permanently pinned — a false-positive that floods L3 and (via the
-            # SessionStart cap) can evict real guardrails. The deed/result is the
-            # reliable crisis signal; the question that prompted it is not.
-            deed = f"{e.action_taken}\n{e.outcome_feedback}".lower()
-            is_catastrophe = any(m in deed for m in _CATASTROPHE)
-            if (is_catastrophe
+            if (self._is_catastrophe(e)
                     and e.valence <= self.cfg.crisis_valence_max
                     and e.base_salience >= self.cfg.crisis_threshold):
                 scar = Scar(
@@ -178,13 +205,15 @@ class Consolidator:
                     emb = self.embedder.embed_one(scar.search_text())
                 self.db.insert_scar(scar, emb)
                 self.db.delete_episodic([e.id])
+                removed.add(e.id)
                 rep.scars_created += 1
+        return removed
 
     # -- Step 2a: Deduplication / supersession ----------------------------- #
-    def _dedup(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
-        vecs = self._embeddings_for(episodes)
+    def _dedup(self, episodes: list[Episodic], rep: ConsolidationReport) -> set[str]:
         if not episodes:
-            return
+            return set()
+        vecs = self._embeddings_for(episodes)
         # Vectorized: compare each episode to all survivors via one matmul (embeddings
         # are unit-norm, so dot == cosine). Survivors live in a preallocated matrix to
         # avoid O(n^2) Python cosine calls — this scales to tens of thousands of turns.
@@ -213,6 +242,7 @@ class Consolidator:
             m += 1
         if to_delete:
             rep.deduped = self.db.delete_episodic(to_delete)
+        return set(to_delete)
 
     # -- Step 2: Temporal eviction ----------------------------------------- #
     def _evict(self, episodes: list[Episodic], now: datetime, rep: ConsolidationReport) -> set[str]:
@@ -477,9 +507,10 @@ class Consolidator:
 
     # -- helpers ----------------------------------------------------------- #
     def _embeddings_for(self, episodes: list[Episodic]) -> list[np.ndarray]:
+        have = self.db.get_embeddings_bulk([e.id for e in episodes])  # one query, not N
         vecs: list[np.ndarray] = []
         for e in episodes:
-            v = self.db.get_embedding("episodic", e.id)
+            v = have.get(e.id)
             if v is None:
                 v = self.embedder.embed_one(e.search_text())
             vecs.append(np.asarray(v, dtype=np.float32))

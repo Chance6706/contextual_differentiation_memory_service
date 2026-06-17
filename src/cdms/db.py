@@ -293,6 +293,21 @@ class Database:
             return None
         return np.frombuffer(r[0], dtype="<f4").copy()
 
+    def get_embeddings_bulk(self, ids: Iterable[str]) -> dict:
+        """{id: vector} for many episodic ids in one query (vs one round-trip each —
+        the per-row get_embedding loop dominated consolidation cost at scale)."""
+        import numpy as np
+
+        ids = list(ids)
+        out: dict = {}
+        for i in range(0, len(ids), 800):  # stay under SQLite's variable limit
+            chunk = ids[i:i + 800]
+            q = ",".join("?" for _ in chunk)
+            for r in self.conn.execute(
+                    f"SELECT id, embedding FROM vec_episodic WHERE id IN ({q})", chunk):
+                out[r[0]] = np.frombuffer(r[1], dtype="<f4").copy()
+        return out
+
     def touch_episodic(self, ep_id: str, when_iso: str) -> None:
         """Record a retrieval (synaptic strengthening)."""
         with self.tx() as c:

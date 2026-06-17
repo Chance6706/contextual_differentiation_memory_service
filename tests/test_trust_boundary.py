@@ -160,6 +160,26 @@ def test_emotional_but_false_belief_not_elevated_as_directive(cfg):
         svc.close()
 
 
+def test_regex_tier_catches_phrasing_variants_in_the_deed(cfg):
+    """Cycle-2 (H4 false-negative fix): real catastrophes with verb-order/phrasing the
+    literal lexicon missed must still elevate when they appear in the deed."""
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    try:
+        con = Consolidator(cfg, db=svc.db, embedder=svc.embedder)
+        deeds = [
+            ("clean the branch", "bash: git push --force origin main",
+             "that overwrote teammates' commits and lost work"),
+            ("reset the db", "bash: psql -c 'DROP SCHEMA public CASCADE'",
+             "the schema is gone and unrecoverable"),
+        ]
+        eps = [Episodic(id=new_id("ep"), trigger_prompt=t, action_taken=a, outcome_feedback=o,
+                        valence=-0.85, base_salience=5.0) for t, a, o in deeds]
+        con._elevate_scars(eps, ConsolidationReport())
+        assert len(svc.db.all_scars()) == 2
+    finally:
+        svc.close()
+
+
 def test_elevated_scar_marked_origin(cfg):
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
