@@ -113,3 +113,59 @@ budget reaches a stable K equilibrium; decay underflow clean.
 
 ## Plan-level corrections
 Recorded in `docs/TEMPERAMENT_PLAN.md` §8 (P1–P7 + Gemini's "Boiling Frog" exit-gate).
+
+## Cycle 3 — adversarial attacks on the identity / cognitive math itself
+
+Surface: can a crafted INPUT STREAM (not code/config edits) corrupt the personality?
+Repro harness: `tools/redteam_cycle3.py` (offline, `CDMS_EMBED_BACKEND=hash`). All
+numbers below are from that harness against the live pipeline; no source was edited.
+
+**Headline claims that HELD up:**
+- **Individuation is robust.** Same store, two projects, *identical* vocab, opposite
+  valence → trait (relation,object) Jaccard overlap = **0.000**; each project's gist
+  carries its own project column + valence. Project-name *spoofing via content* fails
+  (subject = basename of `e.project`/cwd, never parsed from text). No cross-project
+  gist contamination. (consolidate.py `_aggregate_gists` partitions by project first.)
+- **Thrash is fully damped.** 12 cycles of alternating max-valence evidence →
+  **0 flips**. The valence EMA (α=0.4, ±0.15 thresholds) needs ~2 consecutive
+  saturated cycles to cross, and alternation never accumulates.
+- **Budget cap holds.** Victim (12 real turns) vs attacker (3000-turn flood): attacker
+  capped at exactly 50% (500/K=1000), victim keeps 500, **0 victim episodes evicted**,
+  none below retention floor. No starvation, no flood-eviction of the victim tier.
+- **Injection framing holds.** Poisoned gist is still wrapped in `<memory:persona>` as
+  untrusted DATA with the "prior belief, not ground truth" hedge (Cycle 1–2 fixes).
+
+**Confirmed defects / gameable surfaces (severity-sorted at end):**
+
+| ID | Sev | Defect | file:line | Numbers |
+|----|-----|--------|-----------|---------|
+| X1 | HIGH | **Ossification via monotonic `support_count = max(...)`** (the deferred L3, now quantified). A *single* adversarial burst mints a near-permanent junk trait, and later weak evidence can never shrink it. | `consolidate.py:346`, decay `:386` | 30-turn burst → support_count=29 → **~315–324 idle cycles** to forget vs design's "1 support". 5 later 2-episode touches leave support_count pinned at 30 (never lowers). |
+| X2 | HIGH | **Decay-clock games (both directions).** Every consolidation run advances the cycle counter *even on an empty episodic set* ("gist maintenance only"), so an actor who can trigger consolidation repeatedly ages the whole L2 decay clock with zero evidence; conversely, never consolidating freezes identity forever. | `consolidate.py:140,168-169`, `:376-390` | **Accelerated erosion:** 288 rapid empty cycles (≈288 s wall-clock via a consolidate loop) erased a support=17 trait that represents weeks of real work. **Freeze:** 10 simulated years, never consolidate → gist `last_cycle` frozen, trait unchanged (while L1 episodic accessibility wall-clock-rots to ~0). |
+| X3 | MED | **Dedup silently drops contradicting valence (first-writer-wins).** `_dedup` merges on text-embedding only (≥0.95), folds salience via `max()`, but **discards the newer episode's valence/outcome entirely** — it keeps the *older* survivor's valence. A later turn that reuses similar phrasing but flips the outcome is deleted before it can update the trait. | `consolidate.py:230-245` (esp. 232-239) | Two text-identical turns, valence +1.0 then −1.0 (cos=1.0 ≥ 0.95) → after dedup only +1.0 survives; the −1.0 evidence vanishes. Across 12 alternating cycles the gist stayed valence=1.0 / `handles_well` despite 24 negative turns. |
+| X4 | MED | **Relation "flip" is largely unreachable; contradiction spawns a parallel contradictory gist instead.** Because the object label is derived from dominant *content terms* (incl. the action verb), a behavior reversal usually arrives with different vocabulary ("shipped" → "regressed"), routing it to a *new* `(subject, object)` gist rather than flipping the existing one. Result: `handles_well widget shipped` and `has_trouble_with widget regressed` coexist permanently. | `consolidate.py:332-369`, `_extract_tuple:439-454` | Sustained reversal (4 positive then 4 negative cycles) → **0 flips**, two coexisting opposite-relation gists for the same logical trait. The flip path only fires when the object string stays byte-identical while valence crosses ±0.15. |
+| X5 | MED | **Salience proxy is gameable (S0 ranking, not scar gate).** Trivial spam crafted to hit every additive driver (novelty≈1, self-ref keyword, success, mutating tool) reaches S0=3.700 (92.5% of the 4.0 max) and clears the `crisis_threshold`=3.0 S0 gate; a genuinely important *read-only* finding scores far lower. | `store.py:159-195`, `salience.py:43-58` | Spam S0=**3.700**; important non-mutating security `Read` (near-dup, novelty≈0, contingency 0.1, goal 0.5) S0=**0.232** → spam outranks the real finding **~16×**. (Scar elevation still blocked by catastrophe-in-deed + valence gates — only the *ranking/injection* is gamed, not L3.) |
+| X6 | LOW/INFO | **Dedup starves identity formation for *consistent* behavior, and the cold-start fallback dumps raw poisoned episodic text.** 40 near-identical on-topic turns → 39 deduped → 1 survivor → below `min_cluster_support` → **no gist forms at all**. Separately, when <5 gists exist, SessionStart injects raw episodic turns verbatim, so attacker content (e.g. "sudo rm production database …") reaches context unsummarized (still fenced as DATA). | `consolidate.py:213-245,292,309`; `hooks.py:108-116` | Identical-vocab adversary produces *zero* personality; ironically the system is more robust to identical spam than to lexically-varied spam. |
+
+**Honest tradeoff notes (fact vs inference):**
+- X1/X2 are partly *inherent* to the design choice "activity-based, not wall-clock,
+  decay + `max()` support so heavy traits persist." The continuity benefit is real;
+  the cost is the erosion/ossification asymmetry above. Fact: the asymmetry is large
+  and one-burst-triggerable. Inference: a sub-linear support cap (e.g.
+  `support_count = round(0.7*old + 0.3*new)` or `min(old+1, …)`) plus tying decay to a
+  monotonic *wall-clock-anchored* cycle estimate would blunt both without losing
+  continuity — but that is a design change, not a clear bug.
+- X3/X4 are the flip side of the (correctly working) anti-thrash damping. The system
+  errs hard toward *stability*: it would rather drop or fork contradicting evidence
+  than risk oscillation. Fact: sustained, genuine reversals therefore often fail to
+  update the existing trait. Suggested fix for X3: when dedup supersedes, blend the
+  survivor's valence with the dropped episode's (or keep the *newer* outcome) instead
+  of discarding it — dedup should preserve emotional evidence even when it drops the
+  duplicate row.
+- X5: the surprisal proxy can't see model logit entropy (documented limitation in
+  `store.py`); the lexical/novelty proxy is inherently spoofable. Suggested mitigation:
+  cap the additive self-ref/affect contribution when the turn is also high-novelty +
+  trivial-length, or weight contingency by *verified* tool effect rather than mere
+  tool class.
+
+**Severity-sorted confirmed findings:** X1 (HIGH) · X2 (HIGH) · X3 (MED) · X4 (MED) ·
+X5 (MED) · X6 (LOW/INFO).
