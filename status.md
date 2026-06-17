@@ -32,7 +32,8 @@ per-project psyches (trait overlap **0.00**).
   `cdms install --scope project|user`.
 - **Tooling** — `tools/seed_from_hermes.py`, `tools/seed_from_jsonl.py` (imports
   `~/.claude/projects/**/*.jsonl`), `tools/individuation_experiment.py`,
-  `tools/analyze_psyches.py`.
+  `tools/analyze_psyches.py`, `tools/drift_trajectory.py` (self-validating
+  phenotype-drift trajectory across consolidation cycles; see below).
 
 ## 📐 Designed, documented, NOT built (`docs/DESIGN.md` §6–§8)
 
@@ -56,6 +57,8 @@ per-project psyches (trait overlap **0.00**).
 - Deference = **independence-within-limits** (archetype-dependent); dreams **cooler-but-integrative**.
 - Archetype drift = **bounded** ("anchored but evolving" at all 3 layers).
 - Multi-project budget = **capped-proportional** (cap default 50%, `project_budget_cap`).
+- Temperament drift log (the "degenerative orbit") = **deferred, not built** — instrument for an unbuilt machine, unfalsifiable per CLAUDE.md §9 (no real-history oracle). Recorded in `docs/DESIGN.md` §8.7 / §10.3. Reframed as *"drift decoupled from reality-coupling"*; degeneration is detectable from **trajectory statistics** coupled to the **outcome signal**, not the unbuilt provenance pillar. When/if built: **operator-only**, **structured-cause (not prose)**, **activity-clock-only**.
+- **Design fix to fold into the genotype layer (`§8.3` joint-leash):** per-dial bounds do **not** prevent *joint* corner-migration (a "Co-pilot" can drift into a functional "Maverick" corner); add a Euclidean/Mahalanobis **leash of `current` to the archetype `seed`** — the missing `conserve_budget` analog at the genotype layer. §1.3 "one law at every layer" is the target, not yet the spec (`DESIGN.md` §1.3, §8.3, §8.6).
 
 ## 🔲 OPEN — pick up here
 
@@ -68,6 +71,18 @@ per-project psyches (trait overlap **0.00**).
    invariant, provenance origin, drift, archetype coupling.
 3. Then: **start implementing** a pillar. Cheapest first = novelty-surfacing + gap-tracking
    (no models, Pattern-A-native), which the rest feeds.
+4. ✅ **Phenotype-drift trajectory — DONE** (`tools/drift_trajectory.py`; `DESIGN.md` §8.7).
+   Self-validating harness (built posit→break→build→break→fix): snapshots
+   `Store.all_gist()` across K cycles, **no new table**. Every detector is proven to fire
+   on a matched control — EROSION (deep absence → 0), THRASH (in-place relation flip →
+   persistence 1.00→0.00), DIFFERENTIATION (clone overlap ~0.76 vs distinct ~0.11).
+   Findings: steady-state identity persists & stays individuated; absence fades only
+   late/gracefully (onset past ~137 cycles), confirming the §5.3 invariant. Deterministic
+   under `CDMS_EMBED_BACKEND=hash`; guarded in CI by `tests/test_drift_trajectory.py`.
+   Also runs over **real** seeded history (`--real ~/.claude/projects`, observational,
+   reuses `seed_from_jsonl.parse_file`): single-project history here shows healthy
+   accretion (count rising, incremental retention ~1.0) into a recognizable phenotype;
+   ≥2 projects would add the real-data cross-project differentiation contrast.
 
 ## Real-data findings (all fixed)
 

@@ -110,17 +110,19 @@ def iter_files(root: Path):
         yield p
 
 
-def process_file(path: Path, svc: MemoryService, mc: int, remaining: int) -> int:
+def parse_file(path: Path, mc: int, remaining: int = 0) -> list[TurnEvent]:
+    """Reconstruct user->assistant->tool turns (with REAL timestamps) from a session
+    transcript, WITHOUT ingesting. Shared by the seeder (which ingests the result) and
+    the drift-trajectory replay (which needs the turns in time order before ingest)."""
     project = project_of(path)
     last_user: dict[str, str] = {}
     pending: dict | None = None
-    count = 0
+    turns: list[TurnEvent] = []
 
     def flush(p):
-        nonlocal count
         if p is None or not (p["action"] or p["outcome"]):
             return
-        svc.ingest(TurnEvent(
+        turns.append(TurnEvent(
             trigger_prompt=_brief(p["trigger"] or "(session activity)", mc),
             action_taken=_brief(p["action"] or "(assistant turn)", mc),
             outcome_feedback=_brief(p["outcome"], mc),
@@ -130,11 +132,10 @@ def process_file(path: Path, svc: MemoryService, mc: int, remaining: int) -> int
             project=project,
             timestamp=p["ts"],
         ))
-        count += 1
 
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
-            if remaining and count >= remaining:
+            if remaining and len(turns) >= remaining:
                 break
             line = line.strip()
             if not line:
@@ -172,7 +173,14 @@ def process_file(path: Path, svc: MemoryService, mc: int, remaining: int) -> int
                 pending = {"sid": sid, "trigger": last_user.get(sid, ""), "action": action,
                            "outcome": "", "tool": (tus[0][0] if tus else ""), "ts": ts}
     flush(pending)
-    return count
+    return turns if not remaining else turns[:remaining]
+
+
+def process_file(path: Path, svc: MemoryService, mc: int, remaining: int) -> int:
+    turns = parse_file(path, mc, remaining)
+    for ev in turns:
+        svc.ingest(ev)
+    return len(turns)
 
 
 def main() -> int:
