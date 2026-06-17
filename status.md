@@ -6,7 +6,7 @@ files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-servic
 
 ## TL;DR
 
-The **memory core is built, tested (36 tests), and validated on real history.** The
+The **memory core is built, tested (38 tests), and validated on real history.** The
 **proactive pillars** (curiosity/dream-research, emotion/proposals/provenance,
 archetypes/genotype) are **fully designed and documented but not yet implemented.**
 Two design threads remain open. `main` is clean; 8 PRs merged this session.
@@ -79,10 +79,20 @@ per-project psyches (trait overlap **0.00**).
    Findings: steady-state identity persists & stays individuated; absence fades only
    late/gracefully (onset past ~137 cycles), confirming the §5.3 invariant. Deterministic
    under `CDMS_EMBED_BACKEND=hash`; guarded in CI by `tests/test_drift_trajectory.py`.
-   Also runs over **real** seeded history (`--real ~/.claude/projects`, observational,
-   reuses `seed_from_jsonl.parse_file`): single-project history here shows healthy
-   accretion (count rising, incremental retention ~1.0) into a recognizable phenotype;
-   ≥2 projects would add the real-data cross-project differentiation contrast.
+   Also runs over **real** seeded history (`--real <path> [--windows N] [--limit N]`,
+   observational, reuses `seed_from_jsonl.parse_file`): single-project history shows healthy
+   accretion (count rising, incremental retention ~1.0) into a recognizable phenotype; the
+   **≥2-project cross-project differentiation branch is CI-guarded** against a synthetic
+   two-project fixture (distinct vocab → overlap 0.00). `--limit` caps turns/file for large
+   local histories.
+5. ✅ **Sandbox live-growth — validated end-to-end** (the local-CLI path, real bge-small
+   embedder, persistent `CDMS_HOME`). Two-phase growth via `seed_from_jsonl.py` →
+   `cdms consolidate` → `cdms stats|paths|retrieve`: phase 1 (2 projects) **3 gists / 31
+   episodic / 2 selves** → phase 2 (+real history) **10 gists / 181 episodic / 3 selves**.
+   Memory grew live; selves stayed individuated (`paths` shows 3 distinct subjects, the real
+   one valence-differentiated into handles_well / frequently_works_on / has_trouble_with);
+   recall discriminates by project ("database migration"→alpha, "react component"→beta,
+   "drift trajectory"→real). **Ready for the local CLI with more history and the sandbox.**
 
 ## Real-data findings (all fixed)
 
@@ -96,12 +106,18 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 36 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # 38 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
+python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
+python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory
 # seed + analyze real multi-project history into a throwaway store:
 CDMS_HOME=.tmp python tools/seed_from_jsonl.py --path ~/.claude/projects --home .tmp
 CDMS_HOME=.tmp python -m cdms consolidate
 CDMS_HOME=.tmp python tools/analyze_psyches.py
+# sandbox live-growth: persistent store grows as sessions accrue, selves stay individuated:
+export CDMS_HOME=~/.local_memory
+python tools/seed_from_jsonl.py --path ~/.claude/projects --home "$CDMS_HOME"
+python -m cdms consolidate && python -m cdms stats && python -m cdms paths
 ```
 
 ## Notes / decisions still pending the user
