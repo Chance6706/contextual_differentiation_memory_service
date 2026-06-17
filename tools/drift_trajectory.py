@@ -49,11 +49,14 @@ negative control fails to detect known degeneration (this is a test, not a chart
 
 from __future__ import annotations
 
+import argparse
 import os
 import random
+import re
 import sys
 import tempfile
 import zlib
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -66,6 +69,8 @@ from cdms.store import MemoryService, TurnEvent      # noqa: E402
 
 # Reuse the validated disposition definitions (entities / verbs / success rates).
 from individuation_experiment import PERSONAS        # noqa: E402
+# Reuse the real-transcript parser (time-ordered turns, no ingest) for --real mode.
+from seed_from_jsonl import iter_files, parse_file   # noqa: E402
 
 NOW = datetime(2026, 6, 16, tzinfo=timezone.utc)     # fixed clock for reproducibility
 _POS = "passed cleanly, all green, works correctly"
@@ -303,8 +308,101 @@ def differentiation_contrast(root, embedder, distinct_overlap):
     return gap, identical_overlap
 
 
+# --------------------------------------------------------------------------- #
+# Regime E: REAL history — observational developmental trajectory
+# --------------------------------------------------------------------------- #
+def _parse_dt(ts: str | None) -> datetime | None:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def real_history(path: str, embedder, n_windows: int) -> int:
+    """Replay REAL seeded history in time order, consolidating at N windows, and
+    report the developmental trajectory per project. This is OBSERVATIONAL — real
+    history is not a controlled experiment, so there is no pass/fail verdict (unlike
+    the synthetic self-validating regimes). With >=2 projects it also reports the
+    cross-project differentiation contrast (the real-data individuation oracle)."""
+    banner(f"REAL HISTORY  (time-ordered replay, {n_windows} windows; OBSERVATIONAL)")
+    root = Path(os.path.expanduser(path))
+    by_proj: dict[str, list[TurnEvent]] = defaultdict(list)
+    for fp in iter_files(root):
+        for t in parse_file(fp, 1200):
+            by_proj[t.project].append(t)
+    projs = {p: sorted(ts, key=lambda e: e.timestamp or "")
+             for p, ts in by_proj.items() if len(ts) >= 2 * n_windows}
+    if not projs:
+        print(f"  no project has >= {2 * n_windows} turns; parsed = "
+              f"{ {p: len(v) for p, v in by_proj.items()} }")
+        return 0
+
+    work = Path(tempfile.mkdtemp(prefix="cdms_real_"))
+    svcs, cfgs = {}, {}
+    for p in projs:
+        cfg = Config(home=work / (re.sub(r"[^A-Za-z0-9_.-]", "_", p)[:40] or "p"))
+        cfg.ensure_home()
+        cfgs[p], svcs[p] = cfg, MemoryService(cfg, embedder=embedder)
+
+    traj, t0, window_sets = {p: [] for p in projs}, {}, []
+    for w in range(n_windows):
+        per = {}
+        for p, ordered in projs.items():
+            lo, hi = len(ordered) * w // n_windows, len(ordered) * (w + 1) // n_windows
+            for ev in ordered[lo:hi]:
+                svcs[p].ingest(ev)
+            last = max((_parse_dt(e.timestamp) for e in ordered[:hi]
+                        if _parse_dt(e.timestamp)), default=NOW)
+            Consolidator(cfgs[p], db=svcs[p].db, embedder=embedder).run(now=last + timedelta(hours=1))
+            ts_set = trait_set(svcs[p])
+            if w == 0:
+                t0[p] = ts_set
+            prev = window_sets[w - 1][p] if w > 0 else ts_set
+            retention = (len(ts_set & prev) / len(prev)) if prev else 1.0
+            traj[p].append({"count": len(ts_set), "retention": retention,
+                            "persist": jaccard(ts_set, t0[p]) if t0[p] else 0.0})
+            per[p] = ts_set
+        window_sets.append(per)
+
+    for p, ordered in projs.items():
+        print(f"\n  [{p[:46]}]  turns={len(ordered)}")
+        print(f"    gist count by window:        " + " ".join(f"{s['count']:4d}" for s in traj[p]))
+        print(f"    incremental retention vs prev:" + " ".join(f"{s['retention']:4.2f}" for s in traj[p]))
+        print(f"    persistence vs w1 (embryo):  " + " ".join(f"{s['persist']:4.2f}" for s in traj[p]))
+        for g in sorted(svcs[p].db.all_gist(), key=lambda g: -g.support_count)[:6]:
+            print(f"      • {g.render()}  (sup {g.support_count})")
+    print("\n  Reading: a forming identity ACCRETES — count rises while persistence vs the")
+    print("  embryonic w1 necessarily falls. High incremental retention + rising count =")
+    print("  healthy growth; LOW retention with churning count would be thrash.")
+    if len(projs) >= 2:
+        print("\n  cross-project trait overlap by window (lower = more individuated):")
+        print("  " + " ".join(f"w{w+1}={mean_pairwise_overlap(list(window_sets[w].values())):.2f}"
+                              for w in range(n_windows)))
+    else:
+        print(f"\n  (only {len(projs)} project in this history — no cross-project "
+              f"differentiation contrast; the above is a single-self developmental curve.)")
+    for p in projs:
+        svcs[p].close()
+    import shutil
+    shutil.rmtree(work, ignore_errors=True)
+    return 0
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--real", metavar="PATH",
+                    help="observational trajectory over real seeded history "
+                         "(a .jsonl file, a project dir, or ~/.claude/projects)")
+    ap.add_argument("--windows", type=int, default=6, help="replay windows for --real")
+    args = ap.parse_args()
+
     embedder = get_embedder(Config())
+    if args.real:
+        return real_history(args.real, embedder, args.windows)
+
     root = Path(tempfile.mkdtemp(prefix="cdms_drift_"))
 
     healthy_fails, distinct_overlap = steady_state(root, embedder)

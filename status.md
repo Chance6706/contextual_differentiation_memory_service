@@ -78,8 +78,11 @@ per-project psyches (trait overlap **0.00**).
    persistence 1.00→0.00), DIFFERENTIATION (clone overlap ~0.76 vs distinct ~0.11).
    Findings: steady-state identity persists & stays individuated; absence fades only
    late/gracefully (onset past ~137 cycles), confirming the §5.3 invariant. Deterministic
-   under `CDMS_EMBED_BACKEND=hash`. **Next on this thread:** run the same trajectory over
-   *real* seeded history (`tools/seed_from_jsonl.py` output) for the real-project oracle.
+   under `CDMS_EMBED_BACKEND=hash`; guarded in CI by `tests/test_drift_trajectory.py`.
+   Also runs over **real** seeded history (`--real ~/.claude/projects`, observational,
+   reuses `seed_from_jsonl.parse_file`): single-project history here shows healthy
+   accretion (count rising, incremental retention ~1.0) into a recognizable phenotype;
+   ≥2 projects would add the real-data cross-project differentiation contrast.
 
 ## Real-data findings (all fixed)
 
