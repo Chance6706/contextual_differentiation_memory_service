@@ -32,6 +32,7 @@ from .models import Episodic, Gist, Scar, new_id
 from .salience import (
     accessibility,
     age_days,
+    allocate_capped_proportional,
     conserve_budget,
     hierarchical_competition,
 )
@@ -215,12 +216,26 @@ class Consolidator:
         comp = hierarchical_competition(grouped)
         # Fold competition score in multiplicatively (winners retain more salience).
         boosted = {e.id: e.base_salience * (0.5 + comp.get(e.id, 0.0)) for e in episodes}
+        proj_of = {e.id: (e.project or "_") for e in episodes}
 
-        # Step 4: SHY-style proportional renormalization to the conserved budget.
-        ids = list(boosted.keys())
-        renorm = conserve_budget([boosted[i] for i in ids], self.cfg.salience_budget)
-        self.db.set_salience(list(zip(ids, renorm)))
-        rep.notes.append(f"renormalized {len(ids)} episodes to K_budget={self.cfg.salience_budget:g}")
+        # Step 4: capped per-project budget — allocate K across projects with a cap
+        # (so a busy primary keeps focus without starving the others), then SHY-style
+        # proportional renormalization WITHIN each project to its allocated share.
+        proj_weight: dict[str, float] = defaultdict(float)
+        for eid, s in boosted.items():
+            proj_weight[proj_of[eid]] += s
+        alloc = allocate_capped_proportional(
+            dict(proj_weight), self.cfg.salience_budget, self.cfg.project_budget_cap)
+
+        updates: list[tuple[str, float]] = []
+        for proj, share in alloc.items():
+            members = [eid for eid in boosted if proj_of[eid] == proj]
+            renorm = conserve_budget([boosted[eid] for eid in members], share)
+            updates.extend(zip(members, renorm))
+        self.db.set_salience(updates)
+        rep.notes.append(
+            f"capped per-project budget (cap={self.cfg.project_budget_cap:.0%}): "
+            f"{len(alloc)} project(s) -> K={self.cfg.salience_budget:g}")
 
     # -- Step 5: Mechanical tuple aggregation (gist extraction) ------------ #
     def _aggregate_gists(self, episodes: list[Episodic], rep: ConsolidationReport,

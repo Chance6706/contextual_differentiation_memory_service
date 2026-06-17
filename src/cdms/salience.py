@@ -114,6 +114,53 @@ def conserve_budget(saliences: list[float], k_budget: float) -> list[float]:
     return [s * scale for s in saliences]
 
 
+def allocate_capped_proportional(
+    weights: dict[str, float],
+    total: float,
+    cap_fraction: float,
+) -> dict[str, float]:
+    """Split ``total`` across keys proportionally to ``weights``, but with no key
+    exceeding ``cap_fraction * total``. Excess from capped keys is redistributed
+    proportionally among the rest (water-filling).
+
+    This is the multi-project salience budget: a busy primary keeps the largest
+    share (up to the cap) while smaller projects retain a real, un-starved slice —
+    "focus on your primaries, but not to the exclusion of the others."
+    """
+    keys = list(weights)
+    n = len(keys)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {keys[0]: total}
+    cap = cap_fraction * total
+    # Infeasible cap (too tight to cover everyone): fall back to an equal split.
+    if cap * n < total:
+        return {k: total / n for k in keys}
+
+    w = {k: max(0.0, weights[k]) for k in keys}
+    alloc: dict[str, float] = {}
+    remaining = total
+    uncapped = set(keys)
+    while uncapped:
+        wsum = sum(w[k] for k in uncapped)
+        if wsum <= 0.0:                       # no signal left: split remainder evenly
+            share = remaining / len(uncapped)
+            for k in uncapped:
+                alloc[k] = share
+            break
+        newly_capped = [k for k in uncapped if w[k] / wsum * remaining > cap + 1e-12]
+        if not newly_capped:
+            for k in uncapped:
+                alloc[k] = w[k] / wsum * remaining
+            break
+        for k in newly_capped:
+            alloc[k] = cap
+            remaining -= cap
+            uncapped.discard(k)
+    return alloc
+
+
 def associative_boost(
     s_old: float,
     s_new: float,

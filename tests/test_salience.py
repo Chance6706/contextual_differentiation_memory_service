@@ -5,11 +5,33 @@ from cdms.salience import (
     SalienceSignals,
     accessibility,
     age_days,
+    allocate_capped_proportional,
     compute_s0,
     conserve_budget,
     hierarchical_competition,
     softmax,
 )
+
+
+def test_capped_proportional_caps_dominant_and_redistributes():
+    # a project that wants 75% is capped at 50%; excess goes to the others
+    alloc = allocate_capped_proportional({"big": 75, "mid": 17.5, "small": 7.5}, 1000.0, 0.5)
+    assert math.isclose(sum(alloc.values()), 1000.0, rel_tol=1e-9)
+    assert alloc["big"] <= 500.0 + 1e-6                 # capped at 50%
+    assert math.isclose(alloc["big"], 500.0, rel_tol=1e-6)
+    assert alloc["mid"] > 175.0                          # mid gained from redistribution
+    assert alloc["small"] > 75.0
+
+
+def test_capped_proportional_uncapped_when_under_cap():
+    # nobody exceeds the cap -> plain proportional
+    alloc = allocate_capped_proportional({"a": 1, "b": 1, "c": 1}, 900.0, 0.5)
+    for v in alloc.values():
+        assert math.isclose(v, 300.0, rel_tol=1e-9)
+
+
+def test_capped_proportional_single_project_gets_all():
+    assert allocate_capped_proportional({"only": 5}, 1000.0, 0.5) == {"only": 1000.0}
 
 
 def test_decay_halflife():
