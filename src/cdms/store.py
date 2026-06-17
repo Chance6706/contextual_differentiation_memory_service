@@ -248,7 +248,7 @@ class MemoryService:
         # Redact + cap each field (facts feed the PersonaTree, rendered into context).
         subject, relation, object_ = self._clip(subject), self._clip(relation), self._clip(object_)
         cycle = int(self.db.get_meta("cycle", "0") or "0")
-        existing = self.db.find_gist_by_so(subject, object_)
+        existing = self.db.find_gist_by_so(subject, object_, project)
         if existing:
             existing.frequency += 1
             existing.support_count += 1
@@ -270,7 +270,7 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     def retrieve(self, query: str, top_k: Optional[int] = None,
                  tiers: tuple[str, ...] = ("scar", "gist", "episodic"),
-                 reinforce: bool = True) -> list[SearchHit]:
+                 reinforce: bool = True, project: str = "") -> list[SearchHit]:
         top_k = top_k or self.cfg.default_top_k
         self._reconcile_embedder()  # querying with a mismatched backend recalls nothing
         qvec = self.embedder.embed_one(query)
@@ -283,6 +283,11 @@ class MemoryService:
                 continue
             hits.extend(self._materialize(tier, rrf))
 
+        # Project scoping: when a project is given, recall only its own + global
+        # ("") memories — otherwise a model in project B recalls project A's raw
+        # content (cross-project exfiltration). Empty project = unscoped (CLI).
+        if project:
+            hits = [h for h in hits if h.payload.get("project", "") in ("", project)]
         # Accessibility filtering + reinforcement happen on episodic tier only.
         hits = [h for h in hits if not (h.tier == "episodic" and h.accessibility < self.cfg.retention_floor)]
         hits.sort(key=lambda h: h.score, reverse=True)
@@ -321,7 +326,7 @@ class MemoryService:
                     score=base * weight * (0.5 + acc), accessibility=acc,
                     payload={"timestamp": rec.timestamp, "valence": rec.valence,
                              "salience": rec.base_salience, "access_count": rec.access_count,
-                             "session_id": rec.session_id},
+                             "session_id": rec.session_id, "project": rec.project},
                 ))
         elif tier == "gist":
             gmap = {g.id: g for g in self.db.all_gist()}
@@ -333,7 +338,8 @@ class MemoryService:
                     id=mid, tier="gist", text=g.render(), score=base * weight,
                     accessibility=weight,
                     payload={"subject": g.subject, "relation": g.relation, "object": g.object,
-                             "support_count": g.support_count, "frequency": g.frequency},
+                             "support_count": g.support_count, "frequency": g.frequency,
+                             "project": g.project},
                 ))
         else:  # scar
             smap = {s.id: s for s in self.db.all_scars()}
@@ -344,7 +350,8 @@ class MemoryService:
                 out.append(SearchHit(
                     id=mid, tier="scar", text=f"⚠ {s.crisis_trigger} → {s.remediation_rule}",
                     score=base * weight, accessibility=weight,
-                    payload={"crisis_trigger": s.crisis_trigger, "remediation_rule": s.remediation_rule},
+                    payload={"crisis_trigger": s.crisis_trigger, "remediation_rule": s.remediation_rule,
+                             "project": s.project},
                 ))
         return out
 

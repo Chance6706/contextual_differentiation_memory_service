@@ -32,6 +32,11 @@ from .store import MemoryService, TurnEvent  # noqa: E402
 mcp = FastMCP("contextual-memory")
 
 _CFG = load_config()
+# The cwd the server was launched in — for a project-scoped install this is the
+# project directory (Claude Code launches `cdms serve` there), matching the
+# `project` hooks capture. Used as the default scope so store/retrieve don't leak
+# across projects in a shared (`--scope user`) store.
+_LAUNCH_CWD = os.getcwd()
 _SERVICE: MemoryService | None = None
 
 
@@ -98,7 +103,8 @@ def store(
     kind: str = Field(default="episode", description="One of 'episode' (default), 'fact', or 'scar'. "
                       "'fact' content must be 'subject | relation | object'. 'scar' content must be "
                       "'trigger | remediation_rule' and pins a permanent guardrail."),
-    project: str = Field(default="", description="Optional project/workspace path for scoped recall."),
+    project: str = Field(default=_LAUNCH_CWD, description="Project/workspace path for scoped recall "
+                         "(defaults to this server's project; pass '' for an explicitly global memory)."),
     importance: float | None = Field(default=None, description="Optional explicit goal-relevance in [0,1]."),
 ) -> StoreResult:
     """Persist a memory. Episodes decay over time; facts feed the PersonaTree; scars are permanent."""
@@ -126,6 +132,8 @@ def retrieve(
     query: str = Field(description="What to recall — a natural-language description of the context or need."),
     k: int = Field(default=8, description="Max memories to return."),
     tiers: str = Field(default="all", description="'all', or comma list of 'scar','gist','episodic'."),
+    project: str = Field(default=_LAUNCH_CWD, description="Restrict recall to this project + global "
+                         "memories (defaults to this server's project; pass '' to search across all)."),
 ) -> list[Memory]:
     """Recall the most relevant memories across scars, gist (PersonaTree), and episodic tiers."""
     svc = service()
@@ -134,7 +142,7 @@ def retrieve(
     else:
         wanted = tuple(t.strip() for t in tiers.split(",") if t.strip() in ("scar", "gist", "episodic"))
         wanted = wanted or ("scar", "gist", "episodic")
-    hits = svc.retrieve(query, top_k=k, tiers=wanted)
+    hits = svc.retrieve(query, top_k=k, tiers=wanted, project=project)
     return [Memory(id=h.id, tier=h.tier, text=h.text, score=round(h.score, 5),
                    accessibility=round(h.accessibility, 4)) for h in hits]
 

@@ -324,12 +324,14 @@ class Database:
             ).fetchall()
         return [self._row_to_gist(r) for r in rows]
 
-    def find_gist_by_so(self, subject: str, object_: str) -> Gist | None:
-        """Gists are keyed on (subject, object); the relation is a derived attribute
-        that can flip as the running valence changes."""
+    def find_gist_by_so(self, subject: str, object_: str, project: str = "") -> Gist | None:
+        """Gists are keyed on (subject, object, project); the relation is a derived
+        attribute that can flip as the running valence changes. Project is part of
+        the key so two distinct repos sharing a basename (subject) do not merge
+        into one identity (subject-collision leak)."""
         r = self.conn.execute(
-            "SELECT * FROM mem_gist WHERE subject = ? AND object = ?",
-            (subject, object_),
+            "SELECT * FROM mem_gist WHERE subject = ? AND object = ? AND project = ?",
+            (subject, object_, project),
         ).fetchone()
         return self._row_to_gist(r) if r else None
 
@@ -341,14 +343,15 @@ class Database:
             return None
         return np.frombuffer(r[0], dtype="<f4").copy()
 
-    def gist_centroids(self, subject: str) -> list[tuple[Gist, "object"]]:
-        """(Gist, centroid_array) for every gist of ``subject`` that has a stored
-        episode-space centroid — used for vocabulary-independent gist matching."""
+    def gist_centroids(self, subject: str, project: str = "") -> list[tuple[Gist, "object"]]:
+        """(Gist, centroid_array) for every gist of ``(subject, project)`` that has a
+        stored episode-space centroid — used for vocabulary-independent gist matching,
+        scoped to the project so distinct repos never cross-merge."""
         import numpy as np
 
         rows = self.conn.execute(
-            "SELECT * FROM mem_gist WHERE subject = ? AND centroid IS NOT NULL ORDER BY rowid",
-            (subject,),
+            "SELECT * FROM mem_gist WHERE subject = ? AND project = ? AND centroid IS NOT NULL ORDER BY rowid",
+            (subject, project),
         ).fetchall()
         out = []
         for r in rows:

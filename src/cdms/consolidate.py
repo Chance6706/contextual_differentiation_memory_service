@@ -263,10 +263,27 @@ class Consolidator:
             return
         now_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         vecs = self._embeddings_for(episodes)
-        clusters = self._greedy_cluster(list(zip(episodes, vecs)))
-        rep.clusters = len(clusters)
         ema = self.cfg.gist_valence_ema
 
+        # Partition episodes by project BEFORE clustering. all_episodic() spans every
+        # project, so an unpartitioned clustering pass merges episodes from different
+        # projects into one gist (cross-project identity contamination: project A's
+        # failures flipped project B's trait). Clustering, identity, and the gist's
+        # project column are all scoped per project here.
+        by_project: dict[str, list[tuple[Episodic, np.ndarray]]] = defaultdict(list)
+        for e, v in zip(episodes, vecs):
+            by_project[e.project or ""].append((e, v))
+
+        total_clusters = 0
+        for proj, items in by_project.items():
+            if len(items) < self.cfg.min_cluster_support:
+                continue
+            clusters = self._greedy_cluster(items)
+            total_clusters += len(clusters)
+            self._gists_from_clusters(clusters, proj, rep, now_iso, cycle, ema)
+        rep.clusters = total_clusters
+
+    def _gists_from_clusters(self, clusters, proj, rep, now_iso, cycle, ema) -> None:
         for members in clusters:
             if len(members) < self.cfg.min_cluster_support:
                 continue
@@ -277,28 +294,35 @@ class Consolidator:
             centroid = self._centroid([v for _e, v in members])
 
             # Identity resolution (fixes gist proliferation over time): try the exact
-            # (subject, object) key first, then fall back to the nearest EXISTING gist
-            # of this subject by episode-space centroid. Top-2 term selection is noisy
-            # — near-tied frequencies make the object string reshuffle cycle-to-cycle,
-            # and vocabulary drifts as a topic evolves — so a literal-string key alone
-            # shatters one topic into many siblings, none of which accumulate support.
-            existing = self.db.find_gist_by_so(subject, object_)
+            # (subject, object, project) key first, then fall back to the nearest
+            # EXISTING gist of this subject+project by episode-space centroid. Top-2
+            # term selection is noisy — near-tied frequencies reshuffle the object
+            # string cycle-to-cycle and vocabulary drifts — so a literal-string key
+            # alone shatters one topic into many siblings that never accrue support.
+            existing = self.db.find_gist_by_so(subject, object_, proj)
             if existing is None:
-                existing = self._match_gist_by_embedding(subject, centroid, object_)
+                existing = self._match_gist_by_embedding(subject, centroid, object_, proj)
             if existing:
                 # The relation is DERIVED from a running valence, so new contradicting
-                # evidence can FLIP the trait. The existing (subject, object) label is
-                # kept stable for identity continuity even as vocabulary drifts.
+                # evidence can FLIP the trait. Continuity is carried by the stable gist
+                # id; the human-readable OBJECT label is refreshed to track current
+                # content (a frozen label went stale — e.g. still saying "login oauth"
+                # for work that had drifted entirely to billing). The centroid blend is
+                # support-WEIGHTED so an established trait's location moves slowly
+                # (anti identity-creep) rather than chasing the latest cluster 50/50.
                 old_relation = existing.relation
+                old_support = max(1, existing.support_count)
                 existing.frequency += 1
                 existing.support_count = max(existing.support_count, len(members))
                 existing.survived_cycles += 1
                 existing.valence = (1 - ema) * existing.valence + ema * valence
                 existing.relation = self.cfg.relation_from_valence(existing.valence)
+                existing.object = object_
                 existing.last_reinforced = now_iso
                 existing.last_cycle = cycle
                 old_c = self.db.get_gist_centroid(existing.id)
-                blended = centroid if old_c is None else self._centroid([old_c, centroid])
+                blended = centroid if old_c is None else self._blend_centroid(
+                    old_c, old_support, centroid, len(members))
                 emb = self.embedder.embed_one(existing.search_text())
                 self.db.insert_gist(existing, emb, blended)
                 rep.gists_reinforced += 1
@@ -309,7 +333,7 @@ class Consolidator:
                 relation = self.cfg.relation_from_valence(valence)
                 g = Gist(id=new_id("gist"), subject=subject, relation=relation, object=object_,
                          valence=valence, frequency=1, support_count=len(members),
-                         project=members[0][0].project, last_reinforced=now_iso, last_cycle=cycle)
+                         project=proj, last_reinforced=now_iso, last_cycle=cycle)
                 emb = self.embedder.embed_one(g.search_text())
                 self.db.insert_gist(g, emb, centroid)
                 rep.gists_created += 1
@@ -413,10 +437,20 @@ class Consolidator:
         n = float(np.linalg.norm(m))
         return (m / n).astype(np.float32) if n > 0.0 else m.astype(np.float32)
 
+    @staticmethod
+    def _blend_centroid(old_c: np.ndarray, w_old: float,
+                        new_c: np.ndarray, w_new: float) -> np.ndarray:
+        """Support-weighted blend of an existing gist centroid with a new cluster's,
+        so a heavily-supported trait's location drifts slowly (resists identity-creep)
+        while a lightly-supported one still adapts."""
+        m = w_old * np.asarray(old_c, dtype=np.float32) + w_new * np.asarray(new_c, dtype=np.float32)
+        n = float(np.linalg.norm(m))
+        return (m / n).astype(np.float32) if n > 0.0 else m.astype(np.float32)
+
     def _match_gist_by_embedding(self, subject: str, centroid: np.ndarray,
-                                 object_: str) -> Gist | None:
-        """Nearest existing gist of ``subject`` that is the SAME trait under a
-        reshuffled/overlapping object label.
+                                 object_: str, project: str = "") -> Gist | None:
+        """Nearest existing gist of ``(subject, project)`` that is the SAME trait
+        under a reshuffled/overlapping object label.
 
         Two guards must BOTH hold, because neither is sufficient alone under a
         weak (e.g. hashing) embedder: (1) the episode-space centroid is within the
@@ -432,7 +466,7 @@ class Consolidator:
             return None
         best: Gist | None = None
         best_sim = self.cfg.gist_match_sim_threshold
-        for g, gc in self.db.gist_centroids(subject):
+        for g, gc in self.db.gist_centroids(subject, project):
             if not (new_terms & set(g.object.split())):
                 continue  # no shared object term -> a distinct trait, never merge
             sim = float(np.dot(centroid, gc))
