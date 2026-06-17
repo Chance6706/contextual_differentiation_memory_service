@@ -160,24 +160,34 @@ class Consolidator:
     # -- Step 2a: Deduplication / supersession ----------------------------- #
     def _dedup(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:
         vecs = self._embeddings_for(episodes)
-        keep: list[tuple[Episodic, np.ndarray]] = []
+        if not episodes:
+            return
+        # Vectorized: compare each episode to all survivors via one matmul (embeddings
+        # are unit-norm, so dot == cosine). Survivors live in a preallocated matrix to
+        # avoid O(n^2) Python cosine calls — this scales to tens of thousands of turns.
+        dim = int(vecs[0].shape[0])
+        keep_mat = np.empty((len(episodes), dim), dtype=np.float32)
+        keep_e: list[Episodic] = []
         to_delete: list[str] = []
+        thr = self.cfg.dedup_sim_threshold
+        m = 0
         for e, v in zip(episodes, vecs):
-            dup_of = None
-            for ke, kv in keep:
-                if cosine(v, kv) >= self.cfg.dedup_sim_threshold:
-                    dup_of = ke
-                    break
-            if dup_of is not None:
-                # supersede: fold access + salience into the survivor, drop the dup
-                survivor = self.db.get_episodic(dup_of.id)
-                if survivor is not None:
-                    merged = max(survivor.base_salience, e.base_salience)
-                    self.db.set_salience([(survivor.id, merged)])
-                    self.db.touch_episodic(survivor.id, survivor.timestamp)
-                to_delete.append(e.id)
-            else:
-                keep.append((e, v))
+            v = np.asarray(v, dtype=np.float32)
+            if m > 0:
+                sims = keep_mat[:m] @ v
+                j = int(np.argmax(sims))
+                if float(sims[j]) >= thr:
+                    # supersede: fold access + salience into the survivor, drop the dup
+                    survivor = self.db.get_episodic(keep_e[j].id)
+                    if survivor is not None:
+                        merged = max(survivor.base_salience, e.base_salience)
+                        self.db.set_salience([(survivor.id, merged)])
+                        self.db.touch_episodic(survivor.id, survivor.timestamp)
+                    to_delete.append(e.id)
+                    continue
+            keep_mat[m] = v
+            keep_e.append(e)
+            m += 1
         if to_delete:
             rep.deduped = self.db.delete_episodic(to_delete)
 
@@ -276,21 +286,37 @@ class Consolidator:
             rep.gists_decayed = self.db.delete_gist(doomed)
 
     def _greedy_cluster(self, items: list[tuple[Episodic, np.ndarray]]) -> list[list[tuple[Episodic, np.ndarray]]]:
+        # Greedy single-pass clustering against running centroid means. Vectorized:
+        # each item's similarity to all current centroids is one matmul (centroids are
+        # means, hence not unit-norm, so divide by their norms to get cosine). Behaviour
+        # is identical to the per-item Python loop, but O(n) matmuls instead of O(n*k)
+        # Python cosine calls.
         clusters: list[list[tuple[Episodic, np.ndarray]]] = []
-        centroids: list[np.ndarray] = []
+        n = len(items)
+        if n == 0:
+            return clusters
+        dim = int(items[0][1].shape[0])
+        cent = np.empty((n, dim), dtype=np.float32)   # running per-cluster mean
+        counts = np.zeros(n, dtype=np.float32)
+        thr = self.cfg.cluster_sim_threshold
+        k = 0
         for e, v in items:
-            best, best_sim = -1, -1.0
-            for ci, c in enumerate(centroids):
-                s = cosine(v, c)
-                if s > best_sim:
-                    best_sim, best = s, ci
-            if best >= 0 and best_sim >= self.cfg.cluster_sim_threshold:
-                clusters[best].append((e, v))
-                members = clusters[best]
-                centroids[best] = np.mean([m[1] for m in members], axis=0)
-            else:
-                clusters.append([(e, v)])
-                centroids.append(v.astype(np.float32))
+            v = np.asarray(v, dtype=np.float32)
+            if k > 0:
+                C = cent[:k]
+                norms = np.linalg.norm(C, axis=1)
+                norms[norms == 0.0] = 1.0
+                sims = (C @ v) / norms                # v is unit-norm -> this is cosine
+                j = int(np.argmax(sims))
+                if float(sims[j]) >= thr:
+                    clusters[j].append((e, v))
+                    counts[j] += 1.0
+                    cent[j] += (v - cent[j]) / counts[j]   # incremental mean (== np.mean of members)
+                    continue
+            clusters.append([(e, v)])
+            cent[k] = v
+            counts[k] = 1.0
+            k += 1
         return clusters
 
     def _extract_tuple(self, members: list[tuple[Episodic, np.ndarray]]) -> tuple[str, str, str, float] | None:
