@@ -190,6 +190,22 @@ def cmd_ingest(args) -> int:
     return 0
 
 
+def cmd_forget(args) -> int:
+    """Operator-only deletion / right-to-forget. Not exposed to the model."""
+    from .store import MemoryService
+
+    if not (args.project or args.session or args.id):
+        print("ERROR: specify at least one of --project / --session / --id", file=sys.stderr)
+        return 2
+    cfg = load_config()
+    svc = MemoryService(cfg)
+    res = svc.forget(project=args.project or None, session=args.session or None,
+                     ids=list(args.id) if args.id else None)
+    svc.close()
+    print(json.dumps({"forgot": res}))
+    return 0
+
+
 def cmd_doctor(args) -> int:
     import sqlite3
 
@@ -353,11 +369,25 @@ def cmd_uninstall(args) -> int:
     if scope == "user":
         _remove_cdms_hooks(Path.home() / ".claude" / "settings.json")
         _remove_cdms_mcp(Path.home() / ".claude.json")
+        if getattr(args, "purge", False):
+            _purge_store()
         return 0
     project = Path(args.project or Path.cwd()).resolve()
     _remove_cdms_hooks(project / ".claude" / "settings.json")
     _remove_cdms_mcp(project / ".mcp.json")
+    if getattr(args, "purge", False):
+        _purge_store()
     return 0
+
+
+def _purge_store() -> None:
+    """Delete the entire memory store (opt-in via --purge). Irreversible."""
+    import shutil
+
+    cfg = load_config()
+    if cfg.home.exists():
+        shutil.rmtree(cfg.home, ignore_errors=True)
+        print(f"✓ purged memory store at {cfg.home}")
 
 
 # --------------------------------------------------------------------------- #
@@ -413,7 +443,15 @@ def build_parser() -> argparse.ArgumentParser:
     un = sub.add_parser("uninstall", help="remove CDMS wiring (project or user scope)")
     un.add_argument("--scope", choices=["project", "user"], default="project")
     un.add_argument("--project", default="")
+    un.add_argument("--purge", action="store_true",
+                    help="also delete the memory store (~/.local_memory). Irreversible.")
     un.set_defaults(func=cmd_uninstall)
+
+    fg = sub.add_parser("forget", help="delete stored memory by project / session / id (operator-only)")
+    fg.add_argument("--project", default="", help="delete all memory for this project path")
+    fg.add_argument("--session", default="", help="delete all episodes for this session id")
+    fg.add_argument("--id", action="append", help="delete a specific memory id (repeatable)")
+    fg.set_defaults(func=cmd_forget)
 
     return p
 

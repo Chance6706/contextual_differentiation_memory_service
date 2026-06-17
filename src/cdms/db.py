@@ -370,6 +370,17 @@ class Database:
             c.execute(f"DELETE FROM mem_support_edges WHERE target_gist_id IN ({q})", ids)
         return len(ids)
 
+    def delete_scar(self, ids: Iterable[str]) -> int:
+        ids = list(ids)
+        if not ids:
+            return 0
+        q = ",".join("?" for _ in ids)
+        with self.tx() as c:
+            c.execute(f"DELETE FROM mem_scars WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM vec_scars WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM fts_scars WHERE id IN ({q})", ids)
+        return len(ids)
+
     def add_support_edge(self, leaf_id: str, gist_id: str) -> None:
         with self.tx() as c:
             c.execute(

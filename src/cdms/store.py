@@ -372,5 +372,34 @@ class MemoryService:
         self.db.add_support_edge(source_id, target_id)
         return True
 
+    # ------------------------------------------------------------------ #
+    # Deletion / right-to-forget (operator-only; not exposed to the model)
+    # ------------------------------------------------------------------ #
+    def forget(self, project: Optional[str] = None, session: Optional[str] = None,
+               ids: Optional[list[str]] = None) -> dict:
+        """Delete memory by project, by session, and/or by explicit ids across all
+        three tiers. Returns the count actually removed per tier. At least one
+        selector must be given (callers must not blanket-wipe the store by accident).
+        """
+        if project is None and session is None and not ids:
+            raise ValueError("forget requires at least one of: project, session, ids")
+        ids = set(ids or [])
+        ep, gi, sc = set(), set(), set()
+        for e in self.db.all_episodic():
+            if e.id in ids or (project is not None and e.project == project) or \
+               (session is not None and e.session_id == session):
+                ep.add(e.id)
+        for g in self.db.all_gist():
+            if g.id in ids or (project is not None and g.project == project):
+                gi.add(g.id)
+        for s in self.db.all_scars():
+            if s.id in ids or (project is not None and s.project == project):
+                sc.add(s.id)
+        return {
+            "episodic": self.db.delete_episodic(ep),
+            "gist": self.db.delete_gist(gi),
+            "scars": self.db.delete_scar(sc),
+        }
+
     def close(self) -> None:
         self.db.close()
