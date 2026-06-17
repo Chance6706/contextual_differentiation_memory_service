@@ -66,6 +66,9 @@ class Config:
     assoc_eta: float = 0.20             # η: retroactive association boost coefficient
     assoc_sim_floor: float = 0.60       # only boost past episodes more similar than this
     cluster_sim_threshold: float = 0.78 # cosine link threshold for gist clustering
+    gist_match_sim_threshold: float = 0.90  # reinforce an EXISTING gist whose episode-space
+                                        # centroid is at least this close (vocabulary-independent
+                                        # identity), instead of spawning a near-duplicate sibling
     dedup_sim_threshold: float = 0.95   # near-duplicate episodes above this are merged/superseded
     min_cluster_support: int = 2        # a gist tuple needs >= this many supporting episodes
     rest_idle_minutes: float = 20.0     # idle gap that marks a "rest boundary" for auto-consolidation

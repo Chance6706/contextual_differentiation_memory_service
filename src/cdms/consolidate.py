@@ -267,10 +267,21 @@ class Consolidator:
             if tuple_ is None:
                 continue
             subject, _relation, object_, valence = tuple_
+            centroid = self._centroid([v for _e, v in members])
+
+            # Identity resolution (fixes gist proliferation over time): try the exact
+            # (subject, object) key first, then fall back to the nearest EXISTING gist
+            # of this subject by episode-space centroid. Top-2 term selection is noisy
+            # — near-tied frequencies make the object string reshuffle cycle-to-cycle,
+            # and vocabulary drifts as a topic evolves — so a literal-string key alone
+            # shatters one topic into many siblings, none of which accumulate support.
             existing = self.db.find_gist_by_so(subject, object_)
+            if existing is None:
+                existing = self._match_gist_by_embedding(subject, centroid, object_)
             if existing:
-                # Gists are keyed on (subject, object); the relation is DERIVED from a
-                # running valence, so new contradicting evidence can FLIP the trait.
+                # The relation is DERIVED from a running valence, so new contradicting
+                # evidence can FLIP the trait. The existing (subject, object) label is
+                # kept stable for identity continuity even as vocabulary drifts.
                 old_relation = existing.relation
                 existing.frequency += 1
                 existing.support_count = max(existing.support_count, len(members))
@@ -279,8 +290,10 @@ class Consolidator:
                 existing.relation = self.cfg.relation_from_valence(existing.valence)
                 existing.last_reinforced = now_iso
                 existing.last_cycle = cycle
+                old_c = self.db.get_gist_centroid(existing.id)
+                blended = centroid if old_c is None else self._centroid([old_c, centroid])
                 emb = self.embedder.embed_one(existing.search_text())
-                self.db.insert_gist(existing, emb)
+                self.db.insert_gist(existing, emb, blended)
                 rep.gists_reinforced += 1
                 if existing.relation != old_relation:
                     rep.gists_flipped += 1
@@ -291,7 +304,7 @@ class Consolidator:
                          valence=valence, frequency=1, support_count=len(members),
                          project=members[0][0].project, last_reinforced=now_iso, last_cycle=cycle)
                 emb = self.embedder.embed_one(g.search_text())
-                self.db.insert_gist(g, emb)
+                self.db.insert_gist(g, emb, centroid)
                 rep.gists_created += 1
                 gid = g.id
             # traceable support edges L1 -> L2
@@ -384,6 +397,42 @@ class Consolidator:
         subject = (eps[0].project.replace("\\", "/").rstrip("/").split("/")[-1] or "workspace")
         relation = self.cfg.relation_from_valence(valence)
         return subject, relation, object_, valence
+
+    @staticmethod
+    def _centroid(vecs: list[np.ndarray]) -> np.ndarray:
+        """Unit-norm mean of episode vectors — the cluster's location in embedding
+        space, used as a vocabulary-independent identity for the gist."""
+        m = np.mean(np.stack([np.asarray(v, dtype=np.float32) for v in vecs]), axis=0)
+        n = float(np.linalg.norm(m))
+        return (m / n).astype(np.float32) if n > 0.0 else m.astype(np.float32)
+
+    def _match_gist_by_embedding(self, subject: str, centroid: np.ndarray,
+                                 object_: str) -> Gist | None:
+        """Nearest existing gist of ``subject`` that is the SAME trait under a
+        reshuffled/overlapping object label.
+
+        Two guards must BOTH hold, because neither is sufficient alone under a
+        weak (e.g. hashing) embedder: (1) the episode-space centroid is within the
+        match threshold (unit-norm, so dot == cosine), and (2) the object labels
+        share at least one content term. Centroid-alone over-merges distinct
+        sub-traits that share project vocabulary (collapsing differentiation);
+        term-overlap-alone merges unrelated traits that share a common word. The
+        conjunction merges only genuine reshuffles of one topic (e.g. {parser,
+        lexer} vs {parser,grammar}) while keeping distinct traits separate.
+        """
+        new_terms = set(object_.split())
+        if not new_terms:
+            return None
+        best: Gist | None = None
+        best_sim = self.cfg.gist_match_sim_threshold
+        for g, gc in self.db.gist_centroids(subject):
+            if not (new_terms & set(g.object.split())):
+                continue  # no shared object term -> a distinct trait, never merge
+            sim = float(np.dot(centroid, gc))
+            if sim >= best_sim:
+                best_sim = sim
+                best = g
+        return best
 
     # -- helpers ----------------------------------------------------------- #
     def _embeddings_for(self, episodes: list[Episodic]) -> list[np.ndarray]:

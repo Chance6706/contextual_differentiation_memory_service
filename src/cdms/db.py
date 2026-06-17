@@ -65,7 +65,8 @@ def _ddl(dim: int) -> list[str]:
             survived_cycles INTEGER NOT NULL DEFAULT 0,
             project TEXT DEFAULT '',
             last_reinforced TEXT,
-            last_cycle INTEGER NOT NULL DEFAULT 0
+            last_cycle INTEGER NOT NULL DEFAULT 0,
+            centroid BLOB
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_gist USING vec0(
             id TEXT PRIMARY KEY,
@@ -145,6 +146,10 @@ class Database:
             c.execute("ALTER TABLE mem_gist ADD COLUMN last_reinforced TEXT")
         if "last_cycle" not in cols:
             c.execute("ALTER TABLE mem_gist ADD COLUMN last_cycle INTEGER NOT NULL DEFAULT 0")
+        if "centroid" not in cols:
+            # Episode-space cluster centroid for stable, vocabulary-independent
+            # gist identity (reinforce the nearest existing trait, not a sibling).
+            c.execute("ALTER TABLE mem_gist ADD COLUMN centroid BLOB")
         scar_cols = {r[1] for r in c.execute("PRAGMA table_info(mem_scars)")}
         if "origin" not in scar_cols:
             # Pre-v3 scars were all deliberate-or-elevated with no marker; treat
@@ -270,16 +275,18 @@ class Database:
     # ====================================================================== #
     # L2 gist + support edges
     # ====================================================================== #
-    def insert_gist(self, g: Gist, embedding) -> None:
+    def insert_gist(self, g: Gist, embedding, centroid=None) -> None:
         blob = serialize_f32(embedding)
+        cblob = serialize_f32(centroid) if centroid is not None else None
         with self.tx() as c:
             c.execute(
                 """INSERT OR REPLACE INTO mem_gist
                    (id, subject, relation, object, valence, frequency, support_count,
-                    survived_cycles, project, last_reinforced, last_cycle)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                    survived_cycles, project, last_reinforced, last_cycle, centroid)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (g.id, g.subject, g.relation, g.object, g.valence, g.frequency,
-                 g.support_count, g.survived_cycles, g.project, g.last_reinforced, g.last_cycle),
+                 g.support_count, g.survived_cycles, g.project, g.last_reinforced,
+                 g.last_cycle, cblob),
             )
             c.execute("DELETE FROM vec_gist WHERE id = ?", (g.id,))
             c.execute("INSERT INTO vec_gist(id, embedding) VALUES (?, ?)", (g.id, blob))
@@ -313,6 +320,27 @@ class Database:
             (subject, object_),
         ).fetchone()
         return self._row_to_gist(r) if r else None
+
+    def get_gist_centroid(self, gist_id: str):
+        import numpy as np
+
+        r = self.conn.execute("SELECT centroid FROM mem_gist WHERE id = ?", (gist_id,)).fetchone()
+        if not r or r[0] is None:
+            return None
+        return np.frombuffer(r[0], dtype="<f4").copy()
+
+    def gist_centroids(self, subject: str) -> list[tuple[Gist, "object"]]:
+        """(Gist, centroid_array) for every gist of ``subject`` that has a stored
+        episode-space centroid — used for vocabulary-independent gist matching."""
+        import numpy as np
+
+        rows = self.conn.execute(
+            "SELECT * FROM mem_gist WHERE subject = ? AND centroid IS NOT NULL", (subject,)
+        ).fetchall()
+        out = []
+        for r in rows:
+            out.append((self._row_to_gist(r), np.frombuffer(r["centroid"], dtype="<f4").copy()))
+        return out
 
     def delete_gist(self, ids: Iterable[str]) -> int:
         ids = list(ids)
