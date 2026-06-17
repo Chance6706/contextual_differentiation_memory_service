@@ -68,6 +68,16 @@ class Config:
     min_cluster_support: int = 2        # a gist tuple needs >= this many supporting episodes
     rest_idle_minutes: float = 20.0     # idle gap that marks a "rest boundary" for auto-consolidation
 
+    # ---- L2 gist plasticity (hybrid: valence-flip + gentle activity decay) ---
+    gist_valence_ema: float = 0.4       # weight of new evidence when updating a trait's valence
+    # Gist decay is measured in CONSOLIDATION CYCLES (activity), NOT wall-clock time:
+    # being away from the keyboard for a month must NOT age your identity. A trait
+    # only fades through many *active* sessions in which it is never reinforced.
+    gist_decay_per_cycle: float = 0.985 # gentle: per-cycle strength multiplier for idle traits
+    gist_retention_floor: float = 0.25  # evict only after a trait has faded well below 1 support
+    relation_pos_threshold: float = 0.15   # valence above -> "handles_well"
+    relation_neg_threshold: float = -0.15  # valence below -> "has_trouble_with"
+
     # ---- Retrieval ---------------------------------------------------------
     default_top_k: int = 8
     rrf_k: int = 60                     # reciprocal-rank-fusion constant for hybrid search
@@ -91,6 +101,14 @@ class Config:
     def decay_lambda(self) -> float:
         """λ such that e^(-λ * halflife) = 0.5."""
         return math.log(2.0) / self.decay_halflife_days
+
+    def relation_from_valence(self, v: float) -> str:
+        """Derive a trait's relation from its current running valence (enables flips)."""
+        if v > self.relation_pos_threshold:
+            return "handles_well"
+        if v < self.relation_neg_threshold:
+            return "has_trouble_with"
+        return "frequently_works_on"
 
     @property
     def queue_path(self) -> Path:

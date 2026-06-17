@@ -54,6 +54,8 @@ class Gist:
     support_count: int = 1
     survived_cycles: int = 0
     project: str = ""
+    last_reinforced: str = field(default_factory=utc_now_iso)
+    last_cycle: int = 0    # consolidation-cycle index when last reinforced (drives activity-based decay)
 
     def search_text(self) -> str:
         return f"{self.subject} {self.relation} {self.object}"
