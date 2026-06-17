@@ -37,6 +37,13 @@ per-project psyches (trait overlap **0.00**).
 
 ## 📐 Designed, documented, NOT built (`docs/DESIGN.md` §6–§8)
 
+> **§8 temperament layer now has a full implementation plan** —
+> [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md) (+ cited
+> [`TEMPERAMENT_RESEARCH_NOTES.md`](docs/TEMPERAMENT_RESEARCH_NOTES.md)): research-grounded,
+> break-cycle'd, phased (state → control → proposal lever → update rule → survivability test →
+> log-last). Master invariant: *the log must never be an input to itself.* Awaiting go-ahead to
+> build Phase 0 (static temperament state + pure-function control + joint leash).
+
 - **Curiosity / dreaming-research pillar** — trait-driven curiosity, novelty surfacing,
   epistemic-gap tracking, dream gated on true system idle (idle input + low CPU + **free GPU**),
   frugal sandbox, explore/exploit with serendipity.
