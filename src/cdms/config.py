@@ -244,6 +244,12 @@ def _validate(cfg: "Config") -> None:
         ("relation_neg_threshold", lambda v: _num(v) and -1 <= v <= 1),
         ("rest_idle_minutes", lambda v: _num(v) and 0 < v <= 1e6),
         ("http_port", lambda v: isinstance(v, int) and 1 <= v <= 65535),
+        # db_filename joins CDMS_HOME to form db_path; a value with a directory component
+        # ("../../etc/x", "/abs/path", a backslash on POSIX) would escape the home and let
+        # an env var write the store outside its sandbox. Require a bare filename — the
+        # basename must equal the value, with no separators or traversal.
+        ("db_filename", lambda v: (isinstance(v, str) and v not in ("", ".", "..")
+                                   and "\\" not in v and os.path.basename(v) == v)),
     ]
     for name, ok in checks:
         val = getattr(cfg, name)
@@ -265,6 +271,12 @@ def _validate(cfg: "Config") -> None:
         # ordering is the invariant, so restore both endpoints to defaults.
         _clamp("relation_pos_threshold", d.relation_pos_threshold, "relation_pos <= relation_neg")
         _clamp("relation_neg_threshold", d.relation_neg_threshold, "relation_pos <= relation_neg")
+    if cfg.reinforce_cap < cfg.reinforce_alpha:
+        # Reinforcement strengthens by min(alpha**c, cap). A cap below alpha clamps even
+        # the FIRST reinforcement (alpha**1) below its own base, silently neutering the
+        # testing effect. The cap is the offender (alpha is a valid >1 base), so raise it
+        # to alpha — the minimal repair that lets one reinforcement step register.
+        _clamp("reinforce_cap", cfg.reinforce_alpha, "reinforce_cap < reinforce_alpha")
     if cfg.embed_max_chars > cfg.max_field_chars:
         # embedding more than is stored => vector/FTS see different text tails. Clamp DOWN to
         # max_field_chars (resetting to the default could still exceed a small max_field_chars).

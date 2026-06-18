@@ -52,6 +52,44 @@ def test_a7h1_sane_overrides_still_accepted(monkeypatch, tmp_path):
     assert cfg.dedup_sim_threshold == 0.9
 
 
+@pytest.mark.parametrize("bad", ["../../etc/passwd", "/abs/memory.db", "sub/dir.db",
+                                 "..", "", "a\\b.db"])
+def test_db_filename_path_traversal_is_rejected(monkeypatch, tmp_path, bad):
+    """db_filename joins CDMS_HOME to form db_path; a directory component would let an env
+    var escape the home sandbox. A bad value must clamp to the default bare filename."""
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    monkeypatch.setenv("CDMS_DB_FILENAME", bad)
+    cfg = load_config()
+    assert cfg.db_filename == Config().db_filename        # clamped to "memory.db"
+    assert cfg.db_path.parent == cfg.home                 # store stays inside the home
+
+
+def test_db_filename_plain_name_accepted(monkeypatch, tmp_path):
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    monkeypatch.setenv("CDMS_DB_FILENAME", "custom.sqlite")
+    assert load_config().db_filename == "custom.sqlite"   # a real filename is preserved
+
+
+def test_reinforce_cap_below_alpha_is_raised(monkeypatch, tmp_path):
+    """Reinforcement is min(alpha**c, cap); a cap below alpha neuters even the first
+    reinforcement. The cap (the offender) is raised to alpha — both stay individually valid
+    so the per-field checks don't fire; only the joint check repairs it."""
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    monkeypatch.setenv("CDMS_REINFORCE_ALPHA", "1.5")
+    monkeypatch.setenv("CDMS_REINFORCE_CAP", "1.2")       # each valid, jointly nonsensical
+    cfg = load_config()
+    assert cfg.reinforce_alpha == 1.5
+    assert cfg.reinforce_cap == 1.5                       # raised to alpha, not left at 1.2
+
+
+def test_reinforce_cap_above_alpha_is_left_alone(monkeypatch, tmp_path):
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    monkeypatch.setenv("CDMS_REINFORCE_ALPHA", "1.15")
+    monkeypatch.setenv("CDMS_REINFORCE_CAP", "3.0")
+    cfg = load_config()
+    assert cfg.reinforce_alpha == 1.15 and cfg.reinforce_cap == 3.0   # deliberate cap preserved
+
+
 # --------------------------------------------------------------------------- #
 # A0-C1 — _open must close the connection on a failed open (no handle leak)
 # --------------------------------------------------------------------------- #
