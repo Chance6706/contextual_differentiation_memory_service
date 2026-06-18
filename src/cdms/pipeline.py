@@ -227,12 +227,31 @@ def _reclaim_orphans(cfg: Config, service: MemoryService) -> int:
     return total
 
 
+# Drain waits at most this long for the cross-process lock before skipping (the spool
+# is untouched until the lock is held, so a skipped drain is reclaimed by the next one).
+# Short so a hook can't hang waiting on a long consolidation.
+_DRAIN_LOCK_TIMEOUT = 10.0
+
+
 def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
     """Atomically claim the queue, reconstruct turns, and ingest them.
 
-    Also reclaims any orphaned claim from a previously-killed drain. Returns the
-    number of turns ingested (live queue + reclaimed orphans).
+    Held under the cross-process lock (Cycle-5 C-HIGH-1 / C-HIGH-3): without it a drain
+    could ingest episodes into a store mid-consolidation, so consolidation clusters from a
+    stale snapshot (missing/duplicate gists) and ingest's `_associate` salience writes race
+    consolidation's renormalization. Serializing drain against consolidation/forget closes
+    both. On lock timeout we SKIP (the spool's atomic claim only happens inside the lock, so
+    nothing is lost — the next drain reclaims it) rather than hang the hook.
     """
+    from .lock import cross_process_lock
+    try:
+        with cross_process_lock(cfg.lock_path, timeout=_DRAIN_LOCK_TIMEOUT):
+            return _drain_locked(cfg, service)
+    except TimeoutError:
+        return 0
+
+
+def _drain_locked(cfg: Config, service: MemoryService) -> int:
     total = _reclaim_orphans(cfg, service)
     q = cfg.queue_path
     if not q.exists() or q.stat().st_size == 0:

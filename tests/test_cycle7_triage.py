@@ -84,6 +84,38 @@ def test_a0c1_open_closes_handle_on_failure(monkeypatch, tmp_path):
 # --------------------------------------------------------------------------- #
 # C-HIGH-2 / A3-M1 — get_embedder must rebuild when the relevant config changes
 # --------------------------------------------------------------------------- #
+def test_chigh1_drain_serialized_under_cross_process_lock(tmp_path, monkeypatch):
+    """Drain must hold the cross-process lock so it can't ingest into a store that a
+    consolidation/forget is mid-pass on. With the lock held elsewhere, drain SKIPS
+    (returns 0) and leaves the spool intact for the next drain (C-HIGH-1 / C-HIGH-3)."""
+    import json
+
+    from cdms import pipeline
+    from cdms.embeddings import Embedder
+    from cdms.lock import cross_process_lock
+    from cdms.pipeline import drain_and_ingest
+    from cdms.store import MemoryService
+
+    monkeypatch.setattr(pipeline, "_DRAIN_LOCK_TIMEOUT", 0.2)  # keep the test fast
+    cfg = Config(home=tmp_path)
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    events = [
+        {"hook_event_name": "UserPromptSubmit", "session_id": "s", "prompt": "do x", "cwd": "/p"},
+        {"hook_event_name": "PostToolUse", "session_id": "s", "tool_name": "Edit",
+         "tool_input": "f", "tool_output": "ok", "cwd": "/p"},
+    ]
+    cfg.queue_path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+
+    with cross_process_lock(cfg.lock_path):          # simulate a concurrent consolidation
+        n_blocked = drain_and_ingest(cfg, svc)
+    assert n_blocked == 0                            # drain skipped rather than racing in
+    assert cfg.queue_path.exists()                   # spool preserved (atomic claim never fired)
+
+    n_after = drain_and_ingest(cfg, svc)             # lock free now → drains
+    assert n_after >= 1
+    svc.close()
+
+
 def test_chigh2_get_embedder_rebuilds_on_config_change(tmp_path):
     embeddings._SINGLETON = None
     embeddings._SINGLETON_KEY = None
