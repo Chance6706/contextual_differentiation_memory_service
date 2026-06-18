@@ -434,14 +434,14 @@ class MemoryService:
             for s in self.db.all_scars():
                 if s.id in ids or (project is not None and self._project_match(s.project, project)):
                     sc.add(s.id)
-            # A2-M1: episodes deleted by session/id also orphan the gists they fed. A
-            # session/id forget that only deleted episodes left the aggregated trait
-            # (subject/relation/object + valence) behind — a right-to-forget leak. Remove
-            # gists whose support is ENTIRELY within the forgotten episodes; gists with
-            # cross-session support survive (they are genuine multi-session traits). Must
-            # run BEFORE delete_episodic, which drops the support edges this reads.
-            if ep:
-                gi |= self.db.gists_orphaned_by(ep)
+            # NOTE: a session/id forget intentionally does NOT delete gists. The Cycle-7
+            # attempt to orphan-delete "fully session-derived" gists via the support-edge
+            # table was REVERTED — `delete_episodic` prunes a gist's edges when a supporter
+            # is *evicted*, so the residual edges underestimate provenance and a later
+            # session-forget would erase genuine MULTI-session traits (identity loss, the
+            # double-review H1). Correctly scoping a session-forget to gists needs persisted
+            # per-gist session provenance; until then gists are forgettable by project/id
+            # only (A2-M1 re-deferred — see docs/REDTEAM_FINDINGS.md).
             res = {
                 "episodic": self.db.delete_episodic(ep),
                 "gist": self.db.delete_gist(gi),

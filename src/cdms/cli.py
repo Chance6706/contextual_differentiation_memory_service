@@ -274,7 +274,9 @@ def cmd_doctor(args) -> int:
         # plaintext store and are never auto-deleted (a right-to-forget / forensic gap).
         # This is the explicit operator affordance to scrub them.
         n = 0
-        for q in cfg.home.glob("*.corrupt-*"):
+        # Match the quarantine naming (`*.corrupt-<timestamp>`, timestamp starts with a
+        # digit) so a stray user file like `notes.corrupt-backup` isn't collateral.
+        for q in cfg.home.glob("*.corrupt-[0-9]*"):
             try:
                 q.unlink()
                 n += 1

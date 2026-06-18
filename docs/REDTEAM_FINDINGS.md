@@ -311,19 +311,29 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   is closed by the same drain-under-lock fix. *Residual:* a direct MCP `store` ingest
   bypasses drain, so a concurrent MCP-store-vs-consolidation `base_salience` race remains
   — narrow (serial stdio MCP) and self-healing (next `conserve_budget`); deferred.
-- **A2-M1** (MED, privacy, `store.py`+`db.py`) — `forget(session=…)` deleted episodes but
-  not the gists they fed (aggregated trait survived = right-to-forget leak). Now also
-  deletes gists whose support edges are **entirely** within the forgotten episodes
-  (`gists_orphaned_by`); cross-session traits are preserved (tested both ways). Scars carry
-  no session linkage and remain project/id-forgettable by design (they are safety guardrails).
+- **A2-M1** (MED, privacy) — `forget(session=…)` leaves session-derived gists behind.
+  ⚠️ **A first fix was SHIPPED THEN REVERTED.** The edge-based `gists_orphaned_by` rule
+  (delete a gist whose support edges are all inside the forgotten set) was caught by the
+  post-Cycle-7 double review (finding **H1, HIGH**): `delete_episodic` prunes a gist's edges
+  when a supporter is **evicted**, so the residual edges underestimate provenance — a later
+  session-forget would erase genuine MULTI-session traits (identity loss) once one session's
+  episodes had aged out. Reverted to episodes-only forget; `gists_orphaned_by` removed; a
+  regression test asserts session-forget never erases gists. **Re-DEFERRED:** a correct
+  scoping needs **persisted per-gist session provenance** (a schema change), not residual
+  edges. Gists remain forgettable by project/id (which always worked).
 - **C-MED-6** (MED, `pipeline.py`) — `_infer_success` negation window was a fixed 10 chars,
   missing multi-word negators ("without any errors") and flipping success→failure. Now the
   last-3-words window (catches multi-word negators; a far-back negator can't wrongly negate).
 
-**REFUTED (reproduced → not a bug):**
-- **A0-M1** (MED) — the catastrophe "deed-gate" (a dangerous *command* elevates a scar only
-  when a harm token co-occurs) is the **deliberate Cycle-3 precision fix**, not a
-  regression; the regex tier is reachable (`reset --hard … wiped`), not dead code.
+**PARTLY REFUTED:**
+- **A0-M1** (MED) — "the regex tier is dead code" is **refuted** (it is reachable, e.g.
+  `reset --hard … wiped`). But "the deed-gate causes false negatives" is **real** (double
+  review): a dangerous command described without a `_HARM_TOKENS` word was not elevated.
+  The harm-token gate is the deliberate Cycle-3 precision fix (avoids re-pinning routine
+  work), so this is an **accepted recall gap, now narrowed** — `_HARM_TOKENS` widened with
+  unambiguous harm words ("rewrote", "rewritten", "nuked", "blew away", "wiped out",
+  "trashed", "clobbered"), tested. (Catastrophes with *no* harm word remain non-elevated by
+  design; the episode is still stored, and `store kind=scar` is the explicit escape hatch.)
 
 **DEFERRED (reproduced, real, but low-impact / tradeoff / operational / out-of-code-scope):**
 - **C-MED-1** touch on deleted/deduped episode → lost reinforcement: **partly PROMOTED
@@ -335,6 +345,10 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
 - **C-MED-2** FTS has no phrase queries: recall *quality*, GLM self-downgraded; acceptable.
 - **C-MED-3** `config.json` string/path fields (e.g. `home`) unvalidated: trust boundary —
   the file lives in the user's own `CDMS_HOME`; write access there already grants full control.
+  ⚠️ **Contingent defer (double review):** this holds *only while the dreamer stays unwired*.
+  `dreamer_base_url`/`dreamer_enabled` are currently consumed by **zero code** (verified); the
+  moment a future cycle wires the dreamer to make HTTP requests, an attacker-controlled
+  `dreamer_base_url` becomes an SSRF / memory-exfiltration vector — **re-triage and promote then.**
 - **C-MED-4** Windows `msvcrt.locking` defeated by manual lock-file recreation: Windows-only,
   requires deleting the lock file mid-pass; narrow.
 - ~~**C-MED-5** ReDoS in `redact_secrets`~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 6):** the
@@ -376,3 +390,23 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
 - ~~**C-LOW-3** dependency upper bounds~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 9):** added
   `sqlite-vec<0.2` (vec0 format — the open risk, not covered by the embedder fingerprint) and
   `fastembed<1.0` caps, set above installed 0.1.9 / 0.8.0 so no resolver breakage.
+
+### Double adversarial review of the Cycle-7 diff
+
+Two independent reviews (correctness/concurrency; security/abuse + adjudication audit) of
+`95d1135..HEAD`. Suite 204→206 green throughout. Outcomes:
+- **H1 (HIGH, NEW REGRESSION) — fixed by REVERT.** The A2-M1 gist-orphan rule erased
+  multi-session gists after eviction; reverted (see A2-M1 above). The single most important
+  catch — it attacked the core identity-preservation invariant under normal operation.
+- **Drain-skip silence (B) — FIXED.** Drain now records `drains_skipped`/`last_drain_skip`
+  (surfaced by `cdms stats`) + a stderr warning, mirroring the A1-M1 consolidation-skip
+  signal, so a lock-starved drain that could back the spool up to its shed cap is visible.
+- **Config repair made minimal (M1) — FIXED.** Clamp the offender (e.g. `embed_max_chars`
+  DOWN to `max_field_chars`; lower only the sim-threshold offender) instead of resetting
+  fields the operator deliberately set; S0 weight bound tightened 1e6→1e3.
+- **Purge glob tightened** to `*.corrupt-[0-9]*` so a stray user file isn't collateral.
+- **A0-M1 relabelled** partly-refuted; `_HARM_TOKENS` widened (above).
+- **C-MED-3 annotated** as a contingent defer (above).
+- Both reviews confirmed **no fix opened a serious new hole**; `bump_access`,
+  `get_*_by_ids`, the embedder key, the drain-lock (no deadlock/nesting; turns deferred not
+  lost), and the `realpath` change were independently verified sound.

@@ -117,7 +117,8 @@ def test_clow1_log_keeps_multiple_generations(tmp_path, monkeypatch):
 
 
 def test_a7l1_cross_field_config_repaired(monkeypatch, tmp_path):
-    """Phase 5 — A7-L1: in-range-but-jointly-nonsensical config is repaired."""
+    """Phase 5 / M1 — A7-L1: in-range-but-jointly-nonsensical config is repaired MINIMALLY
+    (clamp the offender), not reset wholesale."""
     from cdms.config import Config as _C
     from cdms.config import load_config
 
@@ -125,11 +126,59 @@ def test_a7l1_cross_field_config_repaired(monkeypatch, tmp_path):
     monkeypatch.setenv("CDMS_HOME", str(tmp_path))
     monkeypatch.setenv("CDMS_RELATION_POS_THRESHOLD", "-0.5")  # <= neg default -0.15 (inverted)
     monkeypatch.setenv("CDMS_EMBED_MAX_CHARS", "999999")       # > max_field_chars (4000)
+    monkeypatch.setenv("CDMS_DEDUP_SIM_THRESHOLD", "0.85")     # < gist_match default 0.90 (order break)
     cfg = load_config()
-    assert cfg.relation_pos_threshold == d.relation_pos_threshold   # repaired
+    assert cfg.relation_pos_threshold == d.relation_pos_threshold   # band restored
     assert cfg.relation_neg_threshold == d.relation_neg_threshold
-    assert cfg.embed_max_chars == d.embed_max_chars
+    assert cfg.embed_max_chars == cfg.max_field_chars               # clamped DOWN, not reset to default
+    # the deliberately-set lower dedup is PRESERVED; the offender (gist_match) is lowered
+    assert cfg.dedup_sim_threshold == 0.85
     assert cfg.cluster_sim_threshold <= cfg.gist_match_sim_threshold <= cfg.dedup_sim_threshold
+
+
+def test_m1_embed_clamped_down_to_small_max_field_chars(tmp_path):
+    """M1: when max_field_chars is small, embed_max_chars clamps DOWN to it (resetting to
+    the 1600 default would still exceed a small max_field_chars)."""
+    from cdms.config import Config
+    cfg = Config(home=tmp_path, max_field_chars=200)
+    from cdms.config import _validate
+    _validate(cfg)
+    assert cfg.embed_max_chars == 200
+
+
+def test_drain_skip_is_observable(tmp_path, monkeypatch):
+    """Double-review B: a drain skipped on lock contention must record a durable signal
+    (drains_skipped counter + timestamp + warning), not be silent."""
+    import json as _json
+
+    from cdms import pipeline
+    from cdms.lock import cross_process_lock as real_lock
+    from cdms.pipeline import drain_and_ingest
+
+    cfg = Config(home=tmp_path)
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    cfg.queue_path.write_text(_json.dumps(
+        {"hook_event_name": "PostToolUse", "session_id": "s", "tool_name": "Edit",
+         "tool_input": "f", "tool_output": "ok", "cwd": "/p"}) + "\n", encoding="utf-8")
+    monkeypatch.setattr(pipeline, "_DRAIN_LOCK_TIMEOUT", 0.2)
+    assert svc.db.stats()["drains_skipped"] == 0
+    with real_lock(cfg.lock_path):
+        assert drain_and_ingest(cfg, svc) == 0          # skipped
+        assert drain_and_ingest(cfg, svc) == 0
+    st = svc.db.stats()
+    assert st["drains_skipped"] == 2
+    assert st["last_drain_skip"] is not None
+    svc.close()
+
+
+def test_a0m1_widened_harm_tokens_elevate_real_catastrophes():
+    """A0-M1 recall gap narrowed: a dangerous command described with a (newly added) harm
+    word now elevates, while routine command-talk without harm still does not."""
+    from cdms.consolidate import _matches_catastrophe
+
+    assert _matches_catastrophe("force push to main rewrote everyone's history")   # force push + rewrote
+    assert _matches_catastrophe("force-push clobbered the shared branch")           # force-push + clobbered
+    assert not _matches_catastrophe("we discussed using git push --force carefully")  # danger, no harm word
 
 
 def test_cmed5_redaction_correct_and_bounded():

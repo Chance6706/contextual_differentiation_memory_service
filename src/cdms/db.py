@@ -596,22 +596,6 @@ class Database:
         t = {"episodic": "mem_episodic", "gist": "mem_gist", "scar": "mem_scars"}[table]
         return self.conn.execute(f"SELECT 1 FROM {t} WHERE id = ? LIMIT 1", (item_id,)).fetchone() is not None
 
-    def gists_orphaned_by(self, leaf_ids) -> set[str]:
-        """Gist ids whose support edges ALL point to episodes in ``leaf_ids`` — i.e. gists
-        that lose every supporter once those episodes are deleted. Used by forget-by-
-        session/id to also remove fully session-derived traits, while KEEPING gists that
-        have cross-session support (Cycle-4 A2-M1: a session forget previously left the
-        aggregated trait behind). Scans the (small) edge table once; off the hot path."""
-        leaf_set = set(leaf_ids)
-        if not leaf_set:
-            return set()
-        inside: set[str] = set()
-        outside: set[str] = set()
-        for src, tgt in self.conn.execute(
-                "SELECT source_leaf_id, target_gist_id FROM mem_support_edges"):
-            (inside if src in leaf_set else outside).add(tgt)
-        return inside - outside
-
     def add_support_edge(self, leaf_id: str, gist_id: str) -> bool:
         with self.tx() as c:
             cur = c.execute(
@@ -775,4 +759,6 @@ class Database:
             # being skipped on lock contention — repeated growth suggests a wedged holder.
             "consolidations_skipped": int(self.get_meta("consolidations_skipped", "0") or "0"),
             "last_consolidation_skip": self.get_meta("last_consolidation_skip"),
+            "drains_skipped": int(self.get_meta("drains_skipped", "0") or "0"),
+            "last_drain_skip": self.get_meta("last_drain_skip"),
         }

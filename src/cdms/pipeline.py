@@ -14,12 +14,14 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 import uuid
 from pathlib import Path
 from typing import Optional
 
 from .config import Config
+from .models import utc_now_iso
 from .spool import spool_event  # re-exported for backwards compatibility
 from .store import MemoryService, TurnEvent
 
@@ -253,6 +255,19 @@ def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
         with cross_process_lock(cfg.lock_path, timeout=_DRAIN_LOCK_TIMEOUT):
             return _drain_locked(cfg, service)
     except TimeoutError:
+        # Make the skip OBSERVABLE (review-B finding): a silently-skipped drain can let the
+        # spool grow to its cap and shed events. Mirror the consolidation-skip signal
+        # (counter + timestamp in meta, surfaced by `cdms stats`, + a stderr warning).
+        n = -1
+        try:
+            n = int(service.db.get_meta("drains_skipped", "0") or "0") + 1
+            service.db.set_meta("drains_skipped", n)
+            service.db.set_meta("last_drain_skip", utc_now_iso())
+        except Exception:
+            pass
+        print(f"cdms: drain skipped (lock busy); total skipped={n}. Queued events are "
+              f"deferred to the next drain; repeated skips can back the spool up to its cap.",
+              file=sys.stderr)
         return 0
 
 

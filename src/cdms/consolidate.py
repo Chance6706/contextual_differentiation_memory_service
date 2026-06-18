@@ -75,6 +75,9 @@ _HARM_TOKENS = (
     "could not recover", "destroyed", "overwrote", "overwritten", "deleted",
     "corrupted", "down", "outage", "leaked", "exposed", "by accident", "by mistake",
     "too late", "no backup",
+    # Narrow the deed-gate recall gap (double-review A0-M1): real catastrophes are often
+    # described with these harm words too. Kept unambiguous to avoid re-pinning routine work.
+    "rewrote", "rewritten", "nuked", "blew away", "wiped out", "trashed", "clobbered",
 )
 
 

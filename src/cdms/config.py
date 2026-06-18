@@ -226,10 +226,12 @@ def _validate(cfg: "Config") -> None:
         # Cycle-4 A7-H1: the S0 weights and the remaining thresholds were unvalidated,
         # so a single env var (e.g. CDMS_W_SURPRISE=1e9, CDMS_DEDUP_SIM_THRESHOLD=2.0)
         # could disable the salience gate or dedup. Bound them all.
-        ("w_surprise", lambda v: _num(v) and 0 <= v <= 1e6),
-        ("w_contingency", lambda v: _num(v) and 0 <= v <= 1e6),
-        ("w_self_ref", lambda v: _num(v) and 0 <= v <= 1e6),
-        ("w_affect", lambda v: _num(v) and 0 <= v <= 1e6),
+        # S0 weights are meant to be O(1); cap at 1e3 (not 1e6) so a stray override can't
+        # flatten the salience gate (double-review: 1e6 passed but defeats the gate).
+        ("w_surprise", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("w_contingency", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("w_self_ref", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("w_affect", lambda v: _num(v) and 0 <= v <= 1e3),
         ("goal_gate_floor", lambda v: _num(v) and 0 <= v <= 1),
         ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1e3),
         ("assoc_sim_floor", lambda v: _num(v) and 0 <= v <= 1),
@@ -250,24 +252,30 @@ def _validate(cfg: "Config") -> None:
             setattr(cfg, name, getattr(d, name))
 
     # Cross-field consistency (Cycle-4 A7-L1): each field can be in-range yet jointly
-    # nonsensical. Repair the offending field(s) to defaults and warn.
-    def _repair(field_name: str, why: str) -> None:
-        print(f"cdms config: {why}; resetting {field_name} to default "
-              f"{getattr(d, field_name)!r}", file=_sys.stderr)
-        setattr(cfg, field_name, getattr(d, field_name))
+    # nonsensical. Repair MINIMALLY (clamp the offender) so a deliberately-tuned valid
+    # field isn't clobbered (double-review M1) — and warn.
+    def _clamp(field_name: str, new_val, why: str) -> None:
+        if getattr(cfg, field_name) != new_val:
+            print(f"cdms config: {why}; clamping {field_name} "
+                  f"{getattr(cfg, field_name)!r} -> {new_val!r}", file=_sys.stderr)
+            setattr(cfg, field_name, new_val)
 
     if cfg.relation_pos_threshold <= cfg.relation_neg_threshold:
-        # inverted band => a trait can never read "frequently_works_on" (neutral)
-        _repair("relation_pos_threshold", "relation_pos_threshold <= relation_neg_threshold")
-        _repair("relation_neg_threshold", "relation_pos_threshold <= relation_neg_threshold")
+        # inverted band => a trait can never read "frequently_works_on" (neutral); the band
+        # ordering is the invariant, so restore both endpoints to defaults.
+        _clamp("relation_pos_threshold", d.relation_pos_threshold, "relation_pos <= relation_neg")
+        _clamp("relation_neg_threshold", d.relation_neg_threshold, "relation_pos <= relation_neg")
     if cfg.embed_max_chars > cfg.max_field_chars:
-        # embedding more than is stored => vector/FTS see different text tails
-        _repair("embed_max_chars", "embed_max_chars > max_field_chars")
-    # gist identity thresholds must be ordered cluster <= gist_match <= dedup; otherwise
-    # gist matching/dedup degenerate. Reset any that break the monotonic order.
+        # embedding more than is stored => vector/FTS see different text tails. Clamp DOWN to
+        # max_field_chars (resetting to the default could still exceed a small max_field_chars).
+        _clamp("embed_max_chars", cfg.max_field_chars, "embed_max_chars > max_field_chars")
+    # gist identity thresholds must be ordered cluster <= gist_match <= dedup. Restore the
+    # order by lowering only the offenders (preserves a deliberately-set lower dedup, etc.).
     if not (cfg.cluster_sim_threshold <= cfg.gist_match_sim_threshold <= cfg.dedup_sim_threshold):
-        for fld in ("cluster_sim_threshold", "gist_match_sim_threshold", "dedup_sim_threshold"):
-            _repair(fld, "cluster_sim <= gist_match_sim <= dedup_sim order violated")
+        _clamp("gist_match_sim_threshold", min(cfg.gist_match_sim_threshold, cfg.dedup_sim_threshold),
+               "cluster<=gist_match<=dedup order violated")
+        _clamp("cluster_sim_threshold", min(cfg.cluster_sim_threshold, cfg.gist_match_sim_threshold),
+               "cluster<=gist_match<=dedup order violated")
 
     # Temperament archetype must be a known preset; a typo otherwise silently seeds a
     # store from the wrong genotype. Repair to the default and warn (import is lazy to

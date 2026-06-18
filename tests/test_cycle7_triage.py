@@ -117,9 +117,7 @@ def test_chigh1_drain_serialized_under_cross_process_lock(tmp_path, monkeypatch)
 
 
 def _seed_gist(svc, cfg, sessions, project="p", per=3):
-    """Form ONE gist supported by `per` distinct-but-similar episodes per session.
-    Distinct text (per-episode tag) + a high dedup / low cluster threshold so the
-    episodes CLUSTER into a gist rather than being deduped away (cf. test_consolidate)."""
+    """Form ONE gist supported by `per` distinct-but-similar episodes per session."""
     from cdms.consolidate import Consolidator
     from cdms.store import TurnEvent
 
@@ -140,25 +138,12 @@ def _seed_gist(svc, cfg, sessions, project="p", per=3):
     Consolidator(cfg, db=svc.db, embedder=svc.embedder).run()
 
 
-def test_a2m1_session_forget_removes_session_derived_gist(tmp_path):
-    """forget(session=...) must also drop a gist that exists ONLY because of that
-    session — previously the aggregated trait survived (right-to-forget leak)."""
-    from cdms.embeddings import Embedder
-    from cdms.store import MemoryService
-
-    cfg = Config(home=tmp_path)
-    svc = MemoryService(cfg, embedder=Embedder(cfg))
-    _seed_gist(svc, cfg, ["s1"])
-    assert svc.db.stats()["gist"] >= 1
-    svc.forget(session="s1")
-    assert svc.db.stats()["episodic"] == 0
-    assert svc.db.stats()["gist"] == 0          # session-derived trait removed (A2-M1)
-    svc.close()
-
-
-def test_a2m1_cross_session_gist_survives_session_forget(tmp_path):
-    """...but a gist supported by MULTIPLE sessions is a genuine multi-session trait and
-    must NOT be deleted when only one of its sessions is forgotten."""
+def test_h1_session_forget_never_erases_gists(tmp_path):
+    """Double-review H1 regression: a session/id forget must NEVER delete gists. The
+    reverted A2-M1 edge-based orphan rule would erase a genuine MULTI-session gist once a
+    supporter's session had been forgotten/evicted (the support edges underestimate
+    provenance). Here a gist built from s1+s2 must survive forgetting BOTH sessions —
+    proving session-forget no longer touches gists at all."""
     from cdms.embeddings import Embedder
     from cdms.store import MemoryService
 
@@ -167,8 +152,11 @@ def test_a2m1_cross_session_gist_survives_session_forget(tmp_path):
     _seed_gist(svc, cfg, ["s1", "s2"])
     g0 = svc.db.stats()["gist"]
     assert g0 >= 1
-    svc.forget(session="s1")
-    assert svc.db.stats()["gist"] == g0         # cross-session trait preserved
+    svc.forget(session="s2")                     # drops s2 edges (simulates eviction of s2)
+    assert svc.db.stats()["gist"] == g0          # gist untouched
+    svc.forget(session="s1")                     # now every remaining edge is s1
+    assert svc.db.stats()["gist"] == g0          # H1: still NOT erased
+    assert svc.db.stats()["episodic"] == 0       # episodes are gone (forget works)
     svc.close()
 
 
