@@ -1,17 +1,17 @@
 # CDMS — Working Status
 
-_Last updated: 2026-06-17. Pick-up-tomorrow handoff. For the full design see
+_Last updated: 2026-06-18 (Cycle 3 complete). Pick-up-tomorrow handoff. For the full design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for narrative history see the session memory
 files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-service/memory/`._
 
 ## TL;DR
 
-The **memory core is built, tested (110 tests), and validated on real history.** The
+The **memory core is built, tested (135 tests), and validated on real history.** The
 **proactive pillars** (curiosity/dream-research, emotion/proposals/provenance,
 archetypes/genotype) are **fully designed and documented but not yet implemented.**
 Two design threads remain open.
 
-**Pre-Phase-0 hardening — two red-team cycles complete (Cycle 3 not yet run):**
+**Pre-Phase-0 hardening — three red-team cycles complete:**
 - **Cycle 1** fixed 3 CRITICAL + 5 HIGH + MEDIUM/LOW "over time" defects (silent
   embedder space-contamination, stored-memory prompt injection, gist proliferation,
   concurrent-drain data loss, scar abuse, crash-safe decay clock, config/secret
@@ -24,6 +24,16 @@ Two design threads remain open.
   validation + corrupt-DB quarantine + `doctor` fingerprint check, fence-escape /
   truncation hardening, negation-aware outcome inference, unicode FTS, and refinements
   to three Cycle-1 fixes (H4 false-negatives, H1 identity-creep, L1 spool short-write).
+- **Cycle 3** broadened again (7 angles) + re-audited the Cycle-2 fixes — which
+  caught that the Cycle-2 corrupt-DB quarantine had introduced a **CRITICAL data-loss
+  regression** (lock contention misread as corruption → healthy store wiped). Fixed 1
+  CRIT + 7 HIGH + MED/LOW: cross-process consolidate/forget lock, forget completeness
+  (`secure_delete`+VACUUM+spool purge), streaming/reclaiming/capped drain, scar dedup,
+  embedder truncation+sentinel+dim-assert+versioned fingerprint, finite/bounded config
+  validation, H4 harm-gating, and MCP/install hardening. The identity/cognitive-math
+  attacks (X1–X6: ossification, decay-clock, valence-on-dedup, relation-flip, salience
+  gaming) are **characterized design tradeoffs, deferred by design** (the thesis itself —
+  individuation, thrash damping, budget cap — held: trait overlap **0.000**).
 - Full inventory + verified-sound + deferred items:
   [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections
   (P1–P7 + the "Boiling Frog" leash test) are in
@@ -138,7 +148,7 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 38 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # 135 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory

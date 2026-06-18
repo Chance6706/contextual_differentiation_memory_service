@@ -4,7 +4,8 @@ Three adversarial cycles were run before building the §8 temperament layer, on 
 premise that latent defects in the always-running core compound silently *over time*.
 This file records what was found, fixed, and deliberately deferred. The CI suite
 forces the hash embedder, so a non-hash test path (`tests/test_real_embedder.py`)
-covers the real model. Suite: 38 → 77 (Cycle 1) → 110 (Cycle 2) tests, all green.
+covers the real model. Suite: 38 → 77 (Cycle 1) → 110 (Cycle 2) → 135 (Cycle 3)
+tests, all green.
 
 ## Cycle 1 — core surfaces
 
@@ -114,7 +115,47 @@ budget reaches a stable K equilibrium; decay underflow clean.
 ## Plan-level corrections
 Recorded in `docs/TEMPERAMENT_PLAN.md` §8 (P1–P7 + Gemini's "Boiling Frog" exit-gate).
 
-## Cycle 3 — adversarial attacks on the identity / cognitive math itself
+## Cycle 3 — broadened again (7 angles) + re-audit of the Cycle-2 fixes
+
+Seven agents: re-audit of the Cycle-2 fixes, privacy/right-to-forget completeness,
+adversarial attacks on the identity/cognitive math, concurrency/atomicity/crash
+durability, long-horizon resource exhaustion + numerics, the installed MCP
+integration surface, and the REAL (non-hash) embedder path CI never exercises.
+The re-audit again paid off: **the Cycle-2 corrupt-DB quarantine had introduced a
+CRITICAL data-loss regression.**
+
+**Fixed in Cycle 3 (commit `122e29d`):**
+
+| Sev | Defect | Fix |
+|-----|--------|-----|
+| CRIT | Lock contention misread as corruption → healthy store quarantined/WIPED. `sqlite3.OperationalError("database is locked")` is a `DatabaseError` subclass the Cycle-2 quarantine caught; a multi-second consolidation overlapping a hook open trips it. | `Database._is_corruption`: quarantine only on true corruption signatures; re-raise lock/busy/config-induced errors. |
+| HIGH | `inf` / astronomically-large config bypassed `_validate` (`DECAY_HALFLIFE_DAYS=inf`→decay off; huge `MAX_FIELD_CHARS`→DoS cap defeated), via env *or* JSON. | require `math.isfinite` + a sane UPPER bound on every numeric field. |
+| HIGH | No cross-process lock: concurrent consolidate/forget → duplicate gists, lost cycle increments, half-built persona, and a pass rebuilding gists from episodes a `forget` is mid-delete on (resurrecting forgotten content). | new `lock.py` (flock/msvcrt advisory lock) serializes `Consolidator.run` + `MemoryService.forget`; second pass skips rather than blocking a hook. |
+| HIGH | `forget` left raw **pre-redaction** secrets in the spool, and deleted content stayed recoverable from db free pages (logical-only delete). | `PRAGMA secure_delete=ON`; `VACUUM`+WAL-truncate after forget; purge matching spool events by cwd/session. |
+| HIGH | A non-dict spool line (`42`, `[1,2]`) crashed `reconstruct_turns` → destroyed a whole session + orphaned the claim; a large spool OOM'd the drain (~8.7× RSS). | stream the drain (`iter_turns`+`_stream_spool`, O(session) memory); skip non-dict events; cap the spool (`spool_max_bytes`, shed over cap). |
+| HIGH | SIGKILL of a drain after it claimed the spool orphaned the turns forever (no reclaim scan). | `_reclaim_orphans`: re-ingest `*.processing` claims whose owning pid is dead (or stale by age). |
+| HIGH | Unbounded L3 scar table — a recurring crisis minted a fresh permanent ~4 KB scar every cycle. | `find_duplicate_scar` (per-project cosine) dedups on insert in both `pin_scar` and `_elevate_scars`. |
+| HIGH | Embedder silently truncated long input at ~512 tokens → vector/FTS asymmetry and tail-collision; degenerate-input sentinel (C2) was dead code on the real backend. | explicit `embed_max_chars` cap; degeneracy decided at the TEXT level so the sentinel works on BOTH backends; assert model output dim == `embed_dim`; fingerprint carries the fastembed version (catches weight drift on upgrade). |
+| MED | `_infer_success` positive-override inverted a real failure to `True` ("no errors **but the test failed**"). | override is no longer an unconditional short-circuit: strip override phrases, then a *separate* failure marker still reads as failure. |
+| MED | H4 catastrophe regex/command tier matched a dangerous command's mere presence → benign "git reset --hard to discard local edits" auto-pinned as a permanent scar. | split into harm-OUTCOME phrases (stand-alone) vs dangerous COMMANDS that elevate only when the deed also records actual harm. |
+| MED | `forget --project` exact-string match leaked content under trailing-slash / subdirectory cwds. | path-normalized prefix match (`_project_match`). |
+| MED | install/uninstall raised a raw traceback on a non-dict `hooks`/settings; `_atomic_write_json` replaced a symlinked `settings.json` with a detached file. | refuse loudly on malformed shape (`_require_dict`); write THROUGH a symlink to its target. |
+| LOW | MCP negative `k`/`limit` negative-sliced results; `project=""` was a model-accessible cross-project read opt-out; `_sanitize` let the invisible Unicode TAG block through. | clamp `k`/`limit` (+ `ge=1` schema bound); empty project ⇒ launch cwd (global is operator/CLI-only); strip `U+E0000–E007F`. |
+
+**Cycle-3 verified-sound (no change):** individuation is not collapsible (identical
+vocab + opposite valence → trait Jaccard **0.000**; subject is the cwd basename,
+never parsed from content); thrash stays damped (alternating max-valence → 0 flips);
+the capped-proportional budget holds under a 3000-turn flood (attacker ≤50%, 0
+victim evictions); row-level atomicity under SIGKILL mid-consolidate (0 orphaned
+vec/FTS rows in 8 trials; cycle counter stays put); retrieve-during-consolidate
+never crashes/tears; WAL serializes drain+ingest vs consolidate; decay/accessibility/
+float-centroid numerics are stable at 10⁶–10⁹ scale (clean underflow, no NaN/Inf);
+log rotation bounds the log to ~10 MB; `support_count = max(...)` does NOT cause
+unbounded gist growth (decay still evicts; live set self-bounds); MCP stdout stays
+pristine and tool-arg validation/SQL-FTS injection defenses hold; the real embedder
+loads/refuses/contains-NaN correctly and is deterministic + thread-safe.
+
+### Cycle 3 detail — adversarial attacks on the identity / cognitive math itself
 
 Surface: can a crafted INPUT STREAM (not code/config edits) corrupt the personality?
 Repro harness: `tools/redteam_cycle3.py` (offline, `CDMS_EMBED_BACKEND=hash`). All
@@ -169,3 +210,18 @@ numbers below are from that harness against the live pipeline; no source was edi
 
 **Severity-sorted confirmed findings:** X1 (HIGH) · X2 (HIGH) · X3 (MED) · X4 (MED) ·
 X5 (MED) · X6 (LOW/INFO).
+
+**Disposition (X1–X6 are DEFERRED-by-design, not fixed in Cycle 3):** these are
+intrinsic tensions of the validated design (activity-based decay + `max()` support
+for continuity; anti-thrash valence damping; a logit-free salience proxy), not clear
+bugs, and every "fix" trades away a property the design deliberately bought.
+Specifically **X2 was investigated as a fix and reverted**: gating the cycle clock on
+"real work" breaks the *one-consolidation-==-one-cycle* invariant that makes wall-clock
+absence harmless (it failed `test_absence_does_not_age_identity` and the drift-tool
+EROSION control), and forcing erosion requires the privileged ability to invoke
+consolidation repeatedly. The honest mitigations (sub-linear support update for X1,
+valence-blend-on-supersede for X3, novelty×triviality cap for X5) are design changes
+recorded here for the survivability-testing work, to be weighed against the continuity/
+stability they would cost — they are not silent bugs to patch. CRIT/HIGH defects on the
+*other six* surfaces (durability, privacy, embedder, MCP, config, concurrency) WERE
+fixed (table above).
