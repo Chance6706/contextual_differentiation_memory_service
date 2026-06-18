@@ -282,3 +282,78 @@ these passes — e.g. GLM C-HIGH-1 (drain not under the cross-process lock), C-H
 read-modify-write race), and the DeepSeek/Owl mechanical items — remain to be triaged and
 **independently reproduced** before any fix, in a later cycle. They are out of scope for
 this change.
+
+## Cycle 7 — triage of the open Cycle 4–6 mechanical findings
+
+The external reports were treated as **untrusted until independently reproduced** (per
+`redteam/README.md`). Extraction: GLM-5.2 (Cycle 5) = 3 HIGH + 8 MED + 3 LOW; DeepSeek
+(Cycle 4) = 1 CRIT + 2 HIGH + 5 MED + 4 LOW; OWL (Cycle 6) = **0 mechanical** (purely
+philosophical, already dispositioned). Each was reproduced, then FIXED / REFUTED /
+DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
+
+**FIXED (reproduced → fixed → test):**
+- **A7-H1** (HIGH, `config.py`) — `_validate` left the S0 weights and ~12 thresholds
+  unchecked; `CDMS_W_SURPRISE=1e9` / `CDMS_DEDUP_SIM_THRESHOLD=2.0` silently disabled the
+  salience gate / dedup. Now bounded (incl. valence/threshold ranges, http_port).
+- **A0-C1** (CRIT-on-Windows, `db.py`) — `_open` leaked the OS file handle on a failed
+  open, so the quarantine `os.replace` can't rename the corrupt file on Windows → daemon
+  wedged. `_open` now closes the connection on failure.
+- **C-HIGH-2 / A3-M1** (HIGH, `embeddings.py`) — `get_embedder()` returned the first
+  singleton forever, ignoring later config (model/dim/max_chars/backend). Now keyed on
+  those; rebuilds on change.
+- **C-HIGH-1** (HIGH, `pipeline.py`) — `drain_and_ingest` ran without the cross-process
+  lock, so a drain could ingest into a store mid-consolidation (stale snapshot →
+  missing/duplicate gists). Drain now holds the lock (short timeout + skip-on-timeout;
+  spool preserved). Safe — drain is only called at top level, never while the lock is held.
+- **C-HIGH-3** (HIGH) — the *stated* mechanism (touch vs set_salience) is **partly
+  REFUTED**: those write disjoint columns and cannot corrupt each other. The real race
+  (ingest `_associate` vs consolidation's salience renormalization, and ingest-vs-ingest)
+  is closed by the same drain-under-lock fix. *Residual:* a direct MCP `store` ingest
+  bypasses drain, so a concurrent MCP-store-vs-consolidation `base_salience` race remains
+  — narrow (serial stdio MCP) and self-healing (next `conserve_budget`); deferred.
+- **A2-M1** (MED, privacy, `store.py`+`db.py`) — `forget(session=…)` deleted episodes but
+  not the gists they fed (aggregated trait survived = right-to-forget leak). Now also
+  deletes gists whose support edges are **entirely** within the forgotten episodes
+  (`gists_orphaned_by`); cross-session traits are preserved (tested both ways). Scars carry
+  no session linkage and remain project/id-forgettable by design (they are safety guardrails).
+- **C-MED-6** (MED, `pipeline.py`) — `_infer_success` negation window was a fixed 10 chars,
+  missing multi-word negators ("without any errors") and flipping success→failure. Now the
+  last-3-words window (catches multi-word negators; a far-back negator can't wrongly negate).
+
+**REFUTED (reproduced → not a bug):**
+- **A0-M1** (MED) — the catastrophe "deed-gate" (a dangerous *command* elevates a scar only
+  when a harm token co-occurs) is the **deliberate Cycle-3 precision fix**, not a
+  regression; the regex tier is reachable (`reset --hard … wiped`), not dead code.
+
+**DEFERRED (reproduced, real, but low-impact / tradeoff / operational / out-of-code-scope):**
+- **C-MED-1** touch on deleted/deduped episode → lost reinforcement: transient, self-heals.
+- **C-MED-2** FTS has no phrase queries: recall *quality*, GLM self-downgraded; acceptable.
+- **C-MED-3** `config.json` string/path fields (e.g. `home`) unvalidated: trust boundary —
+  the file lives in the user's own `CDMS_HOME`; write access there already grants full control.
+- **C-MED-4** Windows `msvcrt.locking` defeated by manual lock-file recreation: Windows-only,
+  requires deleting the lock file mid-pass; narrow.
+- **C-MED-5** ReDoS in `redact_secrets`: bounded by `_clip` (4000 chars) on every path; not
+  exploitable in practice.
+- **C-MED-7** `_content_terms` decomposes paths into filename fragments: representational
+  coarseness, tracked under the §10.5 portrait-richness thread.
+- **C-MED-8 / A5-H1** O(n) `all_gist`/`all_scars` on retrieve & `find_duplicate_scar`:
+  performance at scale (~tens of ms at 10k rows), acceptable now; a `WHERE id IN (…)`
+  optimization is deferred to a perf pass.
+- **A1-M1** silent consolidation-skip on lock timeout: observability gap (logged, self-heals
+  next cycle); a skip counter is a future nicety.
+- **A2-M2 / A5-L2** quarantined `.corrupt-*` / orphaned `.processing` files accumulate and
+  hold plaintext: operational — `secure_delete` protects the *live* store; the quarantine
+  is an explicit recovery artifact. A `cdms doctor --purge-quarantines` is the right future
+  affordance.
+- **A6-L1** TOCTOU in install symlink resolution: narrow local race during the operator-run
+  install window.
+- **A7-L1** no cross-field config consistency checks: minor; the dangerous single-field cases
+  are now bounded (A7-H1).
+- **A7-L2** hash-only CI never exercises the real embedder: CI infrastructure, not code
+  (`test_real_embedder.py` exists and runs locally).
+- **C-LOW-1** log rotation keeps one generation: minor observability.
+- **C-LOW-2** `top_gist` ordering gameable via frequency inflation: same class as the
+  deferred-by-design X5 (salience gaming); deferred with it.
+- **C-LOW-3** dependency upper bounds: supply-chain hygiene; deferred to avoid resolver
+  breakage without env verification (the fastembed fingerprint guard already catches weight
+  drift at runtime; `sqlite-vec` format drift remains the open risk to revisit).

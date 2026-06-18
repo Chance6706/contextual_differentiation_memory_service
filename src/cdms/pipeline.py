@@ -43,7 +43,12 @@ def _marker_unnegated(low: str, marker: str) -> bool:
     depend on)."""
     i = low.find(marker)
     while i != -1:
-        window = low[max(0, i - 10):i]
+        # Look at the few WORDS immediately before the marker, not a fixed 10-char
+        # window — the 10-char window missed common multi-word negators ("without any
+        # errors", "no further exceptions") and flipped a success to a failure (Cycle-5
+        # C-MED-6). Bounded to the last 3 words so a negator further back ("no backups;
+        # the deploy failed") does NOT wrongly negate the marker.
+        window = " ".join(low[:i].split()[-3:])
         if not any(n in window for n in _NEGATORS):
             return True
         i = low.find(marker, i + 1)

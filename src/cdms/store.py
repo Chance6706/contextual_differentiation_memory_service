@@ -431,6 +431,14 @@ class MemoryService:
             for s in self.db.all_scars():
                 if s.id in ids or (project is not None and self._project_match(s.project, project)):
                     sc.add(s.id)
+            # A2-M1: episodes deleted by session/id also orphan the gists they fed. A
+            # session/id forget that only deleted episodes left the aggregated trait
+            # (subject/relation/object + valence) behind — a right-to-forget leak. Remove
+            # gists whose support is ENTIRELY within the forgotten episodes; gists with
+            # cross-session support survive (they are genuine multi-session traits). Must
+            # run BEFORE delete_episodic, which drops the support edges this reads.
+            if ep:
+                gi |= self.db.gists_orphaned_by(ep)
             res = {
                 "episodic": self.db.delete_episodic(ep),
                 "gist": self.db.delete_gist(gi),

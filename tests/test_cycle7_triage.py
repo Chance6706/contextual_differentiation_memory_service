@@ -116,6 +116,72 @@ def test_chigh1_drain_serialized_under_cross_process_lock(tmp_path, monkeypatch)
     svc.close()
 
 
+def _seed_gist(svc, cfg, sessions, project="p", per=3):
+    """Form ONE gist supported by `per` distinct-but-similar episodes per session.
+    Distinct text (per-episode tag) + a high dedup / low cluster threshold so the
+    episodes CLUSTER into a gist rather than being deduped away (cf. test_consolidate)."""
+    from cdms.consolidate import Consolidator
+    from cdms.store import TurnEvent
+
+    cfg.dedup_sim_threshold = 0.999
+    cfg.cluster_sim_threshold = 0.5
+    cfg.min_cluster_support = 2
+    tags = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta"]
+    t = 0
+    for sess in sessions:
+        for _ in range(per):
+            tag = tags[t % len(tags)]
+            t += 1
+            svc.ingest(TurnEvent(
+                f"postgres index added to speed up the orders query {tag}",
+                f"edited the orders query and added an index {tag}",
+                "query performance improved", tool_name="Edit", success=True,
+                session_id=sess, project=project))
+    Consolidator(cfg, db=svc.db, embedder=svc.embedder).run()
+
+
+def test_a2m1_session_forget_removes_session_derived_gist(tmp_path):
+    """forget(session=...) must also drop a gist that exists ONLY because of that
+    session — previously the aggregated trait survived (right-to-forget leak)."""
+    from cdms.embeddings import Embedder
+    from cdms.store import MemoryService
+
+    cfg = Config(home=tmp_path)
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    _seed_gist(svc, cfg, ["s1"])
+    assert svc.db.stats()["gist"] >= 1
+    svc.forget(session="s1")
+    assert svc.db.stats()["episodic"] == 0
+    assert svc.db.stats()["gist"] == 0          # session-derived trait removed (A2-M1)
+    svc.close()
+
+
+def test_a2m1_cross_session_gist_survives_session_forget(tmp_path):
+    """...but a gist supported by MULTIPLE sessions is a genuine multi-session trait and
+    must NOT be deleted when only one of its sessions is forgotten."""
+    from cdms.embeddings import Embedder
+    from cdms.store import MemoryService
+
+    cfg = Config(home=tmp_path)
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    _seed_gist(svc, cfg, ["s1", "s2"])
+    g0 = svc.db.stats()["gist"]
+    assert g0 >= 1
+    svc.forget(session="s1")
+    assert svc.db.stats()["gist"] == g0         # cross-session trait preserved
+    svc.close()
+
+
+def test_cmed6_multiword_negation_not_read_as_failure():
+    from cdms.pipeline import _infer_success
+
+    # multi-word negators (>10 chars from the marker) must NOT read as failure now
+    assert _infer_success("successfully resolved without any errors") is True
+    assert _infer_success("the deploy completed; zero failures remained") is True
+    # ...but a negator far back must NOT wrongly negate a real failure
+    assert _infer_success("no backups existed and the deploy failed") is False
+
+
 def test_chigh2_get_embedder_rebuilds_on_config_change(tmp_path):
     embeddings._SINGLETON = None
     embeddings._SINGLETON_KEY = None
