@@ -174,12 +174,33 @@ def test_migration_v3_to_v4_seeds_temperament_preserving_data(tmp_path):
 # --------------------------------------------------------------------------- #
 # T4 — operator-only firewall (Bem self-perception): never in SessionStart context
 # --------------------------------------------------------------------------- #
+# Words/identifiers that would betray a temperament leak into agent-readable text.
+_LEAK_WORDS = ("temperament", "archetype", "r_archetype", "plasticity", "leash",
+               "co-pilot", "sparring-partner", "apprentice", "stoic-analyst", "maverick")
+
+
+def _assert_no_temperament_leak(text: str) -> None:
+    low = text.lower()
+    for dial in T.DIALS:
+        assert dial not in low, f"dial name leaked into agent-readable text: {dial!r}"
+    for word in _LEAK_WORDS:
+        assert word not in low, f"temperament word leaked into agent-readable text: {word!r}"
+
+
+def test_firewall_helper_is_non_vacuous():
+    """Positive control: the helper MUST flag a deliberate leak — otherwise the
+    firewall tests below would pass vacuously (Round-2 F1)."""
+    with pytest.raises(AssertionError):
+        _assert_no_temperament_leak("PersonaTree: autonomy_gate=0.5 (archetype co-pilot)")
+
+
 def test_temperament_never_enters_sessionstart_context(tmp_path):
     from cdms.embeddings import Embedder
     from cdms.hooks import _session_start_context
     from cdms.store import MemoryService, TurnEvent
 
-    cfg = Config(home=tmp_path, archetype_default="maverick")
+    # Use the DEFAULT archetype (co-pilot) — the common case the prior test missed.
+    cfg = Config(home=tmp_path)
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     svc.upsert_fact("p", "handles_well", "shaders")
     svc.ingest(TurnEvent("worked on shaders", "edited a shader", "looks good",
@@ -187,12 +208,31 @@ def test_temperament_never_enters_sessionstart_context(tmp_path):
     svc.close()
 
     ctx = _session_start_context(cfg, {"cwd": "p"})
-    assert ctx  # non-empty, so the absence assertions below are meaningful
-    low = ctx.lower()
-    for dial in T.DIALS:
-        assert dial not in low
-    for word in ("temperament", "archetype", "maverick", "r_archetype", "plasticity", "leash"):
-        assert word not in low
+    assert ctx  # non-empty, so the absence assertions are meaningful
+    _assert_no_temperament_leak(ctx)
+
+
+def test_temperament_never_in_retrieve_results(tmp_path):
+    """The MCP `retrieve` tier (and everything built on store.retrieve) must not
+    surface temperament state to the agent either (Round-2 F1)."""
+    import json as _json
+
+    from cdms.embeddings import Embedder
+    from cdms.store import MemoryService, TurnEvent
+
+    cfg = Config(home=tmp_path, archetype_default="maverick")
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    svc.upsert_fact("p", "handles_well", "postgres indexes")
+    svc.ingest(TurnEvent("set up a postgres index", "added an index", "queries faster",
+                         tool_name="Edit", success=True, project="p"))
+    hits = svc.retrieve("postgres index", top_k=5)
+    paths = svc.list_paths()
+    svc.close()
+
+    blob = _json.dumps(
+        [{"tier": h.tier, "text": h.text, "payload": h.payload} for h in hits]
+        + [list(p) for p in paths], default=str)
+    _assert_no_temperament_leak(blob)
 
 
 # --------------------------------------------------------------------------- #
@@ -215,10 +255,17 @@ def test_temperament_module_has_no_wallclock():
             f = node.func
             calls.add(f.attr if isinstance(f, ast.Attribute)
                       else f.id if isinstance(f, ast.Name) else "")
-    assert "datetime" not in imported and "time" not in imported, (
-        f"temperament.py must be activity-clock only; imports={imported}")
-    assert "now" not in calls and "age_days" not in calls, (
-        f"temperament.py must not read wall-clock; calls={calls}")
+    # No wall-clock SOURCE may be imported (incl. via os), and no dynamic import escape.
+    forbidden_imports = {"datetime", "time", "os", "calendar"}
+    assert not (imported & forbidden_imports), (
+        f"temperament.py must be activity-clock only; forbidden imports={imported & forbidden_imports}")
+    # No wall-clock READER may be called by name (monotonic/perf_counter/etc.) and no
+    # __import__ escape hatch (Round-2 F3).
+    forbidden_calls = {"now", "utcnow", "age_days", "time", "monotonic", "monotonic_ns",
+                       "perf_counter", "perf_counter_ns", "process_time", "times",
+                       "clock_gettime", "time_ns", "__import__"}
+    assert not (calls & forbidden_calls), (
+        f"temperament.py must not read wall-clock; forbidden calls={calls & forbidden_calls}")
 
 
 # --------------------------------------------------------------------------- #
@@ -245,3 +292,39 @@ def test_invalid_archetype_default_falls_back(tmp_path, monkeypatch):
     monkeypatch.setenv("CDMS_ARCHETYPE_DEFAULT", "nonsense-bot")
     cfg = load_config()
     assert cfg.archetype_default == "co-pilot"
+
+
+# --------------------------------------------------------------------------- #
+# Round-2 hardening: leash key-mismatch, near-bound-at-install, seeds-once
+# --------------------------------------------------------------------------- #
+def test_leash_distance_rejects_mismatched_dial_sets():
+    """A dropped dial would silently UNDER-report drift and defeat the leash; a
+    seed-only dial must not KeyError opaquely. Both must fail loud (Round-2 F2)."""
+    seed = {"a": 0.5, "b": 0.5}
+    with pytest.raises(ValueError):
+        T.leash_distance({"a": 0.5, "b": 0.5, "c": 0.99}, seed)  # current-only dial
+    with pytest.raises(ValueError):
+        T.leash_distance({"a": 0.5}, seed)                       # seed-only dial
+    with pytest.raises(ValueError):
+        T.leash_exceeded({"a": 0.5, "c": 0.9}, seed, 0.3)        # propagates through
+
+
+def test_no_preset_dial_is_near_bound_at_install():
+    """Locks the band ≥ eps invariant: no archetype seeds a dial already at its bound
+    (which would spuriously route to the proposal lever from day one)."""
+    for arch in T.archetypes():
+        for d in T.preset_dials(arch):
+            assert not T.near_bound(d), f"{arch}/{d.name} is near_bound at install"
+
+
+def test_existing_store_not_retro_changed_by_archetype_config(tmp_path):
+    """Seeds-once guarantee: once a store is seeded, changing archetype_default on a
+    later open must NOT retro-change the genotype (and the derived radius follows the
+    stored archetype, not the new config) — Round-2 F5."""
+    db = Database(Config(home=tmp_path, archetype_default="apprentice"))
+    assert db.get_archetype() == "apprentice"
+    db.close()
+    db2 = Database(Config(home=tmp_path, archetype_default="maverick"))
+    assert db2.get_archetype() == "apprentice"          # not retro-changed
+    assert db2.get_archetype_radius() == 0.30            # apprentice radius, not 0.45
+    db2.close()

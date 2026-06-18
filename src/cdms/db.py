@@ -234,8 +234,7 @@ class Database:
         when the table is empty, so re-opening an existing store never re-seeds nor
         overwrites a (future-Phase-1b) drifted ``current``. Operator-only state.
         """
-        from .temperament import (DEFAULT_ARCHETYPE, archetype_radius, archetypes,
-                                  preset_dials)
+        from .temperament import DEFAULT_ARCHETYPE, archetypes, preset_dials
 
         if c.execute("SELECT COUNT(*) FROM mem_temperament").fetchone()[0]:
             return
@@ -248,11 +247,12 @@ class Database:
                 "VALUES (?,?,?,?,?,?)",
                 (d.name, d.seed, d.current, d.lower, d.upper, d.plasticity),
             )
-        # Direct INSERTs (not set_meta) so this stays inside the _init_schema tx.
+        # Store ONLY the archetype name (direct INSERT, not set_meta, so this stays in
+        # the _init_schema tx). The leash radius is DERIVED from the archetype at read
+        # time (get_archetype_radius) — one source of truth, so the radius can never
+        # silently diverge from the archetype (Round-2 F4).
         c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
                   (archetype,))
-        c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES ('R_archetype', ?)",
-                  (str(archetype_radius(archetype)),))
 
     @staticmethod
     def _migrate(c: sqlite3.Connection) -> None:
@@ -293,13 +293,14 @@ class Database:
                      lower=r["lower"], upper=r["upper"], plasticity=r["plasticity"]) for r in rows]
 
     def get_archetype(self) -> str:
-        return self.get_meta("archetype", "co-pilot") or "co-pilot"
+        from .temperament import DEFAULT_ARCHETYPE
+        return self.get_meta("archetype", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
 
     def get_archetype_radius(self) -> float:
-        try:
-            return float(self.get_meta("R_archetype", "0.30") or "0.30")
-        except (TypeError, ValueError):
-            return 0.30
+        """Joint-leash radius, DERIVED from the archetype (not separately stored), so
+        it can never diverge from the archetype meta (Round-2 F4)."""
+        from .temperament import archetype_radius
+        return archetype_radius(self.get_archetype())
 
     def reconcile_embedder(self, fingerprint: str) -> None:
         """Pin the embedder's vector-space identity on first write; refuse to mix.

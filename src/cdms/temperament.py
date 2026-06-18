@@ -143,7 +143,16 @@ def leash_distance(current: Mapping[str, float], seed: Mapping[str, float]) -> f
     the "no archetype-hopping" guarantee survive a sub-threshold "boiling-frog" ratchet
     (Round-2 G-A): many tiny per-step moves that each clear a per-step gate still trip
     the leash once their *cumulative* distance from seed exceeds the radius.
+
+    Fails LOUD on a dial-set mismatch rather than silently dropping a term — a dropped
+    dial would *under-report* divergence and defeat the leash exactly when Phase 1b
+    starts passing independently-built ``current``/``seed`` maps (Round-2 F2).
     """
+    if set(current) != set(seed):
+        raise ValueError(
+            "leash_distance requires identical dial sets; "
+            f"current-only={sorted(set(current) - set(seed))} "
+            f"seed-only={sorted(set(seed) - set(current))}")
     return sqrt(sum((current[d] - seed[d]) ** 2 for d in seed))
 
 

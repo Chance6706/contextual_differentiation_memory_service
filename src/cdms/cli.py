@@ -194,7 +194,7 @@ def cmd_temperament(args) -> int:
     firewall): the agent must not read its own disposition. This is for the operator.
     """
     from .store import MemoryService
-    from .temperament import leash_distance, near_bound, seed_vector, vector
+    from .temperament import leash_distance, leash_exceeded, near_bound, seed_vector, vector
 
     cfg = load_config()
     svc = MemoryService(cfg)
@@ -203,12 +203,16 @@ def cmd_temperament(args) -> int:
     radius = svc.db.get_archetype_radius()
     svc.close()
 
-    dist = leash_distance(vector(dials), seed_vector(dials)) if dials else 0.0
+    cur, sd = vector(dials), seed_vector(dials)
+    dist = leash_distance(cur, sd) if dials else 0.0
+    # Verdict via leash_exceeded on the UNROUNDED value (don't re-implement `> R`
+    # inline, and don't let display rounding flip the verdict) — Round-2 F6.
+    exceeded = leash_exceeded(cur, sd, radius) if dials else False
     out = {
         "archetype": archetype,
         "R_archetype": radius,
-        "leash_distance": round(dist, 4),
-        "leash_exceeded": dist > radius,
+        "leash_distance": round(dist, 6),
+        "leash_exceeded": exceeded,
         "dials": [
             {"dial": d.name, "seed": d.seed, "current": d.current,
              "lower": d.lower, "upper": d.upper, "plasticity": d.plasticity,
