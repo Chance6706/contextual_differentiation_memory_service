@@ -15,6 +15,35 @@ whatever else you run locally.
 > (`f`, the genotype) is applied to a unique lived history. Two CDMS instances fed
 > different histories diverge into different "selves." Forgetting is the feature.
 
+### What CDMS claims — and what it does not
+
+This is a claim about **individuation** — *what makes this instance recognizably this
+one* is the structural residue of a forgetting policy over its lived history. It is
+**not** a claim about consciousness, sentience, or subjective experience. CDMS
+**individuates; it does not animate** — it produces a *functional simulacrum* of
+continuity (the useful behavior of having a past), not an inner life or a persisting
+subject. Reading the "identity"/"Ego" language as a claim about a *mind* is an
+equivocation on the word "identity."
+
+Two things follow, worth stating up front:
+
+- **The system is entirely mechanical and reactive today.** It consolidates *what
+  history did*, by geometry and lexicon only — the LLM never authors the identity tuple
+  (no "generative self-fiction"). The step from *"what have I done"* to *"what can I
+  become"* (self-direction) belongs to the curiosity/research **"active dreaming"**
+  pillar, which is **designed, not built** (see [`docs/DESIGN.md`](docs/DESIGN.md) §6).
+  The optional prose *Dreamer* does not cross that line — it is off by default and only
+  renders prose. Even once built, dreaming is gated *propose-not-act*: functional agency
+  at most, never experience.
+- **"Substrate independence" means content, not a soul.** Across a model change the
+  *content* of the self-model (gist/scar tuples and dials — all text) carries over; the
+  *expression* changes with the new model. That is *not* "the same AI in a new body."
+
+The cognitive vocabulary throughout — "Ego," "sleep," "dreaming," "individuation" — is
+borrowed from cognitive science (complementary learning systems, the Ebbinghaus curve,
+synaptic downscaling) because it earns its keep as design intuition, not because CDMS
+literally instantiates those phenomena.
+
 ---
 
 ## Why forgetting?
@@ -245,6 +274,13 @@ a deterministic hashing embedder so they run offline; a separate non-hash path
 is unavailable.
 
 ## Status & roadmap
+
+**What is built today is the reactive mechanical core** — capture, salience, decay, the
+five-step sleep consolidation, hybrid retrieval, and the privacy/durability hardening
+above. The *proactive* layers — §6 curiosity/dreaming-research ("active dreaming"), §7
+emotion/proposals, and §8 archetypes/temperament (see
+[`docs/DESIGN.md`](docs/DESIGN.md)) — are **designed, not built**; DESIGN.md marks every
+line ✅ Built vs 📐 Designed.
 
 This is a working reference implementation (Python). Per the spec's
 production-hardening directive, a future pass could rewrite the daemon in Rust/Go

@@ -12,8 +12,10 @@ keywords = ["memory", "claude-code", "mcp", "sqlite-vec", "agent", "consolidatio
 # on CPU (0 GPU VRAM) per design directive #4.
 dependencies = [
     "mcp>=1.28,<2",        # Official MCP SDK (FastMCP stdio server); v2 alpha pinned out
-    "sqlite-vec>=0.1.9",   # In-process vector search extension (>=0.1.9 has the DELETE fix)
-    "fastembed>=0.4.0",    # CPU-only ONNX text embeddings (onnxruntime backed)
+    "sqlite-vec>=0.1.9,<0.2",   # vec0 vector index; cap <0.2 — a vec0 format change would
+                                # silently break KNN (NOT covered by the embedder fingerprint guard)
+    "fastembed>=0.4.0,<1.0",    # CPU-only ONNX embeddings; cap out a major (weight drift within
+                                # 0.x is caught at runtime by the embed-fingerprint pin)
     "numpy>=1.26,<3",      # Vector math for clustering / softmax / RRF (cap major for ABI safety)
 ]
 

@@ -217,10 +217,24 @@ def _fastembed_version() -> str:
 # A process-wide singleton keeps the (heavy) ONNX session resident across calls
 # inside the long-lived daemon, while short hook subprocesses simply never build it.
 _SINGLETON: Embedder | None = None
+_SINGLETON_KEY: tuple | None = None
+
+
+def _embedder_key(cfg: Config) -> tuple:
+    """Identity that must force a singleton REBUILD when it changes. Without this the
+    singleton silently ignored a later config change (different embed_model / embed_dim /
+    embed_max_chars / backend), producing inconsistently-embedded vectors in one store —
+    Cycle-5 C-HIGH-2 / Cycle-4 A3-M1. Backend is included because hash vs fastembed are
+    geometrically incompatible spaces."""
+    import os
+    return (cfg.embed_model, cfg.embed_dim, cfg.embed_max_chars,
+            os.environ.get("CDMS_EMBED_BACKEND", "").lower())
 
 
 def get_embedder(cfg: Config) -> Embedder:
-    global _SINGLETON
-    if _SINGLETON is None:
+    global _SINGLETON, _SINGLETON_KEY
+    key = _embedder_key(cfg)
+    if _SINGLETON is None or _SINGLETON_KEY != key:
         _SINGLETON = Embedder(cfg)
+        _SINGLETON_KEY = key
     return _SINGLETON

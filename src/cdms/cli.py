@@ -57,10 +57,14 @@ def _atomic_write_json(path: Path, obj) -> None:
     If ``path`` is a symlink (common: settings.json -> a dotfiles repo), write
     THROUGH to the link target instead of replacing the link with a detached file
     (which would silently sever the link and leave the real dotfile un-updated).
+
+    ``realpath`` is applied UNCONDITIONALLY (it is idempotent for non-symlinks) rather
+    than gated on ``is_symlink()`` — the check-then-use gate was a TOCTOU window where the
+    symlink could be swapped between the check and the write (Cycle-4 A6-L1).
     """
     import tempfile
 
-    real = Path(os.path.realpath(path)) if path.is_symlink() else path
+    real = Path(os.path.realpath(path))
     real.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=str(real.parent), prefix=real.name + ".", suffix=".tmp")
     try:
@@ -187,6 +191,43 @@ def cmd_stats(args) -> int:
     return 0
 
 
+def cmd_temperament(args) -> int:
+    """Operator-only view of the §8 temperament vector and its joint-leash status.
+
+    NEVER injected into context (break-cycle principle #1 / Bem self-perception
+    firewall): the agent must not read its own disposition. This is for the operator.
+    """
+    from .store import MemoryService
+    from .temperament import leash_distance, leash_exceeded, near_bound, seed_vector, vector
+
+    cfg = load_config()
+    svc = MemoryService(cfg)
+    dials = svc.db.all_dials()
+    archetype = svc.db.get_archetype()
+    radius = svc.db.get_archetype_radius()
+    svc.close()
+
+    cur, sd = vector(dials), seed_vector(dials)
+    dist = leash_distance(cur, sd) if dials else 0.0
+    # Verdict via leash_exceeded on the UNROUNDED value (don't re-implement `> R`
+    # inline, and don't let display rounding flip the verdict) — Round-2 F6.
+    exceeded = leash_exceeded(cur, sd, radius) if dials else False
+    out = {
+        "archetype": archetype,
+        "R_archetype": radius,
+        "leash_distance": round(dist, 6),
+        "leash_exceeded": exceeded,
+        "dials": [
+            {"dial": d.name, "seed": d.seed, "current": d.current,
+             "lower": d.lower, "upper": d.upper, "plasticity": d.plasticity,
+             "near_bound": near_bound(d)}
+            for d in dials
+        ],
+    }
+    print(json.dumps(out, indent=2))
+    return 0
+
+
 def cmd_ingest(args) -> int:
     from .store import MemoryService, TurnEvent
 
@@ -228,6 +269,20 @@ def cmd_doctor(args) -> int:
     import sqlite3
 
     cfg = load_config()
+    if getattr(args, "purge_quarantines", False):
+        # A2-M2 / A5-L2: corruption recovery leaves *.corrupt-* copies that hold the full
+        # plaintext store and are never auto-deleted (a right-to-forget / forensic gap).
+        # This is the explicit operator affordance to scrub them.
+        n = 0
+        # Match the quarantine naming (`*.corrupt-<timestamp>`, timestamp starts with a
+        # digit) so a stray user file like `notes.corrupt-backup` isn't collateral.
+        for q in cfg.home.glob("*.corrupt-[0-9]*"):
+            try:
+                q.unlink()
+                n += 1
+            except OSError:
+                pass
+        print(f"purged {n} quarantined *.corrupt-* file(s) from {cfg.home}")
     ok = True
     print(f"CDMS_HOME           : {cfg.home}")
     print(f"db path             : {cfg.db_path}")
@@ -483,7 +538,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("paths", help="show PersonaTree paths").set_defaults(func=cmd_paths)
     sub.add_parser("stats", help="store statistics").set_defaults(func=cmd_stats)
-    sub.add_parser("doctor", help="verify environment + warm embedder").set_defaults(func=cmd_doctor)
+    sub.add_parser("temperament",
+                   help="show the §8 temperament vector + leash status (operator-only)"
+                   ).set_defaults(func=cmd_temperament)
+    doc = sub.add_parser("doctor", help="verify environment + warm embedder")
+    doc.add_argument("--purge-quarantines", action="store_true",
+                     help="delete quarantined *.corrupt-* files (plaintext from past corruption recoveries)")
+    doc.set_defaults(func=cmd_doctor)
 
     ing = sub.add_parser("ingest", help="manually ingest a turn")
     ing.add_argument("--trigger", required=True)

@@ -11,6 +11,17 @@
 
 ## 0. The thesis of this plan, in one paragraph
 
+> **Ontological guardrail (read first):** cultivating a temperament is **not** the
+> beginning of *Bicentennial Man*. The layer individuates; it does not animate (DESIGN
+> §1.1a), and the no-archetype-hopping leash + operator-only firewall + "log never an input
+> to itself" make a tool→person arc structurally impossible — see **DESIGN §8.0** for the
+> mechanisms and the honest "Growth archetype" edge case. Hold temperament as a control-
+> fiction the operator sees (§1.5), never a self-story the agent narrates.
+>
+> **Build status:** **Phase 0 (state + pure-function control) is ✅ built**
+> (`src/cdms/temperament.py`, `mem_temperament`, `cdms temperament`); `current == seed`,
+> no drift. Phases 1a/1b/2/3 below remain 📐.
+
 CDMS already realizes **Identity = f(History)** at the phenotype layer (L2 gist traits that
 flip on sustained valence and decay on an activity clock — ✅ built). The temperament layer
 adds the **middle rung** of the same law: a small vector of disposition "dials"
@@ -54,6 +65,34 @@ consequence. Citations are author/year; URLs collected in §7.
 - **Failure mode this guards.** Treating any dial as perfectly frozen reproduces **foreclosure**
   (§1.6 below: a self that can never revise); treating all as freely plastic reproduces
   **diffusion/thrash**. The gradient is the faithful middle.
+
+### 1.1a Per-archetype plasticity → plasticity is DECOUPLED from where dials start (seed)
+- **Science (what the research actually says — see `TEMPERAMENT_RESEARCH_NOTES.md`).** The folk
+  intuition that an exploratory / open / "maverick" disposition changes *faster* is **not
+  supported**, and is partly contradicted: Openness is the **most heritable** Big Five trait
+  (~61%, Power et al. 2015) and among the **least intervention-malleable** (Roberts et al. 2017
+  meta-analysis; Hudson & Fraley; Stieger et al. 2021 PEACH — Emotional Stability and Extraversion
+  move most, Openness least); Cloninger **Novelty-Seeking is a stable, heritable temperament**;
+  and the DeYoung **"Plasticity" metatrait predicts behavioral EXPLORATION/ENGAGEMENT, not rate of
+  trait change** (Hirsh et al. 2009) — its very existence as a substantive factor is contested
+  (Anusic 2009; Chang 2012; vs Şimşek 2012). The **only robustly-supported direction** is the
+  *resistant* end: high-**Stability** (low-N + A + C) / high-**Conscientiousness** profiles show
+  behavioral restraint and rising rank-order stability (DeYoung 2006; Hirsh 2009; Roberts &
+  DelVecchio 2000). Reliable individual-differences-in-*change* exist mainly for Extraversion /
+  Neuroticism (Mroczek & Spiro 2003) and are fragile (change-score unreliability).
+- **Design consequence.** Give each archetype a **plasticity multiplier** scaling its per-dial drift
+  bands, **decoupled from its seed**: a Maverick *starts* adventurous (high `exploration_radius`
+  seed) but only **modestly** drifts faster; the **Stoic Analyst is lowest** (the solid resistant
+  end), Apprentice low. Implemented as `ARCHETYPE_PLASTICITY` (0.7→1.3, ✅ Phase 0). The spread is
+  **small** (everyone bounded-but-not-frozen) and the magnitudes are an **owned stipulation** (§1.5),
+  a Phase-2 tunable — *not* a claim about which humans change fastest. The maturity-prior caution
+  (P5) applies: faithfulness to a human pattern is not warrant that an AI *should* drift that way.
+- **Failure mode this guards.** Equating "explores a lot" with "changes identity a lot" would make
+  the most-exploratory archetype the least-stable self (spurious diffusion/thrash risk) on no real
+  evidence; keeping the resistant end solid and the spread modest avoids manufacturing instability.
+- **Caveat carried forward (§5).** *Mean-level change ≠ rank-order stability ≠
+  individual-differences-in-change* (Specht 2011); "more changeable" is ambiguous unless the kind of
+  change is named, so per-archetype plasticity is held as a deliberately coarse, modest prior.
 
 ### 1.2 Change is *directional*, not a random walk → a maturity prior on the update rule
 - **Science.** The **maturity principle** (Roberts, Walton & Viechtbauer 2006, 92-sample
@@ -217,19 +256,27 @@ state.
 The drift **log is last, not first** (§8.7/§10.3: it is unfalsifiable until an honest outcome
 signal and a non-circular test exist). Each phase has a break-cycle exit gate.
 
-### Phase 0 — Temperament STATE + pure-function control (no learning yet)
-- **Build.** A `temperament` table (one row per dial: `dial, seed, current, lower, upper,
-  plasticity`) + `cdms_meta` for `archetype` and `R_archetype`. Seed at `cdms install` from a
-  chosen archetype preset (§8.5). Bump `SCHEMA_VERSION`; idempotent `_migrate` (the real risk
-  per §8.7 — guard with a migration test on a copied real store).
-- **Control = pure function of `(seed, current, bounds)`**, zero storage: `near_bound()`,
-  `large_shift()`, and the **joint leash** `‖current − seed‖_Σ > R_archetype` (Mahalanobis with
-  the archetype covariance Σ). No drift yet — `current` == `seed`.
-- **Surfacing.** Control output may gate behavior, but state is **operator-only** (CLI `cdms
-  temperament`), never additionalContext.
-- **Exit gate.** The §10.1 survivability harness can sweep `(seed, bounds)` permutations through
-  the *existing* phenotype instrument (`tools/drift_trajectory.py`) with the control active and
-  measure differentiation/continuity. No degenerate corner reachable by construction.
+### Phase 0 — Temperament STATE + pure-function control (no learning yet) — ✅ BUILT
+- **Build.** ✅ A `mem_temperament` table (one row per dial: `dial, seed, current, lower, upper,
+  plasticity`) + `cdms_meta` for `archetype` and `R_archetype`, seeded **once at first init**
+  (idempotent seed-on-empty, so re-open never clobbers a future drifted `current`) from
+  `cfg.archetype_default` (§8.5). `SCHEMA_VERSION` 3→4; `user_version` set last (existing
+  hardening); migration guarded by a v3→v4 test on a store *with data*.
+  (`src/cdms/temperament.py`, `src/cdms/db.py`, `models.Dial`, `config.archetype_default`.)
+- **Control = pure function of `(seed, current, bounds)`**, zero storage: ✅ `near_bound()`,
+  `large_shift()`, and the **joint leash** `‖current − seed‖ > R_archetype` — **Euclidean**
+  radius per Round-2 **P2** (the Mahalanobis Σ is a Phase 2 output, not a Phase 0 input). The
+  leash anchors to the **static seed** (Round-2 **G-A**). No drift — `current` == `seed`.
+- **Surfacing.** ✅ State is **operator-only** (CLI `cdms temperament`); a firewall test asserts
+  it never reaches SessionStart `additionalContext`. (No dial is wired to behavior yet — that
+  needs §6/§7, per Round-2 **P1**; see below.)
+- **Exit gate (revised per Round-2 P1).** Phase 0 is *inert* (no dial modulates the still-unbuilt
+  §6/§7 machinery the phenotype harness measures), so its gate is **control-function
+  correctness**, not survivability: unit tests of `near_bound`/`large_shift`/leash on synthetic
+  vectors, the **G-A boiling-frog** sub-threshold ratchet test (50+ steps, each < per-step gate,
+  cumulative > radius → leash fires → proves the static-seed anchor), the v3→v4 migration test,
+  the operator-only firewall test, and a no-wall-clock source assertion. The §10.1 survivability
+  sweep (Phase 2) has a hard prerequisite on at least one dial having a wired effect (§6/§7).
 
 ### Phase 1a — The proposal lever (§7.6) — prerequisite for honest attribution
 - **Why first.** The update rule needs an **honest outcome-attribution signal**, and §8.7(d)

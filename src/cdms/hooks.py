@@ -261,6 +261,7 @@ def dispatch(event_name: str, payload: dict, cfg: Config | None = None) -> dict:
 
 
 _LOG_MAX_BYTES = 5_000_000  # rotate at ~5 MB so the log can't grow unbounded over months
+_LOG_GENERATIONS = 3        # keep N rotated generations (.1 newest .. .N oldest)
 
 
 def _log(cfg: Config, msg: str) -> None:
@@ -269,7 +270,14 @@ def _log(cfg: Config, msg: str) -> None:
         p = cfg.log_path
         try:
             if p.exists() and p.stat().st_size > _LOG_MAX_BYTES:
-                p.replace(p.with_name(p.name + ".1"))  # keep one previous generation
+                # Keep N generations, not one, so a problem from a few rotations ago is
+                # still debuggable (Cycle-5 C-LOW-1). Shift .{n-1}->.{n}, then log->.1; the
+                # oldest (.N) is overwritten so disk stays bounded at ~N*max_bytes.
+                for g in range(_LOG_GENERATIONS, 1, -1):
+                    src = p.with_name(p.name + f".{g - 1}")
+                    if src.exists():
+                        src.replace(p.with_name(p.name + f".{g}"))
+                p.replace(p.with_name(p.name + ".1"))
         except OSError:
             pass
         with open(p, "a", encoding="utf-8") as f:

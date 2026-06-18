@@ -225,3 +225,188 @@ recorded here for the survivability-testing work, to be weighed against the cont
 stability they would cost — they are not silent bugs to patch. CRIT/HIGH defects on the
 *other six* surfaces (durability, privacy, embedder, MCP, config, concurrency) WERE
 fixed (table above).
+
+## Cycles 4–6 — external reports + metaphysical disposition
+
+External, cross-lineage passes were run from the prompt packs in `redteam/` and their
+reports saved alongside: Cycle 4 Pass A (`CYCLE4_DEEPSEEK_REPORT.md`, DeepSeek V4 Pro),
+Cycle 5 (`CYCLE5_GLM52_REPORT.md`, GLM-5.2), Cycle 6 Pass A (`CYCLE6_OWL_ANALYSIS.md`,
+OWL Alpha). Per `redteam/README.md`, an external report is **untrusted input** until
+each CRIT/HIGH is independently reproduced.
+
+**This commit dispositions only the *metaphysical / framing* findings — by documentation,
+not code.** The trigger was a recurring reader-misconception: external models read the
+docs as *claiming to create consciousness / a real subject* and reacted in opposite
+directions — GLM deflationarily (M-CRIT-1 "identity = f(history) is a lossy JPEG, not a
+photograph"; M-HIGH-4 autonomy is "the philosophical zombie of agent autonomy"), OWL
+enthusiastically (the "ego-simulacrum" reframe, and Part VII's "the ego is information…
+the *same AI in a new body*"). Both target a claim CDMS does not make.
+
+Disposition: keep `Identity = f(History)` as the thesis and add an explicit
+**ontological + build-status** clarification (README "What CDMS claims — and what it does
+not"; DESIGN §1.1a). The stated boundary: CDMS is a claim about **individuation**, not
+phenomenal consciousness — it *individuates, does not animate*; it is **entirely
+mechanical/reactive today**, with the "what can I become" self-direction belonging to the
+designed-not-built §6 active-dreaming pillar; and substrate-independence means *content*
+carries over while *expression* changes (OWL Part IV), explicitly **not** "the same AI in
+a new body" (OWL Part VII). OWL's *headline* recommendation — rebrand to "ego strapped
+over the id" — was **declined**: "ego" unqualified raises the very misread it would aim to
+prevent, so the simulacrum framing is kept as a deflationary gloss, not the marquee.
+
+**Design-level dispositions (added after pressure-testing).** Two further design-axis
+findings from these passes were pressure-tested (independent adversarial passes + a
+factual grounding pass) and recorded as **open design threads**, since the relevant layer
+(§6 dreaming) is designed-not-built and there is nothing to patch in code:
+- **GLM M-HIGH-2 — "topic-frequency table, not a personality" (tuple expressiveness)** →
+  **DESIGN §10.5**. Verdict: *thin-but-fixable*. The substrate is sufficient (and tested)
+  for individuation/differentiation/curiosity/trait-flip, but is a **competence-map**: it
+  lacks a HOW/style channel. A second-order pass corrected the aim — the gap is in the
+  **phenotype portrait** (the `SessionStart` self-description), **not** the §8 temperament
+  dials (which are genotype seed/multipliers driven by §8.7 outcome-attribution, not
+  gist-readers). GLM's "3-valued relation" is a reduction fallacy (ignores continuous
+  valence + centroid + N-gist composition); OWL's "disposition recoverable" over-claims
+  (conflates competence- with temperament-disposition); the Jaccard 0.000 tests domain
+  separation, not richness. Fix is mechanically-extractable at read-time from L1 (history-
+  authored *features*, not designer-authored *labels*), plus fuller centroid/edge-graph
+  use and a separate mood object — no LLM-authored self-fiction.
+- **External-action authority gap (not raised verbatim by any pass; OWL Part VI's
+  "boundary violation" hints at it)** → **DESIGN §10.4**. The self-edit gate is not a
+  world-action gate. Surviving principles: delegate to the host's permission model (no
+  CDMS side-channel); dreaming is research-only with side-effecting experiments deferred
+  to a waking session (consent is void for unattended action); contain-don't-classify (a
+  venv is not a sandbox); "research-only" already sits at net-read + untrusted-ingest.
+
+**Not addressed here (open engineering track):** the *mechanical* code-level findings from
+these passes — e.g. GLM C-HIGH-1 (drain not under the cross-process lock), C-HIGH-2
+(`get_embedder()` singleton ignores config changes), C-HIGH-3 (`_associate`
+read-modify-write race), and the DeepSeek/Owl mechanical items — remain to be triaged and
+**independently reproduced** before any fix, in a later cycle. They are out of scope for
+this change.
+
+## Cycle 7 — triage of the open Cycle 4–6 mechanical findings
+
+The external reports were treated as **untrusted until independently reproduced** (per
+`redteam/README.md`). Extraction: GLM-5.2 (Cycle 5) = 3 HIGH + 8 MED + 3 LOW; DeepSeek
+(Cycle 4) = 1 CRIT + 2 HIGH + 5 MED + 4 LOW; OWL (Cycle 6) = **0 mechanical** (purely
+philosophical, already dispositioned). Each was reproduced, then FIXED / REFUTED /
+DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
+
+**FIXED (reproduced → fixed → test):**
+- **A7-H1** (HIGH, `config.py`) — `_validate` left the S0 weights and ~12 thresholds
+  unchecked; `CDMS_W_SURPRISE=1e9` / `CDMS_DEDUP_SIM_THRESHOLD=2.0` silently disabled the
+  salience gate / dedup. Now bounded (incl. valence/threshold ranges, http_port).
+- **A0-C1** (CRIT-on-Windows, `db.py`) — `_open` leaked the OS file handle on a failed
+  open, so the quarantine `os.replace` can't rename the corrupt file on Windows → daemon
+  wedged. `_open` now closes the connection on failure.
+- **C-HIGH-2 / A3-M1** (HIGH, `embeddings.py`) — `get_embedder()` returned the first
+  singleton forever, ignoring later config (model/dim/max_chars/backend). Now keyed on
+  those; rebuilds on change.
+- **C-HIGH-1** (HIGH, `pipeline.py`) — `drain_and_ingest` ran without the cross-process
+  lock, so a drain could ingest into a store mid-consolidation (stale snapshot →
+  missing/duplicate gists). Drain now holds the lock (short timeout + skip-on-timeout;
+  spool preserved). Safe — drain is only called at top level, never while the lock is held.
+- **C-HIGH-3** (HIGH) — the *stated* mechanism (touch vs set_salience) is **partly
+  REFUTED**: those write disjoint columns and cannot corrupt each other. The real race
+  (ingest `_associate` vs consolidation's salience renormalization, and ingest-vs-ingest)
+  is closed by the same drain-under-lock fix. *Residual:* a direct MCP `store` ingest
+  bypasses drain, so a concurrent MCP-store-vs-consolidation `base_salience` race remains
+  — narrow (serial stdio MCP) and self-healing (next `conserve_budget`); deferred.
+- **A2-M1** (MED, privacy) — `forget(session=…)` leaves session-derived gists behind.
+  ⚠️ **A first fix was SHIPPED THEN REVERTED.** The edge-based `gists_orphaned_by` rule
+  (delete a gist whose support edges are all inside the forgotten set) was caught by the
+  post-Cycle-7 double review (finding **H1, HIGH**): `delete_episodic` prunes a gist's edges
+  when a supporter is **evicted**, so the residual edges underestimate provenance — a later
+  session-forget would erase genuine MULTI-session traits (identity loss) once one session's
+  episodes had aged out. Reverted to episodes-only forget; `gists_orphaned_by` removed; a
+  regression test asserts session-forget never erases gists. **Re-DEFERRED:** a correct
+  scoping needs **persisted per-gist session provenance** (a schema change), not residual
+  edges. Gists remain forgettable by project/id (which always worked).
+- **C-MED-6** (MED, `pipeline.py`) — `_infer_success` negation window was a fixed 10 chars,
+  missing multi-word negators ("without any errors") and flipping success→failure. Now the
+  last-3-words window (catches multi-word negators; a far-back negator can't wrongly negate).
+
+**PARTLY REFUTED:**
+- **A0-M1** (MED) — "the regex tier is dead code" is **refuted** (it is reachable, e.g.
+  `reset --hard … wiped`). But "the deed-gate causes false negatives" is **real** (double
+  review): a dangerous command described without a `_HARM_TOKENS` word was not elevated.
+  The harm-token gate is the deliberate Cycle-3 precision fix (avoids re-pinning routine
+  work), so this is an **accepted recall gap, now narrowed** — `_HARM_TOKENS` widened with
+  unambiguous harm words ("rewrote", "rewritten", "nuked", "blew away", "wiped out",
+  "trashed", "clobbered"), tested. (Catastrophes with *no* harm word remain non-elevated by
+  design; the episode is still stored, and `store kind=scar` is the explicit escape hatch.)
+
+**DEFERRED (reproduced, real, but low-impact / tradeoff / operational / out-of-code-scope):**
+- **C-MED-1** touch on deleted/deduped episode → lost reinforcement: **partly PROMOTED
+  (Cycle-7 Phase 3).** The substantive concern (deduped survivors under-counted) is now
+  fixed — supersession folds the dropped duplicate's **full** `access_count` into the
+  survivor via `bump_access` (was only `+1`). The *residual* (a retrieve→touch on an
+  episode a concurrent consolidation just deleted) stays DEFERRED: it is a benign no-op
+  (`UPDATE` 0 rows, verified) on the hot read path, self-healing, not worth serializing.
+- **C-MED-2** FTS has no phrase queries: recall *quality*, GLM self-downgraded; acceptable.
+- **C-MED-3** `config.json` string/path fields (e.g. `home`) unvalidated: trust boundary —
+  the file lives in the user's own `CDMS_HOME`; write access there already grants full control.
+  ⚠️ **Contingent defer (double review):** this holds *only while the dreamer stays unwired*.
+  `dreamer_base_url`/`dreamer_enabled` are currently consumed by **zero code** (verified); the
+  moment a future cycle wires the dreamer to make HTTP requests, an attacker-controlled
+  `dreamer_base_url` becomes an SSRF / memory-exfiltration vector — **re-triage and promote then.**
+- **C-MED-4** Windows `msvcrt.locking` defeated by manual lock-file recreation: Windows-only,
+  requires deleting the lock file mid-pass; narrow.
+- ~~**C-MED-5** ReDoS in `redact_secrets`~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 6):** the
+  name-prefix/suffix quantifiers around the keyword are now BOUNDED (`{0,64}`), so the
+  pattern can't catastrophically backtrack even if length-clipping is bypassed. Test: an
+  adversarial 10k-char input completes in <1s; normal redaction unchanged.
+- **C-MED-7** `_content_terms` decomposes paths into filename fragments: representational
+  coarseness, tracked under the §10.5 portrait-richness thread.
+- ~~**C-MED-8 / A5-H1** O(n) `all_gist`/`all_scars` on retrieve & `find_duplicate_scar`~~
+  → **✅ PROMOTED & FIXED (Cycle-7 follow-up, Phase 1):** `_materialize` and
+  `find_duplicate_scar` now fetch only the hit/candidate ids via `get_gists_by_ids` /
+  `get_scars_by_ids` (chunked `WHERE id IN`), not the whole table. Integration test proves
+  retrieve results are byte-identical with whole-table scans forbidden
+  (`tests/test_cycle7_deferred.py`).
+- ~~**A1-M1** silent consolidation-skip on lock timeout~~ → **✅ PROMOTED & FIXED
+  (Cycle-7 Phase 2):** a skip now increments a durable `consolidations_skipped` counter +
+  `last_consolidation_skip` timestamp in meta (surfaced by `cdms stats`), sets
+  `ConsolidationReport.skipped`, and emits a stderr warning — repeated skips (a wedged
+  holder) are now visible. Integration test holds the lock and asserts the counter advances.
+- ~~**A2-M2 / A5-L2** quarantined `.corrupt-*` files hold plaintext, never auto-deleted~~ →
+  **✅ PROMOTED & FIXED (Cycle-7 Phase 8):** `cdms doctor --purge-quarantines` scrubs the
+  forensic `.corrupt-*` artifacts (test included). (`secure_delete` already protects the
+  live store; orphaned `.processing` files are reclaimed by the next drain.)
+- ~~**A6-L1** TOCTOU in install symlink resolution~~ → **✅ PROMOTED & FIXED (Cycle-7
+  Phase 7):** `_atomic_write_json` now applies `realpath` unconditionally (idempotent for
+  non-symlinks) instead of an `is_symlink()` check-then-use, closing the swap window.
+  Test: write-through-symlink still updates the target; plain paths unaffected.
+- ~~**A7-L1** no cross-field config consistency checks~~ → **✅ PROMOTED & FIXED (Cycle-7
+  Phase 5):** `_validate` now repairs jointly-nonsensical config — inverted relation
+  thresholds, `embed_max_chars > max_field_chars`, and a broken `cluster <= gist_match <=
+  dedup` order — to defaults, with a warning. Test covers each.
+- **A7-L2** hash-only CI never exercises the real embedder: CI infrastructure, not code
+  (`test_real_embedder.py` exists and runs locally).
+- ~~**C-LOW-1** log rotation keeps one generation~~ → **✅ PROMOTED & FIXED (Cycle-7
+  Phase 4):** keeps N=3 generations (`.1`..`.3`), bounded at ~N*max_bytes. Test asserts
+  `.1/.2/.3` exist and `.4` never does.
+- **C-LOW-2** `top_gist` ordering gameable via frequency inflation: same class as the
+  deferred-by-design X5 (salience gaming); deferred with it.
+- ~~**C-LOW-3** dependency upper bounds~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 9):** added
+  `sqlite-vec<0.2` (vec0 format — the open risk, not covered by the embedder fingerprint) and
+  `fastembed<1.0` caps, set above installed 0.1.9 / 0.8.0 so no resolver breakage.
+
+### Double adversarial review of the Cycle-7 diff
+
+Two independent reviews (correctness/concurrency; security/abuse + adjudication audit) of
+`95d1135..HEAD`. Suite 204→206 green throughout. Outcomes:
+- **H1 (HIGH, NEW REGRESSION) — fixed by REVERT.** The A2-M1 gist-orphan rule erased
+  multi-session gists after eviction; reverted (see A2-M1 above). The single most important
+  catch — it attacked the core identity-preservation invariant under normal operation.
+- **Drain-skip silence (B) — FIXED.** Drain now records `drains_skipped`/`last_drain_skip`
+  (surfaced by `cdms stats`) + a stderr warning, mirroring the A1-M1 consolidation-skip
+  signal, so a lock-starved drain that could back the spool up to its shed cap is visible.
+- **Config repair made minimal (M1) — FIXED.** Clamp the offender (e.g. `embed_max_chars`
+  DOWN to `max_field_chars`; lower only the sim-threshold offender) instead of resetting
+  fields the operator deliberately set; S0 weight bound tightened 1e6→1e3.
+- **Purge glob tightened** to `*.corrupt-[0-9]*` so a stray user file isn't collateral.
+- **A0-M1 relabelled** partly-refuted; `_HARM_TOKENS` widened (above).
+- **C-MED-3 annotated** as a contingent defer (above).
+- Both reviews confirmed **no fix opened a serious new hole**; `bump_access`,
+  `get_*_by_ids`, the embedder key, the drain-lock (no deadlock/nesting; turns deferred not
+  lost), and the `realpath` change were independently verified sound.
