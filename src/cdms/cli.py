@@ -269,6 +269,18 @@ def cmd_doctor(args) -> int:
     import sqlite3
 
     cfg = load_config()
+    if getattr(args, "purge_quarantines", False):
+        # A2-M2 / A5-L2: corruption recovery leaves *.corrupt-* copies that hold the full
+        # plaintext store and are never auto-deleted (a right-to-forget / forensic gap).
+        # This is the explicit operator affordance to scrub them.
+        n = 0
+        for q in cfg.home.glob("*.corrupt-*"):
+            try:
+                q.unlink()
+                n += 1
+            except OSError:
+                pass
+        print(f"purged {n} quarantined *.corrupt-* file(s) from {cfg.home}")
     ok = True
     print(f"CDMS_HOME           : {cfg.home}")
     print(f"db path             : {cfg.db_path}")
@@ -527,7 +539,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("temperament",
                    help="show the §8 temperament vector + leash status (operator-only)"
                    ).set_defaults(func=cmd_temperament)
-    sub.add_parser("doctor", help="verify environment + warm embedder").set_defaults(func=cmd_doctor)
+    doc = sub.add_parser("doctor", help="verify environment + warm embedder")
+    doc.add_argument("--purge-quarantines", action="store_true",
+                     help="delete quarantined *.corrupt-* files (plaintext from past corruption recoveries)")
+    doc.set_defaults(func=cmd_doctor)
 
     ing = sub.add_parser("ingest", help="manually ingest a turn")
     ing.add_argument("--trigger", required=True)

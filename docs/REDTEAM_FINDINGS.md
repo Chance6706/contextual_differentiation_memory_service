@@ -354,10 +354,10 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   `last_consolidation_skip` timestamp in meta (surfaced by `cdms stats`), sets
   `ConsolidationReport.skipped`, and emits a stderr warning — repeated skips (a wedged
   holder) are now visible. Integration test holds the lock and asserts the counter advances.
-- **A2-M2 / A5-L2** quarantined `.corrupt-*` / orphaned `.processing` files accumulate and
-  hold plaintext: operational — `secure_delete` protects the *live* store; the quarantine
-  is an explicit recovery artifact. A `cdms doctor --purge-quarantines` is the right future
-  affordance.
+- ~~**A2-M2 / A5-L2** quarantined `.corrupt-*` files hold plaintext, never auto-deleted~~ →
+  **✅ PROMOTED & FIXED (Cycle-7 Phase 8):** `cdms doctor --purge-quarantines` scrubs the
+  forensic `.corrupt-*` artifacts (test included). (`secure_delete` already protects the
+  live store; orphaned `.processing` files are reclaimed by the next drain.)
 - ~~**A6-L1** TOCTOU in install symlink resolution~~ → **✅ PROMOTED & FIXED (Cycle-7
   Phase 7):** `_atomic_write_json` now applies `realpath` unconditionally (idempotent for
   non-symlinks) instead of an `is_symlink()` check-then-use, closing the swap window.
@@ -373,6 +373,6 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   `.1/.2/.3` exist and `.4` never does.
 - **C-LOW-2** `top_gist` ordering gameable via frequency inflation: same class as the
   deferred-by-design X5 (salience gaming); deferred with it.
-- **C-LOW-3** dependency upper bounds: supply-chain hygiene; deferred to avoid resolver
-  breakage without env verification (the fastembed fingerprint guard already catches weight
-  drift at runtime; `sqlite-vec` format drift remains the open risk to revisit).
+- ~~**C-LOW-3** dependency upper bounds~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 9):** added
+  `sqlite-vec<0.2` (vec0 format — the open risk, not covered by the embedder fingerprint) and
+  `fastembed<1.0` caps, set above installed 0.1.9 / 0.8.0 so no resolver breakage.

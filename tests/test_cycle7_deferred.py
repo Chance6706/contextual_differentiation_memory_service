@@ -166,6 +166,21 @@ def test_a6l1_atomic_write_follows_symlink_without_toctou_gate(tmp_path):
     assert _json.loads(plain.read_text()) == {"k": 2}
 
 
+def test_a2m2_doctor_purges_quarantine_files(tmp_path, monkeypatch, capsys):
+    """Phase 8 — A2-M2: `cdms doctor --purge-quarantines` deletes the forensic *.corrupt-*
+    plaintext artifacts that corruption recovery leaves behind."""
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    q1 = tmp_path / "memory.db.corrupt-20200101-000000"
+    q1.write_text("plaintext episode data", encoding="utf-8")
+    q2 = tmp_path / "memory.db-wal.corrupt-20200101-000000"
+    q2.write_bytes(b"x")
+    from cdms.cli import main
+
+    main(["doctor", "--purge-quarantines"])
+    assert not q1.exists() and not q2.exists()
+    assert "purged 2" in capsys.readouterr().out
+
+
 def test_a5h1_scar_dedup_without_full_scan(tmp_path, monkeypatch):
     cfg = Config(home=tmp_path)
     svc = MemoryService(cfg, embedder=Embedder(cfg))
