@@ -72,6 +72,10 @@ class Config:
     salience_budget: float = 1000.0     # K_budget: total conserved salience across all live episodes
     project_budget_cap: float = 0.5     # no single project/subject may hold > this fraction of K
                                         # (capped-proportional: primaries keep focus, smalls aren't starved)
+    session_budget_cap: float = 0.5     # within a project's share, no single SESSION may hold > this
+                                        # fraction — bounds a flood concentrated in one session (e.g. the
+                                        # empty/default session that MCP-injected notes share) from
+                                        # diluting real per-session memory below the floor (Cycle-8 H-M-2)
     assoc_eta: float = 0.20             # η: retroactive association boost coefficient
     assoc_sim_floor: float = 0.60       # only boost past episodes more similar than this
     cluster_sim_threshold: float = 0.78 # cosine link threshold for gist clustering
@@ -221,6 +225,7 @@ def _validate(cfg: "Config") -> None:
         ("embed_dim", lambda v: isinstance(v, int) and 1 <= v <= 8192),
         ("salience_budget", lambda v: _num(v) and 0 < v <= 1e9),
         ("project_budget_cap", lambda v: _num(v) and 0 < v <= 1),
+        ("session_budget_cap", lambda v: _num(v) and 0 < v <= 1),
         ("gist_decay_per_cycle", lambda v: _num(v) and 0 < v < 1),
         ("gist_retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
         ("retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
