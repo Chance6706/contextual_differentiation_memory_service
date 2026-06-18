@@ -25,7 +25,7 @@ from typing import Optional
 from .config import Config
 from .models import utc_now_iso
 from .spool import spool_event  # re-exported for backwards compatibility
-from .store import MemoryService, TurnEvent
+from .store import MemoryService, TurnEvent, redact_secrets
 
 __all__ = ["spool_event", "reconstruct_turns", "drain_and_ingest"]
 
@@ -91,7 +91,9 @@ def _brief(value, limit: int = 300) -> str:
         return ""
     if isinstance(value, (dict, list)):
         value = json.dumps(value, ensure_ascii=False, default=str)
-    s = str(value)
+    # Redact BEFORE truncating: tool_output can carry credentials, and clipping the raw text
+    # first could leave an unredactable fragment of a key past the limit (Cycle-8 L-2).
+    s = redact_secrets(str(value))
     return s if len(s) <= limit else s[:limit] + "…"
 
 

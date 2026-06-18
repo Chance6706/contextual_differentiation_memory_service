@@ -451,3 +451,44 @@ Full suite **229 passed**. Landed in **PR #15**.
   repair raising the cap to alpha.
 - **Process note.** A red-team verdict is only as good as the revision it read — re-derive the
   tip (`git log` / `-S`) before trusting an external "VERIFIED FIXED."
+
+## Cycle 8 — OWL final report (full-spectrum, 6 subagents) triage
+
+External report: `docs/redteam/CYCLE8_OWL_FINAL.md` (reviewed commit `8e889d7` — verified
+current; not stale). 20 findings; each reproduced against the real code before action.
+
+**Fixed — PR #17 (security/salience/concurrency):** H-1 spool `0o600` (raw pre-redaction
+secrets), L-4 quarantine `0o600`, M-5 Anthropic/Google/Azure redaction patterns, M-4 Unicode
+line separators, M-3 drop the MCP `importance`/goal_hint bypass, M-6 MCP content cap, H-2 S0
+weight cap 1e3→10 + zero-goal anti-bypass cross-field, M-2 reject all-zero weights, H-5
+`get_embedder` lock, M-1 eviction re-reads access_count.
+
+**Fixed — PR #18 (scale/config hardening):** H-4 per-project cap on AUTO-ELEVATED scars
+(pinned guardrails fail-safe-exempt, oldest-first), M-S-1 gated full `VACUUM` after bulk
+deletes, H-3 reject path-traversal `home`, M-7 `http_host` loopback-only, M-S-5
+`dreamer_base_url` loopback-only, L-5 reject JSON bool for numeric fields, L-2 redact before
+truncation in `_brief`.
+
+**Verification corrections (report overstated / stale):**
+- **M-7 / M-S-5** are NOT live exposures at this commit — the MCP server is `mcp.run(transport=
+  "stdio")` and the Dreamer is unwired. Fixed as latent defense-in-depth, not active holes.
+- **C-1 "CRITICAL OOM"** — real `all_episodic()`/bulk-vector load, but episodic count is
+  decay/eviction-bounded, so the 80–120K trigger is unlikely in personal use; severity is
+  overstated. The realistic scale issue (disk bloat) is M-S-1, fixed.
+- **L-3** ("drains_skipped not in stats") — already shipped in Cycle 7 (`db.stats()` exposes it).
+- **M-S-1's literal fix** (`PRAGMA incremental_vacuum`) is a **no-op** unless the store was
+  created `auto_vacuum=INCREMENTAL`; used the existing gated full `VACUUM` instead.
+- **H-3's literal fix** ("require `home` under `Path.home()`") would break legitimate
+  `CDMS_HOME` relocation; rejected only path-traversal instead.
+
+**Deferred (own follow-up, with reasons):**
+- **C-1 memory-streaming / per-project dedup** — every variant that bounds the dedup+eviction
+  *memory* changes identity-reinforcement semantics (the dedup salience-fold interaction) or
+  dedup scope; needs a focused PR with a chunk-size-equivalence test. Design captured.
+- **M-8** full runtime vec0-format pin (visibility exists via `cdms doctor`; the `<0.2` cap stays).
+- **M-M-3 / M-M-4** (associative-boost cap / valence-EMA) — identity-dynamics tuning; needs
+  drift-harness validation as a deliberate change, not a sweep.
+- **L-1 / L-C-1 / L-S-1 / L-6 / L-S-2 / L-S-3** — perf or low-value/high-false-positive
+  (base64 redaction); deferred.
+- **Philosophical P-1…P-5** — no code; acknowledged limitations, aligned with the DESIGN §1.1a
+  ontological guardrail and the experiment plan's ethics posture.
