@@ -131,6 +131,10 @@ def store(
     # (max_length above) so the MCP layer can't be handed a multi-MB string (Cycle-8 M-6).
     project = project or _LAUNCH_CWD
     kind = (kind or "episode").lower()
+    # Reject an unknown kind loudly instead of silently filing it as an episode — a typo'd
+    # "scar"->"scra" would otherwise drop a guardrail into the decaying episodic tier (Cycle-8 L-S-1).
+    if kind not in ("episode", "fact", "scar"):
+        raise ValueError(f"unknown kind {kind!r}; expected one of: episode, fact, scar")
     if kind == "scar":
         trig, _, rule = content.partition("|")
         scar = svc.pin_scar(trig.strip() or content.strip(), rule.strip() or content.strip(), project)
