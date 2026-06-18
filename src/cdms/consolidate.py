@@ -318,11 +318,25 @@ class Consolidator:
 
     # -- Step 2: Temporal eviction ----------------------------------------- #
     def _evict(self, episodes: list[Episodic], now: datetime, rep: ConsolidationReport) -> set[str]:
+        # Candidates from the in-memory snapshot taken at the start of the pass.
+        candidates = [
+            e for e in episodes
+            if accessibility(e.base_salience, age_days(e.timestamp, now), e.access_count, self.cfg)
+            < self.cfg.retention_floor
+        ]
+        # Re-read each candidate just before deleting. `retrieve()` bumps access_count via
+        # `touch_episodic` WITHOUT the consolidation lock, so a memory retrieved between the
+        # snapshot and here may now be above the floor — deleting on the stale count would
+        # wrongly evict a just-used memory (Cycle-8 M-1). Re-check against fresh DB state.
         doomed: list[str] = []
-        for e in episodes:
-            acc = accessibility(e.base_salience, age_days(e.timestamp, now), e.access_count, self.cfg)
+        for e in candidates:
+            fresh = self.db.get_episodic(e.id)
+            if fresh is None:
+                continue
+            acc = accessibility(fresh.base_salience, age_days(fresh.timestamp, now),
+                                fresh.access_count, self.cfg)
             if acc < self.cfg.retention_floor:
-                doomed.append(e.id)
+                doomed.append(fresh.id)
         rep.episodes_evicted = self.db.delete_episodic(doomed)
         return set(doomed)
 

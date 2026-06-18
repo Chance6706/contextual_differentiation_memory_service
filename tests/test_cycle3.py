@@ -279,7 +279,7 @@ def test_mcp_empty_project_is_launch_cwd_not_global(tmp_path, monkeypatch):
     import cdms.mcp_server as m
     importlib.reload(m)
     # store with explicit empty project -> coerced to the launch cwd
-    r = m.store(content="scoped note", kind="episode", project="", importance=None)
+    r = m.store(content="scoped note", kind="episode", project="")
     assert r.tier == "episodic"
     eps = m.service().db.all_episodic()
     assert eps and all(e.project == m._LAUNCH_CWD for e in eps)

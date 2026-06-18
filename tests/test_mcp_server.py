@@ -21,13 +21,13 @@ def test_mcp_tools_smoke(tmp_path, monkeypatch):
     m = _fresh_server(tmp_path, monkeypatch)
     proj = str(tmp_path)
 
-    r = m.store(content="we fixed the flaky auth test", kind="episode", project=proj, importance=None)
+    r = m.store(content="we fixed the flaky auth test", kind="episode", project=proj)
     assert r.tier == "episodic" and r.id
 
-    rf = m.store(content="payments | handles_well | idempotency key", kind="fact", project=proj, importance=None)
+    rf = m.store(content="payments | handles_well | idempotency key", kind="fact", project=proj)
     assert rf.tier == "gist"
 
-    rs = m.store(content="deleted prod db | always take a backup first", kind="scar", project=proj, importance=None)
+    rs = m.store(content="deleted prod db | always take a backup first", kind="scar", project=proj)
     assert rs.tier == "scar"
 
     hits = m.retrieve(query="auth test", k=5, tiers="all", project=proj)
@@ -45,5 +45,5 @@ def test_mcp_create_link_validates(tmp_path, monkeypatch):
 
 def test_mcp_store_fact_with_too_few_parts_is_safe(tmp_path, monkeypatch):
     m = _fresh_server(tmp_path, monkeypatch)
-    r = m.store(content="just a phrase with no pipes", kind="fact", project=str(tmp_path), importance=None)
+    r = m.store(content="just a phrase with no pipes", kind="fact", project=str(tmp_path))
     assert r.tier == "gist"  # degrades to user|noted|... without crashing

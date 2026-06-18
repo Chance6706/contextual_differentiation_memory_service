@@ -112,19 +112,23 @@ class LinkResult(BaseModel):
 # --------------------------------------------------------------------------- #
 @mcp.tool()
 def store(
-    content: str = Field(description="The text to remember (an observation, fact, preference, or crisis rule)."),
+    content: str = Field(max_length=10000,
+                         description="The text to remember (an observation, fact, preference, or crisis rule)."),
     kind: str = Field(default="episode", description="One of 'episode' (default), 'fact', or 'scar'. "
                       "'fact' content must be 'subject | relation | object'. 'scar' content must be "
                       "'trigger | remediation_rule' and pins a permanent guardrail."),
     project: str = Field(default=_LAUNCH_CWD, description="Project/workspace path for scoped recall "
                          "(defaults to this server's project)."),
-    importance: float | None = Field(default=None, description="Optional explicit goal-relevance in [0,1]."),
 ) -> StoreResult:
     """Persist a memory. Episodes decay over time; facts feed the PersonaTree; scars are permanent."""
     svc = service()
     # An empty project from the model path is coerced to the launch cwd, never
     # treated as "global": the global scope is operator-only (the CLI), so a model
-    # cannot self-authorize writing cross-project / global memory.
+    # cannot self-authorize writing cross-project / global memory. For the same reason the
+    # `importance`/goal_hint channel is NOT exposed here — a model could otherwise set goal=1.0
+    # to defeat the goal-relevance gate and force max salience on anything (Cycle-8 M-3); goal
+    # relevance is computed internally from the turn instead. `content` is length-capped
+    # (max_length above) so the MCP layer can't be handed a multi-MB string (Cycle-8 M-6).
     project = project or _LAUNCH_CWD
     kind = (kind or "episode").lower()
     if kind == "scar":
@@ -139,7 +143,7 @@ def store(
             g = svc.upsert_fact("user", "noted", content.strip(), project=project)
         return StoreResult(id=g.id, tier="gist", summary=g.render())
     rec = svc.ingest(TurnEvent(trigger_prompt=content, action_taken="(model note)",
-                               project=project, goal_hint=importance))
+                               project=project))
     return StoreResult(id=rec.id, tier="episodic", salience=rec.base_salience,
                        summary=content[:80])
 

@@ -226,12 +226,13 @@ def _validate(cfg: "Config") -> None:
         # Cycle-4 A7-H1: the S0 weights and the remaining thresholds were unvalidated,
         # so a single env var (e.g. CDMS_W_SURPRISE=1e9, CDMS_DEDUP_SIM_THRESHOLD=2.0)
         # could disable the salience gate or dedup. Bound them all.
-        # S0 weights are meant to be O(1); cap at 1e3 (not 1e6) so a stray override can't
-        # flatten the salience gate (double-review: 1e6 passed but defeats the gate).
-        ("w_surprise", lambda v: _num(v) and 0 <= v <= 1e3),
-        ("w_contingency", lambda v: _num(v) and 0 <= v <= 1e3),
-        ("w_self_ref", lambda v: _num(v) and 0 <= v <= 1e3),
-        ("w_affect", lambda v: _num(v) and 0 <= v <= 1e3),
+        # S0 weights are meant to be O(1); cap at 10 (Cycle-8 H-2 — even 1e3 let a single
+        # weight push S0 to ~250 with goal=0, 83x the crisis threshold). A cross-field check
+        # below additionally bounds them against goal_gate_floor × crisis_threshold.
+        ("w_surprise", lambda v: _num(v) and 0 <= v <= 10),
+        ("w_contingency", lambda v: _num(v) and 0 <= v <= 10),
+        ("w_self_ref", lambda v: _num(v) and 0 <= v <= 10),
+        ("w_affect", lambda v: _num(v) and 0 <= v <= 10),
         ("goal_gate_floor", lambda v: _num(v) and 0 <= v <= 1),
         ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1e3),
         ("assoc_sim_floor", lambda v: _num(v) and 0 <= v <= 1),
@@ -288,6 +289,29 @@ def _validate(cfg: "Config") -> None:
                "cluster<=gist_match<=dedup order violated")
         _clamp("cluster_sim_threshold", min(cfg.cluster_sim_threshold, cfg.gist_match_sim_threshold),
                "cluster<=gist_match<=dedup order violated")
+    # --- S0 weight sanity (Cycle-8 H-2 / M-2) -----------------------------------------
+    # S0 = goal_gate * (w_s·surprise + w_c·contingency + w_w·self_ref + w_a·affect), with each
+    # signal in [0,1] and goal_gate >= goal_gate_floor. Two joint failure modes:
+    _S0_WEIGHTS = ("w_surprise", "w_contingency", "w_self_ref", "w_affect")
+    wsum = sum(getattr(cfg, w) for w in _S0_WEIGHTS)
+    if wsum <= 0.0:
+        # M-2: all weights 0 => S0 == 0 for every episode => everything instantly below the
+        # retention floor (salience disabled). Restore the defaults rather than ship a store
+        # that forgets everything.
+        for w in _S0_WEIGHTS:
+            _clamp(w, getattr(d, w), "S0 weights sum to 0 (salience disabled)")
+        wsum = sum(getattr(cfg, w) for w in _S0_WEIGHTS)
+    # H-2: the goal-relevance gate must remain meaningful. A zero-goal memory's MAX salience is
+    # goal_gate_floor × wsum (all signals = 1). If that alone reaches crisis_threshold, weights
+    # have overpowered the gate and any memory can self-elevate to a scar. Scale the weights down
+    # proportionally so a zero-goal memory stays safely sub-crisis (10% margin).
+    if cfg.crisis_threshold > 0:
+        zero_goal_max = cfg.goal_gate_floor * wsum
+        if zero_goal_max >= cfg.crisis_threshold:
+            scale = (0.9 * cfg.crisis_threshold) / zero_goal_max
+            for w in _S0_WEIGHTS:
+                _clamp(w, round(getattr(cfg, w) * scale, 6),
+                       "S0 weights let a zero-goal memory self-elevate to crisis")
 
     # Temperament archetype must be a known preset; a typo otherwise silently seeds a
     # store from the wrong genotype. Repair to the default and warn (import is lazy to

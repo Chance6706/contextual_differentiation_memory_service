@@ -63,9 +63,13 @@ _SECRET_PATTERNS = [
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
     re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),           # Slack tokens
     re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),                    # OpenAI-style keys
+    re.compile(r"\bsk-ant-[A-Za-z0-9_-]{20,}"),                # Anthropic (hyphens break the sk- rule above)
+    re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"),                 # Google API key
     re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),  # JWT
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
                re.DOTALL),
+    # Azure storage connection string: keep the AccountKey= name, redact the value.
+    re.compile(r"(?i)\b(AccountKey)=([A-Za-z0-9+/=]{20,})"),
     # KEY/SECRET/TOKEN/PASSWORD assignments: redact the value, keep the name.
     # Quantifiers BOUNDED ({0,64}) so the name-prefix/suffix around the keyword cannot
     # drive catastrophic backtracking on adversarial input even if length-clipping is ever

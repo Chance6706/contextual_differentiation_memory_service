@@ -218,6 +218,10 @@ def _fastembed_version() -> str:
 # inside the long-lived daemon, while short hook subprocesses simply never build it.
 _SINGLETON: Embedder | None = None
 _SINGLETON_KEY: tuple | None = None
+# Guards the check-and-build below: FastMCP can dispatch sync tools off the loop thread, so
+# two concurrent first-callers could otherwise both see `_SINGLETON is None` and each load a
+# ~133MB ONNX session (TOCTOU leak / two models) — Cycle-8 H-5.
+_SINGLETON_LOCK = threading.Lock()
 
 
 def _embedder_key(cfg: Config) -> tuple:
@@ -234,7 +238,13 @@ def _embedder_key(cfg: Config) -> tuple:
 def get_embedder(cfg: Config) -> Embedder:
     global _SINGLETON, _SINGLETON_KEY
     key = _embedder_key(cfg)
-    if _SINGLETON is None or _SINGLETON_KEY != key:
-        _SINGLETON = Embedder(cfg)
-        _SINGLETON_KEY = key
-    return _SINGLETON
+    # Fast path: already built for this key (no lock on the hot path).
+    if _SINGLETON is not None and _SINGLETON_KEY == key:
+        return _SINGLETON
+    # Slow path: build-or-rebuild under the lock with a double-check, so concurrent first
+    # callers construct exactly one Embedder (Cycle-8 H-5).
+    with _SINGLETON_LOCK:
+        if _SINGLETON is None or _SINGLETON_KEY != key:
+            _SINGLETON = Embedder(cfg)
+            _SINGLETON_KEY = key
+        return _SINGLETON
