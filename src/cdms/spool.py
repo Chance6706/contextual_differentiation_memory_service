@@ -23,7 +23,10 @@ def _over_cap(cfg: Config) -> bool:
 
 
 def _append_bytes(path, data: bytes) -> None:
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+    # 0o600: the spool holds RAW, pre-redaction hook payloads (tool_output can carry live
+    # credentials) until the drain ingests + redacts them — minutes to hours later. World/group
+    # read (0o644) let any local user harvest secrets from the queue file (Cycle-8 H-1).
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
     try:
         # Loop until the whole record (incl. its trailing newline) is written.
         # os.write may short-write under RLIMIT_FSIZE / ENOSPC / EINTR; a single

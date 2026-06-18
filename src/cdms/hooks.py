@@ -28,8 +28,11 @@ _MAX_CONTEXT = 9000  # stay under the 10K additionalContext limit
 _MAX_SCARS = 15      # pinned guardrails are prioritized; elevated ones drop first
 
 # Control chars that, left in stored content, let an injection forge new markdown
-# sections, close the trust hedge, or break the JSON we emit.
-_CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+# sections, close the trust hedge, or break the JSON we emit. Includes the Unicode line
+# separators U+0085 (NEL), U+2028 (LS), U+2029 (PS): some renderers treat them as line
+# starts, so an injection could begin a markdown block even after \r/\n are flattened
+# (Cycle-8 M-4). The later \s+ collapse also catches them, but neutralizing here is explicit.
+_CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\x85\u2028\u2029]")
 # Zero-width + bidi-override + invisible Unicode TAG chars: don't forge structure,
 # but obfuscate keywords from the model's view (e.g. "ig<ZWSP>nore"), can reorder
 # text, or smuggle invisible instructions (the U+E0000–E007F tag block) — strip them.

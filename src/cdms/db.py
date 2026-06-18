@@ -178,7 +178,12 @@ class Database:
             p = f"{path}{suffix}"
             if os.path.exists(p):
                 try:
-                    os.replace(p, f"{p}.corrupt-{stamp}")
+                    dest = f"{p}.corrupt-{stamp}"
+                    os.replace(p, dest)
+                    # os.replace preserves the source's (typically 0644) mode, so the quarantined
+                    # copy — a FULL plaintext snapshot of the store — would stay world-readable.
+                    # Lock it to owner-only (Cycle-8 L-4).
+                    os.chmod(dest, 0o600)
                 except OSError:
                     pass
         print(f"cdms: memory store at {path} is corrupt ({exc}); quarantined to "
