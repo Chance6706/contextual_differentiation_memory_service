@@ -513,7 +513,14 @@ class Consolidator:
                 existing.frequency += 1
                 existing.support_count = max(existing.support_count, len(members))
                 existing.survived_cycles += 1
-                existing.valence = (1 - ema) * existing.valence + ema * valence
+                # Adaptive EMA (Cycle-8 M-M-4): the effective update rate shrinks with the
+                # trait's prior support, so an ESTABLISHED trait can't be flipped by a couple
+                # of injected episodes, while a fresh trait stays malleable. A floor keeps a
+                # very mature trait from freezing so sustained REAL change still flips it. An
+                # attacker's small cluster can't inflate old_support, so it can't lower its own
+                # resistance. (Single-support traits use the full base rate: ema/sqrt(1)==ema.)
+                ema_eff = max(self.cfg.gist_valence_ema_min, ema / (old_support ** 0.5))
+                existing.valence = (1 - ema_eff) * existing.valence + ema_eff * valence
                 existing.relation = self.cfg.relation_from_valence(existing.valence)
                 existing.object = object_
                 existing.last_reinforced = now_iso
