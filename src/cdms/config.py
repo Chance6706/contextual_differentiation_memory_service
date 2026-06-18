@@ -223,6 +223,25 @@ def _validate(cfg: "Config") -> None:
         ("scar_dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
         ("rrf_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("default_top_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        # Cycle-4 A7-H1: the S0 weights and the remaining thresholds were unvalidated,
+        # so a single env var (e.g. CDMS_W_SURPRISE=1e9, CDMS_DEDUP_SIM_THRESHOLD=2.0)
+        # could disable the salience gate or dedup. Bound them all.
+        ("w_surprise", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("w_contingency", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("w_self_ref", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("w_affect", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("goal_gate_floor", lambda v: _num(v) and 0 <= v <= 1),
+        ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("assoc_sim_floor", lambda v: _num(v) and 0 <= v <= 1),
+        ("cluster_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
+        ("gist_match_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
+        ("dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
+        ("crisis_threshold", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("crisis_valence_max", lambda v: _num(v) and -1 <= v <= 1),
+        ("relation_pos_threshold", lambda v: _num(v) and -1 <= v <= 1),
+        ("relation_neg_threshold", lambda v: _num(v) and -1 <= v <= 1),
+        ("rest_idle_minutes", lambda v: _num(v) and 0 < v <= 1e6),
+        ("http_port", lambda v: isinstance(v, int) and 1 <= v <= 65535),
     ]
     for name, ok in checks:
         val = getattr(cfg, name)

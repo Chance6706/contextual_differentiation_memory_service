@@ -199,20 +199,30 @@ class Database:
         # check_same_thread=False: FastMCP may dispatch sync tools off the loop
         # thread. SQLite still serializes writes; busy_timeout covers contention.
         conn = sqlite3.connect(str(path), check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        conn.enable_load_extension(True)
-        sqlite_vec.load(conn)
-        conn.enable_load_extension(False)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA busy_timeout=5000")
-        conn.execute("PRAGMA foreign_keys=ON")
-        # Right-to-forget: zero out freed pages on delete. Stock SQLite ships
-        # secure_delete=OFF, so without this a `forget` leaves the full plaintext
-        # (and content-bearing vectors) recoverable from the db file's free pages —
-        # deletion was only logical. With it ON, deleted content is overwritten.
-        conn.execute("PRAGMA secure_delete=ON")
-        return conn
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.enable_load_extension(True)
+            sqlite_vec.load(conn)
+            conn.enable_load_extension(False)
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA busy_timeout=5000")
+            conn.execute("PRAGMA foreign_keys=ON")
+            # Right-to-forget: zero out freed pages on delete. Stock SQLite ships
+            # secure_delete=OFF, so without this a `forget` leaves the full plaintext
+            # (and content-bearing vectors) recoverable from the db file's free pages —
+            # deletion was only logical. With it ON, deleted content is overwritten.
+            conn.execute("PRAGMA secure_delete=ON")
+            return conn
+        except Exception:
+            # Never leak the OS file handle on a failed open. On Windows an unclosed
+            # handle blocks the quarantine os.replace, permanently wedging the daemon on
+            # a corrupt store (the second _open hits the same corruption) — Cycle-4 A0-C1.
+            try:
+                conn.close()
+            except Exception:
+                pass
+            raise
 
     def _init_schema(self) -> None:
         with self.tx() as c:
