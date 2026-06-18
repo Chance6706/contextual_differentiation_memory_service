@@ -259,13 +259,16 @@ factual grounding pass) and recorded as **open design threads**, since the relev
 (§6 dreaming) is designed-not-built and there is nothing to patch in code:
 - **GLM M-HIGH-2 — "topic-frequency table, not a personality" (tuple expressiveness)** →
   **DESIGN §10.5**. Verdict: *thin-but-fixable*. The substrate is sufficient (and tested)
-  for individuation/differentiation/curiosity/trait-flip, but is a **competence-map, not a
-  temperament-map** — it lacks a HOW/style channel the §8 dials need. GLM's "3-valued
-  relation" is a reduction fallacy (ignores continuous valence + centroid + N-gist
-  composition); OWL's "disposition recoverable" over-claims (conflates competence- with
-  temperament-disposition); the Jaccard 0.000 tests domain separation, not richness. Fix
-  is mechanically-extractable (process/style features, fuller centroid/edge-graph use, a
-  separate mood object) — no LLM-authored self-fiction.
+  for individuation/differentiation/curiosity/trait-flip, but is a **competence-map**: it
+  lacks a HOW/style channel. A second-order pass corrected the aim — the gap is in the
+  **phenotype portrait** (the `SessionStart` self-description), **not** the §8 temperament
+  dials (which are genotype seed/multipliers driven by §8.7 outcome-attribution, not
+  gist-readers). GLM's "3-valued relation" is a reduction fallacy (ignores continuous
+  valence + centroid + N-gist composition); OWL's "disposition recoverable" over-claims
+  (conflates competence- with temperament-disposition); the Jaccard 0.000 tests domain
+  separation, not richness. Fix is mechanically-extractable at read-time from L1 (history-
+  authored *features*, not designer-authored *labels*), plus fuller centroid/edge-graph
+  use and a separate mood object — no LLM-authored self-fiction.
 - **External-action authority gap (not raised verbatim by any pass; OWL Part VI's
   "boundary violation" hints at it)** → **DESIGN §10.4**. The self-edit gate is not a
   world-action gate. Surviving principles: delegate to the host's permission model (no
