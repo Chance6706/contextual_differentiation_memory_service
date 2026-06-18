@@ -166,6 +166,7 @@ cdms paths              show the PersonaTree (subject/relation) paths
 cdms stats              store statistics
 cdms doctor             verify environment + warm the embedder
 cdms install/uninstall  wire/unwire CDMS into a project's Claude Code config
+cdms forget ...          delete stored memory by --project / --session / --id (right-to-forget)
 cdms ingest ...         manually ingest a turn (scripting/testing)
 ```
 
@@ -207,15 +208,41 @@ review of the original design doc, including corrections.
 
 ---
 
+## Privacy, durability & hardening
+
+CDMS is an always-running daemon, so it has been put through **three adversarial
+red-team cycles** before the temperament layer is built — see
+[`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Notable guarantees:
+
+* **Right-to-forget.** `cdms forget --project/--session/--id` deletes across all
+  three tiers, scrubs the not-yet-ingested spool (raw, pre-redaction tool output),
+  and `VACUUM`s with `secure_delete` so deleted content is not recoverable from the
+  db file. `cdms uninstall --purge` removes the whole store.
+* **Secret redaction at capture** — high-signal credential shapes (AWS/GitHub/Slack/
+  OpenAI keys, JWTs, `*_TOKEN=`/`*_SECRET=` assignments) are scrubbed before anything
+  is persisted or re-injected at `SessionStart`.
+* **Trust boundary.** Stored memory is partially untrusted; it is sanitized and
+  fenced as `<memory:*>` DATA at injection, never as instructions.
+* **Crash/concurrency safe.** WAL + per-statement transactions, a cross-process lock
+  serializing consolidation/forget, orphan-claim reclaim after a killed drain, a
+  bounded spool, and a corrupt-DB quarantine that never fires on mere lock contention.
+* **Embedder integrity.** The vector-space identity (backend + model + version + dim)
+  is pinned on first write and refused on mismatch, so an embedder/weight change can
+  never silently corrupt recall.
+
+---
+
 ## Development
 
 ```bash
 uv pip install -e ".[dev]"
-CDMS_EMBED_BACKEND=hash python -m pytest -q     # 27 tests, offline, no downloads
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # 135 tests, offline, no downloads
 ```
 
 The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use
-a deterministic hashing embedder so they run offline.
+a deterministic hashing embedder so they run offline; a separate non-hash path
+(`tests/test_real_embedder.py`) exercises the real model and skips cleanly when it
+is unavailable.
 
 ## Status & roadmap
 
