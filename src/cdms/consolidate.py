@@ -426,11 +426,25 @@ class Consolidator:
         alloc = allocate_capped_proportional(
             dict(proj_weight), self.cfg.salience_budget, self.cfg.project_budget_cap)
 
+        sess_of = {e.id: (e.session_id or "_") for e in episodes}
         updates: list[tuple[str, float]] = []
         for proj, share in alloc.items():
             members = [eid for eid in boosted if proj_of[eid] == proj]
-            renorm = conserve_budget([boosted[eid] for eid in members], share)
-            updates.extend(zip(members, renorm))
+            # Within a project's share, cap any single SESSION (H-M-2). Episodes written via
+            # the MCP store tool (no session_id) and a capture flood share the default/empty
+            # session, so a flat within-project split lets that one session monopolize the
+            # project budget and dilute real per-session memory below the retention floor.
+            # Allocate the project share across sessions with a cap, then conserve within each.
+            # A single-session project is unchanged (allocate returns the whole share).
+            sess_weight: dict[str, float] = defaultdict(float)
+            for eid in members:
+                sess_weight[sess_of[eid]] += boosted[eid]
+            sess_alloc = allocate_capped_proportional(
+                dict(sess_weight), share, self.cfg.session_budget_cap)
+            for sess, sess_share in sess_alloc.items():
+                smembers = [eid for eid in members if sess_of[eid] == sess]
+                renorm = conserve_budget([boosted[eid] for eid in smembers], sess_share)
+                updates.extend(zip(smembers, renorm))
         self.db.set_salience(updates)
         rep.notes.append(
             f"capped per-project budget (cap={self.cfg.project_budget_cap:.0%}): "
