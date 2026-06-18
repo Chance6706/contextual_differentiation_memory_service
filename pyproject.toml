@@ -14,7 +14,7 @@ dependencies = [
     "mcp>=1.28,<2",        # Official MCP SDK (FastMCP stdio server); v2 alpha pinned out
     "sqlite-vec>=0.1.9",   # In-process vector search extension (>=0.1.9 has the DELETE fix)
     "fastembed>=0.4.0",    # CPU-only ONNX text embeddings (onnxruntime backed)
-    "numpy>=1.26",         # Vector math for clustering / softmax / RRF
+    "numpy>=1.26,<3",      # Vector math for clustering / softmax / RRF (cap major for ABI safety)
 ]
 
 [project.optional-dependencies]

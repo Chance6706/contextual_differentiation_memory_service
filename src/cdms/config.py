@@ -60,12 +60,17 @@ class Config:
     # ---- Consolidation ("sleep") -------------------------------------------
     crisis_threshold: float = 3.0       # s_crisis: S0 >= this is a candidate for scar elevation
     crisis_valence_max: float = -0.4    # ...but only if valence <= this (scars are negative crises)
+    scar_dedup_sim_threshold: float = 0.95  # near-identical scars (same project) are deduped on
+                                        # insert so a recurring crisis can't grow the L3 table forever
     salience_budget: float = 1000.0     # K_budget: total conserved salience across all live episodes
     project_budget_cap: float = 0.5     # no single project/subject may hold > this fraction of K
                                         # (capped-proportional: primaries keep focus, smalls aren't starved)
     assoc_eta: float = 0.20             # η: retroactive association boost coefficient
     assoc_sim_floor: float = 0.60       # only boost past episodes more similar than this
     cluster_sim_threshold: float = 0.78 # cosine link threshold for gist clustering
+    gist_match_sim_threshold: float = 0.90  # reinforce an EXISTING gist whose episode-space
+                                        # centroid is at least this close (vocabulary-independent
+                                        # identity), instead of spawning a near-duplicate sibling
     dedup_sim_threshold: float = 0.95   # near-duplicate episodes above this are merged/superseded
     min_cluster_support: int = 2        # a gist tuple needs >= this many supporting episodes
     rest_idle_minutes: float = 20.0     # idle gap that marks a "rest boundary" for auto-consolidation
@@ -83,6 +88,24 @@ class Config:
     # ---- Retrieval ---------------------------------------------------------
     default_top_k: int = 8
     rrf_k: int = 60                     # reciprocal-rank-fusion constant for hybrid search
+
+    # ---- Input bounds ------------------------------------------------------
+    # Cap stored field length so a single huge note (MCP `store`, a multi-MB tool
+    # dump) cannot freeze the server on embedding or bloat the DB. Generous enough
+    # for any real turn; hook capture already pre-truncates via _brief.
+    max_field_chars: int = 4000
+    # Cap the text actually fed to the embedder. The bge-small model truncates at
+    # ~512 tokens (~2k chars) SILENTLY, dropping the salient tail and making long
+    # inputs with different tails collide to the same vector. We truncate explicitly
+    # at a single controlled point (both backends) so embedding is bounded and the
+    # truncation is intentional rather than a hidden model limit. Stays under the
+    # model window; the full text is still kept in storage + the FTS/BM25 arm.
+    embed_max_chars: int = 1600
+    # Hard cap on the unconsolidated spool file. If the daemon's drain never runs
+    # (misconfig), the spool would otherwise grow without bound until a drain OOMs
+    # on it (8.7x RSS amplification). Above this size new events are shed (dropped
+    # with a stderr warning) so disk stays bounded and the store stays recoverable.
+    spool_max_bytes: int = 100_000_000  # ~100 MB
 
     # ---- Optional local "Dreamer" LLM (prose rendering only; never authoritative) ---
     dreamer_enabled: bool = False
@@ -126,6 +149,12 @@ class Config:
         """Small JSON file for daemon state (last activity, last consolidation)."""
         return self.home / "state.json"
 
+    @property
+    def lock_path(self) -> Path:
+        """Advisory lock serializing whole-pass writers (consolidate / forget)
+        across processes (hook vs cron vs daemon) on the shared store."""
+        return self.home / "consolidate.lock"
+
     def ensure_home(self) -> None:
         self.home.mkdir(parents=True, exist_ok=True)
 
@@ -139,6 +168,63 @@ _ENV_COERCE = {
 }
 
 
+def _coerce(current, value):
+    """Coerce a JSON/env value to the type of the field's current (default) value."""
+    if isinstance(current, bool):
+        return value if isinstance(value, bool) else str(value).strip().lower() in ("1", "true", "yes", "on")
+    if isinstance(current, Path):
+        return Path(str(value)).expanduser()
+    if isinstance(current, int):
+        return int(value)
+    if isinstance(current, float):
+        return float(value)
+    return value if isinstance(value, str) else str(value)
+
+
+def _validate(cfg: "Config") -> None:
+    """Clamp out-of-range/nonsensical values to their defaults, loudly.
+
+    A single bad value (a stringified number from JSON, K=0, decay>=1, a negative
+    dim) otherwise silently bricks the store or wipes memory. We repair to the
+    default and warn on stderr rather than corrupt or crash.
+    """
+    import sys as _sys
+
+    # A finite real number (rejects NaN/inf and bool). inf otherwise sneaks past a
+    # bare ``v > 0`` check: e.g. CDMS_DECAY_HALFLIFE_DAYS=inf -> decay_lambda=0 ->
+    # identity never ages/evicts (silent freeze + unbounded growth), and a huge
+    # max_field_chars re-opens the DoS cap. Every numeric field now also has a sane
+    # UPPER bound so an astronomically large value can't disable a guard.
+    def _num(v) -> bool:
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+    d = Config()
+    checks = [
+        ("embed_dim", lambda v: isinstance(v, int) and 1 <= v <= 8192),
+        ("salience_budget", lambda v: _num(v) and 0 < v <= 1e9),
+        ("project_budget_cap", lambda v: _num(v) and 0 < v <= 1),
+        ("gist_decay_per_cycle", lambda v: _num(v) and 0 < v < 1),
+        ("gist_retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("reinforce_alpha", lambda v: _num(v) and 1.0 < v <= 1e3),
+        ("reinforce_cap", lambda v: _num(v) and 1.0 <= v <= 1e6),
+        ("decay_halflife_days", lambda v: _num(v) and 0 < v <= 1e6),
+        ("max_field_chars", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("embed_max_chars", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("spool_max_bytes", lambda v: isinstance(v, int) and 1_000 <= v <= 10_000_000_000),
+        ("min_cluster_support", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("gist_valence_ema", lambda v: _num(v) and 0 < v <= 1),
+        ("scar_dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
+        ("rrf_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("default_top_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+    ]
+    for name, ok in checks:
+        val = getattr(cfg, name)
+        if isinstance(val, bool) or not ok(val):  # bool sneaks past int/float checks
+            print(f"cdms config: invalid {name}={val!r}; using default {getattr(d, name)!r}", file=_sys.stderr)
+            setattr(cfg, name, getattr(d, name))
+
+
 def load_config() -> Config:
     """Build config from defaults, optional JSON file, then ``CDMS_`` env overrides."""
     cfg = Config()
@@ -150,7 +236,13 @@ def load_config() -> Config:
             data = json.loads(cfg_file.read_text(encoding="utf-8"))
             for f in fields(cfg):
                 if f.name in data:
-                    setattr(cfg, f.name, data[f.name])
+                    # Coerce to the field's type — JSON has no int/float distinction
+                    # and tooling often stringifies numbers; a raw setattr left e.g.
+                    # embed_dim a str, which bricks every ingest/retrieve.
+                    try:
+                        setattr(cfg, f.name, _coerce(getattr(cfg, f.name), data[f.name]))
+                    except (ValueError, TypeError):
+                        pass
         except (json.JSONDecodeError, OSError):
             pass  # never let a bad config file crash the daemon
 
@@ -175,4 +267,5 @@ def load_config() -> Config:
         except (ValueError, TypeError):
             pass
 
+    _validate(cfg)
     return cfg

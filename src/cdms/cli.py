@@ -20,10 +20,59 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 from .config import load_config
+
+
+def _read_json_safe(path: Path) -> dict:
+    """Read a JSON config file, aborting LOUDLY on malformed JSON.
+
+    Previously a parse error reset the config to ``{}`` and the install then
+    overwrote the file — so a transient typo in (e.g.) ``~/.claude.json`` silently
+    destroyed the user's model/permissions/MCP approvals. Refuse instead.
+    """
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        return {}
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(
+            f"ERROR: {path} contains invalid JSON ({exc}).\n"
+            f"Refusing to overwrite it and lose your settings — fix or remove the "
+            f"file, then re-run."
+        )
+
+
+def _atomic_write_json(path: Path, obj) -> None:
+    """Write JSON via a UNIQUE temp file + os.replace so a crash/disk-full mid-write
+    can never leave the user's settings truncated, and two concurrent writers don't
+    race a shared temp name. The temp is same-directory (same fs => atomic replace).
+
+    If ``path`` is a symlink (common: settings.json -> a dotfiles repo), write
+    THROUGH to the link target instead of replacing the link with a detached file
+    (which would silently sever the link and leave the real dotfile un-updated).
+    """
+    import tempfile
+
+    real = Path(os.path.realpath(path)) if path.is_symlink() else path
+    real.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=str(real.parent), prefix=real.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(json.dumps(obj, indent=2))
+        os.replace(tmp, real)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 HOOK_EVENTS = {
     "SessionStart": 30,
@@ -159,6 +208,22 @@ def cmd_ingest(args) -> int:
     return 0
 
 
+def cmd_forget(args) -> int:
+    """Operator-only deletion / right-to-forget. Not exposed to the model."""
+    from .store import MemoryService
+
+    if not (args.project or args.session or args.id):
+        print("ERROR: specify at least one of --project / --session / --id", file=sys.stderr)
+        return 2
+    cfg = load_config()
+    svc = MemoryService(cfg)
+    res = svc.forget(project=args.project or None, session=args.session or None,
+                     ids=list(args.id) if args.id else None)
+    svc.close()
+    print(json.dumps({"forgot": res}))
+    return 0
+
+
 def cmd_doctor(args) -> int:
     import sqlite3
 
@@ -182,14 +247,34 @@ def cmd_doctor(args) -> int:
         v = emb.embed_one("doctor warmup test")
         print(f"embedder backend    : {emb.backend} (dim={len(v)}) OK")
         if emb.backend == "hash":
-            print("  NOTE: using deterministic fallback (fastembed model not loaded).")
+            print("  NOTE: deterministic offline backend (CDMS_EMBED_BACKEND=hash).")
     except Exception as exc:
+        emb = None
         ok = False
         print(f"embedder            : FAILED ({exc})")
     try:
         from .store import MemoryService
         svc = MemoryService(cfg)
         print(f"store               : {json.dumps(svc.db.stats())} OK")
+        # Integrity (catches subtle corruption that open() alone misses).
+        if not svc.db.integrity_ok():
+            ok = False
+            print("integrity           : FAILED (quick_check not ok — store may be corrupt)")
+        else:
+            print("integrity           : ok")
+        # Embedding-space fingerprint: a hash-vs-real / dim / model mismatch makes
+        # every capture refuse — the silent failure doctor previously missed.
+        pinned = svc.db.get_meta("embed_fingerprint")
+        if pinned is None:
+            print("embed fingerprint   : (unpinned — no vectors written yet)")
+        elif emb is not None:
+            current = emb.fingerprint()
+            if pinned == current:
+                print(f"embed fingerprint   : {pinned} MATCH")
+            else:
+                ok = False
+                print(f"embed fingerprint   : MISMATCH (store={pinned} current={current}) "
+                      "— captures will be REFUSED until the original embedder is restored")
         svc.close()
     except Exception as exc:
         ok = False
@@ -252,56 +337,60 @@ def _install_mcp_user(claude_json: Path) -> None:
 
     Preserves every other key in the (large) global config file.
     """
-    config = {}
-    if claude_json.exists():
-        try:
-            config = json.loads(claude_json.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            config = {}
+    config = _require_dict(_read_json_safe(claude_json), claude_json, "top-level value")
     servers = config.setdefault("mcpServers", {})
+    _require_dict(servers, claude_json, "'mcpServers' value")
     py, *rest = _python_invocation()
     servers["cdms-memory"] = {"type": "stdio", "command": py, "args": rest + ["serve"], "env": {}}
-    claude_json.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    _atomic_write_json(claude_json, config)
+
+
+def _require_dict(obj, path: Path, what: str):
+    """Refuse loudly (don't traceback) on a malformed settings shape, mirroring the
+    _read_json_safe contract: never silently rewrite a file we can't parse."""
+    if not isinstance(obj, dict):
+        raise SystemExit(
+            f"ERROR: {path} has a non-object {what} ({type(obj).__name__}).\n"
+            f"Refusing to modify it — fix or remove the file, then re-run."
+        )
+    return obj
 
 
 def _install_hooks(settings_path: Path) -> None:
-    settings = {}
-    if settings_path.exists():
-        try:
-            settings = json.loads(settings_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            settings = {}
+    settings = _require_dict(_read_json_safe(settings_path), settings_path, "top-level value")
     hooks = settings.setdefault("hooks", {})
+    _require_dict(hooks, settings_path, "'hooks' value")
     for event, timeout in HOOK_EVENTS.items():
         matcher = "*" if event == "PostToolUse" else ""
         entry = {
             "matcher": matcher,
             "hooks": [{"type": "command", "command": _hook_command(event), "timeout": timeout}],
         }
-        # replace any existing CDMS entry for this event, keep foreign ones
-        existing = [e for e in hooks.get(event, []) if not _is_cdms_entry(e)]
+        # replace any existing CDMS entry for this event, keep foreign ones. Tolerate
+        # a non-list event value or non-dict entries (malformed but non-fatal).
+        cur = hooks.get(event, [])
+        cur = cur if isinstance(cur, list) else []
+        existing = [e for e in cur if not _is_cdms_entry(e)]
         hooks[event] = existing + [entry]
-    settings_path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    _atomic_write_json(settings_path, settings)
 
 
-def _is_cdms_entry(entry: dict) -> bool:
+def _is_cdms_entry(entry) -> bool:
+    if not isinstance(entry, dict):
+        return False
     for h in entry.get("hooks", []):
-        if "cdms hook" in h.get("command", "") or "-m cdms" in h.get("command", ""):
+        if isinstance(h, dict) and ("cdms hook" in h.get("command", "") or "-m cdms" in h.get("command", "")):
             return True
     return False
 
 
 def _install_mcp(mcp_path: Path) -> None:
-    config = {}
-    if mcp_path.exists():
-        try:
-            config = json.loads(mcp_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            config = {}
+    config = _require_dict(_read_json_safe(mcp_path), mcp_path, "top-level value")
     servers = config.setdefault("mcpServers", {})
+    _require_dict(servers, mcp_path, "'mcpServers' value")
     py, *rest = _python_invocation()
     servers["cdms-memory"] = {"command": py, "args": rest + ["serve"]}
-    mcp_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    _atomic_write_json(mcp_path, config)
 
 
 def _remove_cdms_hooks(settings_path: Path) -> None:
@@ -311,12 +400,17 @@ def _remove_cdms_hooks(settings_path: Path) -> None:
         settings = json.loads(settings_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return
+    if not isinstance(settings, dict):
+        return
     hooks = settings.get("hooks", {})
+    if not isinstance(hooks, dict):
+        return
     for event in list(hooks.keys()):
-        hooks[event] = [e for e in hooks[event] if not _is_cdms_entry(e)]
+        cur = hooks[event] if isinstance(hooks[event], list) else []
+        hooks[event] = [e for e in cur if not _is_cdms_entry(e)]
         if not hooks[event]:
             del hooks[event]
-    settings_path.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    _atomic_write_json(settings_path, settings)
     print(f"✓ removed CDMS hooks from {settings_path}")
 
 
@@ -327,8 +421,10 @@ def _remove_cdms_mcp(json_path: Path) -> None:
         config = json.loads(json_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return
+    if not isinstance(config, dict) or not isinstance(config.get("mcpServers", {}), dict):
+        return
     if config.get("mcpServers", {}).pop("cdms-memory", None) is not None:
-        json_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+        _atomic_write_json(json_path, config)
         print(f"✓ removed cdms-memory MCP server from {json_path}")
 
 
@@ -337,11 +433,25 @@ def cmd_uninstall(args) -> int:
     if scope == "user":
         _remove_cdms_hooks(Path.home() / ".claude" / "settings.json")
         _remove_cdms_mcp(Path.home() / ".claude.json")
+        if getattr(args, "purge", False):
+            _purge_store()
         return 0
     project = Path(args.project or Path.cwd()).resolve()
     _remove_cdms_hooks(project / ".claude" / "settings.json")
     _remove_cdms_mcp(project / ".mcp.json")
+    if getattr(args, "purge", False):
+        _purge_store()
     return 0
+
+
+def _purge_store() -> None:
+    """Delete the entire memory store (opt-in via --purge). Irreversible."""
+    import shutil
+
+    cfg = load_config()
+    if cfg.home.exists():
+        shutil.rmtree(cfg.home, ignore_errors=True)
+        print(f"✓ purged memory store at {cfg.home}")
 
 
 # --------------------------------------------------------------------------- #
@@ -397,7 +507,15 @@ def build_parser() -> argparse.ArgumentParser:
     un = sub.add_parser("uninstall", help="remove CDMS wiring (project or user scope)")
     un.add_argument("--scope", choices=["project", "user"], default="project")
     un.add_argument("--project", default="")
+    un.add_argument("--purge", action="store_true",
+                    help="also delete the memory store (~/.local_memory). Irreversible.")
     un.set_defaults(func=cmd_uninstall)
+
+    fg = sub.add_parser("forget", help="delete stored memory by project / session / id (operator-only)")
+    fg.add_argument("--project", default="", help="delete all memory for this project path")
+    fg.add_argument("--session", default="", help="delete all episodes for this session id")
+    fg.add_argument("--id", action="append", help="delete a specific memory id (repeatable)")
+    fg.set_defaults(func=cmd_forget)
 
     return p
 

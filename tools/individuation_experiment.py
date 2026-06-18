@@ -27,6 +27,7 @@ Run:  python tools/individuation_experiment.py
 from __future__ import annotations
 
 import os
+import hashlib
 import random
 import sys
 import tempfile
@@ -142,7 +143,9 @@ def build_psyche(name: str, spec: dict, root: Path, n: int, embedder) -> dict:
     cfg = Config(home=root / name)
     cfg.ensure_home()
     svc = MemoryService(cfg, embedder=embedder)
-    rng = random.Random(hash(name) & 0xFFFF)
+    # Stable per-name seed: builtin hash() of a str is salted per-process
+    # (PYTHONHASHSEED), which made this experiment non-reproducible across runs.
+    rng = random.Random(int(hashlib.blake2b(name.encode("utf-8"), digest_size=4).hexdigest(), 16))
     for ev in gen_history(name, spec, n, span_days=40, rng=rng):
         svc.ingest(ev)
     rep1 = Consolidator(cfg, db=svc.db, embedder=embedder).run(now=NOW)

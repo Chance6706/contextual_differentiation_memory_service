@@ -75,7 +75,14 @@ def accessibility(
       cannot permanently dominate attention.
     """
     decay = math.exp(-cfg.decay_lambda * max(0.0, age_days))
-    reinforcement = min(cfg.reinforce_alpha ** max(0, access_count), cfg.reinforce_cap)
+    # Clamp the exponent BEFORE exponentiating: alpha**access_count overflows for a
+    # very hot, long-lived memory (e.g. access_count >= 1e4) and would crash the
+    # consolidation eviction loop — even though the cap saturates alpha**c at c≈5.
+    c = max(0, access_count)
+    if cfg.reinforce_alpha > 1.0 and cfg.reinforce_cap > 0.0:
+        c_max = math.ceil(math.log(cfg.reinforce_cap) / math.log(cfg.reinforce_alpha)) + 1
+        c = min(c, c_max)
+    reinforcement = min(cfg.reinforce_alpha ** c, cfg.reinforce_cap)
     return s0 * decay * reinforcement
 
 
@@ -108,7 +115,9 @@ def conserve_budget(saliences: list[float], k_budget: float) -> list[float]:
     reinforcement loop becomes mathematically impossible.
     """
     total = sum(saliences)
-    if total <= 0.0:
+    if total <= 0.0 or k_budget <= 0.0:
+        # A non-positive budget would renormalize every salience to <=0 and then
+        # evict the entire store on the next pass — never silently wipe memory.
         return list(saliences)
     scale = k_budget / total
     return [s * scale for s in saliences]

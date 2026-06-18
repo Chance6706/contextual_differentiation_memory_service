@@ -17,6 +17,7 @@ deterministic tool outcomes, self-reference patterns, and affect lexicon.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Optional
 
@@ -52,6 +53,37 @@ _SELF_REF = {
 }
 _CONTINGENT_TOOLS = {"bash", "edit", "write", "multiedit", "notebookedit", "applypatch"}
 
+# Secret patterns redacted at capture time. Tool output (e.g. an `env` dump) can
+# carry live credentials; without this they would be persisted to plaintext
+# SQLite and re-injected into context at every SessionStart indefinitely. This is
+# a best-effort scrubber for the common high-signal shapes, not a guarantee.
+_SECRET_PATTERNS = [
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),                       # AWS access key id
+    re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}\b"),  # GitHub tokens
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),           # Slack tokens
+    re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),                    # OpenAI-style keys
+    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),  # JWT
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
+               re.DOTALL),
+    # KEY/SECRET/TOKEN/PASSWORD assignments: redact the value, keep the name.
+    re.compile(r"(?i)\b([A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
+               r"[A-Z0-9_]*)\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
+]
+
+
+def redact_secrets(text: str) -> str:
+    """Scrub high-signal credential shapes from captured text."""
+    if not text:
+        return text
+    out = text
+    for pat in _SECRET_PATTERNS:
+        if pat.groups >= 2:
+            out = pat.sub(lambda m: f"{m.group(1)}=[REDACTED]", out)
+        else:
+            out = pat.sub("[REDACTED]", out)
+    return out
+
 
 @dataclass
 class TurnEvent:
@@ -73,11 +105,34 @@ class MemoryService:
         self.cfg = cfg
         self.db = db or Database(cfg)
         self.embedder = embedder or get_embedder(cfg)
+        self._reconciled = False
+
+    def _reconcile_embedder(self) -> None:
+        """Verify the embedder's vector space matches the store, once per service.
+
+        Called lazily on the first vector-producing operation (not in __init__),
+        so the SessionStart read path — pure DB reads, no model — never loads the
+        model or triggers this check.
+        """
+        if self._reconciled:
+            return
+        self.db.reconcile_embedder(self.embedder.fingerprint())
+        self._reconciled = True
 
     # ------------------------------------------------------------------ #
     # Write path
     # ------------------------------------------------------------------ #
+    def _clip(self, text: str) -> str:
+        """Bound a stored field: redact secrets, then cap length (anti-DoS)."""
+        return redact_secrets(text or "")[: self.cfg.max_field_chars]
+
     def ingest(self, ev: TurnEvent) -> Episodic:
+        self._reconcile_embedder()
+        # Scrub credentials and cap size before anything is persisted / embedded /
+        # re-injected (a multi-MB field would otherwise freeze the embed + bloat DB).
+        ev.trigger_prompt = self._clip(ev.trigger_prompt)
+        ev.action_taken = self._clip(ev.action_taken)
+        ev.outcome_feedback = self._clip(ev.outcome_feedback)
         text = "\n".join(p for p in (ev.trigger_prompt, ev.action_taken, ev.outcome_feedback) if p)
         emb = self.embedder.embed_one(text)
 
@@ -179,16 +234,26 @@ class MemoryService:
     # Explicit pins (scars) and facts (gist)
     # ------------------------------------------------------------------ #
     def pin_scar(self, crisis_trigger: str, remediation_rule: str, project: str = "") -> Scar:
-        scar = Scar(id=new_id("scar"), crisis_trigger=crisis_trigger,
-                    remediation_rule=remediation_rule, project=project)
+        self._reconcile_embedder()
+        # Redact + cap: scars are re-injected into context at every SessionStart.
+        scar = Scar(id=new_id("scar"), crisis_trigger=self._clip(crisis_trigger),
+                    remediation_rule=self._clip(remediation_rule), project=project)
         emb = self.embedder.embed_one(scar.search_text())
+        # Dedup: a near-identical guardrail already pinned (same project) is returned
+        # as-is instead of inserting a duplicate permanent row.
+        dup = self.db.find_duplicate_scar(emb, project, self.cfg.scar_dedup_sim_threshold)
+        if dup is not None:
+            return dup
         self.db.insert_scar(scar, emb)
         return scar
 
     def upsert_fact(self, subject: str, relation: str, object_: str,
                     valence: float = 0.0, project: str = "") -> Gist:
+        self._reconcile_embedder()
+        # Redact + cap each field (facts feed the PersonaTree, rendered into context).
+        subject, relation, object_ = self._clip(subject), self._clip(relation), self._clip(object_)
         cycle = int(self.db.get_meta("cycle", "0") or "0")
-        existing = self.db.find_gist_by_so(subject, object_)
+        existing = self.db.find_gist_by_so(subject, object_, project)
         if existing:
             existing.frequency += 1
             existing.support_count += 1
@@ -210,8 +275,11 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     def retrieve(self, query: str, top_k: Optional[int] = None,
                  tiers: tuple[str, ...] = ("scar", "gist", "episodic"),
-                 reinforce: bool = True) -> list[SearchHit]:
-        top_k = top_k or self.cfg.default_top_k
+                 reinforce: bool = True, project: str = "") -> list[SearchHit]:
+        # Clamp: a negative top_k would slice off the END of the results (returning
+        # fewer memories than exist with no error); 0/None means "use the default".
+        top_k = max(1, top_k or self.cfg.default_top_k)
+        self._reconcile_embedder()  # querying with a mismatched backend recalls nothing
         qvec = self.embedder.embed_one(query)
         pool = max(top_k * 3, 20)
 
@@ -222,6 +290,11 @@ class MemoryService:
                 continue
             hits.extend(self._materialize(tier, rrf))
 
+        # Project scoping: when a project is given, recall only its own + global
+        # ("") memories — otherwise a model in project B recalls project A's raw
+        # content (cross-project exfiltration). Empty project = unscoped (CLI).
+        if project:
+            hits = [h for h in hits if h.payload.get("project", "") in ("", project)]
         # Accessibility filtering + reinforcement happen on episodic tier only.
         hits = [h for h in hits if not (h.tier == "episodic" and h.accessibility < self.cfg.retention_floor)]
         hits.sort(key=lambda h: h.score, reverse=True)
@@ -260,7 +333,7 @@ class MemoryService:
                     score=base * weight * (0.5 + acc), accessibility=acc,
                     payload={"timestamp": rec.timestamp, "valence": rec.valence,
                              "salience": rec.base_salience, "access_count": rec.access_count,
-                             "session_id": rec.session_id},
+                             "session_id": rec.session_id, "project": rec.project},
                 ))
         elif tier == "gist":
             gmap = {g.id: g for g in self.db.all_gist()}
@@ -272,7 +345,8 @@ class MemoryService:
                     id=mid, tier="gist", text=g.render(), score=base * weight,
                     accessibility=weight,
                     payload={"subject": g.subject, "relation": g.relation, "object": g.object,
-                             "support_count": g.support_count, "frequency": g.frequency},
+                             "support_count": g.support_count, "frequency": g.frequency,
+                             "project": g.project},
                 ))
         else:  # scar
             smap = {s.id: s for s in self.db.all_scars()}
@@ -283,7 +357,8 @@ class MemoryService:
                 out.append(SearchHit(
                     id=mid, tier="scar", text=f"⚠ {s.crisis_trigger} → {s.remediation_rule}",
                     score=base * weight, accessibility=weight,
-                    payload={"crisis_trigger": s.crisis_trigger, "remediation_rule": s.remediation_rule},
+                    payload={"crisis_trigger": s.crisis_trigger, "remediation_rule": s.remediation_rule,
+                             "project": s.project},
                 ))
         return out
 
@@ -291,6 +366,7 @@ class MemoryService:
     # Timeline / paths / links
     # ------------------------------------------------------------------ #
     def history(self, limit: int = 20, session_id: Optional[str] = None) -> list[Episodic]:
+        limit = max(1, limit)  # a negative limit would negative-slice the timeline
         eps = self.db.all_episodic()
         if session_id:
             eps = [e for e in eps if e.session_id == session_id]
@@ -301,8 +377,116 @@ class MemoryService:
         return self.db.list_paths()
 
     def create_link(self, source_id: str, target_id: str) -> bool:
-        self.db.add_support_edge(source_id, target_id)
-        return True
+        # Validate both endpoints exist before linking — otherwise dangling/typo'd
+        # edges silently inflate support_count and pollute provenance (foreign_keys
+        # is a no-op on the FK-less edges table). Source = an L1 leaf or L2 gist;
+        # target = an L2 gist. Returns whether an edge was actually created.
+        if not (self.db.exists("episodic", source_id) or self.db.exists("gist", source_id)):
+            return False
+        if not self.db.exists("gist", target_id):
+            return False
+        return self.db.add_support_edge(source_id, target_id)
+
+    # ------------------------------------------------------------------ #
+    # Deletion / right-to-forget (operator-only; not exposed to the model)
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def _project_match(stored: str, target: str) -> bool:
+        """Match a forget-by-project selector against a stored project path,
+        tolerant of trailing slashes, backslashes, and subdirectory cwds.
+
+        Hooks capture the raw per-tool ``cwd`` (often a subdirectory) while the MCP
+        path uses the resolved launch cwd, so an exact-string match leaked content
+        under ``/proj/`` or ``/proj/sub`` when the operator said forget ``/proj``.
+        """
+        def norm(p: str) -> str:
+            return (p or "").replace("\\", "/").rstrip("/")
+        s, t = norm(stored), norm(target)
+        return s == t or (bool(t) and s.startswith(t + "/"))
+
+    def forget(self, project: Optional[str] = None, session: Optional[str] = None,
+               ids: Optional[list[str]] = None) -> dict:
+        """Delete memory by project, by session, and/or by explicit ids across all
+        three tiers, the spool, and on-disk free pages. Returns the count actually
+        removed per tier. At least one selector must be given (callers must not
+        blanket-wipe the store by accident).
+
+        Held under the cross-process lock so a concurrent consolidation cannot
+        rebuild gists from episodes mid-delete (resurrecting forgotten content).
+        """
+        if project is None and session is None and not ids:
+            raise ValueError("forget requires at least one of: project, session, ids")
+        from .lock import cross_process_lock
+
+        with cross_process_lock(self.cfg.lock_path):
+            ids = set(ids or [])
+            ep, gi, sc = set(), set(), set()
+            for e in self.db.all_episodic():
+                if e.id in ids or (project is not None and self._project_match(e.project, project)) or \
+                   (session is not None and e.session_id == session):
+                    ep.add(e.id)
+            for g in self.db.all_gist():
+                if g.id in ids or (project is not None and self._project_match(g.project, project)):
+                    gi.add(g.id)
+            for s in self.db.all_scars():
+                if s.id in ids or (project is not None and self._project_match(s.project, project)):
+                    sc.add(s.id)
+            res = {
+                "episodic": self.db.delete_episodic(ep),
+                "gist": self.db.delete_gist(gi),
+                "scars": self.db.delete_scar(sc),
+                "spooled": self._forget_from_spool(project, session),
+            }
+            # Scrub freed pages + WAL so deleted content is not forensically
+            # recoverable from the db file (only meaningful with secure_delete, but
+            # VACUUM also cleans pages freed before this store enabled it).
+            self.db.vacuum()
+            return res
+
+    def _forget_from_spool(self, project: Optional[str], session: Optional[str]) -> int:
+        """Drop matching not-yet-ingested events from the spool. Raw spooled tool
+        output is PRE-redaction, so a `forget` that ignored the spool would let
+        secrets survive and re-ingest on the next drain. Matched by cwd/session.
+        """
+        import json
+        import os
+        from pathlib import Path
+
+        q = self.cfg.queue_path
+        if not q.exists():
+            return 0
+        claimed = Path(f"{q}.forget-{os.getpid()}.tmp")
+        try:
+            os.replace(q, claimed)
+        except (FileNotFoundError, PermissionError):
+            return 0
+        dropped = 0
+        kept: list[str] = []
+        try:
+            for raw in claimed.read_text(encoding="utf-8").splitlines():
+                if not raw.strip():
+                    continue
+                try:
+                    ev = json.loads(raw)
+                except json.JSONDecodeError:
+                    kept.append(raw)  # unparseable: leave for the drain to skip
+                    continue
+                if isinstance(ev, dict) and (
+                    (project is not None and self._project_match(ev.get("cwd", "") or "", project))
+                    or (session is not None and (ev.get("session_id", "") or "") == session)
+                ):
+                    dropped += 1
+                    continue
+                kept.append(raw)
+            if kept:
+                from .spool import spool_event_lines
+                spool_event_lines(self.cfg, kept)
+        finally:
+            try:
+                claimed.unlink()
+            except OSError:
+                pass
+        return dropped
 
     def close(self) -> None:
         self.db.close()

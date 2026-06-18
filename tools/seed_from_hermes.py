@@ -76,14 +76,8 @@ def text_of(content) -> str:
 
 
 def infer_success(text: str):
-    low = text.lower()
-    e = any(m in low for m in _ERR)
-    o = any(m in low for m in _OK)
-    if e and not o:
-        return False
-    if o and not e:
-        return True
-    return None
+    from cdms.pipeline import _infer_success  # negation-aware; shared with live capture
+    return _infer_success(text)
 
 
 def main() -> int:
@@ -98,14 +92,19 @@ def main() -> int:
     cfg.ensure_home()
     svc = MemoryService(cfg)
 
-    src = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
-    src.row_factory = sqlite3.Row
-    sessions = {r["id"]: (r["title"] or r["id"]) for r in src.execute("SELECT id, title FROM sessions")}
-
-    rows = src.execute(
-        "SELECT session_id, role, content, tool_name, tool_calls, timestamp "
-        "FROM messages ORDER BY session_id, timestamp, id"
-    ).fetchall()
+    try:
+        src = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
+        src.row_factory = sqlite3.Row
+        sessions = {r["id"]: (r["title"] or r["id"]) for r in src.execute("SELECT id, title FROM sessions")}
+        # Stream rows via the cursor rather than fetchall() the whole messages table
+        # into memory (--limit is enforced per-turn below); tolerate schema drift /
+        # missing tables with a clear message instead of a raw traceback.
+        rows = src.execute(
+            "SELECT session_id, role, content, tool_name, tool_calls, timestamp "
+            "FROM messages ORDER BY session_id, timestamp, id")
+    except sqlite3.OperationalError as exc:
+        print(f"ERROR: cannot read Hermes DB at {args.db}: {exc}", file=sys.stderr)
+        return 2
 
     turns = 0
     last_user: dict[str, str] = {}

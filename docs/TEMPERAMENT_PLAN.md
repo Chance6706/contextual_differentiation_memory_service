@@ -361,3 +361,84 @@ down) · Nickerson 1998; Wason 1960; Nguyen 2020; Bikhchandani, Hirshleifer & We
 (kindling); Linville 1985/1987; Craske et al. 2014 (inhibitory learning) · Nader, Schafe &
 LeDoux 2000; Sevenster, Beckers & Kindt 2013; Elsey, Van Ast & Kindt 2018 · Li et al. 2024
 (COLM, instruction instability).
+
+---
+
+## 8. Round-2 red-team corrections (must be resolved before/within the named phase)
+
+A pre-build adversarial review of *this plan* (and Gemini's "Boiling Frog" attack)
+surfaced gaps the plan above did not address. They are recorded here so the build
+does not inherit them. None invalidate the phasing; each tightens it.
+
+- **P1 — Phase 0 is inert and therefore unfalsifiable as written.** No temperament
+  dial is wired into the consolidation/salience pipeline that `tools/drift_trajectory.py`
+  measures (the dials are designed to modulate the still-unbuilt §6 curiosity / §7
+  emotion+proposal machinery). So sweeping `(seed, bounds)` through that harness
+  changes nothing observable. **Correction:** Phase 0's exit gate is *control-function
+  correctness* (unit tests of `near_bound`/`large_shift`/leash on synthetic vectors),
+  **not** survivability via the phenotype harness. Temperament observability — and
+  hence the §10.1 survivability sweep (Phase 2) and any drift log (Phase 3) — has a
+  hard prerequisite on at least one dial having a *wired effect*, which presupposes
+  §6/§7. State that dependency explicitly; do not claim Phase 0 is independently
+  validatable against phenotype drift.
+
+- **P2 — the joint-leash covariance Σ does not exist at Phase 0.** Archetypes are
+  hand-authored presets (§8.5), not fitted distributions, so the Mahalanobis Σ the
+  leash needs is only discoverable from Phase 2's survivable region. **Correction:**
+  Phase 0 ships a plain Euclidean radius `R_archetype` (an owned stipulation, per §1.5);
+  the Mahalanobis Σ is a Phase 2 output that *replaces* it, not a Phase 0 input.
+
+- **P3 — the written OU update rule does not revert to `seed` (it contradicts §1.3's
+  own model).** As written, `current ← current + α·(evidence_mean − current) + β·prior`
+  has fixed point `evidence_mean`, **not** `seed`; there is no seed-restoring term, so
+  under one-sided evidence the dial drifts to and **parks against a bound** — the exact
+  ratchet/foreclosure the plan claims to prevent, and the maturity prior pushes it
+  there faster. **Correction (Phase 1b):** add an explicit set-point restoring term,
+  e.g. `current ← current + α·(evidence_mean − current) − γ·(current − seed) + β·prior`
+  with `γ>0`, so the attractor is the seed and evidence is bounded forcing. This is the
+  OU process §1.3 actually cites (`dΘ = β(μ−Θ)dt + ξ`, μ = seed).
+
+- **P4 — "the log must never be an input to itself" is sloganized in a way that collides
+  with the AR recursion.** An AR(1)/OU step is by definition `xₜ = f(xₜ₋₁,…)`, so `current`
+  *is* an input to its own next value; the literal slogan forbids the mechanism. **Correction:**
+  restate the invariant precisely as **no self-*perception* loop** — `current` may evolve
+  autoregressively (allowed), but a *logged change-event* or the agent's *narration of its
+  own drift* must never re-enter as evidence. Phase 1b must encode this exact distinction,
+  or the firewall will be built around the wrong object.
+
+- **P5 — the "maturity prior" (§1.2) is an unvalidated human→AI transfer.** The maturity
+  principle describes *humans aging*; an assistant does not age (its "decade" is
+  consolidation cycles), and which direction "matures" `autonomy_gate` or
+  `discovered_emotion_cap` is undefined. Baking a fixed directional push in is the
+  riskiest long-horizon choice in the design. **Correction:** the maturity prior is
+  **off by default / opt-in**, and its direction (if any) is a Phase 2 empirical output,
+  never an asserted constant. (Faithfulness to how a human drifts is not warrant that an
+  AI *should* drift that way — the facsimile principle has a boundary here.)
+
+- **P6 — bare accept/decline is treated as an honest signal but is a confirmation
+  channel.** Only the *experiment-outcome* (lived vs disconfirmed) is genuinely
+  reality-coupled; a tired or sycophantic user rubber-stamping a proposal is not
+  evidence the stance was vindicated. **Correction (Phase 1a/1b):** weight
+  experiment-outcome as the primary honest signal; down-weight bare accept/decline and
+  route it through the same evidence/sycophancy guard (§7.8).
+
+- **P7 — window disjointness is unspecified (re-opens N2 by the back door).** "Windowed
+  Fleeson aggregation" does not say whether windows are disjoint; a sliding window
+  re-counts each episode across cycles = cross-cycle double-counting. **Correction:**
+  disjoint windows, or per-episode consumption tracking, so no outcome moves the genotype
+  more than once.
+
+- **G-A — the "Boiling Frog" / sub-threshold ratchet (concrete Phase 1b exit-gate test).**
+  The leash fires only when divergence exceeds tolerance; an attacker (or merely
+  one-sided history) can nudge `current` by *just under* the threshold every cycle and,
+  if the leash is ever anchored to the *previous cycle's* state instead of the immutable
+  `seed`, migrate the entire archetype without ever tripping the alarm. **Mandatory test:**
+  inject sub-threshold drift (e.g. 0.29 against a 0.30 tolerance) over 50+ consolidation
+  cycles and assert the self does **not** archetype-hop — proving the leash anchor is the
+  static seed, never a moving reference. This is the operational falsification of P3 and
+  the §8.3 "no archetype-hopping" guarantee; it must be green before Phase 1b exits.
+
+> Foundation note: the built-core hardening done before Phase 0 (see `status.md` /
+> `docs/REDTEAM_FINDINGS.md`) directly de-risks this layer — in particular the
+> migration-ordering fix (schema `user_version` set last) is what makes adding the
+> Phase 0 `temperament` table safe on a live identity store.

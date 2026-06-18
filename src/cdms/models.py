@@ -79,6 +79,10 @@ class Scar:
     remediation_rule: str
     timestamp: str = field(default_factory=utc_now_iso)
     project: str = ""
+    # "pinned" = deliberate user/model pin (trusted guardrail); "elevated" = auto
+    # catastrophe-gated elevation. Pinned scars are prioritized for injection so a
+    # flood of auto-elevated entries cannot evict real, deliberate guardrails.
+    origin: str = "pinned"
 
     def search_text(self) -> str:
         return f"{self.crisis_trigger}\n{self.remediation_rule}"

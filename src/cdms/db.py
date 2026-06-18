@@ -26,14 +26,17 @@ from .config import Config
 from .embeddings import serialize_f32
 from .models import Episodic, Gist, Scar, utc_now_iso
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
-_FTS_TOKEN = re.compile(r"[A-Za-z0-9_]+")
+# Unicode-aware: the FTS5 index uses unicode61 and DOES store non-Latin terms, but
+# an ASCII-only token pattern stripped Cyrillic/CJK/accented queries to an empty
+# MATCH — so those users silently lost the BM25 arm of hybrid recall. \w (+UNICODE)
+# still excludes quotes/operators/parens, so the query stays injection-safe.
+_FTS_TOKEN = re.compile(r"\w+", re.UNICODE)
 
 
 def _ddl(dim: int) -> list[str]:
     return [
-        f"PRAGMA user_version = {SCHEMA_VERSION}",
         # ---- L1: episodic --------------------------------------------------
         """CREATE TABLE IF NOT EXISTS mem_episodic (
             id TEXT PRIMARY KEY,
@@ -65,7 +68,8 @@ def _ddl(dim: int) -> list[str]:
             survived_cycles INTEGER NOT NULL DEFAULT 0,
             project TEXT DEFAULT '',
             last_reinforced TEXT,
-            last_cycle INTEGER NOT NULL DEFAULT 0
+            last_cycle INTEGER NOT NULL DEFAULT 0,
+            centroid BLOB
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_gist USING vec0(
             id TEXT PRIMARY KEY,
@@ -84,7 +88,8 @@ def _ddl(dim: int) -> list[str]:
             timestamp TEXT NOT NULL,
             crisis_trigger TEXT NOT NULL,
             remediation_rule TEXT NOT NULL,
-            project TEXT DEFAULT ''
+            project TEXT DEFAULT '',
+            origin TEXT NOT NULL DEFAULT 'pinned'
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_scars USING vec0(
             id TEXT PRIMARY KEY,
@@ -104,8 +109,70 @@ class Database:
     def __init__(self, cfg: Config):
         self.cfg = cfg
         cfg.ensure_home()
-        self.conn = self._open(cfg.db_path)
-        self._init_schema()
+        try:
+            self.conn = self._open(cfg.db_path)
+            self._init_schema()
+        except sqlite3.DatabaseError as exc:
+            # A corrupted store ("file is not a database" / "malformed") otherwise
+            # makes every command crash and silently halts capture while the spool
+            # grows forever. Quarantine the bad file (preserve it for recovery) and
+            # start fresh, loudly — so the daemon keeps working and the operator is told.
+            #
+            # CRITICAL (Cycle-3 C1): we must NOT quarantine on anything other than real
+            # file corruption. ``sqlite3.OperationalError`` ("database is locked"/"busy")
+            # is a subclass of DatabaseError; transient lock contention (a long
+            # consolidation overlapping a hook open) would otherwise be misread as
+            # corruption and the *healthy* store would be renamed away and WIPED. A
+            # config-induced open failure (e.g. an out-of-range embed_dim that vec0
+            # rejects) is likewise not corruption. Only quarantine on a true corruption
+            # signature; re-raise everything else so the caller retries instead of
+            # destroying a good store.
+            if not self._is_corruption(exc):
+                raise
+            self._quarantine_corrupt(cfg.db_path, exc)
+            self.conn = self._open(cfg.db_path)
+            self._init_schema()
+
+    # Signatures SQLite uses for genuine on-disk corruption (vs. lock contention,
+    # dimension/config errors, missing tables, etc.).
+    _CORRUPTION_SIGNS = (
+        "malformed", "not a database", "file is encrypted", "disk image is malformed",
+        "database disk image", "is not a database", "corrupt",
+    )
+
+    @classmethod
+    def _is_corruption(cls, exc: Exception) -> bool:
+        # Lock/busy contention is an OperationalError and is NEVER file corruption.
+        if isinstance(exc, sqlite3.OperationalError):
+            return False
+        msg = str(exc).lower()
+        return any(s in msg for s in cls._CORRUPTION_SIGNS)
+
+    @staticmethod
+    def _quarantine_corrupt(path, exc) -> None:
+        import os
+        import sys
+        import time
+
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        for suffix in ("", "-wal", "-shm"):
+            p = f"{path}{suffix}"
+            if os.path.exists(p):
+                try:
+                    os.replace(p, f"{p}.corrupt-{stamp}")
+                except OSError:
+                    pass
+        print(f"cdms: memory store at {path} is corrupt ({exc}); quarantined to "
+              f"*.corrupt-{stamp} and starting fresh. Restore from a backup if you have one.",
+              file=sys.stderr)
+
+    def integrity_ok(self) -> bool:
+        """On-demand integrity check (slow on large stores; used by `cdms doctor`)."""
+        try:
+            row = self.conn.execute("PRAGMA quick_check").fetchone()
+            return bool(row) and row[0] == "ok"
+        except sqlite3.DatabaseError:
+            return False
 
     # -- connection setup ----------------------------------------------------
     @staticmethod
@@ -128,6 +195,11 @@ class Database:
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA busy_timeout=5000")
         conn.execute("PRAGMA foreign_keys=ON")
+        # Right-to-forget: zero out freed pages on delete. Stock SQLite ships
+        # secure_delete=OFF, so without this a `forget` leaves the full plaintext
+        # (and content-bearing vectors) recoverable from the db file's free pages —
+        # deletion was only logical. With it ON, deleted content is overwritten.
+        conn.execute("PRAGMA secure_delete=ON")
         return conn
 
     def _init_schema(self) -> None:
@@ -135,6 +207,13 @@ class Database:
             for stmt in _ddl(self.cfg.embed_dim):
                 c.execute(stmt)
             self._migrate(c)
+            # Set the schema version LAST — after CREATEs and idempotent ALTERs all
+            # succeed. Python's sqlite3 autocommits DDL, so an interrupted migration
+            # is not rolled back; setting user_version up-front (as before) could
+            # leave a store reporting the new version while missing new columns. The
+            # column adds are idempotent (gated on table_info), so an interrupted run
+            # re-heals on next open; recording the version last keeps it honest.
+            c.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
     @staticmethod
     def _migrate(c: sqlite3.Connection) -> None:
@@ -144,6 +223,15 @@ class Database:
             c.execute("ALTER TABLE mem_gist ADD COLUMN last_reinforced TEXT")
         if "last_cycle" not in cols:
             c.execute("ALTER TABLE mem_gist ADD COLUMN last_cycle INTEGER NOT NULL DEFAULT 0")
+        if "centroid" not in cols:
+            # Episode-space cluster centroid for stable, vocabulary-independent
+            # gist identity (reinforce the nearest existing trait, not a sibling).
+            c.execute("ALTER TABLE mem_gist ADD COLUMN centroid BLOB")
+        scar_cols = {r[1] for r in c.execute("PRAGMA table_info(mem_scars)")}
+        if "origin" not in scar_cols:
+            # Pre-v3 scars were all deliberate-or-elevated with no marker; treat
+            # legacy rows as 'pinned' so existing guardrails keep priority.
+            c.execute("ALTER TABLE mem_scars ADD COLUMN origin TEXT NOT NULL DEFAULT 'pinned'")
 
     # -- key/value meta (cycle counter, etc.) --------------------------------
     def get_meta(self, key: str, default: str | None = None) -> str | None:
@@ -153,6 +241,32 @@ class Database:
     def set_meta(self, key: str, value) -> None:
         with self.tx() as c:
             c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES (?, ?)", (key, str(value)))
+
+    def reconcile_embedder(self, fingerprint: str) -> None:
+        """Pin the embedder's vector-space identity on first write; refuse to mix.
+
+        The hash fallback and the real fastembed model produce geometrically
+        incompatible vectors of the same dimension. Mixing them in one store
+        silently destroys cosine recall forever. We record ``{backend:model:dim}``
+        the first time a store is written and raise on any later mismatch, so a
+        backend/model/dimension change is caught at open instead of corrupting
+        recall row-by-row.
+        """
+        pinned = self.get_meta("embed_fingerprint")
+        if pinned is None:
+            # First reconciliation. If the store predates pinning and already
+            # holds vectors, we cannot retro-verify their space — adopt the
+            # current fingerprint so all FUTURE writes stay consistent.
+            self.set_meta("embed_fingerprint", fingerprint)
+            return
+        if pinned != fingerprint:
+            raise RuntimeError(
+                f"Embedding-space mismatch: this store was built with "
+                f"'{pinned}' but the current embedder is '{fingerprint}'. "
+                f"Refusing to mix incompatible vector spaces (it would silently "
+                f"corrupt recall). Use the original backend/model/dim, or rebuild "
+                f"the store from scratch."
+            )
 
     @contextmanager
     def tx(self) -> Iterator[sqlite3.Connection]:
@@ -170,6 +284,17 @@ class Database:
         except sqlite3.Error:
             pass
         self.conn.close()
+
+    def vacuum(self) -> None:
+        """Rewrite the db file, reclaiming and scrubbing free pages, then truncate
+        the WAL. Run after `forget` so already-freed content (incl. anything freed
+        before secure_delete was enabled) cannot be recovered from the file, and so
+        deleted rows do not linger in the WAL. Cannot run inside a transaction."""
+        try:
+            self.conn.execute("VACUUM")
+            self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        except sqlite3.Error:
+            pass
 
     # ====================================================================== #
     # L1 episodic
@@ -192,7 +317,13 @@ class Database:
             c.execute("INSERT INTO fts_episodic(id, content) VALUES (?, ?)", (rec.id, rec.search_text()))
 
     def all_episodic(self) -> list[Episodic]:
-        rows = self.conn.execute("SELECT * FROM mem_episodic").fetchall()
+        # Explicit rowid order: order-sensitive greedy clustering/dedup in
+        # consolidation must be reproducible for a given store. Without ORDER BY,
+        # SQLite's row order is not contractual across DELETE/INSERT/VACUUM, so a
+        # vacuum could silently change the consolidated identity. (This pins the
+        # de-facto capture order; making clustering insertion-order-INVARIANT is a
+        # separate, larger change tracked for future work.)
+        rows = self.conn.execute("SELECT * FROM mem_episodic ORDER BY rowid").fetchall()
         return [self._row_to_episodic(r) for r in rows]
 
     def get_episodic(self, ep_id: str) -> Episodic | None:
@@ -208,6 +339,21 @@ class Database:
         if not r:
             return None
         return np.frombuffer(r[0], dtype="<f4").copy()
+
+    def get_embeddings_bulk(self, ids: Iterable[str]) -> dict:
+        """{id: vector} for many episodic ids in one query (vs one round-trip each —
+        the per-row get_embedding loop dominated consolidation cost at scale)."""
+        import numpy as np
+
+        ids = list(ids)
+        out: dict = {}
+        for i in range(0, len(ids), 800):  # stay under SQLite's variable limit
+            chunk = ids[i:i + 800]
+            q = ",".join("?" for _ in chunk)
+            for r in self.conn.execute(
+                    f"SELECT id, embedding FROM vec_episodic WHERE id IN ({q})", chunk):
+                out[r[0]] = np.frombuffer(r[1], dtype="<f4").copy()
+        return out
 
     def touch_episodic(self, ep_id: str, when_iso: str) -> None:
         """Record a retrieval (synaptic strengthening)."""
@@ -238,16 +384,18 @@ class Database:
     # ====================================================================== #
     # L2 gist + support edges
     # ====================================================================== #
-    def insert_gist(self, g: Gist, embedding) -> None:
+    def insert_gist(self, g: Gist, embedding, centroid=None) -> None:
         blob = serialize_f32(embedding)
+        cblob = serialize_f32(centroid) if centroid is not None else None
         with self.tx() as c:
             c.execute(
                 """INSERT OR REPLACE INTO mem_gist
                    (id, subject, relation, object, valence, frequency, support_count,
-                    survived_cycles, project, last_reinforced, last_cycle)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                    survived_cycles, project, last_reinforced, last_cycle, centroid)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (g.id, g.subject, g.relation, g.object, g.valence, g.frequency,
-                 g.support_count, g.survived_cycles, g.project, g.last_reinforced, g.last_cycle),
+                 g.support_count, g.survived_cycles, g.project, g.last_reinforced,
+                 g.last_cycle, cblob),
             )
             c.execute("DELETE FROM vec_gist WHERE id = ?", (g.id,))
             c.execute("INSERT INTO vec_gist(id, embedding) VALUES (?, ?)", (g.id, blob))
@@ -255,7 +403,7 @@ class Database:
             c.execute("INSERT INTO fts_gist(id, content) VALUES (?, ?)", (g.id, g.search_text()))
 
     def all_gist(self) -> list[Gist]:
-        rows = self.conn.execute("SELECT * FROM mem_gist").fetchall()
+        rows = self.conn.execute("SELECT * FROM mem_gist ORDER BY rowid").fetchall()
         return [self._row_to_gist(r) for r in rows]
 
     def top_gist(self, limit: int, project: str | None = None) -> list[Gist]:
@@ -273,14 +421,39 @@ class Database:
             ).fetchall()
         return [self._row_to_gist(r) for r in rows]
 
-    def find_gist_by_so(self, subject: str, object_: str) -> Gist | None:
-        """Gists are keyed on (subject, object); the relation is a derived attribute
-        that can flip as the running valence changes."""
+    def find_gist_by_so(self, subject: str, object_: str, project: str = "") -> Gist | None:
+        """Gists are keyed on (subject, object, project); the relation is a derived
+        attribute that can flip as the running valence changes. Project is part of
+        the key so two distinct repos sharing a basename (subject) do not merge
+        into one identity (subject-collision leak)."""
         r = self.conn.execute(
-            "SELECT * FROM mem_gist WHERE subject = ? AND object = ?",
-            (subject, object_),
+            "SELECT * FROM mem_gist WHERE subject = ? AND object = ? AND project = ?",
+            (subject, object_, project),
         ).fetchone()
         return self._row_to_gist(r) if r else None
+
+    def get_gist_centroid(self, gist_id: str):
+        import numpy as np
+
+        r = self.conn.execute("SELECT centroid FROM mem_gist WHERE id = ?", (gist_id,)).fetchone()
+        if not r or r[0] is None:
+            return None
+        return np.frombuffer(r[0], dtype="<f4").copy()
+
+    def gist_centroids(self, subject: str, project: str = "") -> list[tuple[Gist, "object"]]:
+        """(Gist, centroid_array) for every gist of ``(subject, project)`` that has a
+        stored episode-space centroid — used for vocabulary-independent gist matching,
+        scoped to the project so distinct repos never cross-merge."""
+        import numpy as np
+
+        rows = self.conn.execute(
+            "SELECT * FROM mem_gist WHERE subject = ? AND project = ? AND centroid IS NOT NULL ORDER BY rowid",
+            (subject, project),
+        ).fetchall()
+        out = []
+        for r in rows:
+            out.append((self._row_to_gist(r), np.frombuffer(r["centroid"], dtype="<f4").copy()))
+        return out
 
     def delete_gist(self, ids: Iterable[str]) -> int:
         ids = list(ids)
@@ -294,12 +467,28 @@ class Database:
             c.execute(f"DELETE FROM mem_support_edges WHERE target_gist_id IN ({q})", ids)
         return len(ids)
 
-    def add_support_edge(self, leaf_id: str, gist_id: str) -> None:
+    def delete_scar(self, ids: Iterable[str]) -> int:
+        ids = list(ids)
+        if not ids:
+            return 0
+        q = ",".join("?" for _ in ids)
         with self.tx() as c:
-            c.execute(
+            c.execute(f"DELETE FROM mem_scars WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM vec_scars WHERE id IN ({q})", ids)
+            c.execute(f"DELETE FROM fts_scars WHERE id IN ({q})", ids)
+        return len(ids)
+
+    def exists(self, table: str, item_id: str) -> bool:
+        t = {"episodic": "mem_episodic", "gist": "mem_gist", "scar": "mem_scars"}[table]
+        return self.conn.execute(f"SELECT 1 FROM {t} WHERE id = ? LIMIT 1", (item_id,)).fetchone() is not None
+
+    def add_support_edge(self, leaf_id: str, gist_id: str) -> bool:
+        with self.tx() as c:
+            cur = c.execute(
                 "INSERT OR IGNORE INTO mem_support_edges(source_leaf_id, target_gist_id) VALUES (?, ?)",
                 (leaf_id, gist_id),
             )
+            return cur.rowcount > 0
 
     def list_paths(self, project: str | None = None) -> list[tuple[str, str, int]]:
         """PersonaTree paths: distinct (subject, relation) with aggregate support."""
@@ -317,8 +506,9 @@ class Database:
         with self.tx() as c:
             c.execute(
                 """INSERT OR REPLACE INTO mem_scars
-                   (id, timestamp, crisis_trigger, remediation_rule, project) VALUES (?,?,?,?,?)""",
-                (s.id, s.timestamp, s.crisis_trigger, s.remediation_rule, s.project),
+                   (id, timestamp, crisis_trigger, remediation_rule, project, origin)
+                   VALUES (?,?,?,?,?,?)""",
+                (s.id, s.timestamp, s.crisis_trigger, s.remediation_rule, s.project, s.origin),
             )
             c.execute("DELETE FROM vec_scars WHERE id = ?", (s.id,))
             c.execute("INSERT INTO vec_scars(id, embedding) VALUES (?, ?)", (s.id, blob))
@@ -328,6 +518,24 @@ class Database:
     def all_scars(self) -> list[Scar]:
         rows = self.conn.execute("SELECT * FROM mem_scars ORDER BY timestamp DESC").fetchall()
         return [self._row_to_scar(r) for r in rows]
+
+    def find_duplicate_scar(self, embedding, project: str, threshold: float) -> Scar | None:
+        """Nearest existing scar (same project) within ``threshold`` cosine of
+        ``embedding`` — used to dedup on insert so a recurring failure (the same
+        force-push, the same flaky deploy) does not mint a fresh permanent ~4 KB
+        scar row every consolidation, growing the (non-evicting) L3 table without
+        bound. Returns the existing scar to refresh/keep, or None."""
+        hits = self.knn("scar", embedding, 5)
+        if not hits:
+            return None
+        smap = {s.id: s for s in self.all_scars()}
+        for sid, dist in hits:
+            s = smap.get(sid)
+            if s is None or s.project != project:
+                continue
+            if (1.0 - dist) >= threshold:   # cosine distance -> similarity
+                return s
+        return None
 
     # ====================================================================== #
     # retrieval primitives
@@ -341,9 +549,18 @@ class Database:
                 f"SELECT id, distance FROM {vt} WHERE embedding MATCH ? AND k = ? ORDER BY distance",
                 (blob, k),
             ).fetchall()
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as exc:
+            # A dimension mismatch is a real misconfiguration (wrong embed_dim
+            # against a baked vec0 table), not an empty result — surface it
+            # loudly instead of silently "remembering nothing". Other operational
+            # errors (malformed tier query) still degrade to the other arm.
+            if "dimension" in str(exc).lower():
+                raise
             return []
-        return [(r["id"], float(r["distance"])) for r in rows]
+        # Defensive: a stored degenerate (zero) vector returns distance=NULL,
+        # which would crash float(None). The embedder now prevents zero vectors,
+        # but skip any NULL here so a legacy bad row can't poison the tier.
+        return [(r["id"], float(r["distance"])) for r in rows if r["distance"] is not None]
 
     def fts(self, tier: str, query_text: str, k: int) -> list[tuple[str, float]]:
         """BM25 keyword search within a tier. Returns [(id, bm25)] (lower = better)."""
@@ -396,9 +613,10 @@ class Database:
 
     @staticmethod
     def _row_to_scar(r: sqlite3.Row) -> Scar:
+        origin = r["origin"] if "origin" in r.keys() else "pinned"
         return Scar(
             id=r["id"], crisis_trigger=r["crisis_trigger"], remediation_rule=r["remediation_rule"],
-            timestamp=r["timestamp"], project=r["project"] or "",
+            timestamp=r["timestamp"], project=r["project"] or "", origin=origin or "pinned",
         )
 
     def stats(self) -> dict:
