@@ -329,41 +329,53 @@ class Consolidator:
     def _dedup(self, episodes: list[Episodic], rep: ConsolidationReport) -> set[str]:
         if not episodes:
             return set()
-        vecs = self._embeddings_for(episodes)
-        # Vectorized: compare each episode to all survivors via one matmul (embeddings
-        # are unit-norm, so dot == cosine). Survivors live in a preallocated matrix to
-        # avoid O(n^2) Python cosine calls — this scales to tens of thousands of turns.
-        dim = int(vecs[0].shape[0])
-        keep_mat = np.empty((len(episodes), dim), dtype=np.float32)
-        keep_e: list[Episodic] = []
-        to_delete: list[str] = []
+        # Partition by project: dedup (and its salience/access fold) is scoped WITHIN a
+        # project, so the vectorized survivor matrix is bounded by the largest single project
+        # rather than the whole store (C-1 peak-memory at scale). This also closes a latent
+        # cross-project budget leak — global dedup could merge two near-identical episodes from
+        # DIFFERENT projects and fold one project's salience into the other's survivor, which
+        # _compete_and_renormalize then mis-attributes to the wrong project. Within-project
+        # behaviour is unchanged (same rowid order, same same-project comparisons).
+        by_project: dict[str, list[Episodic]] = defaultdict(list)
+        for e in episodes:
+            by_project[e.project or ""].append(e)
         thr = self.cfg.dedup_sim_threshold
-        m = 0
-        for e, v in zip(episodes, vecs):
-            v = np.asarray(v, dtype=np.float32)
-            if m > 0:
-                sims = keep_mat[:m] @ v
-                j = int(np.argmax(sims))
-                if float(sims[j]) >= thr:
-                    # supersede: fold access + salience into the survivor, drop the dup.
-                    # Fold the dup's FULL access_count (not just +1) so the survivor keeps
-                    # the merged reinforcement history (Cycle-5 C-MED-1).
-                    survivor = self.db.get_episodic(keep_e[j].id)
-                    if survivor is not None:
-                        merged = max(survivor.base_salience, e.base_salience)
-                        self.db.set_salience([(survivor.id, merged)])
-                        # Fold the dup's REAL retrieval history into the survivor. The old
-                        # `max(1, …)` floor credited a phantom +1 access to a duplicate that
-                        # was never retrieved (access_count == 0 — the common case for an
-                        # episode deduped in its first consolidation pass), inflating
-                        # accessibility and skewing eviction/ranking (Cycle-7 LOW-2).
-                        if e.access_count:
-                            self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
-                    to_delete.append(e.id)
-                    continue
-            keep_mat[m] = v
-            keep_e.append(e)
-            m += 1
+        to_delete: list[str] = []
+        for eps in by_project.values():
+            vecs = self._embeddings_for(eps)
+            # Vectorized: compare each episode to all survivors via one matmul (embeddings
+            # are unit-norm, so dot == cosine). Survivors live in a preallocated matrix to
+            # avoid O(n^2) Python cosine calls — this scales to tens of thousands of turns.
+            dim = int(vecs[0].shape[0])
+            keep_mat = np.empty((len(eps), dim), dtype=np.float32)
+            keep_e: list[Episodic] = []
+            m = 0
+            for e, v in zip(eps, vecs):
+                v = np.asarray(v, dtype=np.float32)
+                if m > 0:
+                    sims = keep_mat[:m] @ v
+                    j = int(np.argmax(sims))
+                    if float(sims[j]) >= thr:
+                        # supersede: fold access + salience into the survivor, drop the dup.
+                        # Fold the dup's FULL access_count (not just +1) so the survivor keeps
+                        # the merged reinforcement history (Cycle-5 C-MED-1).
+                        survivor = self.db.get_episodic(keep_e[j].id)
+                        if survivor is not None:
+                            merged = max(survivor.base_salience, e.base_salience)
+                            self.db.set_salience([(survivor.id, merged)])
+                            # Fold the dup's REAL retrieval history into the survivor. The old
+                            # `max(1, …)` floor credited a phantom +1 access to a duplicate that
+                            # was never retrieved (access_count == 0 — the common case for an
+                            # episode deduped in its first consolidation pass), inflating
+                            # accessibility and skewing eviction/ranking (Cycle-7 LOW-2).
+                            if e.access_count:
+                                self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
+                        to_delete.append(e.id)
+                        continue
+                keep_mat[m] = v
+                keep_e.append(e)
+                m += 1
+            del vecs, keep_mat                       # release this project's vectors before the next
         if to_delete:
             rep.deduped = self.db.delete_episodic(to_delete)
         return set(to_delete)
@@ -430,25 +442,29 @@ class Consolidator:
         if len(episodes) < self.cfg.min_cluster_support:
             return
         now_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        vecs = self._embeddings_for(episodes)
         ema = self.cfg.gist_valence_ema
 
-        # Partition episodes by project BEFORE clustering. all_episodic() spans every
+        # Partition episodes by project BEFORE loading embeddings. all_episodic() spans every
         # project, so an unpartitioned clustering pass merges episodes from different
         # projects into one gist (cross-project identity contamination: project A's
         # failures flipped project B's trait). Clustering, identity, and the gist's
-        # project column are all scoped per project here.
-        by_project: dict[str, list[tuple[Episodic, np.ndarray]]] = defaultdict(list)
-        for e, v in zip(episodes, vecs):
-            by_project[e.project or ""].append((e, v))
+        # project column are all scoped per project. Loading embeddings INSIDE the loop keeps
+        # only one project's vectors resident at a time (C-1 peak-memory); the clustering was
+        # already per-project, so this is byte-identical to the prior global-load version.
+        by_project: dict[str, list[Episodic]] = defaultdict(list)
+        for e in episodes:
+            by_project[e.project or ""].append(e)
 
         total_clusters = 0
-        for proj, items in by_project.items():
-            if len(items) < self.cfg.min_cluster_support:
+        for proj, eps in by_project.items():
+            if len(eps) < self.cfg.min_cluster_support:
                 continue
+            vecs = self._embeddings_for(eps)
+            items = list(zip(eps, vecs))
             clusters = self._greedy_cluster(items)
             total_clusters += len(clusters)
             self._gists_from_clusters(clusters, proj, rep, now_iso, cycle, ema)
+            del vecs, items                          # release this project's vectors before the next
         rep.clusters = total_clusters
 
     def _gists_from_clusters(self, clusters, proj, rep, now_iso, cycle, ema) -> None:
