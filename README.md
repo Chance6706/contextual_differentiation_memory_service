@@ -239,8 +239,9 @@ review of the original design doc, including corrections.
 
 ## Privacy, durability & hardening
 
-CDMS is an always-running daemon, so it has been put through **three adversarial
-red-team cycles** before the temperament layer is built — see
+CDMS is an always-running daemon, so it has been put through **seven adversarial
+red-team cycles plus a re-run-audit follow-up** (the last of which caught that an external
+review had blessed a stale revision) — see
 [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Notable guarantees:
 
 * **Right-to-forget.** `cdms forget --project/--session/--id` deletes across all
@@ -265,7 +266,7 @@ red-team cycles** before the temperament layer is built — see
 
 ```bash
 uv pip install -e ".[dev]"
-CDMS_EMBED_BACKEND=hash python -m pytest -q     # 135 tests, offline, no downloads
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # 229 tests, offline, no downloads
 ```
 
 The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use
@@ -277,8 +278,10 @@ is unavailable.
 
 **What is built today is the reactive mechanical core** — capture, salience, decay, the
 five-step sleep consolidation, hybrid retrieval, and the privacy/durability hardening
-above. The *proactive* layers — §6 curiosity/dreaming-research ("active dreaming"), §7
-emotion/proposals, and §8 archetypes/temperament (see
+above — plus **§8 temperament Phase 0**: static disposition state (8 dials, 5 archetypes),
+pure-function control, and the operator-only joint leash (`current == seed`; no drift yet).
+The remaining *proactive* layers — §6 curiosity/dreaming-research ("active dreaming"), §7
+emotion/proposals, and the §8 temperament drift/proposal Phases 1+ (see
 [`docs/DESIGN.md`](docs/DESIGN.md)) — are **designed, not built**; DESIGN.md marks every
 line ✅ Built vs 📐 Designed.
 

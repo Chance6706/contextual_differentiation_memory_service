@@ -410,3 +410,44 @@ Two independent reviews (correctness/concurrency; security/abuse + adjudication 
 - Both reviews confirmed **no fix opened a serious new hole**; `bump_access`,
   `get_*_by_ids`, the embedder key, the drain-lock (no deadlock/nesting; turns deferred not
   lost), and the `realpath` change were independently verified sound.
+
+## Re-run audit (Cycle 7, Pass C) — the external review read a stale revision
+
+The OWL Cycle-7 report claimed to verify the branch tip but had actually read a **pre-revert
+revision**: it certified the A2-M1 gist-orphan deletion as "VERIFIED FIXED" and praised the
+since-**removed** `gists_orphaned_by` in detail (its test count / `doctor` glob matched the
+older tree, not the tip). Re-auditing the **true tip** (three parallel source audits + numeric
+checks) confirmed the joint-leash math sound and N-MED-1 (float comparison) misguided (it
+matches immutable *seeds*), but surfaced **8 real defects**, all fixed and regression-tested.
+Full suite **229 passed**. Landed in **PR #15**.
+
+- **HIGH — substring success-inference.** `_infer_success` matched negators / OK+ERR markers /
+  positive-override phrases as bare **substrings**, so ordinary words flipped a real failure to
+  success/neutral and poisoned stored valence (`"tokens"`⊃`"ok"`, `"casino"`⊃`"no"`,
+  `"casino errors"`⊃`"no errors"`, `"annotation"`⊃`"not"`). Now **word-boundary** matching
+  (whole-token negators, `n't` suffix, leading-`\b` regex for phrases/markers/overrides; stems
+  still match inflections). This is the bug the C-MED-6 negation rewrite was *believed* to have
+  fixed — the prior review blessed the diff without exercising the marker sets.
+- **MED — partial-seed archetype mixing.** A truncated temperament store whose archetype label
+  was also lost was completed from the *default* archetype, mixing two dispositions and
+  weakening the leash. Added `match_archetype_by_partial_seed`; the partial-heal path now
+  recovers the archetype from the seeds present (unambiguous match only) before defaulting.
+- **MED — Bem-firewall CLI leak.** `cdms temperament` printed the full disposition to stdout, so
+  an agent with Bash access could read its own dials (firewall was policy-only on the data
+  paths). The command now refuses on a non-interactive stdout unless the operator opts in
+  (`--operator` / `CDMS_ALLOW_TEMPERAMENT_READ=1`); stdout stays empty on refusal.
+- **LOW — purge glob.** `doctor --purge-quarantines` used a bare `*.corrupt-[0-9]*` glob that
+  could delete unrelated operator files; anchored to the db-filename prefix.
+- **LOW — dedup phantom +1.** Dedup folded `max(1, access_count)`, crediting a never-retrieved
+  duplicate with a synthetic access; now folds the real (possibly zero) count.
+- **LOW — temperament CHECK constraints.** `mem_temperament` gained per-dial range / `lower <=
+  upper` / `current`-within-band CHECKs as defense-in-depth before Phase 1b adds a `current`
+  writer.
+- **LOW — `db_filename` traversal.** A directory component (`"../../etc/x"`, `"/abs"`, a POSIX
+  backslash) let an env var place the store outside `CDMS_HOME`; now required to be a bare
+  filename, clamped to the default otherwise.
+- **LOW — `reinforce_cap < reinforce_alpha`.** Each was range-checked but never against the
+  other; a cap below alpha neuters even the first reinforcement. Added a minimal cross-field
+  repair raising the cap to alpha.
+- **Process note.** A red-team verdict is only as good as the revision it read — re-derive the
+  tip (`git log` / `-S`) before trusting an external "VERIFIED FIXED."
