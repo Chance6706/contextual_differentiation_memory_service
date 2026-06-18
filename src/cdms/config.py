@@ -87,7 +87,11 @@ class Config:
     rest_idle_minutes: float = 20.0     # idle gap that marks a "rest boundary" for auto-consolidation
 
     # ---- L2 gist plasticity (hybrid: valence-flip + gentle activity decay) ---
-    gist_valence_ema: float = 0.4       # weight of new evidence when updating a trait's valence
+    gist_valence_ema: float = 0.4       # BASE weight of new evidence when updating a trait's valence.
+    gist_valence_ema_min: float = 0.05  # The EFFECTIVE rate is gist_valence_ema / sqrt(prior support),
+                                        # floored here, so an ESTABLISHED trait can't be flipped by a
+                                        # couple of injected episodes (Cycle-8 M-M-4) while a fresh trait
+                                        # stays malleable; the floor keeps sustained REAL change able to flip.
     # Gist decay is measured in CONSOLIDATION CYCLES (activity), NOT wall-clock time:
     # being away from the keyboard for a month must NOT age your identity. A trait
     # only fades through many *active* sessions in which it is never reinforced.
@@ -237,6 +241,7 @@ def _validate(cfg: "Config") -> None:
         ("spool_max_bytes", lambda v: isinstance(v, int) and 1_000 <= v <= 10_000_000_000),
         ("min_cluster_support", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("gist_valence_ema", lambda v: _num(v) and 0 < v <= 1),
+        ("gist_valence_ema_min", lambda v: _num(v) and 0 < v <= 1),
         ("scar_dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
         ("rrf_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("default_top_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
@@ -286,6 +291,10 @@ def _validate(cfg: "Config") -> None:
                   f"{getattr(cfg, field_name)!r} -> {new_val!r}", file=_sys.stderr)
             setattr(cfg, field_name, new_val)
 
+    if cfg.gist_valence_ema_min > cfg.gist_valence_ema:
+        # The adaptive floor must not exceed the base rate (it would make the "adaptive"
+        # rate constant and re-open the flip-on-few-episodes fragility). Clamp DOWN.
+        _clamp("gist_valence_ema_min", cfg.gist_valence_ema, "gist_valence_ema_min > gist_valence_ema")
     if cfg.relation_pos_threshold <= cfg.relation_neg_threshold:
         # inverted band => a trait can never read "frequently_works_on" (neutral); the band
         # ordering is the invariant, so restore both endpoints to defaults.
