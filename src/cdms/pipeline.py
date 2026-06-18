@@ -50,11 +50,15 @@ _OVERRIDE_RE = re.compile(
 
 @lru_cache(maxsize=None)
 def _marker_re(marker: str) -> "re.Pattern[str]":
-    """A LEADING word-boundary match for ``marker``. A stem still matches its inflections
-    ("error" → "errors"), but an internal substring no longer does: "ok" ✗ "tokens"/
-    "lookup", "no" ✗ "casino". This is the bug the old ``str.find`` substring scan had —
-    it spuriously flipped failures to success/neutral (Cycle-7 follow-up to C-MED-6)."""
-    return re.compile(r"\b" + re.escape(marker))
+    """Match ``marker`` as a whole word, allowing only a small set of inflectional suffixes.
+
+    Leading word boundary so an internal substring never matches ("ok" ✗ "tokens"/"lookup",
+    "no" ✗ "casino"). A bounded suffix group + TRAILING boundary so a stem matches its real
+    inflections ("error"→"errors", "success"→"successful/ly") but does NOT bleed into an
+    unrelated longer word ("success" ✗ "successive", "cannot" ✗ "cannotation") — those
+    over-matches were false success/failure inferences that poison stored valence (Cycle-8
+    fuzz follow-up to C-MED-6)."""
+    return re.compile(r"\b" + re.escape(marker) + r"(?:s|es|ed|ing|ful|fully)?\b")
 
 
 def _window_negated(window: str) -> bool:

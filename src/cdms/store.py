@@ -64,6 +64,7 @@ _SECRET_PATTERNS = [
     re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),           # Slack tokens
     re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),                    # OpenAI-style keys
     re.compile(r"\bsk-ant-[A-Za-z0-9_-]{20,}"),                # Anthropic (hyphens break the sk- rule above)
+    re.compile(r"\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}"),  # OpenAI project/service keys (hyphenated)
     re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"),                 # Google API key
     re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),  # JWT
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
@@ -74,7 +75,7 @@ _SECRET_PATTERNS = [
     # Quantifiers BOUNDED ({0,64}) so the name-prefix/suffix around the keyword cannot
     # drive catastrophic backtracking on adversarial input even if length-clipping is ever
     # bypassed (Cycle-5 C-MED-5); 64 chars is far longer than any real env-var name.
-    re.compile(r"(?i)\b([A-Z0-9_]{0,64}(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
+    re.compile(r"(?i)\b([A-Z0-9_]{0,64}(?:SECRET|TOKEN|PASSWORD|PASSWD|PWD|API[_-]?KEY|ACCESS[_-]?KEY)"
                r"[A-Z0-9_]{0,64})\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
 ]
 
