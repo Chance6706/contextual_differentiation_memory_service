@@ -336,7 +336,7 @@ class MemoryService:
                              "session_id": rec.session_id, "project": rec.project},
                 ))
         elif tier == "gist":
-            gmap = {g.id: g for g in self.db.all_gist()}
+            gmap = self.db.get_gists_by_ids(rrf.keys())   # only the hit ids, not a full scan
             for mid, base in rrf.items():
                 g = gmap.get(mid)
                 if g is None:
@@ -349,7 +349,7 @@ class MemoryService:
                              "project": g.project},
                 ))
         else:  # scar
-            smap = {s.id: s for s in self.db.all_scars()}
+            smap = self.db.get_scars_by_ids(rrf.keys())   # only the hit ids, not a full scan
             for mid, base in rrf.items():
                 s = smap.get(mid)
                 if s is None:

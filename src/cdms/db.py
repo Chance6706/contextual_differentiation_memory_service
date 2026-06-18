@@ -495,6 +495,19 @@ class Database:
         rows = self.conn.execute("SELECT * FROM mem_gist ORDER BY rowid").fetchall()
         return [self._row_to_gist(r) for r in rows]
 
+    def get_gists_by_ids(self, ids) -> dict[str, Gist]:
+        """{id: Gist} for just the requested ids (one chunked IN query) — used to
+        materialize KNN/FTS hits without scanning the whole table (Cycle-5 C-MED-8)."""
+        ids = list(ids)
+        out: dict[str, Gist] = {}
+        for i in range(0, len(ids), 800):  # stay under SQLite's variable limit
+            chunk = ids[i:i + 800]
+            q = ",".join("?" for _ in chunk)
+            for r in self.conn.execute(f"SELECT * FROM mem_gist WHERE id IN ({q})", chunk):
+                g = self._row_to_gist(r)
+                out[g.id] = g
+        return out
+
     def top_gist(self, limit: int, project: str | None = None) -> list[Gist]:
         """Highest-support / most-frequent gist tuples for context injection."""
         if project:
@@ -624,6 +637,20 @@ class Database:
         rows = self.conn.execute("SELECT * FROM mem_scars ORDER BY timestamp DESC").fetchall()
         return [self._row_to_scar(r) for r in rows]
 
+    def get_scars_by_ids(self, ids) -> dict[str, Scar]:
+        """{id: Scar} for just the requested ids (one chunked IN query) — used to
+        materialize hits / dedup candidates without scanning the whole table
+        (Cycle-5 C-MED-8, Cycle-4 A5-H1)."""
+        ids = list(ids)
+        out: dict[str, Scar] = {}
+        for i in range(0, len(ids), 800):
+            chunk = ids[i:i + 800]
+            q = ",".join("?" for _ in chunk)
+            for r in self.conn.execute(f"SELECT * FROM mem_scars WHERE id IN ({q})", chunk):
+                s = self._row_to_scar(r)
+                out[s.id] = s
+        return out
+
     def find_duplicate_scar(self, embedding, project: str, threshold: float) -> Scar | None:
         """Nearest existing scar (same project) within ``threshold`` cosine of
         ``embedding`` — used to dedup on insert so a recurring failure (the same
@@ -633,7 +660,8 @@ class Database:
         hits = self.knn("scar", embedding, 5)
         if not hits:
             return None
-        smap = {s.id: s for s in self.all_scars()}
+        # Load only the ≤5 KNN candidates, not the whole scar table (Cycle-4 A5-H1).
+        smap = self.get_scars_by_ids([sid for sid, _ in hits])
         for sid, dist in hits:
             s = smap.get(sid)
             if s is None or s.project != project:

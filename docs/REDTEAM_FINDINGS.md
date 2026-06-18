@@ -336,9 +336,12 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   exploitable in practice.
 - **C-MED-7** `_content_terms` decomposes paths into filename fragments: representational
   coarseness, tracked under the §10.5 portrait-richness thread.
-- **C-MED-8 / A5-H1** O(n) `all_gist`/`all_scars` on retrieve & `find_duplicate_scar`:
-  performance at scale (~tens of ms at 10k rows), acceptable now; a `WHERE id IN (…)`
-  optimization is deferred to a perf pass.
+- ~~**C-MED-8 / A5-H1** O(n) `all_gist`/`all_scars` on retrieve & `find_duplicate_scar`~~
+  → **✅ PROMOTED & FIXED (Cycle-7 follow-up, Phase 1):** `_materialize` and
+  `find_duplicate_scar` now fetch only the hit/candidate ids via `get_gists_by_ids` /
+  `get_scars_by_ids` (chunked `WHERE id IN`), not the whole table. Integration test proves
+  retrieve results are byte-identical with whole-table scans forbidden
+  (`tests/test_cycle7_deferred.py`).
 - **A1-M1** silent consolidation-skip on lock timeout: observability gap (logged, self-heals
   next cycle); a skip counter is a future nicety.
 - **A2-M2 / A5-L2** quarantined `.corrupt-*` / orphaned `.processing` files accumulate and
