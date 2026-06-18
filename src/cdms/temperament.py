@@ -76,13 +76,14 @@ _ARCHETYPE_SEEDS: dict[str, dict[str, float]] = {
     },
 }
 
-# Joint-leash radius per archetype (Euclidean; an OWNED STIPULATION per §1.5, not a
-# discovered identity threshold). Maverick gets a wider leash ("highest drift", §8.5).
-# A Mahalanobis Σ from the Phase 2 survivable region replaces this later (Round-2 P2).
-_ARCHETYPE_RADIUS: dict[str, float] = {
-    "co-pilot": 0.30, "sparring-partner": 0.30, "apprentice": 0.30,
-    "stoic-analyst": 0.30, "maverick": 0.45,
-}
+# Joint-leash radius. An OWNED STIPULATION (§1.5), but DERIVED from each archetype's
+# own per-dial box geometry rather than hand-set — so the leash provably **binds inside
+# the box** for every archetype (its §8.3 purpose: catch a joint corner that sits inside
+# every per-dial band). A hand-set constant failed this: it left the widest archetype's
+# leash slack (R > box-corner ⇒ the leash could never fire before the per-dial bounds).
+# `LEASH_FRACTION` < 1 keeps the leash inside the box; > 0 keeps the seed itself well
+# within it. A Mahalanobis Σ from the Phase 2 survivable region replaces this (Round-2 P2).
+LEASH_FRACTION = 0.9
 
 DEFAULT_ARCHETYPE = "co-pilot"
 
@@ -117,8 +118,34 @@ def preset_dials(archetype: str) -> list[Dial]:
     return out
 
 
+def box_corner_radius(archetype: str) -> float:
+    """Euclidean distance from seed to the all-bounds corner of the per-dial box — the
+    maximum in-box divergence (uses the larger half-band per dial, so clamping near 0/1
+    is accounted for). The joint leash is set as a fraction of this."""
+    total = 0.0
+    for d in preset_dials(archetype):
+        reach = max(d.upper - d.seed, d.seed - d.lower)
+        total += reach * reach
+    return sqrt(total)
+
+
 def archetype_radius(archetype: str) -> float:
-    return _ARCHETYPE_RADIUS.get(archetype, _ARCHETYPE_RADIUS[DEFAULT_ARCHETYPE])
+    """Joint-leash radius for an archetype — a fraction of its box-corner so the leash
+    always binds within the per-dial box (never slack), for every archetype."""
+    if archetype not in _ARCHETYPE_SEEDS:
+        archetype = DEFAULT_ARCHETYPE
+    return LEASH_FRACTION * box_corner_radius(archetype)
+
+
+def match_archetype_by_seed(seed_by_dial: Mapping[str, float]) -> str | None:
+    """Recover the archetype whose preset SEEDS match the given per-dial seeds. Seeds are
+    immutable (only `current` drifts), so this match is exact — it lets a lost archetype
+    label be restored from the persisted dials rather than silently defaulting (Round-2 F4)."""
+    for arch in _ARCHETYPE_SEEDS:
+        preset = {d.name: d.seed for d in preset_dials(arch)}
+        if all(abs(preset[k] - seed_by_dial.get(k, 1e9)) < 1e-9 for k in preset):
+            return arch
+    return None
 
 
 # --------------------------------------------------------------------------- #

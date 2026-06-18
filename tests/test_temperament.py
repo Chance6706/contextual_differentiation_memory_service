@@ -29,7 +29,7 @@ def test_seeds_default_copilot_on_first_init(cfg):
     assert {d.name for d in dials} == set(T.DIALS)
     assert len(dials) == len(T.DIALS) == 8
     assert db.get_archetype() == "co-pilot"
-    assert db.get_archetype_radius() == 0.30
+    assert db.get_archetype_radius() == pytest.approx(T.archetype_radius("co-pilot"))
     # Phase 0: no drift — current == seed for every dial; bounds bracket seed, in [0,1].
     for d in dials:
         assert d.current == d.seed
@@ -43,7 +43,7 @@ def test_archetype_choice_changes_seed_and_radius(tmp_path):
     cfg = Config(home=tmp_path, archetype_default="maverick")
     db = Database(cfg)
     assert db.get_archetype() == "maverick"
-    assert db.get_archetype_radius() == 0.45
+    assert db.get_archetype_radius() == pytest.approx(T.archetype_radius("maverick"))
     dials = {d.name: d for d in db.all_dials()}
     assert dials["exploration_radius"].seed == 0.90
     db.close()
@@ -279,7 +279,7 @@ def test_cli_temperament_outputs_seeded_vector(tmp_path, monkeypatch, capsys):
     assert main(["temperament"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["archetype"] == "stoic-analyst"
-    assert out["R_archetype"] == 0.30
+    assert out["R_archetype"] == pytest.approx(T.archetype_radius("stoic-analyst"))
     assert out["leash_exceeded"] is False
     assert len(out["dials"]) == 8
     assert {d["dial"] for d in out["dials"]} == set(T.DIALS)
@@ -326,5 +326,5 @@ def test_existing_store_not_retro_changed_by_archetype_config(tmp_path):
     db.close()
     db2 = Database(Config(home=tmp_path, archetype_default="maverick"))
     assert db2.get_archetype() == "apprentice"          # not retro-changed
-    assert db2.get_archetype_radius() == 0.30            # apprentice radius, not 0.45
+    assert db2.get_archetype_radius() == pytest.approx(T.archetype_radius("apprentice"))
     db2.close()

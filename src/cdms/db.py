@@ -229,29 +229,48 @@ class Database:
             c.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
     def _seed_temperament(self, c: sqlite3.Connection) -> None:
-        """Seed the §8 temperament vector ONCE, at first init, from the configured
-        archetype (Phase 0: ``current == seed``, no drift). Idempotent: seeds only
-        when the table is empty, so re-opening an existing store never re-seeds nor
-        overwrites a (future-Phase-1b) drifted ``current``. Operator-only state.
-        """
-        from .temperament import DEFAULT_ARCHETYPE, archetypes, preset_dials
+        """Seed the §8 temperament vector from the configured archetype (Phase 0:
+        ``current == seed``, no drift). Operator-only state.
 
-        if c.execute("SELECT COUNT(*) FROM mem_temperament").fetchone()[0]:
+        Robust to interruption and concurrency: it (re)seeds only what is MISSING via
+        ``INSERT OR IGNORE``, so it (a) is idempotent on a complete store — never
+        overwriting a future-Phase-1b drifted ``current``; (b) HEALS a partially-seeded
+        store (interrupted first init) by completing it from the already-stored
+        archetype, never mixing two archetypes; (c) is safe under a concurrent first
+        init (a racing seeder's duplicate rows are ignored, not an IntegrityError).
+        """
+        from .temperament import (DEFAULT_ARCHETYPE, DIALS, archetypes,
+                                  match_archetype_by_seed, preset_dials)
+
+        rows = c.execute("SELECT dial, seed FROM mem_temperament").fetchall()
+        existing = {r[0] for r in rows}
+        if existing == set(DIALS):
+            # Fully seeded — leave the dials (preserves any drifted `current`). But if the
+            # archetype LABEL was lost (partial corruption / external edit), recover it
+            # from the immutable seeds rather than silently defaulting (Round-2 F4).
+            if self.get_meta("archetype") is None:
+                recovered = match_archetype_by_seed({r[0]: r[1] for r in rows}) or DEFAULT_ARCHETYPE
+                c.execute("INSERT OR IGNORE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
+                          (recovered,))
             return
-        archetype = getattr(self.cfg, "archetype_default", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
+        if existing:
+            # Partial state: complete it from the archetype already on record so the
+            # filled-in dials match the seeded ones (don't adopt a possibly-changed config).
+            archetype = self.get_meta("archetype") or DEFAULT_ARCHETYPE
+        else:
+            archetype = getattr(self.cfg, "archetype_default", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
         if archetype not in archetypes():
             archetype = DEFAULT_ARCHETYPE
         for d in preset_dials(archetype):
             c.execute(
-                "INSERT INTO mem_temperament(dial, seed, current, lower, upper, plasticity) "
+                "INSERT OR IGNORE INTO mem_temperament(dial, seed, current, lower, upper, plasticity) "
                 "VALUES (?,?,?,?,?,?)",
                 (d.name, d.seed, d.current, d.lower, d.upper, d.plasticity),
             )
-        # Store ONLY the archetype name (direct INSERT, not set_meta, so this stays in
-        # the _init_schema tx). The leash radius is DERIVED from the archetype at read
-        # time (get_archetype_radius) — one source of truth, so the radius can never
-        # silently diverge from the archetype (Round-2 F4).
-        c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
+        # Record ONLY the archetype name (OR IGNORE: never overwrite an existing label).
+        # The leash radius is DERIVED from the archetype (get_archetype_radius), so it can
+        # never silently diverge from it (Round-2 F4). Direct exec stays in the init tx.
+        c.execute("INSERT OR IGNORE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
                   (archetype,))
 
     @staticmethod
