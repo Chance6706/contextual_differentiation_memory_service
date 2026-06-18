@@ -6,7 +6,7 @@ files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-servic
 
 ## TL;DR
 
-The **memory core is built, tested (273 tests), and validated on real history.** The
+The **memory core is built, tested (281 tests), and validated on real history.** The
 **§8 temperament layer Phase 0** (static disposition state + pure-function control + joint
 leash) is now **built, tested, and merged to `main`**. The remaining **proactive pillars**
 (curiosity/dream-research, emotion/proposals/provenance, the temperament drift/proposal
@@ -46,14 +46,18 @@ phases 1+) are **fully designed and documented but not yet implemented.**
   poisoning valence; 2 MED — partial-seed archetype-mixing + the Bem-firewall CLI leak; 5
   LOW — purge glob, dedup phantom +1, temperament CHECK constraints, `db_filename`
   traversal, `reinforce_cap<alpha`). Merged to `main` in **PR #15**.
-- **Cycle 8** — OWL full-spectrum final report (6-subagent, 20 findings). Triaged across PRs
-  #17–#21 + a Gemma-fuzzed pass: spool/secret/redaction hardening, S0-weight + per-session
-  budget caps (H-2/H-M-2), adaptive valence-EMA so established traits resist injection (M-M-4),
-  embedder-lock + eviction-reread races, and **scale** — per-project dedup/aggregation (C-1
-  memory) + a gated VACUUM (M-S-1). Two reported items were verified overstated/dead-config
-  (`http_host`/`dreamer_base_url` are stdio/unwired; C-1 OOM is decay-bounded). **Still
-  deferred:** C-1 streaming pre-eviction (rare dedup-fold caveat), M-8 runtime vec0 pin, and
-  the low-value LOWs (L-1/L-C-1/L-S-1/L-6/L-S-2; base64 redaction skipped — high false-positive).
+- **Cycle 8 — COMPLETE** (OWL full-spectrum final report, 6-subagent, 20 findings; every
+  actionable item fixed or explicitly deferred-with-rationale). Triaged across PRs #17–#25:
+  spool/secret/redaction hardening (+ a Gemma-fuzzed pass that found `sk-proj`/`pwd`/marker-
+  overmatch gaps), S0-weight + per-session budget caps (H-2/H-M-2), adaptive valence-EMA so
+  established traits resist injection (M-M-4), per-write associative-boost cap (M-M-3),
+  embedder-lock + eviction-reread races, runtime vec0-format pin (M-8), dedup in-memory survivor
+  + MCP `kind` validation (L-1/L-S-1), and **scale** — per-project dedup/aggregation (C-1 memory)
+  + a gated VACUUM (M-S-1). Verified overstated/dead-config: `http_host`/`dreamer_base_url` are
+  stdio/unwired, C-1 OOM is decay-bounded, L-3 was already shipped in Cycle 7. **Intentionally
+  deferred:** C-1 streaming pre-eviction (addressed by C-1 memory + M-S-1; rare dedup-fold
+  caveat), L-C-1 (lock + persist-last already cover it), L-6 (cosmetic), L-S-2 (ops/CI not code),
+  L-S-3 base64 redaction (high false-positive).
 - Full inventory + verified-sound + deferred items:
   [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections
   (P1–P7 + the "Boiling Frog" leash test) are in
@@ -174,7 +178,7 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 273 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # 281 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory
