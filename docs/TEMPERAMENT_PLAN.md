@@ -66,6 +66,34 @@ consequence. Citations are author/year; URLs collected in §7.
   (§1.6 below: a self that can never revise); treating all as freely plastic reproduces
   **diffusion/thrash**. The gradient is the faithful middle.
 
+### 1.1a Per-archetype plasticity → plasticity is DECOUPLED from where dials start (seed)
+- **Science (what the research actually says — see `TEMPERAMENT_RESEARCH_NOTES.md`).** The folk
+  intuition that an exploratory / open / "maverick" disposition changes *faster* is **not
+  supported**, and is partly contradicted: Openness is the **most heritable** Big Five trait
+  (~61%, Power et al. 2015) and among the **least intervention-malleable** (Roberts et al. 2017
+  meta-analysis; Hudson & Fraley; Stieger et al. 2021 PEACH — Emotional Stability and Extraversion
+  move most, Openness least); Cloninger **Novelty-Seeking is a stable, heritable temperament**;
+  and the DeYoung **"Plasticity" metatrait predicts behavioral EXPLORATION/ENGAGEMENT, not rate of
+  trait change** (Hirsh et al. 2009) — its very existence as a substantive factor is contested
+  (Anusic 2009; Chang 2012; vs Şimşek 2012). The **only robustly-supported direction** is the
+  *resistant* end: high-**Stability** (low-N + A + C) / high-**Conscientiousness** profiles show
+  behavioral restraint and rising rank-order stability (DeYoung 2006; Hirsh 2009; Roberts &
+  DelVecchio 2000). Reliable individual-differences-in-*change* exist mainly for Extraversion /
+  Neuroticism (Mroczek & Spiro 2003) and are fragile (change-score unreliability).
+- **Design consequence.** Give each archetype a **plasticity multiplier** scaling its per-dial drift
+  bands, **decoupled from its seed**: a Maverick *starts* adventurous (high `exploration_radius`
+  seed) but only **modestly** drifts faster; the **Stoic Analyst is lowest** (the solid resistant
+  end), Apprentice low. Implemented as `ARCHETYPE_PLASTICITY` (0.7→1.3, ✅ Phase 0). The spread is
+  **small** (everyone bounded-but-not-frozen) and the magnitudes are an **owned stipulation** (§1.5),
+  a Phase-2 tunable — *not* a claim about which humans change fastest. The maturity-prior caution
+  (P5) applies: faithfulness to a human pattern is not warrant that an AI *should* drift that way.
+- **Failure mode this guards.** Equating "explores a lot" with "changes identity a lot" would make
+  the most-exploratory archetype the least-stable self (spurious diffusion/thrash risk) on no real
+  evidence; keeping the resistant end solid and the spread modest avoids manufacturing instability.
+- **Caveat carried forward (§5).** *Mean-level change ≠ rank-order stability ≠
+  individual-differences-in-change* (Specht 2011); "more changeable" is ambiguous unless the kind of
+  change is named, so per-archetype plasticity is held as a deliberately coarse, modest prior.
+
 ### 1.2 Change is *directional*, not a random walk → a maturity prior on the update rule
 - **Science.** The **maturity principle** (Roberts, Walton & Viechtbauer 2006, 92-sample
   meta-analysis): with age people rise on conscientiousness, emotional stability, social

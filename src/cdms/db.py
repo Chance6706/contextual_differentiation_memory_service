@@ -110,7 +110,7 @@ def _ddl(dim: int) -> list[str]:
             plasticity REAL NOT NULL DEFAULT 0
         )""",
         # small key/value store (e.g. the consolidation cycle counter for gist decay;
-        # the temperament 'archetype' + 'R_archetype' leash radius)
+        # the temperament 'archetype' name — the leash radius is derived, not stored)
         "CREATE TABLE IF NOT EXISTS cdms_meta (key TEXT PRIMARY KEY, value TEXT)",
     ]
 

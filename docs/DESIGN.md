@@ -586,15 +586,17 @@ Two guarantees:
 
 ### 8.5 Starter archetypes
 
-📐 **Designed.** The starter set spans the corners of the temperament space (each is a *correlated preset*, any dial overridable):
+📐 **Designed** (Phase 0 seeds + per-archetype plasticity ✅ Built — `src/cdms/temperament.py`). The starter set spans the corners of the temperament space (each is a *correlated preset*, any dial overridable). Each archetype carries both a **seed** (where its dials start) and a **plasticity multiplier** (how much they may drift) — and these are **decoupled** (see the caveat):
 
-| Archetype | Disposition (preset bias) |
-|---|---|
-| **Co-pilot** | Moderate default across all dials. |
-| **Sparring Partner** | High `independence`; challenges *with evidence*. |
-| **Apprentice** | Deferent, eager, tightly gated (`autonomy_gate` toward review-everything). |
-| **Stoic Analyst** | Low `emotional_gain`; high provenance rigor. |
-| **Maverick** | Wide `exploration_radius`, high `autonomy`, passionate — **highest drift**. |
+| Archetype | Seed bias (where dials start) | Plasticity (drift rate) |
+|---|---|---|
+| **Co-pilot** | Moderate default across all dials. | baseline (1.0×) |
+| **Sparring Partner** | High `independence`; challenges *with evidence*. | slightly above (1.15×) |
+| **Apprentice** | Deferent, eager, tightly gated (`autonomy_gate` toward review-everything). | low (0.8×) — develops mainly via the directional **Growth** axis (§8.4), not high omnidirectional drift |
+| **Stoic Analyst** | Low `emotional_gain`; high provenance rigor. | **lowest (0.7×)** — change-resistant |
+| **Maverick** | Wide `exploration_radius`, high `autonomy`, passionate. | modestly highest (1.3×) |
+
+> **Plasticity ≠ exploration (a research-grounded correction).** An earlier draft labelled Maverick "**highest drift**," conflating two things the human-development literature says are distinct: *behavioral exploration/engagement* (a high `exploration_radius` **seed**) versus *rate of trait change* (**plasticity**). The evidence does **not** support "exploratory/open ⇒ changes faster" — Openness is the *most heritable* Big Five trait and among the *least* intervention-malleable, Cloninger Novelty-Seeking is a stable temperament, and the DeYoung "Plasticity" metatrait predicts *exploration*, not change-rate (and is itself contested). The only robustly-supported direction is the **resistant** end: high-Stability / high-Conscientiousness profiles change least (so Stoic Analyst is lowest). Maverick is therefore only **modestly** more plastic, and the per-archetype spread is small (everyone is bounded-but-not-frozen, Roberts & DelVecchio 2000). These multipliers are an **owned stipulation** (§1.5 / TEMPERAMENT_PLAN §1.1a), tunable in Phase 2 — *not* a claim about which humans change fastest. See `docs/TEMPERAMENT_RESEARCH_NOTES.md`.
 
 ### 8.6 System-wide symmetry (why this matters)
 

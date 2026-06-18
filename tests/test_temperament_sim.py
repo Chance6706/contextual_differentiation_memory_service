@@ -79,6 +79,38 @@ def test_leash_binds_within_box_for_every_archetype():
         assert not T.leash_exceeded(near, seed, R)
 
 
+def test_per_archetype_plasticity_ordering_is_grounded():
+    """Plasticity (drift-band / box) is strictly ordered: resistant end lowest (solid:
+    high-stability/conscientiousness), Maverick only MODESTLY highest (owned stipulation),
+    small spread (everyone bounded-but-not-frozen). NB the leash RADIUS is a separate,
+    safety-capped quantity (it may tie across archetypes); the plasticity claim is the box."""
+    order = ["stoic-analyst", "apprentice", "co-pilot", "sparring-partner", "maverick"]
+    mults = [T.ARCHETYPE_PLASTICITY[a] for a in order]
+    corners = [T.box_corner_radius(a) for a in order]
+    assert mults == sorted(mults) and len(set(mults)) == len(mults)       # strictly increasing
+    assert corners == sorted(corners) and len(set(corners)) == len(corners)
+    base = T.box_corner_radius("co-pilot")
+    for a in order:                                                       # corner ∝ multiplier (no clamp artifact)
+        assert T.box_corner_radius(a) == pytest.approx(T.ARCHETYPE_PLASTICITY[a] * base)
+    assert corners[-1] / corners[0] == pytest.approx(mults[-1] / mults[0])  # spread is exactly the mult ratio
+    assert mults[-1] / mults[0] < 2.0                                     # modest, not extreme
+    for a in order:                                                       # leash still binds & positive
+        assert 0.0 < T.archetype_radius(a) <= T.box_corner_radius(a)
+
+
+def test_exploration_is_decoupled_from_plasticity():
+    """A Maverick EXPLORES more (high exploration_radius SEED) but is only modestly more
+    PLASTIC (drift rate) — the precise distinction the human research forces."""
+    mav = {d.name: d for d in T.preset_dials("maverick")}
+    cop = {d.name: d for d in T.preset_dials("co-pilot")}
+    sto = {d.name: d for d in T.preset_dials("stoic-analyst")}
+    assert mav["exploration_radius"].seed > cop["exploration_radius"].seed   # explores more
+    ratio = mav["exploration_radius"].plasticity / cop["exploration_radius"].plasticity
+    assert ratio == pytest.approx(T.ARCHETYPE_PLASTICITY["maverick"]) and 1.0 < ratio < 1.5  # modest
+    for name in T.DIALS:                                                     # Stoic = resistant pole
+        assert sto[name].plasticity < cop[name].plasticity
+
+
 def test_all_archetypes_seed_roundtrip_through_db(tmp_path):
     for arch in T.archetypes():
         cfg = Config(home=tmp_path / arch, archetype_default=arch)
@@ -102,11 +134,27 @@ def test_all_archetypes_seed_roundtrip_through_db(tmp_path):
 # archetype trips the STATIC-SEED leash before arrival — and a MOVING-ANCHOR
 # leash (the broken design) never trips (matched negative control → non-vacuous).
 # --------------------------------------------------------------------------- #
-@pytest.mark.parametrize("src,dst", [
-    ("co-pilot", "maverick"),
-    ("apprentice", "maverick"),
-    ("stoic-analyst", "sparring-partner"),
-])
+def test_no_archetype_seed_lies_within_anothers_leash():
+    """Closed-form 'no archetype-hopping' invariant over ALL ordered pairs: every other
+    archetype's seed must be strictly OUTSIDE this archetype's leash, or `current` could
+    drift onto a neighbour without the leash ever firing (the Round-2 regression). This is
+    the cheap guard the 3-pair trajectory test missed; it must hold for all 20 pairs."""
+    arches = list(T.archetypes())
+    for src in arches:
+        seed = {d.name: d.seed for d in T.preset_dials(src)}
+        R = T.archetype_radius(src)
+        for dst in arches:
+            if dst == src:
+                continue
+            other = {d.name: d.seed for d in T.preset_dials(dst)}
+            dist = T.leash_distance(other, seed)
+            assert dist > R, f"{dst} seed (dist {dist:.3f}) is within {src} leash R={R:.3f}"
+
+
+@pytest.mark.parametrize("src,dst", [(s, d) for s in (
+    "co-pilot", "sparring-partner", "apprentice", "stoic-analyst", "maverick")
+    for d in ("co-pilot", "sparring-partner", "apprentice", "stoic-analyst", "maverick")
+    if s != d])
 def test_subthreshold_hop_trips_seed_leash_not_moving_anchor(src, dst):
     seed = {d.name: d.seed for d in T.preset_dials(src)}
     target = {d.name: d.seed for d in T.preset_dials(dst)}
@@ -179,6 +227,17 @@ def test_partial_seed_heals_from_stored_archetype_preserving_drift(tmp_path):
     db2.close()
 
 
+def test_archetype_seed_vectors_are_unique():
+    """match_archetype_by_seed recovery is only unambiguous if no two archetypes share an
+    identical seed vector — guard it as the preset table evolves."""
+    seen: dict[tuple, str] = {}
+    for a in T.archetypes():
+        key = tuple(round(d.seed, 6) for d in T.preset_dials(a))
+        assert key not in seen, f"{a} shares a seed vector with {seen.get(key)}"
+        seen[key] = a
+        assert T.match_archetype_by_seed({d.name: d.seed for d in T.preset_dials(a)}) == a
+
+
 def test_lost_archetype_meta_recovered_from_immutable_seeds(tmp_path):
     cfg = Config(home=tmp_path, archetype_default="maverick")
     db = Database(cfg)
@@ -192,14 +251,29 @@ def test_lost_archetype_meta_recovered_from_immutable_seeds(tmp_path):
 
 
 def test_concurrent_first_init_seeds_exactly_eight(tmp_path):
+    import sqlite3
+    import time
+
     cfg = Config(home=tmp_path)
-    errors: list[Exception] = []
+    errors: list[object] = []
     barrier = threading.Barrier(8)
 
     def worker():
         try:
             barrier.wait()           # maximize contention on first init
-            Database(cfg).close()
+            # Transient lock/busy under a thundering-herd first init is a CALLER-retry
+            # concern by design (Database re-raises locks rather than quarantining a good
+            # store — see test_cycle3). Retry like a real caller; the guarantee under test
+            # is that seeding never duplicates / corrupts, i.e. exactly 8 dials result.
+            for attempt in range(12):
+                try:
+                    Database(cfg).close()
+                    return
+                except sqlite3.OperationalError as exc:
+                    if "lock" not in str(exc).lower() and "busy" not in str(exc).lower():
+                        raise
+                    time.sleep(0.02 * (attempt + 1))
+            errors.append("gave up after lock retries")
         except Exception as exc:     # noqa: BLE001 — record, assert after join
             errors.append(exc)
 
