@@ -49,6 +49,16 @@ Identity = f(History)
 
 A critical constraint follows: the phenotype must be **authored by history, not by the pretrained prior.** Gist tuples are extracted by geometry/lexicon only — the LLM never authors them — which structurally prevents *generative self-fiction* (the model summarizing itself toward pretrained personality clichés). ✅ Built — mechanical tuple aggregation, `README.md` and `src/cdms/consolidate.py`.
 
+### 1.1a Ontological & build status — what CDMS does and does not claim
+
+This sub-section exists to pre-empt a recurring misreading. External reviewers have read the same framing in opposite directions — one as an overclaim to attack ("identity = f(history) is just a lossy JPEG, not a photograph"; autonomy is "a philosophical zombie" — Cycle 5, `redteam/CYCLE5_GLM52_REPORT.md`), another as a grander claim to celebrate ("a simulacrum of ego… the **same AI in a new body**" — Cycle 6, `redteam/CYCLE6_OWL_ANALYSIS.md`). Both target a claim CDMS does **not** make.
+
+The equation above is a claim about **individuation** — *what makes this instance recognizably this one* — not about **phenomenal consciousness**. CDMS **individuates; it does not animate.** It produces a *functional simulacrum* of continuity (the useful behavior of having a past), not subjective experience, sentience, or a persisting subject. CDMS is silent on consciousness: it neither implements nor evidences it, and reading "identity"/"Ego" as a claim about a *mind* is an equivocation on the word "identity."
+
+- **Mechanical and reactive today.** Everything ✅ Built is *retrospective* — it consolidates *what history did*, by geometry/lexicon only (the LLM never authors the tuple, §1.1). The move from *"what have I done"* to *"what can I become"* (self-direction) is the curiosity/research **"active dreaming"** pillar (§6), which is **📐 Designed, not built**. The optional prose Dreamer (`dreamer_enabled`, default off) does not cross this line — it renders prose, it does not direct the self. Even once built, dreaming is gated *propose-not-act* (self-edits are impact-gated, §6.8; the propose→experiment→lived reality-coupling, §7.6) — functional agency at most, never experience.
+- **Substrate-independence = content, not a soul.** Across a model change the *content* of the self-model (gist/scar tuples and dials, all text) carries over; the *expression* changes with the new model, and only insofar as the new model can read the store and respect the read-only trust fence on injected memory (§9.2). This is *not* "the same AI in a new body."
+- **The cognitive vocabulary is load-bearing metaphor.** "Ego / sleep / dreaming / individuation" come from complementary learning systems, the Ebbinghaus curve, and synaptic downscaling because they earn their keep as design intuition (and trace to real built mechanisms), not because CDMS literally instantiates those phenomena.
+
 ### 1.2 The Freudian mapping: Id / Ego / Superego → three substrates
 
 CDMS is organized as three layers, mapped onto a Freudian topology to make the regulatory roles explicit:

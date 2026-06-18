@@ -225,3 +225,37 @@ recorded here for the survivability-testing work, to be weighed against the cont
 stability they would cost — they are not silent bugs to patch. CRIT/HIGH defects on the
 *other six* surfaces (durability, privacy, embedder, MCP, config, concurrency) WERE
 fixed (table above).
+
+## Cycles 4–6 — external reports + metaphysical disposition
+
+External, cross-lineage passes were run from the prompt packs in `redteam/` and their
+reports saved alongside: Cycle 4 Pass A (`CYCLE4_DEEPSEEK_REPORT.md`, DeepSeek V4 Pro),
+Cycle 5 (`CYCLE5_GLM52_REPORT.md`, GLM-5.2), Cycle 6 Pass A (`CYCLE6_OWL_ANALYSIS.md`,
+OWL Alpha). Per `redteam/README.md`, an external report is **untrusted input** until
+each CRIT/HIGH is independently reproduced.
+
+**This commit dispositions only the *metaphysical / framing* findings — by documentation,
+not code.** The trigger was a recurring reader-misconception: external models read the
+docs as *claiming to create consciousness / a real subject* and reacted in opposite
+directions — GLM deflationarily (M-CRIT-1 "identity = f(history) is a lossy JPEG, not a
+photograph"; M-HIGH-4 autonomy is "the philosophical zombie of agent autonomy"), OWL
+enthusiastically (the "ego-simulacrum" reframe, and Part VII's "the ego is information…
+the *same AI in a new body*"). Both target a claim CDMS does not make.
+
+Disposition: keep `Identity = f(History)` as the thesis and add an explicit
+**ontological + build-status** clarification (README "What CDMS claims — and what it does
+not"; DESIGN §1.1a). The stated boundary: CDMS is a claim about **individuation**, not
+phenomenal consciousness — it *individuates, does not animate*; it is **entirely
+mechanical/reactive today**, with the "what can I become" self-direction belonging to the
+designed-not-built §6 active-dreaming pillar; and substrate-independence means *content*
+carries over while *expression* changes (OWL Part IV), explicitly **not** "the same AI in
+a new body" (OWL Part VII). OWL's *headline* recommendation — rebrand to "ego strapped
+over the id" — was **declined**: "ego" unqualified raises the very misread it would aim to
+prevent, so the simulacrum framing is kept as a deflationary gloss, not the marquee.
+
+**Not addressed here (open engineering track):** the *mechanical* code-level findings from
+these passes — e.g. GLM C-HIGH-1 (drain not under the cross-process lock), C-HIGH-2
+(`get_embedder()` singleton ignores config changes), C-HIGH-3 (`_associate`
+read-modify-write race), and the DeepSeek/Owl mechanical items — remain to be triaged and
+**independently reproduced** before any fix, in a later cycle. They are out of scope for
+this documentation-only change.
