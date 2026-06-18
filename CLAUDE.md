@@ -19,3 +19,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 8. Acknowledge disagreement. If sources conflict, say so and summarize both sides.
 
 9. Do not restrict yourself to a single point of view. If it cannot be stress-tested then it cannot be properly implemented.
+
+10. Auto-merge PRs. For this repository, merge a pull request you open once it is mergeable (no conflicts, any required checks green) without waiting for explicit approval. Still do not *open* a PR unless asked. If a PR is not mergeable, or a review has requested changes, surface that instead of force-merging.
