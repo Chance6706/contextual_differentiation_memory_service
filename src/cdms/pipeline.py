@@ -14,12 +14,16 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import sys
 import time
 import uuid
+from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
 from .config import Config
+from .models import utc_now_iso
 from .spool import spool_event  # re-exported for backwards compatibility
 from .store import MemoryService, TurnEvent
 
@@ -28,10 +32,39 @@ __all__ = ["spool_event", "reconstruct_turns", "drain_and_ingest"]
 _ERR_MARKERS = ("error", "failed", "failure", "exception", "traceback", "fatal",
                 "denied", "cannot", "not found", "no such", "panic")
 _OK_MARKERS = ("passed", "success", "succeeded", "ok", "done", "completed", "0 errors")
-_NEGATORS = ("no", "not", "zero", "without", "n't", "free of", "free from")
+# Negators split by HOW they must match: a bare-substring test wrongly fires on ordinary
+# words ("casino"/"annotation" contain "no"/"not"), so single tokens are matched as whole
+# WORDS, the "n't" contraction as a word SUFFIX, and the (already multi-word) phrases as
+# substrings — Cycle-7 follow-up to C-MED-6.
+_NEGATOR_WORDS = frozenset({"no", "not", "zero", "without"})
+_NEGATOR_SUFFIX = "n't"
+_NEGATOR_PHRASES = ("free of", "free from")
 # Phrases where an _ERR token actually signals the GOOD outcome (bug is gone).
 _POSITIVE_OVERRIDE = ("cannot reproduce", "can't reproduce", "cannot repro", "no longer fails",
                       "no longer errors", "works fine", "works as expected", "no errors")
+# Leading-word-boundary alternation over the override phrases (longest first so e.g.
+# "cannot reproduce" wins over "cannot repro"), for both detection and stripping.
+_OVERRIDE_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(p) for p in sorted(_POSITIVE_OVERRIDE, key=len, reverse=True)) + r")")
+
+
+@lru_cache(maxsize=None)
+def _marker_re(marker: str) -> "re.Pattern[str]":
+    """A LEADING word-boundary match for ``marker``. A stem still matches its inflections
+    ("error" → "errors"), but an internal substring no longer does: "ok" ✗ "tokens"/
+    "lookup", "no" ✗ "casino". This is the bug the old ``str.find`` substring scan had —
+    it spuriously flipped failures to success/neutral (Cycle-7 follow-up to C-MED-6)."""
+    return re.compile(r"\b" + re.escape(marker))
+
+
+def _window_negated(window: str) -> bool:
+    """True if the (already short) pre-marker window carries a negator. Single-word
+    negators must match as whole tokens — not substrings — so "casino"/"annotation" no
+    longer read as "no"/"not"."""
+    tokens = window.split()
+    if any(t in _NEGATOR_WORDS or t.endswith(_NEGATOR_SUFFIX) for t in tokens):
+        return True
+    return any(p in window for p in _NEGATOR_PHRASES)
 
 
 def _marker_unnegated(low: str, marker: str) -> bool:
@@ -41,12 +74,15 @@ def _marker_unnegated(low: str, marker: str) -> bool:
     failure — negation-blind matching otherwise inverts a success into a failure
     and poisons the stored valence (which the gist-relation and temperament layers
     depend on)."""
-    i = low.find(marker)
-    while i != -1:
-        window = low[max(0, i - 10):i]
-        if not any(n in window for n in _NEGATORS):
+    for m in _marker_re(marker).finditer(low):
+        # Look at the few WORDS immediately before the marker, not a fixed 10-char
+        # window — the 10-char window missed common multi-word negators ("without any
+        # errors", "no further exceptions") and flipped a success to a failure (Cycle-5
+        # C-MED-6). Bounded to the last 3 words so a negator further back ("no backups;
+        # the deploy failed") does NOT wrongly negate the marker.
+        window = " ".join(low[:m.start()].split()[-3:])
+        if not _window_negated(window):
             return True
-        i = low.find(marker, i + 1)
     return False
 
 
@@ -65,7 +101,11 @@ def _infer_success(text: str) -> Optional[bool]:
     than guessing — an inverted guess is worse than no guess. This is a crude lexical
     proxy (the design says so) and must never be the sole driver of temperament drift."""
     low = text.lower()
-    has_override = any(p in low for p in _POSITIVE_OVERRIDE)
+    # Match override phrases on a LEADING word boundary, not as bare substrings — else
+    # "casi[no errors]" / "[no errors]" inside an unrelated word spuriously fires the
+    # positive override and inverts a real failure to success (the same Cycle-7 substring
+    # bug as the marker scan; "no errors" lurks inside "casino errors").
+    has_override = bool(_OVERRIDE_RE.search(low))
     # The override is no longer an UNCONDITIONAL short-circuit. It used to return
     # True the instant any override phrase appeared, so "no errors BUT the test
     # failed" / "...actually the deploy failed catastrophically" inverted a real
@@ -73,9 +113,7 @@ def _infer_success(text: str) -> Optional[bool]:
     # the override phrases (so their internal err-words — "no errors", "cannot
     # reproduce", "no longer fails" — don't read as failures), then check for a
     # SEPARATE, still-present failure marker in the remainder.
-    residual = low
-    for p in _POSITIVE_OVERRIDE:
-        residual = residual.replace(p, " ")
+    residual = _OVERRIDE_RE.sub(" ", low)
     has_err = any(_marker_unnegated(residual, m) for m in _ERR_MARKERS)
     has_ok = any(_marker_unnegated(low, m) for m in _OK_MARKERS)
     if has_override and not has_err:
@@ -227,12 +265,44 @@ def _reclaim_orphans(cfg: Config, service: MemoryService) -> int:
     return total
 
 
+# Drain waits at most this long for the cross-process lock before skipping (the spool
+# is untouched until the lock is held, so a skipped drain is reclaimed by the next one).
+# Short so a hook can't hang waiting on a long consolidation.
+_DRAIN_LOCK_TIMEOUT = 10.0
+
+
 def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
     """Atomically claim the queue, reconstruct turns, and ingest them.
 
-    Also reclaims any orphaned claim from a previously-killed drain. Returns the
-    number of turns ingested (live queue + reclaimed orphans).
+    Held under the cross-process lock (Cycle-5 C-HIGH-1 / C-HIGH-3): without it a drain
+    could ingest episodes into a store mid-consolidation, so consolidation clusters from a
+    stale snapshot (missing/duplicate gists) and ingest's `_associate` salience writes race
+    consolidation's renormalization. Serializing drain against consolidation/forget closes
+    both. On lock timeout we SKIP (the spool's atomic claim only happens inside the lock, so
+    nothing is lost — the next drain reclaims it) rather than hang the hook.
     """
+    from .lock import cross_process_lock
+    try:
+        with cross_process_lock(cfg.lock_path, timeout=_DRAIN_LOCK_TIMEOUT):
+            return _drain_locked(cfg, service)
+    except TimeoutError:
+        # Make the skip OBSERVABLE (review-B finding): a silently-skipped drain can let the
+        # spool grow to its cap and shed events. Mirror the consolidation-skip signal
+        # (counter + timestamp in meta, surfaced by `cdms stats`, + a stderr warning).
+        n = -1
+        try:
+            n = int(service.db.get_meta("drains_skipped", "0") or "0") + 1
+            service.db.set_meta("drains_skipped", n)
+            service.db.set_meta("last_drain_skip", utc_now_iso())
+        except Exception:
+            pass
+        print(f"cdms: drain skipped (lock busy); total skipped={n}. Queued events are "
+              f"deferred to the next drain; repeated skips can back the spool up to its cap.",
+              file=sys.stderr)
+        return 0
+
+
+def _drain_locked(cfg: Config, service: MemoryService) -> int:
     total = _reclaim_orphans(cfg, service)
     q = cfg.queue_path
     if not q.exists() or q.stat().st_size == 0:

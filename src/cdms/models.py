@@ -66,6 +66,21 @@ class Gist:
 
 
 @dataclass
+class Dial:
+    """§8 temperament dial — one disposition axis as a ``(seed, current, bounds)``
+    triple plus a per-dial plasticity coefficient (§8.1, §8.3, §1.1).
+
+    Phase 0: ``current == seed`` (no drift yet). Scale normalized to ``[0, 1]``.
+    """
+    name: str
+    seed: float
+    current: float
+    lower: float
+    upper: float
+    plasticity: float = 0.0
+
+
+@dataclass
 class Scar:
     """L3 pinned guardrail — a permanent crisis-remediation rule.
 

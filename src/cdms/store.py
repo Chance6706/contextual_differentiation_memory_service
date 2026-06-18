@@ -67,8 +67,11 @@ _SECRET_PATTERNS = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
                re.DOTALL),
     # KEY/SECRET/TOKEN/PASSWORD assignments: redact the value, keep the name.
-    re.compile(r"(?i)\b([A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
-               r"[A-Z0-9_]*)\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
+    # Quantifiers BOUNDED ({0,64}) so the name-prefix/suffix around the keyword cannot
+    # drive catastrophic backtracking on adversarial input even if length-clipping is ever
+    # bypassed (Cycle-5 C-MED-5); 64 chars is far longer than any real env-var name.
+    re.compile(r"(?i)\b([A-Z0-9_]{0,64}(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
+               r"[A-Z0-9_]{0,64})\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
 ]
 
 
@@ -336,7 +339,7 @@ class MemoryService:
                              "session_id": rec.session_id, "project": rec.project},
                 ))
         elif tier == "gist":
-            gmap = {g.id: g for g in self.db.all_gist()}
+            gmap = self.db.get_gists_by_ids(rrf.keys())   # only the hit ids, not a full scan
             for mid, base in rrf.items():
                 g = gmap.get(mid)
                 if g is None:
@@ -349,7 +352,7 @@ class MemoryService:
                              "project": g.project},
                 ))
         else:  # scar
-            smap = {s.id: s for s in self.db.all_scars()}
+            smap = self.db.get_scars_by_ids(rrf.keys())   # only the hit ids, not a full scan
             for mid, base in rrf.items():
                 s = smap.get(mid)
                 if s is None:
@@ -431,6 +434,14 @@ class MemoryService:
             for s in self.db.all_scars():
                 if s.id in ids or (project is not None and self._project_match(s.project, project)):
                     sc.add(s.id)
+            # NOTE: a session/id forget intentionally does NOT delete gists. The Cycle-7
+            # attempt to orphan-delete "fully session-derived" gists via the support-edge
+            # table was REVERTED — `delete_episodic` prunes a gist's edges when a supporter
+            # is *evicted*, so the residual edges underestimate provenance and a later
+            # session-forget would erase genuine MULTI-session traits (identity loss, the
+            # double-review H1). Correctly scoping a session-forget to gists needs persisted
+            # per-gist session provenance; until then gists are forgettable by project/id
+            # only (A2-M1 re-deferred — see docs/REDTEAM_FINDINGS.md).
             res = {
                 "episodic": self.db.delete_episodic(ep),
                 "gist": self.db.delete_gist(gi),

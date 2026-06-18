@@ -85,6 +85,12 @@ class Config:
     relation_pos_threshold: float = 0.15   # valence above -> "handles_well"
     relation_neg_threshold: float = -0.15  # valence below -> "has_trouble_with"
 
+    # ---- Temperament (§8) genotype: which archetype seeds a NEW store -------
+    # Phase 0 of the §8.7 chain: the temperament vector is seeded ONCE at first
+    # init from this archetype (one of the §8.5 presets). It does not retro-change
+    # an existing store. Must be a known archetype (validated below).
+    archetype_default: str = "co-pilot"
+
     # ---- Retrieval ---------------------------------------------------------
     default_top_k: int = 8
     rrf_k: int = 60                     # reciprocal-rank-fusion constant for hybrid search
@@ -217,12 +223,83 @@ def _validate(cfg: "Config") -> None:
         ("scar_dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
         ("rrf_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("default_top_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        # Cycle-4 A7-H1: the S0 weights and the remaining thresholds were unvalidated,
+        # so a single env var (e.g. CDMS_W_SURPRISE=1e9, CDMS_DEDUP_SIM_THRESHOLD=2.0)
+        # could disable the salience gate or dedup. Bound them all.
+        # S0 weights are meant to be O(1); cap at 1e3 (not 1e6) so a stray override can't
+        # flatten the salience gate (double-review: 1e6 passed but defeats the gate).
+        ("w_surprise", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("w_contingency", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("w_self_ref", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("w_affect", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("goal_gate_floor", lambda v: _num(v) and 0 <= v <= 1),
+        ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("assoc_sim_floor", lambda v: _num(v) and 0 <= v <= 1),
+        ("cluster_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
+        ("gist_match_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
+        ("dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
+        ("crisis_threshold", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("crisis_valence_max", lambda v: _num(v) and -1 <= v <= 1),
+        ("relation_pos_threshold", lambda v: _num(v) and -1 <= v <= 1),
+        ("relation_neg_threshold", lambda v: _num(v) and -1 <= v <= 1),
+        ("rest_idle_minutes", lambda v: _num(v) and 0 < v <= 1e6),
+        ("http_port", lambda v: isinstance(v, int) and 1 <= v <= 65535),
+        # db_filename joins CDMS_HOME to form db_path; a value with a directory component
+        # ("../../etc/x", "/abs/path", a backslash on POSIX) would escape the home and let
+        # an env var write the store outside its sandbox. Require a bare filename — the
+        # basename must equal the value, with no separators or traversal.
+        ("db_filename", lambda v: (isinstance(v, str) and v not in ("", ".", "..")
+                                   and "\\" not in v and os.path.basename(v) == v)),
     ]
     for name, ok in checks:
         val = getattr(cfg, name)
         if isinstance(val, bool) or not ok(val):  # bool sneaks past int/float checks
             print(f"cdms config: invalid {name}={val!r}; using default {getattr(d, name)!r}", file=_sys.stderr)
             setattr(cfg, name, getattr(d, name))
+
+    # Cross-field consistency (Cycle-4 A7-L1): each field can be in-range yet jointly
+    # nonsensical. Repair MINIMALLY (clamp the offender) so a deliberately-tuned valid
+    # field isn't clobbered (double-review M1) — and warn.
+    def _clamp(field_name: str, new_val, why: str) -> None:
+        if getattr(cfg, field_name) != new_val:
+            print(f"cdms config: {why}; clamping {field_name} "
+                  f"{getattr(cfg, field_name)!r} -> {new_val!r}", file=_sys.stderr)
+            setattr(cfg, field_name, new_val)
+
+    if cfg.relation_pos_threshold <= cfg.relation_neg_threshold:
+        # inverted band => a trait can never read "frequently_works_on" (neutral); the band
+        # ordering is the invariant, so restore both endpoints to defaults.
+        _clamp("relation_pos_threshold", d.relation_pos_threshold, "relation_pos <= relation_neg")
+        _clamp("relation_neg_threshold", d.relation_neg_threshold, "relation_pos <= relation_neg")
+    if cfg.reinforce_cap < cfg.reinforce_alpha:
+        # Reinforcement strengthens by min(alpha**c, cap). A cap below alpha clamps even
+        # the FIRST reinforcement (alpha**1) below its own base, silently neutering the
+        # testing effect. The cap is the offender (alpha is a valid >1 base), so raise it
+        # to alpha — the minimal repair that lets one reinforcement step register.
+        _clamp("reinforce_cap", cfg.reinforce_alpha, "reinforce_cap < reinforce_alpha")
+    if cfg.embed_max_chars > cfg.max_field_chars:
+        # embedding more than is stored => vector/FTS see different text tails. Clamp DOWN to
+        # max_field_chars (resetting to the default could still exceed a small max_field_chars).
+        _clamp("embed_max_chars", cfg.max_field_chars, "embed_max_chars > max_field_chars")
+    # gist identity thresholds must be ordered cluster <= gist_match <= dedup. Restore the
+    # order by lowering only the offenders (preserves a deliberately-set lower dedup, etc.).
+    if not (cfg.cluster_sim_threshold <= cfg.gist_match_sim_threshold <= cfg.dedup_sim_threshold):
+        _clamp("gist_match_sim_threshold", min(cfg.gist_match_sim_threshold, cfg.dedup_sim_threshold),
+               "cluster<=gist_match<=dedup order violated")
+        _clamp("cluster_sim_threshold", min(cfg.cluster_sim_threshold, cfg.gist_match_sim_threshold),
+               "cluster<=gist_match<=dedup order violated")
+
+    # Temperament archetype must be a known preset; a typo otherwise silently seeds a
+    # store from the wrong genotype. Repair to the default and warn (import is lazy to
+    # avoid any import-time coupling between config and the temperament module).
+    try:
+        from .temperament import archetypes as _known_archetypes
+        if cfg.archetype_default not in _known_archetypes():
+            print(f"cdms config: invalid archetype_default={cfg.archetype_default!r}; "
+                  f"using default {d.archetype_default!r}", file=_sys.stderr)
+            cfg.archetype_default = d.archetype_default
+    except Exception:
+        pass
 
 
 def load_config() -> Config:

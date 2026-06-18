@@ -20,6 +20,7 @@ the authoritative tuple.
 from __future__ import annotations
 
 import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -30,7 +31,7 @@ from .config import Config
 from .db import Database
 from .embeddings import Embedder, cosine, get_embedder
 from .lock import cross_process_lock
-from .models import Episodic, Gist, Scar, new_id
+from .models import Episodic, Gist, Scar, new_id, utc_now_iso
 from .salience import (
     accessibility,
     age_days,
@@ -74,6 +75,9 @@ _HARM_TOKENS = (
     "could not recover", "destroyed", "overwrote", "overwritten", "deleted",
     "corrupted", "down", "outage", "leaked", "exposed", "by accident", "by mistake",
     "too late", "no backup",
+    # Narrow the deed-gate recall gap (double-review A0-M1): real catastrophes are often
+    # described with these harm words too. Kept unambiguous to avoid re-pinning routine work.
+    "rewrote", "rewritten", "nuked", "blew away", "wiped out", "trashed", "clobbered",
 )
 
 
@@ -115,6 +119,7 @@ class ConsolidationReport:
     gists_decayed: int = 0
     episodes_remaining: int = 0
     clusters: int = 0
+    skipped: bool = False
     notes: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict:
@@ -150,7 +155,21 @@ class Consolidator:
                 return self._run_locked(now)
         except TimeoutError:
             rep = ConsolidationReport()
+            rep.skipped = True
             rep.notes.append("skipped: another consolidation/forget pass holds the lock")
+            # A1-M1: a skip was previously silent (log file only). Record a durable,
+            # operator-visible signal — a counter + last-skip timestamp in meta (surfaced
+            # by `cdms stats`) and a stderr warning — so repeated skips (a wedged
+            # consolidation/forget) are noticeable instead of invisibly stalling identity.
+            n = -1
+            try:
+                n = int(self.db.get_meta("consolidations_skipped", "0") or "0") + 1
+                self.db.set_meta("consolidations_skipped", n)
+                self.db.set_meta("last_consolidation_skip", utc_now_iso())
+            except Exception:
+                pass
+            print(f"cdms: consolidation skipped (lock busy); total skipped={n}. "
+                  f"Repeated skips may mean a consolidation/forget is wedged.", file=sys.stderr)
             return rep
 
     def _run_locked(self, now: datetime | None = None) -> ConsolidationReport:
@@ -274,12 +293,20 @@ class Consolidator:
                 sims = keep_mat[:m] @ v
                 j = int(np.argmax(sims))
                 if float(sims[j]) >= thr:
-                    # supersede: fold access + salience into the survivor, drop the dup
+                    # supersede: fold access + salience into the survivor, drop the dup.
+                    # Fold the dup's FULL access_count (not just +1) so the survivor keeps
+                    # the merged reinforcement history (Cycle-5 C-MED-1).
                     survivor = self.db.get_episodic(keep_e[j].id)
                     if survivor is not None:
                         merged = max(survivor.base_salience, e.base_salience)
                         self.db.set_salience([(survivor.id, merged)])
-                        self.db.touch_episodic(survivor.id, survivor.timestamp)
+                        # Fold the dup's REAL retrieval history into the survivor. The old
+                        # `max(1, …)` floor credited a phantom +1 access to a duplicate that
+                        # was never retrieved (access_count == 0 — the common case for an
+                        # episode deduped in its first consolidation pass), inflating
+                        # accessibility and skewing eviction/ranking (Cycle-7 LOW-2).
+                        if e.access_count:
+                            self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
                     to_delete.append(e.id)
                     continue
             keep_mat[m] = v

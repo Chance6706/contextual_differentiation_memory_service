@@ -26,7 +26,7 @@ from .config import Config
 from .embeddings import serialize_f32
 from .models import Episodic, Gist, Scar, utc_now_iso
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 # Unicode-aware: the FTS5 index uses unicode61 and DOES store non-Latin terms, but
 # an ASCII-only token pattern stripped Cyrillic/CJK/accented queries to an empty
@@ -98,7 +98,26 @@ def _ddl(dim: int) -> list[str]:
         "CREATE VIRTUAL TABLE IF NOT EXISTS fts_scars USING fts5(id UNINDEXED, content, tokenize='porter unicode61')",
         "CREATE INDEX IF NOT EXISTS idx_ep_session ON mem_episodic(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_ep_project ON mem_episodic(project)",
-        # small key/value store (e.g. the consolidation cycle counter for gist decay)
+        # ---- §8 temperament genotype (Phase 0: state only; current == seed) -----
+        # One row per dial: the (seed, current, bounds) triple + per-dial plasticity.
+        # Operator-only — never read into SessionStart additionalContext / MCP retrieve.
+        # CHECK constraints are defense-in-depth for the Bem firewall: Phase 0 has no
+        # `current` writer, but Phase 1b's update rule will, and a direct DB edit or a
+        # migration bug must never leave a dial out of range or its current outside the
+        # band. preset_dials already enforces this in Python; the DDL makes it an
+        # invariant the store itself cannot break (Cycle-7 N-HIGH-1).
+        """CREATE TABLE IF NOT EXISTS mem_temperament (
+            dial TEXT PRIMARY KEY,
+            seed REAL NOT NULL CHECK(seed >= 0 AND seed <= 1),
+            current REAL NOT NULL,
+            lower REAL NOT NULL CHECK(lower >= 0 AND lower <= 1),
+            upper REAL NOT NULL CHECK(upper >= 0 AND upper <= 1),
+            plasticity REAL NOT NULL DEFAULT 0 CHECK(plasticity >= 0),
+            CHECK(lower <= upper),
+            CHECK(current >= lower AND current <= upper)
+        )""",
+        # small key/value store (e.g. the consolidation cycle counter for gist decay;
+        # the temperament 'archetype' name — the leash radius is derived, not stored)
         "CREATE TABLE IF NOT EXISTS cdms_meta (key TEXT PRIMARY KEY, value TEXT)",
     ]
 
@@ -187,26 +206,37 @@ class Database:
         # check_same_thread=False: FastMCP may dispatch sync tools off the loop
         # thread. SQLite still serializes writes; busy_timeout covers contention.
         conn = sqlite3.connect(str(path), check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        conn.enable_load_extension(True)
-        sqlite_vec.load(conn)
-        conn.enable_load_extension(False)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA busy_timeout=5000")
-        conn.execute("PRAGMA foreign_keys=ON")
-        # Right-to-forget: zero out freed pages on delete. Stock SQLite ships
-        # secure_delete=OFF, so without this a `forget` leaves the full plaintext
-        # (and content-bearing vectors) recoverable from the db file's free pages —
-        # deletion was only logical. With it ON, deleted content is overwritten.
-        conn.execute("PRAGMA secure_delete=ON")
-        return conn
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.enable_load_extension(True)
+            sqlite_vec.load(conn)
+            conn.enable_load_extension(False)
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA busy_timeout=5000")
+            conn.execute("PRAGMA foreign_keys=ON")
+            # Right-to-forget: zero out freed pages on delete. Stock SQLite ships
+            # secure_delete=OFF, so without this a `forget` leaves the full plaintext
+            # (and content-bearing vectors) recoverable from the db file's free pages —
+            # deletion was only logical. With it ON, deleted content is overwritten.
+            conn.execute("PRAGMA secure_delete=ON")
+            return conn
+        except Exception:
+            # Never leak the OS file handle on a failed open. On Windows an unclosed
+            # handle blocks the quarantine os.replace, permanently wedging the daemon on
+            # a corrupt store (the second _open hits the same corruption) — Cycle-4 A0-C1.
+            try:
+                conn.close()
+            except Exception:
+                pass
+            raise
 
     def _init_schema(self) -> None:
         with self.tx() as c:
             for stmt in _ddl(self.cfg.embed_dim):
                 c.execute(stmt)
             self._migrate(c)
+            self._seed_temperament(c)
             # Set the schema version LAST — after CREATEs and idempotent ALTERs all
             # succeed. Python's sqlite3 autocommits DDL, so an interrupted migration
             # is not rolled back; setting user_version up-front (as before) could
@@ -214,6 +244,58 @@ class Database:
             # column adds are idempotent (gated on table_info), so an interrupted run
             # re-heals on next open; recording the version last keeps it honest.
             c.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+
+    def _seed_temperament(self, c: sqlite3.Connection) -> None:
+        """Seed the §8 temperament vector from the configured archetype (Phase 0:
+        ``current == seed``, no drift). Operator-only state.
+
+        Robust to interruption and concurrency: it (re)seeds only what is MISSING via
+        ``INSERT OR IGNORE``, so it (a) is idempotent on a complete store — never
+        overwriting a future-Phase-1b drifted ``current``; (b) HEALS a partially-seeded
+        store (interrupted first init) by completing it from the already-stored
+        archetype, never mixing two archetypes; (c) is safe under a concurrent first
+        init (a racing seeder's duplicate rows are ignored, not an IntegrityError).
+        """
+        from .temperament import (DEFAULT_ARCHETYPE, DIALS, archetypes,
+                                  match_archetype_by_partial_seed,
+                                  match_archetype_by_seed, preset_dials)
+
+        rows = c.execute("SELECT dial, seed FROM mem_temperament").fetchall()
+        existing = {r[0] for r in rows}
+        if existing == set(DIALS):
+            # Fully seeded — leave the dials (preserves any drifted `current`). But if the
+            # archetype LABEL was lost (partial corruption / external edit), recover it
+            # from the immutable seeds rather than silently defaulting (Round-2 F4).
+            if self.get_meta("archetype") is None:
+                recovered = match_archetype_by_seed({r[0]: r[1] for r in rows}) or DEFAULT_ARCHETYPE
+                c.execute("INSERT OR IGNORE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
+                          (recovered,))
+            return
+        if existing:
+            # Partial state: complete it from the archetype already on record so the
+            # filled-in dials match the seeded ones (don't adopt a possibly-changed config).
+            # If the label row is missing too, recover it from the seeds ALREADY present
+            # before defaulting — otherwise a truncated maverick store could be completed
+            # from co-pilot seeds, silently mixing two dispositions (Cycle-7 MED-1).
+            # Only an unambiguous match is adopted; ambiguous ⇒ default, as before.
+            archetype = (self.get_meta("archetype")
+                         or match_archetype_by_partial_seed({r[0]: r[1] for r in rows})
+                         or DEFAULT_ARCHETYPE)
+        else:
+            archetype = getattr(self.cfg, "archetype_default", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
+        if archetype not in archetypes():
+            archetype = DEFAULT_ARCHETYPE
+        for d in preset_dials(archetype):
+            c.execute(
+                "INSERT OR IGNORE INTO mem_temperament(dial, seed, current, lower, upper, plasticity) "
+                "VALUES (?,?,?,?,?,?)",
+                (d.name, d.seed, d.current, d.lower, d.upper, d.plasticity),
+            )
+        # Record ONLY the archetype name (OR IGNORE: never overwrite an existing label).
+        # The leash radius is DERIVED from the archetype (get_archetype_radius), so it can
+        # never silently diverge from it (Round-2 F4). Direct exec stays in the init tx.
+        c.execute("INSERT OR IGNORE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
+                  (archetype,))
 
     @staticmethod
     def _migrate(c: sqlite3.Connection) -> None:
@@ -241,6 +323,27 @@ class Database:
     def set_meta(self, key: str, value) -> None:
         with self.tx() as c:
             c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES (?, ?)", (key, str(value)))
+
+    # -- §8 temperament (Phase 0: read-only operator access) -----------------
+    def all_dials(self) -> list["Dial"]:
+        """The seeded temperament vector, in insertion (DIALS) order. Operator-only —
+        must never be read into SessionStart additionalContext or any MCP tier."""
+        from .models import Dial
+        rows = self.conn.execute(
+            "SELECT dial, seed, current, lower, upper, plasticity FROM mem_temperament ORDER BY rowid"
+        ).fetchall()
+        return [Dial(name=r["dial"], seed=r["seed"], current=r["current"],
+                     lower=r["lower"], upper=r["upper"], plasticity=r["plasticity"]) for r in rows]
+
+    def get_archetype(self) -> str:
+        from .temperament import DEFAULT_ARCHETYPE
+        return self.get_meta("archetype", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
+
+    def get_archetype_radius(self) -> float:
+        """Joint-leash radius, DERIVED from the archetype (not separately stored), so
+        it can never diverge from the archetype meta (Round-2 F4)."""
+        from .temperament import archetype_radius
+        return archetype_radius(self.get_archetype())
 
     def reconcile_embedder(self, fingerprint: str) -> None:
         """Pin the embedder's vector-space identity on first write; refuse to mix.
@@ -355,6 +458,18 @@ class Database:
                 out[r[0]] = np.frombuffer(r[1], dtype="<f4").copy()
         return out
 
+    def bump_access(self, ep_id: str, n: int, when_iso: str) -> None:
+        """Add ``n`` to an episode's access_count (vs touch_episodic's +1). Used at dedup
+        supersession to fold the FULL reinforcement history of a dropped duplicate into the
+        survivor, so a deduped survivor is not under-counted (Cycle-5 C-MED-1)."""
+        if n <= 0:
+            return
+        with self.tx() as c:
+            c.execute(
+                "UPDATE mem_episodic SET access_count = access_count + ?, last_accessed = ? WHERE id = ?",
+                (n, when_iso, ep_id),
+            )
+
     def touch_episodic(self, ep_id: str, when_iso: str) -> None:
         """Record a retrieval (synaptic strengthening)."""
         with self.tx() as c:
@@ -405,6 +520,19 @@ class Database:
     def all_gist(self) -> list[Gist]:
         rows = self.conn.execute("SELECT * FROM mem_gist ORDER BY rowid").fetchall()
         return [self._row_to_gist(r) for r in rows]
+
+    def get_gists_by_ids(self, ids) -> dict[str, Gist]:
+        """{id: Gist} for just the requested ids (one chunked IN query) — used to
+        materialize KNN/FTS hits without scanning the whole table (Cycle-5 C-MED-8)."""
+        ids = list(ids)
+        out: dict[str, Gist] = {}
+        for i in range(0, len(ids), 800):  # stay under SQLite's variable limit
+            chunk = ids[i:i + 800]
+            q = ",".join("?" for _ in chunk)
+            for r in self.conn.execute(f"SELECT * FROM mem_gist WHERE id IN ({q})", chunk):
+                g = self._row_to_gist(r)
+                out[g.id] = g
+        return out
 
     def top_gist(self, limit: int, project: str | None = None) -> list[Gist]:
         """Highest-support / most-frequent gist tuples for context injection."""
@@ -519,6 +647,20 @@ class Database:
         rows = self.conn.execute("SELECT * FROM mem_scars ORDER BY timestamp DESC").fetchall()
         return [self._row_to_scar(r) for r in rows]
 
+    def get_scars_by_ids(self, ids) -> dict[str, Scar]:
+        """{id: Scar} for just the requested ids (one chunked IN query) — used to
+        materialize hits / dedup candidates without scanning the whole table
+        (Cycle-5 C-MED-8, Cycle-4 A5-H1)."""
+        ids = list(ids)
+        out: dict[str, Scar] = {}
+        for i in range(0, len(ids), 800):
+            chunk = ids[i:i + 800]
+            q = ",".join("?" for _ in chunk)
+            for r in self.conn.execute(f"SELECT * FROM mem_scars WHERE id IN ({q})", chunk):
+                s = self._row_to_scar(r)
+                out[s.id] = s
+        return out
+
     def find_duplicate_scar(self, embedding, project: str, threshold: float) -> Scar | None:
         """Nearest existing scar (same project) within ``threshold`` cosine of
         ``embedding`` — used to dedup on insert so a recurring failure (the same
@@ -528,7 +670,8 @@ class Database:
         hits = self.knn("scar", embedding, 5)
         if not hits:
             return None
-        smap = {s.id: s for s in self.all_scars()}
+        # Load only the ≤5 KNN candidates, not the whole scar table (Cycle-4 A5-H1).
+        smap = self.get_scars_by_ids([sid for sid, _ in hits])
         for sid, dist in hits:
             s = smap.get(sid)
             if s is None or s.project != project:
@@ -626,4 +769,10 @@ class Database:
             "gist": c.execute("SELECT COUNT(*) FROM mem_gist").fetchone()[0],
             "scars": c.execute("SELECT COUNT(*) FROM mem_scars").fetchone()[0],
             "support_edges": c.execute("SELECT COUNT(*) FROM mem_support_edges").fetchone()[0],
+            # Operator-visible skip signal (A1-M1): nonzero means consolidation passes are
+            # being skipped on lock contention — repeated growth suggests a wedged holder.
+            "consolidations_skipped": int(self.get_meta("consolidations_skipped", "0") or "0"),
+            "last_consolidation_skip": self.get_meta("last_consolidation_skip"),
+            "drains_skipped": int(self.get_meta("drains_skipped", "0") or "0"),
+            "last_drain_skip": self.get_meta("last_drain_skip"),
         }
