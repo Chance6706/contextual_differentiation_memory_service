@@ -224,7 +224,7 @@ class MemoryService:
         keeps writes fast while still letting the present rewrite the past.
         """
         neighbors = self.db.knn("episodic", emb, 6)
-        updates: list[tuple[str, float]] = []
+        deltas: list[tuple[str, float, float]] = []   # (id, base_salience, positive boost delta)
         for nid, dist in neighbors:
             if nid == rec.id:
                 continue
@@ -233,10 +233,21 @@ class MemoryService:
             if old is None:
                 continue
             boosted = associative_boost(old.base_salience, rec.base_salience, sim, self.cfg)
-            if boosted != old.base_salience:
-                updates.append((nid, boosted))
-        if updates:
-            self.db.set_salience(updates)
+            d = boosted - old.base_salience
+            if d > 0:
+                deltas.append((nid, old.base_salience, d))
+        if not deltas:
+            return
+        # Cap the TOTAL associative boost a single write may inject: at most
+        # assoc_boost_cap_frac * its own base_salience, spread across the neighbourhood.
+        # A write cannot redistribute more importance than a fraction of what it carries, so
+        # one (or a flood of) high-salience writes can't amplify a region unboundedly between
+        # consolidations (consolidation's conserve_budget then rebalances) — Cycle-8 M-M-3.
+        total = sum(d for _, _, d in deltas)
+        cap = self.cfg.assoc_boost_cap_frac * rec.base_salience
+        scale = cap / total if total > cap else 1.0
+        updates = [(nid, base + d * scale) for nid, base, d in deltas]
+        self.db.set_salience(updates)
 
     # ------------------------------------------------------------------ #
     # Explicit pins (scars) and facts (gist)

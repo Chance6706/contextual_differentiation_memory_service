@@ -78,6 +78,10 @@ class Config:
                                         # diluting real per-session memory below the floor (Cycle-8 H-M-2)
     assoc_eta: float = 0.20             # η: retroactive association boost coefficient
     assoc_sim_floor: float = 0.60       # only boost past episodes more similar than this
+    assoc_boost_cap_frac: float = 0.5   # a single write may inject at most this fraction of its OWN
+                                        # base_salience as total associative boost into its KNN
+                                        # neighbourhood; excess is scaled down proportionally. Bounds
+                                        # cross-episode amplification between consolidations (Cycle-8 M-M-3).
     cluster_sim_threshold: float = 0.78 # cosine link threshold for gist clustering
     gist_match_sim_threshold: float = 0.90  # reinforce an EXISTING gist whose episode-space
                                         # centroid is at least this close (vocabulary-independent
@@ -258,6 +262,7 @@ def _validate(cfg: "Config") -> None:
         ("goal_gate_floor", lambda v: _num(v) and 0 <= v <= 1),
         ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1e3),
         ("assoc_sim_floor", lambda v: _num(v) and 0 <= v <= 1),
+        ("assoc_boost_cap_frac", lambda v: _num(v) and 0 <= v <= 1e3),
         ("cluster_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
         ("gist_match_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
         ("dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),

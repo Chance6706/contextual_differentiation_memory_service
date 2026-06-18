@@ -6,8 +6,11 @@ Each test reproduces the defect and asserts the fix. IDs match CYCLE8_OWL_FINAL.
 from __future__ import annotations
 
 import inspect
+import os
 import threading
 from datetime import datetime, timezone
+
+import pytest
 
 import cdms.embeddings as embeddings
 import cdms.mcp_server as mcp_server
@@ -23,6 +26,9 @@ _W_ENV = ("CDMS_W_SURPRISE", "CDMS_W_CONTINGENCY", "CDMS_W_SELF_REF", "CDMS_W_AF
 
 
 # --- H-1: spool file is owner-only (pre-redaction secrets) ------------------- #
+@pytest.mark.skipif(os.name == "nt", reason="Windows file security is NTFS-ACL based, not Unix "
+                    "mode bits; os.open mode 0o600 is a no-op there (profile-dir files aren't "
+                    "world-readable by default). The 0o600 guard is exercised on POSIX.")
 def test_h1_spool_file_is_owner_only(tmp_path):
     cfg = Config(home=tmp_path)
     spool_event(cfg, {"hook_event_name": "PostToolUse", "tool_output": "AWS_SECRET=xyz123456"})
@@ -31,6 +37,8 @@ def test_h1_spool_file_is_owner_only(tmp_path):
 
 
 # --- L-4: quarantined corrupt store is owner-only ---------------------------- #
+@pytest.mark.skipif(os.name == "nt", reason="Windows uses NTFS ACLs, not Unix mode bits; "
+                    "os.chmod(0o600) only toggles the read-only bit there. Exercised on POSIX.")
 def test_l4_quarantine_file_is_owner_only(tmp_path):
     p = tmp_path / "memory.db"
     p.write_text("plaintext store contents")
