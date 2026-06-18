@@ -357,19 +357,18 @@ class Consolidator:
                     j = int(np.argmax(sims))
                     if float(sims[j]) >= thr:
                         # supersede: fold access + salience into the survivor, drop the dup.
-                        # Fold the dup's FULL access_count (not just +1) so the survivor keeps
-                        # the merged reinforcement history (Cycle-5 C-MED-1).
-                        survivor = self.db.get_episodic(keep_e[j].id)
-                        if survivor is not None:
-                            merged = max(survivor.base_salience, e.base_salience)
-                            self.db.set_salience([(survivor.id, merged)])
-                            # Fold the dup's REAL retrieval history into the survivor. The old
-                            # `max(1, …)` floor credited a phantom +1 access to a duplicate that
-                            # was never retrieved (access_count == 0 — the common case for an
-                            # episode deduped in its first consolidation pass), inflating
-                            # accessibility and skewing eviction/ranking (Cycle-7 LOW-2).
-                            if e.access_count:
-                                self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
+                        # Use the IN-MEMORY survivor (keep_e[j]): its base_salience is the DB
+                        # value at pass start and nothing mutates episodic salience before dedup,
+                        # so a get_episodic round-trip per duplicate is unnecessary (Cycle-8 L-1).
+                        # Fold the dup's FULL salience (max) + REAL access_count, and keep the
+                        # cache current so a later fold into the same survivor sees it (Cycle-5
+                        # C-MED-1; the Cycle-7 LOW-2 phantom-+1 is gone — only real access folds).
+                        survivor = keep_e[j]
+                        merged = max(survivor.base_salience, e.base_salience)
+                        self.db.set_salience([(survivor.id, merged)])
+                        survivor.base_salience = merged
+                        if e.access_count:
+                            self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
                         to_delete.append(e.id)
                         continue
                 keep_mat[m] = v
