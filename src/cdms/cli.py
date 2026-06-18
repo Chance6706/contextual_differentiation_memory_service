@@ -57,10 +57,14 @@ def _atomic_write_json(path: Path, obj) -> None:
     If ``path`` is a symlink (common: settings.json -> a dotfiles repo), write
     THROUGH to the link target instead of replacing the link with a detached file
     (which would silently sever the link and leave the real dotfile un-updated).
+
+    ``realpath`` is applied UNCONDITIONALLY (it is idempotent for non-symlinks) rather
+    than gated on ``is_symlink()`` — the check-then-use gate was a TOCTOU window where the
+    symlink could be swapped between the check and the write (Cycle-4 A6-L1).
     """
     import tempfile
 
-    real = Path(os.path.realpath(path)) if path.is_symlink() else path
+    real = Path(os.path.realpath(path))
     real.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=str(real.parent), prefix=real.name + ".", suffix=".tmp")
     try:

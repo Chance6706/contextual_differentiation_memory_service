@@ -249,6 +249,26 @@ def _validate(cfg: "Config") -> None:
             print(f"cdms config: invalid {name}={val!r}; using default {getattr(d, name)!r}", file=_sys.stderr)
             setattr(cfg, name, getattr(d, name))
 
+    # Cross-field consistency (Cycle-4 A7-L1): each field can be in-range yet jointly
+    # nonsensical. Repair the offending field(s) to defaults and warn.
+    def _repair(field_name: str, why: str) -> None:
+        print(f"cdms config: {why}; resetting {field_name} to default "
+              f"{getattr(d, field_name)!r}", file=_sys.stderr)
+        setattr(cfg, field_name, getattr(d, field_name))
+
+    if cfg.relation_pos_threshold <= cfg.relation_neg_threshold:
+        # inverted band => a trait can never read "frequently_works_on" (neutral)
+        _repair("relation_pos_threshold", "relation_pos_threshold <= relation_neg_threshold")
+        _repair("relation_neg_threshold", "relation_pos_threshold <= relation_neg_threshold")
+    if cfg.embed_max_chars > cfg.max_field_chars:
+        # embedding more than is stored => vector/FTS see different text tails
+        _repair("embed_max_chars", "embed_max_chars > max_field_chars")
+    # gist identity thresholds must be ordered cluster <= gist_match <= dedup; otherwise
+    # gist matching/dedup degenerate. Reset any that break the monotonic order.
+    if not (cfg.cluster_sim_threshold <= cfg.gist_match_sim_threshold <= cfg.dedup_sim_threshold):
+        for fld in ("cluster_sim_threshold", "gist_match_sim_threshold", "dedup_sim_threshold"):
+            _repair(fld, "cluster_sim <= gist_match_sim <= dedup_sim order violated")
+
     # Temperament archetype must be a known preset; a typo otherwise silently seeds a
     # store from the wrong genotype. Repair to the default and warn (import is lazy to
     # avoid any import-time coupling between config and the temperament module).

@@ -337,8 +337,10 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   the file lives in the user's own `CDMS_HOME`; write access there already grants full control.
 - **C-MED-4** Windows `msvcrt.locking` defeated by manual lock-file recreation: Windows-only,
   requires deleting the lock file mid-pass; narrow.
-- **C-MED-5** ReDoS in `redact_secrets`: bounded by `_clip` (4000 chars) on every path; not
-  exploitable in practice.
+- ~~**C-MED-5** ReDoS in `redact_secrets`~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 6):** the
+  name-prefix/suffix quantifiers around the keyword are now BOUNDED (`{0,64}`), so the
+  pattern can't catastrophically backtrack even if length-clipping is bypassed. Test: an
+  adversarial 10k-char input completes in <1s; normal redaction unchanged.
 - **C-MED-7** `_content_terms` decomposes paths into filename fragments: representational
   coarseness, tracked under the §10.5 portrait-richness thread.
 - ~~**C-MED-8 / A5-H1** O(n) `all_gist`/`all_scars` on retrieve & `find_duplicate_scar`~~
@@ -356,13 +358,19 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   hold plaintext: operational — `secure_delete` protects the *live* store; the quarantine
   is an explicit recovery artifact. A `cdms doctor --purge-quarantines` is the right future
   affordance.
-- **A6-L1** TOCTOU in install symlink resolution: narrow local race during the operator-run
-  install window.
-- **A7-L1** no cross-field config consistency checks: minor; the dangerous single-field cases
-  are now bounded (A7-H1).
+- ~~**A6-L1** TOCTOU in install symlink resolution~~ → **✅ PROMOTED & FIXED (Cycle-7
+  Phase 7):** `_atomic_write_json` now applies `realpath` unconditionally (idempotent for
+  non-symlinks) instead of an `is_symlink()` check-then-use, closing the swap window.
+  Test: write-through-symlink still updates the target; plain paths unaffected.
+- ~~**A7-L1** no cross-field config consistency checks~~ → **✅ PROMOTED & FIXED (Cycle-7
+  Phase 5):** `_validate` now repairs jointly-nonsensical config — inverted relation
+  thresholds, `embed_max_chars > max_field_chars`, and a broken `cluster <= gist_match <=
+  dedup` order — to defaults, with a warning. Test covers each.
 - **A7-L2** hash-only CI never exercises the real embedder: CI infrastructure, not code
   (`test_real_embedder.py` exists and runs locally).
-- **C-LOW-1** log rotation keeps one generation: minor observability.
+- ~~**C-LOW-1** log rotation keeps one generation~~ → **✅ PROMOTED & FIXED (Cycle-7
+  Phase 4):** keeps N=3 generations (`.1`..`.3`), bounded at ~N*max_bytes. Test asserts
+  `.1/.2/.3` exist and `.4` never does.
 - **C-LOW-2** `top_gist` ordering gameable via frequency inflation: same class as the
   deferred-by-design X5 (salience gaming); deferred with it.
 - **C-LOW-3** dependency upper bounds: supply-chain hygiene; deferred to avoid resolver

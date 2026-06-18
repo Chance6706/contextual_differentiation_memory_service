@@ -100,6 +100,72 @@ def test_cmed1_dedup_folds_full_access_count_into_survivor(tmp_path):
     svc.close()
 
 
+def test_clow1_log_keeps_multiple_generations(tmp_path, monkeypatch):
+    """Phase 4 — C-LOW-1: log rotation keeps N generations (.1..3), not just one."""
+    from cdms import hooks
+
+    cfg = Config(home=tmp_path)
+    monkeypatch.setattr(hooks, "_LOG_MAX_BYTES", 200)
+    for i in range(40):
+        hooks._log(cfg, "x" * 80 + f" line {i}")
+    p = cfg.log_path
+    assert p.exists()
+    assert p.with_name(p.name + ".1").exists()
+    assert p.with_name(p.name + ".2").exists()
+    assert p.with_name(p.name + ".3").exists()
+    assert not p.with_name(p.name + ".4").exists()   # bounded at N generations
+
+
+def test_a7l1_cross_field_config_repaired(monkeypatch, tmp_path):
+    """Phase 5 — A7-L1: in-range-but-jointly-nonsensical config is repaired."""
+    from cdms.config import Config as _C
+    from cdms.config import load_config
+
+    d = _C()
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    monkeypatch.setenv("CDMS_RELATION_POS_THRESHOLD", "-0.5")  # <= neg default -0.15 (inverted)
+    monkeypatch.setenv("CDMS_EMBED_MAX_CHARS", "999999")       # > max_field_chars (4000)
+    cfg = load_config()
+    assert cfg.relation_pos_threshold == d.relation_pos_threshold   # repaired
+    assert cfg.relation_neg_threshold == d.relation_neg_threshold
+    assert cfg.embed_max_chars == d.embed_max_chars
+    assert cfg.cluster_sim_threshold <= cfg.gist_match_sim_threshold <= cfg.dedup_sim_threshold
+
+
+def test_cmed5_redaction_correct_and_bounded():
+    """Phase 6 — C-MED-5: redaction still works; adversarial input can't ReDoS-hang."""
+    import time
+
+    from cdms.store import redact_secrets
+
+    red = redact_secrets("MY_API_KEY=supersecretvalue123")
+    assert "[REDACTED]" in red and "MY_API_KEY" in red       # value scrubbed, name kept
+    evil = ("A" * 5000) + "_SECRET" + ("B" * 5000)           # no '=' -> backtracking bait
+    t0 = time.perf_counter()
+    redact_secrets(evil)
+    assert time.perf_counter() - t0 < 1.0                    # bounded quantifiers -> fast
+
+
+def test_a6l1_atomic_write_follows_symlink_without_toctou_gate(tmp_path):
+    """Phase 7 — A6-L1: write-through-symlink still works with the is_symlink() gate
+    removed (realpath applied unconditionally, closing the TOCTOU window)."""
+    import json as _json
+
+    from cdms.cli import _atomic_write_json
+
+    target = tmp_path / "real.json"
+    target.write_text("{}", encoding="utf-8")
+    link = tmp_path / "link.json"
+    link.symlink_to(target)
+    _atomic_write_json(link, {"k": 1})
+    assert link.is_symlink()                                  # link preserved (written through)
+    assert _json.loads(target.read_text()) == {"k": 1}       # target updated
+    # a plain (non-symlink) path still writes normally
+    plain = tmp_path / "plain.json"
+    _atomic_write_json(plain, {"k": 2})
+    assert _json.loads(plain.read_text()) == {"k": 2}
+
+
 def test_a5h1_scar_dedup_without_full_scan(tmp_path, monkeypatch):
     cfg = Config(home=tmp_path)
     svc = MemoryService(cfg, embedder=Embedder(cfg))

@@ -67,8 +67,11 @@ _SECRET_PATTERNS = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
                re.DOTALL),
     # KEY/SECRET/TOKEN/PASSWORD assignments: redact the value, keep the name.
-    re.compile(r"(?i)\b([A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
-               r"[A-Z0-9_]*)\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
+    # Quantifiers BOUNDED ({0,64}) so the name-prefix/suffix around the keyword cannot
+    # drive catastrophic backtracking on adversarial input even if length-clipping is ever
+    # bypassed (Cycle-5 C-MED-5); 64 chars is far longer than any real env-var name.
+    re.compile(r"(?i)\b([A-Z0-9_]{0,64}(?:SECRET|TOKEN|PASSWORD|PASSWD|API[_-]?KEY|ACCESS[_-]?KEY)"
+               r"[A-Z0-9_]{0,64})\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
 ]
 
 
