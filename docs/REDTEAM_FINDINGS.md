@@ -253,9 +253,29 @@ a new body" (OWL Part VII). OWL's *headline* recommendation — rebrand to "ego 
 over the id" — was **declined**: "ego" unqualified raises the very misread it would aim to
 prevent, so the simulacrum framing is kept as a deflationary gloss, not the marquee.
 
+**Design-level dispositions (added after pressure-testing).** Two further design-axis
+findings from these passes were pressure-tested (independent adversarial passes + a
+factual grounding pass) and recorded as **open design threads**, since the relevant layer
+(§6 dreaming) is designed-not-built and there is nothing to patch in code:
+- **GLM M-HIGH-2 — "topic-frequency table, not a personality" (tuple expressiveness)** →
+  **DESIGN §10.5**. Verdict: *thin-but-fixable*. The substrate is sufficient (and tested)
+  for individuation/differentiation/curiosity/trait-flip, but is a **competence-map, not a
+  temperament-map** — it lacks a HOW/style channel the §8 dials need. GLM's "3-valued
+  relation" is a reduction fallacy (ignores continuous valence + centroid + N-gist
+  composition); OWL's "disposition recoverable" over-claims (conflates competence- with
+  temperament-disposition); the Jaccard 0.000 tests domain separation, not richness. Fix
+  is mechanically-extractable (process/style features, fuller centroid/edge-graph use, a
+  separate mood object) — no LLM-authored self-fiction.
+- **External-action authority gap (not raised verbatim by any pass; OWL Part VI's
+  "boundary violation" hints at it)** → **DESIGN §10.4**. The self-edit gate is not a
+  world-action gate. Surviving principles: delegate to the host's permission model (no
+  CDMS side-channel); dreaming is research-only with side-effecting experiments deferred
+  to a waking session (consent is void for unattended action); contain-don't-classify (a
+  venv is not a sandbox); "research-only" already sits at net-read + untrusted-ingest.
+
 **Not addressed here (open engineering track):** the *mechanical* code-level findings from
 these passes — e.g. GLM C-HIGH-1 (drain not under the cross-process lock), C-HIGH-2
 (`get_embedder()` singleton ignores config changes), C-HIGH-3 (`_associate`
 read-modify-write race), and the DeepSeek/Owl mechanical items — remain to be triaged and
 **independently reproduced** before any fix, in a later cycle. They are out of scope for
-this documentation-only change.
+this change.
