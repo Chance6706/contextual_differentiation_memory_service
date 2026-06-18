@@ -60,6 +60,8 @@ class Config:
     # ---- Consolidation ("sleep") -------------------------------------------
     crisis_threshold: float = 3.0       # s_crisis: S0 >= this is a candidate for scar elevation
     crisis_valence_max: float = -0.4    # ...but only if valence <= this (scars are negative crises)
+    scar_dedup_sim_threshold: float = 0.95  # near-identical scars (same project) are deduped on
+                                        # insert so a recurring crisis can't grow the L3 table forever
     salience_budget: float = 1000.0     # K_budget: total conserved salience across all live episodes
     project_budget_cap: float = 0.5     # no single project/subject may hold > this fraction of K
                                         # (capped-proportional: primaries keep focus, smalls aren't starved)
@@ -92,6 +94,18 @@ class Config:
     # dump) cannot freeze the server on embedding or bloat the DB. Generous enough
     # for any real turn; hook capture already pre-truncates via _brief.
     max_field_chars: int = 4000
+    # Cap the text actually fed to the embedder. The bge-small model truncates at
+    # ~512 tokens (~2k chars) SILENTLY, dropping the salient tail and making long
+    # inputs with different tails collide to the same vector. We truncate explicitly
+    # at a single controlled point (both backends) so embedding is bounded and the
+    # truncation is intentional rather than a hidden model limit. Stays under the
+    # model window; the full text is still kept in storage + the FTS/BM25 arm.
+    embed_max_chars: int = 1600
+    # Hard cap on the unconsolidated spool file. If the daemon's drain never runs
+    # (misconfig), the spool would otherwise grow without bound until a drain OOMs
+    # on it (8.7x RSS amplification). Above this size new events are shed (dropped
+    # with a stderr warning) so disk stays bounded and the store stays recoverable.
+    spool_max_bytes: int = 100_000_000  # ~100 MB
 
     # ---- Optional local "Dreamer" LLM (prose rendering only; never authoritative) ---
     dreamer_enabled: bool = False
@@ -135,6 +149,12 @@ class Config:
         """Small JSON file for daemon state (last activity, last consolidation)."""
         return self.home / "state.json"
 
+    @property
+    def lock_path(self) -> Path:
+        """Advisory lock serializing whole-pass writers (consolidate / forget)
+        across processes (hook vs cron vs daemon) on the shared store."""
+        return self.home / "consolidate.lock"
+
     def ensure_home(self) -> None:
         self.home.mkdir(parents=True, exist_ok=True)
 
@@ -170,22 +190,33 @@ def _validate(cfg: "Config") -> None:
     """
     import sys as _sys
 
+    # A finite real number (rejects NaN/inf and bool). inf otherwise sneaks past a
+    # bare ``v > 0`` check: e.g. CDMS_DECAY_HALFLIFE_DAYS=inf -> decay_lambda=0 ->
+    # identity never ages/evicts (silent freeze + unbounded growth), and a huge
+    # max_field_chars re-opens the DoS cap. Every numeric field now also has a sane
+    # UPPER bound so an astronomically large value can't disable a guard.
+    def _num(v) -> bool:
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
     d = Config()
     checks = [
-        ("embed_dim", lambda v: isinstance(v, int) and v > 0),
-        ("salience_budget", lambda v: isinstance(v, (int, float)) and v > 0),
-        ("project_budget_cap", lambda v: isinstance(v, (int, float)) and 0 < v <= 1),
-        ("gist_decay_per_cycle", lambda v: isinstance(v, (int, float)) and 0 < v < 1),
-        ("gist_retention_floor", lambda v: isinstance(v, (int, float)) and v >= 0),
-        ("retention_floor", lambda v: isinstance(v, (int, float)) and v >= 0),
-        ("reinforce_alpha", lambda v: isinstance(v, (int, float)) and v > 1.0),
-        ("reinforce_cap", lambda v: isinstance(v, (int, float)) and v >= 1.0),
-        ("decay_halflife_days", lambda v: isinstance(v, (int, float)) and v > 0),
-        ("max_field_chars", lambda v: isinstance(v, int) and v > 0),
-        ("min_cluster_support", lambda v: isinstance(v, int) and v >= 1),
-        ("gist_valence_ema", lambda v: isinstance(v, (int, float)) and 0 < v <= 1),
-        ("rrf_k", lambda v: isinstance(v, int) and v > 0),
-        ("default_top_k", lambda v: isinstance(v, int) and v > 0),
+        ("embed_dim", lambda v: isinstance(v, int) and 1 <= v <= 8192),
+        ("salience_budget", lambda v: _num(v) and 0 < v <= 1e9),
+        ("project_budget_cap", lambda v: _num(v) and 0 < v <= 1),
+        ("gist_decay_per_cycle", lambda v: _num(v) and 0 < v < 1),
+        ("gist_retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("reinforce_alpha", lambda v: _num(v) and 1.0 < v <= 1e3),
+        ("reinforce_cap", lambda v: _num(v) and 1.0 <= v <= 1e6),
+        ("decay_halflife_days", lambda v: _num(v) and 0 < v <= 1e6),
+        ("max_field_chars", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("embed_max_chars", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("spool_max_bytes", lambda v: isinstance(v, int) and 1_000 <= v <= 10_000_000_000),
+        ("min_cluster_support", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("gist_valence_ema", lambda v: _num(v) and 0 < v <= 1),
+        ("scar_dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
+        ("rrf_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("default_top_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
     ]
     for name, ok in checks:
         val = getattr(cfg, name)

@@ -239,6 +239,11 @@ class MemoryService:
         scar = Scar(id=new_id("scar"), crisis_trigger=self._clip(crisis_trigger),
                     remediation_rule=self._clip(remediation_rule), project=project)
         emb = self.embedder.embed_one(scar.search_text())
+        # Dedup: a near-identical guardrail already pinned (same project) is returned
+        # as-is instead of inserting a duplicate permanent row.
+        dup = self.db.find_duplicate_scar(emb, project, self.cfg.scar_dedup_sim_threshold)
+        if dup is not None:
+            return dup
         self.db.insert_scar(scar, emb)
         return scar
 
@@ -271,7 +276,9 @@ class MemoryService:
     def retrieve(self, query: str, top_k: Optional[int] = None,
                  tiers: tuple[str, ...] = ("scar", "gist", "episodic"),
                  reinforce: bool = True, project: str = "") -> list[SearchHit]:
-        top_k = top_k or self.cfg.default_top_k
+        # Clamp: a negative top_k would slice off the END of the results (returning
+        # fewer memories than exist with no error); 0/None means "use the default".
+        top_k = max(1, top_k or self.cfg.default_top_k)
         self._reconcile_embedder()  # querying with a mismatched backend recalls nothing
         qvec = self.embedder.embed_one(query)
         pool = max(top_k * 3, 20)
@@ -359,6 +366,7 @@ class MemoryService:
     # Timeline / paths / links
     # ------------------------------------------------------------------ #
     def history(self, limit: int = 20, session_id: Optional[str] = None) -> list[Episodic]:
+        limit = max(1, limit)  # a negative limit would negative-slice the timeline
         eps = self.db.all_episodic()
         if session_id:
             eps = [e for e in eps if e.session_id == session_id]
@@ -382,31 +390,103 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     # Deletion / right-to-forget (operator-only; not exposed to the model)
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _project_match(stored: str, target: str) -> bool:
+        """Match a forget-by-project selector against a stored project path,
+        tolerant of trailing slashes, backslashes, and subdirectory cwds.
+
+        Hooks capture the raw per-tool ``cwd`` (often a subdirectory) while the MCP
+        path uses the resolved launch cwd, so an exact-string match leaked content
+        under ``/proj/`` or ``/proj/sub`` when the operator said forget ``/proj``.
+        """
+        def norm(p: str) -> str:
+            return (p or "").replace("\\", "/").rstrip("/")
+        s, t = norm(stored), norm(target)
+        return s == t or (bool(t) and s.startswith(t + "/"))
+
     def forget(self, project: Optional[str] = None, session: Optional[str] = None,
                ids: Optional[list[str]] = None) -> dict:
         """Delete memory by project, by session, and/or by explicit ids across all
-        three tiers. Returns the count actually removed per tier. At least one
-        selector must be given (callers must not blanket-wipe the store by accident).
+        three tiers, the spool, and on-disk free pages. Returns the count actually
+        removed per tier. At least one selector must be given (callers must not
+        blanket-wipe the store by accident).
+
+        Held under the cross-process lock so a concurrent consolidation cannot
+        rebuild gists from episodes mid-delete (resurrecting forgotten content).
         """
         if project is None and session is None and not ids:
             raise ValueError("forget requires at least one of: project, session, ids")
-        ids = set(ids or [])
-        ep, gi, sc = set(), set(), set()
-        for e in self.db.all_episodic():
-            if e.id in ids or (project is not None and e.project == project) or \
-               (session is not None and e.session_id == session):
-                ep.add(e.id)
-        for g in self.db.all_gist():
-            if g.id in ids or (project is not None and g.project == project):
-                gi.add(g.id)
-        for s in self.db.all_scars():
-            if s.id in ids or (project is not None and s.project == project):
-                sc.add(s.id)
-        return {
-            "episodic": self.db.delete_episodic(ep),
-            "gist": self.db.delete_gist(gi),
-            "scars": self.db.delete_scar(sc),
-        }
+        from .lock import cross_process_lock
+
+        with cross_process_lock(self.cfg.lock_path):
+            ids = set(ids or [])
+            ep, gi, sc = set(), set(), set()
+            for e in self.db.all_episodic():
+                if e.id in ids or (project is not None and self._project_match(e.project, project)) or \
+                   (session is not None and e.session_id == session):
+                    ep.add(e.id)
+            for g in self.db.all_gist():
+                if g.id in ids or (project is not None and self._project_match(g.project, project)):
+                    gi.add(g.id)
+            for s in self.db.all_scars():
+                if s.id in ids or (project is not None and self._project_match(s.project, project)):
+                    sc.add(s.id)
+            res = {
+                "episodic": self.db.delete_episodic(ep),
+                "gist": self.db.delete_gist(gi),
+                "scars": self.db.delete_scar(sc),
+                "spooled": self._forget_from_spool(project, session),
+            }
+            # Scrub freed pages + WAL so deleted content is not forensically
+            # recoverable from the db file (only meaningful with secure_delete, but
+            # VACUUM also cleans pages freed before this store enabled it).
+            self.db.vacuum()
+            return res
+
+    def _forget_from_spool(self, project: Optional[str], session: Optional[str]) -> int:
+        """Drop matching not-yet-ingested events from the spool. Raw spooled tool
+        output is PRE-redaction, so a `forget` that ignored the spool would let
+        secrets survive and re-ingest on the next drain. Matched by cwd/session.
+        """
+        import json
+        import os
+        from pathlib import Path
+
+        q = self.cfg.queue_path
+        if not q.exists():
+            return 0
+        claimed = Path(f"{q}.forget-{os.getpid()}.tmp")
+        try:
+            os.replace(q, claimed)
+        except (FileNotFoundError, PermissionError):
+            return 0
+        dropped = 0
+        kept: list[str] = []
+        try:
+            for raw in claimed.read_text(encoding="utf-8").splitlines():
+                if not raw.strip():
+                    continue
+                try:
+                    ev = json.loads(raw)
+                except json.JSONDecodeError:
+                    kept.append(raw)  # unparseable: leave for the drain to skip
+                    continue
+                if isinstance(ev, dict) and (
+                    (project is not None and self._project_match(ev.get("cwd", "") or "", project))
+                    or (session is not None and (ev.get("session_id", "") or "") == session)
+                ):
+                    dropped += 1
+                    continue
+                kept.append(raw)
+            if kept:
+                from .spool import spool_event_lines
+                spool_event_lines(self.cfg, kept)
+        finally:
+            try:
+                claimed.unlink()
+            except OSError:
+                pass
+        return dropped
 
     def close(self) -> None:
         self.db.close()

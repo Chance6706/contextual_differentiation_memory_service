@@ -64,7 +64,9 @@ def test_real_backend_pins_fingerprint_and_refuses_mixing(real_service):
     svc = real_service
     svc.ingest(TurnEvent(trigger_prompt="t", action_taken="a", outcome_feedback="o", project="p"))
     fp = svc.db.get_meta("embed_fingerprint")
-    assert fp and fp.startswith("fastembed:")
+    # Fingerprint now carries the fastembed version ("fastembed-<ver>:model:dim") so
+    # a weight/export change under the same model name is caught, not silently mixed.
+    assert fp and fp.startswith("fastembed-")
     # The hash backend must be refused against a real-vector store (no contamination).
     with pytest.raises(RuntimeError, match="mismatch"):
         svc.db.reconcile_embedder("hash:BAAI/bge-small-en-v1.5:384")

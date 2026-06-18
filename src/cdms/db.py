@@ -117,9 +117,36 @@ class Database:
             # makes every command crash and silently halts capture while the spool
             # grows forever. Quarantine the bad file (preserve it for recovery) and
             # start fresh, loudly — so the daemon keeps working and the operator is told.
+            #
+            # CRITICAL (Cycle-3 C1): we must NOT quarantine on anything other than real
+            # file corruption. ``sqlite3.OperationalError`` ("database is locked"/"busy")
+            # is a subclass of DatabaseError; transient lock contention (a long
+            # consolidation overlapping a hook open) would otherwise be misread as
+            # corruption and the *healthy* store would be renamed away and WIPED. A
+            # config-induced open failure (e.g. an out-of-range embed_dim that vec0
+            # rejects) is likewise not corruption. Only quarantine on a true corruption
+            # signature; re-raise everything else so the caller retries instead of
+            # destroying a good store.
+            if not self._is_corruption(exc):
+                raise
             self._quarantine_corrupt(cfg.db_path, exc)
             self.conn = self._open(cfg.db_path)
             self._init_schema()
+
+    # Signatures SQLite uses for genuine on-disk corruption (vs. lock contention,
+    # dimension/config errors, missing tables, etc.).
+    _CORRUPTION_SIGNS = (
+        "malformed", "not a database", "file is encrypted", "disk image is malformed",
+        "database disk image", "is not a database", "corrupt",
+    )
+
+    @classmethod
+    def _is_corruption(cls, exc: Exception) -> bool:
+        # Lock/busy contention is an OperationalError and is NEVER file corruption.
+        if isinstance(exc, sqlite3.OperationalError):
+            return False
+        msg = str(exc).lower()
+        return any(s in msg for s in cls._CORRUPTION_SIGNS)
 
     @staticmethod
     def _quarantine_corrupt(path, exc) -> None:
@@ -168,6 +195,11 @@ class Database:
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA busy_timeout=5000")
         conn.execute("PRAGMA foreign_keys=ON")
+        # Right-to-forget: zero out freed pages on delete. Stock SQLite ships
+        # secure_delete=OFF, so without this a `forget` leaves the full plaintext
+        # (and content-bearing vectors) recoverable from the db file's free pages —
+        # deletion was only logical. With it ON, deleted content is overwritten.
+        conn.execute("PRAGMA secure_delete=ON")
         return conn
 
     def _init_schema(self) -> None:
@@ -252,6 +284,17 @@ class Database:
         except sqlite3.Error:
             pass
         self.conn.close()
+
+    def vacuum(self) -> None:
+        """Rewrite the db file, reclaiming and scrubbing free pages, then truncate
+        the WAL. Run after `forget` so already-freed content (incl. anything freed
+        before secure_delete was enabled) cannot be recovered from the file, and so
+        deleted rows do not linger in the WAL. Cannot run inside a transaction."""
+        try:
+            self.conn.execute("VACUUM")
+            self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        except sqlite3.Error:
+            pass
 
     # ====================================================================== #
     # L1 episodic
@@ -475,6 +518,24 @@ class Database:
     def all_scars(self) -> list[Scar]:
         rows = self.conn.execute("SELECT * FROM mem_scars ORDER BY timestamp DESC").fetchall()
         return [self._row_to_scar(r) for r in rows]
+
+    def find_duplicate_scar(self, embedding, project: str, threshold: float) -> Scar | None:
+        """Nearest existing scar (same project) within ``threshold`` cosine of
+        ``embedding`` — used to dedup on insert so a recurring failure (the same
+        force-push, the same flaky deploy) does not mint a fresh permanent ~4 KB
+        scar row every consolidation, growing the (non-evicting) L3 table without
+        bound. Returns the existing scar to refresh/keep, or None."""
+        hits = self.knn("scar", embedding, 5)
+        if not hits:
+            return None
+        smap = {s.id: s for s in self.all_scars()}
+        for sid, dist in hits:
+            s = smap.get(sid)
+            if s is None or s.project != project:
+                continue
+            if (1.0 - dist) >= threshold:   # cosine distance -> similarity
+                return s
+        return None
 
     # ====================================================================== #
     # retrieval primitives

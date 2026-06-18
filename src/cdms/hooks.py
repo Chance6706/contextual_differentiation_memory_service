@@ -30,9 +30,12 @@ _MAX_SCARS = 15      # pinned guardrails are prioritized; elevated ones drop fir
 # Control chars that, left in stored content, let an injection forge new markdown
 # sections, close the trust hedge, or break the JSON we emit.
 _CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
-# Zero-width + bidi-override chars: don't forge structure, but obfuscate keywords
-# from the model's view (e.g. "ig<ZWSP>nore") and can reorder text — strip them.
-_ZW_BIDI = re.compile(r"[​-‏‪-‮⁠﻿]")
+# Zero-width + bidi-override + invisible Unicode TAG chars: don't forge structure,
+# but obfuscate keywords from the model's view (e.g. "ig<ZWSP>nore"), can reorder
+# text, or smuggle invisible instructions (the U+E0000–E007F tag block) — strip them.
+_ZW_BIDI = re.compile(
+    "[​-‏‪-‮⁠﻿\U000e0000-\U000e007f]"
+)
 
 
 def read_payload() -> dict[str, Any]:

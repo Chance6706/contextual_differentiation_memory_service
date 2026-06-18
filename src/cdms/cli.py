@@ -52,14 +52,21 @@ def _read_json_safe(path: Path) -> dict:
 def _atomic_write_json(path: Path, obj) -> None:
     """Write JSON via a UNIQUE temp file + os.replace so a crash/disk-full mid-write
     can never leave the user's settings truncated, and two concurrent writers don't
-    race a shared temp name. The temp is same-directory (same fs => atomic replace)."""
+    race a shared temp name. The temp is same-directory (same fs => atomic replace).
+
+    If ``path`` is a symlink (common: settings.json -> a dotfiles repo), write
+    THROUGH to the link target instead of replacing the link with a detached file
+    (which would silently sever the link and leave the real dotfile un-updated).
+    """
     import tempfile
 
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".", suffix=".tmp")
+    real = Path(os.path.realpath(path)) if path.is_symlink() else path
+    real.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=str(real.parent), prefix=real.name + ".", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(json.dumps(obj, indent=2))
-        os.replace(tmp, path)
+        os.replace(tmp, real)
     except BaseException:
         try:
             os.unlink(tmp)
@@ -330,38 +337,57 @@ def _install_mcp_user(claude_json: Path) -> None:
 
     Preserves every other key in the (large) global config file.
     """
-    config = _read_json_safe(claude_json)
+    config = _require_dict(_read_json_safe(claude_json), claude_json, "top-level value")
     servers = config.setdefault("mcpServers", {})
+    _require_dict(servers, claude_json, "'mcpServers' value")
     py, *rest = _python_invocation()
     servers["cdms-memory"] = {"type": "stdio", "command": py, "args": rest + ["serve"], "env": {}}
     _atomic_write_json(claude_json, config)
 
 
+def _require_dict(obj, path: Path, what: str):
+    """Refuse loudly (don't traceback) on a malformed settings shape, mirroring the
+    _read_json_safe contract: never silently rewrite a file we can't parse."""
+    if not isinstance(obj, dict):
+        raise SystemExit(
+            f"ERROR: {path} has a non-object {what} ({type(obj).__name__}).\n"
+            f"Refusing to modify it — fix or remove the file, then re-run."
+        )
+    return obj
+
+
 def _install_hooks(settings_path: Path) -> None:
-    settings = _read_json_safe(settings_path)
+    settings = _require_dict(_read_json_safe(settings_path), settings_path, "top-level value")
     hooks = settings.setdefault("hooks", {})
+    _require_dict(hooks, settings_path, "'hooks' value")
     for event, timeout in HOOK_EVENTS.items():
         matcher = "*" if event == "PostToolUse" else ""
         entry = {
             "matcher": matcher,
             "hooks": [{"type": "command", "command": _hook_command(event), "timeout": timeout}],
         }
-        # replace any existing CDMS entry for this event, keep foreign ones
-        existing = [e for e in hooks.get(event, []) if not _is_cdms_entry(e)]
+        # replace any existing CDMS entry for this event, keep foreign ones. Tolerate
+        # a non-list event value or non-dict entries (malformed but non-fatal).
+        cur = hooks.get(event, [])
+        cur = cur if isinstance(cur, list) else []
+        existing = [e for e in cur if not _is_cdms_entry(e)]
         hooks[event] = existing + [entry]
     _atomic_write_json(settings_path, settings)
 
 
-def _is_cdms_entry(entry: dict) -> bool:
+def _is_cdms_entry(entry) -> bool:
+    if not isinstance(entry, dict):
+        return False
     for h in entry.get("hooks", []):
-        if "cdms hook" in h.get("command", "") or "-m cdms" in h.get("command", ""):
+        if isinstance(h, dict) and ("cdms hook" in h.get("command", "") or "-m cdms" in h.get("command", "")):
             return True
     return False
 
 
 def _install_mcp(mcp_path: Path) -> None:
-    config = _read_json_safe(mcp_path)
+    config = _require_dict(_read_json_safe(mcp_path), mcp_path, "top-level value")
     servers = config.setdefault("mcpServers", {})
+    _require_dict(servers, mcp_path, "'mcpServers' value")
     py, *rest = _python_invocation()
     servers["cdms-memory"] = {"command": py, "args": rest + ["serve"]}
     _atomic_write_json(mcp_path, config)
@@ -374,9 +400,14 @@ def _remove_cdms_hooks(settings_path: Path) -> None:
         settings = json.loads(settings_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return
+    if not isinstance(settings, dict):
+        return
     hooks = settings.get("hooks", {})
+    if not isinstance(hooks, dict):
+        return
     for event in list(hooks.keys()):
-        hooks[event] = [e for e in hooks[event] if not _is_cdms_entry(e)]
+        cur = hooks[event] if isinstance(hooks[event], list) else []
+        hooks[event] = [e for e in cur if not _is_cdms_entry(e)]
         if not hooks[event]:
             del hooks[event]
     _atomic_write_json(settings_path, settings)
@@ -389,6 +420,8 @@ def _remove_cdms_mcp(json_path: Path) -> None:
     try:
         config = json.loads(json_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
+        return
+    if not isinstance(config, dict) or not isinstance(config.get("mcpServers", {}), dict):
         return
     if config.get("mcpServers", {}).pop("cdms-memory", None) is not None:
         _atomic_write_json(json_path, config)

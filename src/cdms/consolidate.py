@@ -29,6 +29,7 @@ import numpy as np
 from .config import Config
 from .db import Database
 from .embeddings import Embedder, cosine, get_embedder
+from .lock import cross_process_lock
 from .models import Episodic, Gist, Scar, new_id
 from .salience import (
     accessibility,
@@ -38,21 +39,25 @@ from .salience import (
     hierarchical_competition,
 )
 
-# Genuine catastrophe markers. Auto scar-elevation requires one of these — a
-# negative-valence high-salience turn alone is NOT a crisis (a failed compile or
-# "no results found" is routine). Deliberate pins go through pin_scar() instead.
-_CATASTROPHE = (
-    "data loss", "lost data", "lost work", "rm -rf", "force push", "force-push",
-    "overwrote", "wiped the", "dropped the database", "dropped table",
-    "deleted the prod", "deleted production", "deleted the database",
-    "prod is down", "production down", "production is down",
+# Harm OUTCOMES that, on their own, prove a catastrophe actually happened. Auto
+# scar-elevation requires one of these (or a dangerous command that DID cause
+# harm — see below). A negative-valence high-salience turn alone is NOT a crisis
+# (a failed compile or "no results found" is routine). Pins go via pin_scar().
+_CATASTROPHE_HARM = (
+    "data loss", "lost data", "lost work", "overwrote", "wiped the",
+    "dropped the database", "dropped table", "deleted the prod", "deleted production",
+    "deleted the database", "prod is down", "production down", "production is down",
     "broke production", "broke main", "irreversible", "cannot recover",
     "could not recover", "corrupted the", "exposed credential",
     "exposed secret", "exposed the key", "leaked the secret", "leaked credential",
 )
 
-# Regex tier — catches catastrophes the literal list misses due to verb order or
-# phrasing (e.g. "git push --force", "DROP SCHEMA", credentials in git history).
+# Dangerous COMMANDS. Their mere presence is NOT a catastrophe — `git reset --hard
+# to discard local edits` and `git push --force` are routine. They only elevate
+# when the deed ALSO records actual harm (a harm token below). This was the
+# Cycle-2 overcorrection: the regex/command tier matched the scary verb alone and
+# auto-pinned benign-but-frustrating routine work as a permanent scar.
+_DANGER_CMD = ("rm -rf", "force push", "force-push")
 _CATASTROPHE_RE = re.compile(
     r"drop\s+(table|schema|database)"
     r"|truncate\s+table"
@@ -63,11 +68,21 @@ _CATASTROPHE_RE = re.compile(
     r"|committed\b.*\b(credential|secret|token|api[_ ]?key|password)",
     re.IGNORECASE,
 )
+# Tokens that indicate a dangerous command actually DID harm (vs. was used safely).
+_HARM_TOKENS = (
+    "lost", "wiped", "gone", "irreversible", "unrecoverable", "cannot recover",
+    "could not recover", "destroyed", "overwrote", "overwritten", "deleted",
+    "corrupted", "down", "outage", "leaked", "exposed", "by accident", "by mistake",
+    "too late", "no backup",
+)
 
 
 def _matches_catastrophe(text: str) -> bool:
     low = text.lower()
-    return any(m in low for m in _CATASTROPHE) or bool(_CATASTROPHE_RE.search(text))
+    if any(m in low for m in _CATASTROPHE_HARM):
+        return True
+    danger = any(c in low for c in _DANGER_CMD) or bool(_CATASTROPHE_RE.search(text))
+    return danger and any(h in low for h in _HARM_TOKENS)
 
 _STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in", "on",
@@ -124,6 +139,21 @@ class Consolidator:
         self.embedder = embedder or get_embedder(cfg)
 
     def run(self, now: datetime | None = None) -> ConsolidationReport:
+        # Serialize the whole pass across processes. Two concurrent consolidations
+        # (hook + cron + daemon on the shared store) otherwise produce duplicate
+        # gists, lose/double-count the decay cycle counter, and a concurrent forget
+        # can be undone by a pass rebuilding gists from episodes it is deleting. If
+        # another pass is already running we SKIP (a second pass is redundant work
+        # on a moving set) rather than block a hook past its timeout.
+        try:
+            with cross_process_lock(self.cfg.lock_path):
+                return self._run_locked(now)
+        except TimeoutError:
+            rep = ConsolidationReport()
+            rep.notes.append("skipped: another consolidation/forget pass holds the lock")
+            return rep
+
+    def _run_locked(self, now: datetime | None = None) -> ConsolidationReport:
         now = now or datetime.now(timezone.utc)
         rep = ConsolidationReport()
         # Verify the embedder's vector space matches the store before writing any
@@ -163,6 +193,13 @@ class Consolidator:
             rep.notes.append("no episodic memories; gist maintenance only")
 
         # Gentle activity-based L2 decay (only fades traits idle across many cycles).
+        # NOTE (Cycle-3 X2, characterized tradeoff, NOT changed): one consolidation ==
+        # one decay cycle, by design — this is the activity clock that makes wall-clock
+        # absence harmless. An adversary who can force many rapid empty consolidations
+        # can therefore age the clock; that requires the privileged ability to invoke
+        # consolidation repeatedly, and gating advancement on "real work" would break
+        # the validated invariant (see test_absence_does_not_age_identity + the drift
+        # EROSION control). Documented in REDTEAM_FINDINGS, deliberately not "fixed".
         self._decay_gists(rep, cycle)
 
         # Persist the advanced cycle counter only now that the pass has completed.
@@ -203,6 +240,14 @@ class Consolidator:
                 emb = self.db.get_embedding("episodic", e.id)
                 if emb is None:
                     emb = self.embedder.embed_one(scar.search_text())
+                # Dedup: a recurring catastrophe (same near-identical deed/project)
+                # must not mint a fresh permanent scar every cycle. If one already
+                # exists, consume the episode (promote it out of episodic) without
+                # adding a duplicate L3 row.
+                if self.db.find_duplicate_scar(emb, e.project, self.cfg.scar_dedup_sim_threshold) is not None:
+                    self.db.delete_episodic([e.id])
+                    removed.add(e.id)
+                    continue
                 self.db.insert_scar(scar, emb)
                 self.db.delete_episodic([e.id])
                 removed.add(e.id)

@@ -117,11 +117,15 @@ def store(
                       "'fact' content must be 'subject | relation | object'. 'scar' content must be "
                       "'trigger | remediation_rule' and pins a permanent guardrail."),
     project: str = Field(default=_LAUNCH_CWD, description="Project/workspace path for scoped recall "
-                         "(defaults to this server's project; pass '' for an explicitly global memory)."),
+                         "(defaults to this server's project)."),
     importance: float | None = Field(default=None, description="Optional explicit goal-relevance in [0,1]."),
 ) -> StoreResult:
     """Persist a memory. Episodes decay over time; facts feed the PersonaTree; scars are permanent."""
     svc = service()
+    # An empty project from the model path is coerced to the launch cwd, never
+    # treated as "global": the global scope is operator-only (the CLI), so a model
+    # cannot self-authorize writing cross-project / global memory.
+    project = project or _LAUNCH_CWD
     kind = (kind or "episode").lower()
     if kind == "scar":
         trig, _, rule = content.partition("|")
@@ -143,13 +147,16 @@ def store(
 @mcp.tool()
 def retrieve(
     query: str = Field(description="What to recall — a natural-language description of the context or need."),
-    k: int = Field(default=8, description="Max memories to return."),
+    k: int = Field(default=8, ge=1, le=1000, description="Max memories to return."),
     tiers: str = Field(default="all", description="'all', or comma list of 'scar','gist','episodic'."),
     project: str = Field(default=_LAUNCH_CWD, description="Restrict recall to this project + global "
-                         "memories (defaults to this server's project; pass '' to search across all)."),
+                         "memories (defaults to this server's project)."),
 ) -> list[Memory]:
     """Recall the most relevant memories across scars, gist (PersonaTree), and episodic tiers."""
     svc = service()
+    # Empty project => the launch cwd, NOT a cross-project search. Recalling across
+    # all projects is operator-only (CLI); the model cannot opt out of scoping here.
+    project = project or _LAUNCH_CWD
     if tiers == "all" or not tiers:
         wanted = ("scar", "gist", "episodic")
     else:
@@ -162,7 +169,7 @@ def retrieve(
 
 @mcp.tool()
 def history(
-    limit: int = Field(default=20, description="How many recent episodes to return."),
+    limit: int = Field(default=20, ge=1, le=1000, description="How many recent episodes to return."),
     session_id: str = Field(default="", description="Optional session id to filter by."),
 ) -> list[HistoryItem]:
     """Return the recent episodic timeline (most recent first)."""
