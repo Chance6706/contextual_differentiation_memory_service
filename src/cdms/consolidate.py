@@ -111,6 +111,7 @@ _STOPWORDS = {
 @dataclass
 class ConsolidationReport:
     scars_created: int = 0
+    scars_evicted: int = 0
     episodes_evicted: int = 0
     deduped: int = 0
     gists_created: int = 0
@@ -125,6 +126,7 @@ class ConsolidationReport:
     def as_dict(self) -> dict:
         return {
             "scars_created": self.scars_created,
+            "scars_evicted": self.scars_evicted,
             "episodes_evicted": self.episodes_evicted,
             "deduped": self.deduped,
             "gists_created": self.gists_created,
@@ -211,6 +213,12 @@ class Consolidator:
         else:
             rep.notes.append("no episodic memories; gist maintenance only")
 
+        # Bound the L3 scar table: cap AUTO-ELEVATED scars per project so a recurring
+        # near-miss stream can't grow L3 forever. Runs after elevation (so this cycle's new
+        # auto-elevations count) and unconditionally (so an existing backlog is bounded even
+        # on an empty episodic set). Deliberately PINNED guardrails are never touched (H-4).
+        self._evict_scars(rep)
+
         # Gentle activity-based L2 decay (only fades traits idle across many cycles).
         # NOTE (Cycle-3 X2, characterized tradeoff, NOT changed): one consolidation ==
         # one decay cycle, by design — this is the activity clock that makes wall-clock
@@ -223,6 +231,19 @@ class Consolidator:
 
         # Persist the advanced cycle counter only now that the pass has completed.
         self.db.set_meta("cycle", cycle)
+
+        # M-S-1: secure_delete scrubs deleted content but leaves the freed pages allocated,
+        # so a bulk eviction bloats the file 2-3x. Reclaim them with the existing (tested)
+        # VACUUM, but only when a pass deleted enough rows to be worth the full-file rewrite
+        # (and after the cycle counter is persisted, so a VACUUM error can't undo the pass).
+        # NB: PRAGMA incremental_vacuum is a no-op here — the store isn't auto_vacuum=INCREMENTAL.
+        cap = self.cfg.vacuum_after_deletes
+        if cap and (rep.episodes_evicted + rep.deduped + rep.scars_evicted) >= cap:
+            try:
+                self.db.vacuum()
+                rep.notes.append(f"vacuumed (>= {cap} rows deleted this pass)")
+            except Exception as exc:           # VACUUM is best-effort hygiene, never fatal
+                rep.notes.append(f"vacuum skipped: {exc}")
 
         rep.episodes_remaining = remaining
         return rep
@@ -272,6 +293,37 @@ class Consolidator:
                 removed.add(e.id)
                 rep.scars_created += 1
         return removed
+
+    # -- Step 1b: Bound L3 — cap AUTO-ELEVATED scars per project ----------- #
+    def _evict_scars(self, rep: ConsolidationReport) -> set[str]:
+        """Cap auto-elevated scars per project at ``scar_project_cap``, evicting the
+        oldest auto-elevated ones first.
+
+        SAFETY INVARIANT (H-4): deliberately PINNED scars (origin == 'pinned') are
+        guardrails — NEVER evicted and NEVER counted toward the cap, so a flood of
+        auto-elevated entries can't force a pinned rule out and a project of only pinned
+        scars is never touched. Only ``origin != 'pinned'`` rows are evictable; this is
+        fail-safe because ``_row_to_scar`` maps any unknown/legacy/null origin to 'pinned'.
+        Ordering is oldest-first by ``timestamp`` (the only ordering field on a Scar; note
+        it is first-seen time — dedup does not refresh it), with ``id`` as a stable tiebreak.
+        """
+        cap = self.cfg.scar_project_cap
+        by_project: dict[str, list[Scar]] = defaultdict(list)
+        for s in self.db.all_scars():
+            if s.origin != "pinned":                       # pinned guardrails are exempt
+                by_project[s.project].append(s)
+        doomed: list[str] = []
+        for scars in by_project.values():
+            if len(scars) <= cap:
+                continue
+            scars.sort(key=lambda s: (s.timestamp, s.id))  # oldest first
+            doomed.extend(s.id for s in scars[:len(scars) - cap])
+        if doomed:
+            rep.scars_evicted = self.db.delete_scar(doomed)
+            rep.notes.append(
+                f"L3 cap (scar_project_cap={cap}): evicted {len(doomed)} oldest "
+                f"auto-elevated scar(s); pinned guardrails exempt")
+        return set(doomed)
 
     # -- Step 2a: Deduplication / supersession ----------------------------- #
     def _dedup(self, episodes: list[Episodic], rep: ConsolidationReport) -> set[str]:

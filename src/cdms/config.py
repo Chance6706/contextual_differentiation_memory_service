@@ -62,6 +62,13 @@ class Config:
     crisis_valence_max: float = -0.4    # ...but only if valence <= this (scars are negative crises)
     scar_dedup_sim_threshold: float = 0.95  # near-identical scars (same project) are deduped on
                                         # insert so a recurring crisis can't grow the L3 table forever
+    scar_project_cap: int = 100         # max AUTO-ELEVATED scars kept per project; the oldest
+                                        # auto-elevated ones beyond this are evicted at consolidation.
+                                        # Deliberately PINNED scars (origin=='pinned') are guardrails:
+                                        # exempt, never counted, never evicted (Cycle-8 H-4).
+    vacuum_after_deletes: int = 5000    # VACUUM to reclaim free pages once a pass deletes at least
+                                        # this many rows (secure_delete scrubs content; VACUUM frees
+                                        # the pages so the file can't bloat 2-3x). 0 disables (Cycle-8 M-S-1).
     salience_budget: float = 1000.0     # K_budget: total conserved salience across all live episodes
     project_budget_cap: float = 0.5     # no single project/subject may hold > this fraction of K
                                         # (capped-proportional: primaries keep focus, smalls aren't starved)
@@ -178,6 +185,11 @@ def _coerce(current, value):
     """Coerce a JSON/env value to the type of the field's current (default) value."""
     if isinstance(current, bool):
         return value if isinstance(value, bool) else str(value).strip().lower() in ("1", "true", "yes", "on")
+    # A JSON bool must not silently coerce to a numeric field (e.g. "embed_dim": true ->
+    # int(True) == 1, a valid-looking dim). Reject it so load_config keeps the default and
+    # _validate's bool guard never even sees it (Cycle-8 L-5).
+    if isinstance(value, bool):
+        raise ValueError("refusing to coerce a bool to a non-bool field")
     if isinstance(current, Path):
         return Path(str(value)).expanduser()
     if isinstance(current, int):
@@ -251,6 +263,8 @@ def _validate(cfg: "Config") -> None:
         # basename must equal the value, with no separators or traversal.
         ("db_filename", lambda v: (isinstance(v, str) and v not in ("", ".", "..")
                                    and "\\" not in v and os.path.basename(v) == v)),
+        ("scar_project_cap", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("vacuum_after_deletes", lambda v: isinstance(v, int) and 0 <= v <= 1_000_000),
     ]
     for name, ok in checks:
         val = getattr(cfg, name)
@@ -312,6 +326,27 @@ def _validate(cfg: "Config") -> None:
             for w in _S0_WEIGHTS:
                 _clamp(w, round(getattr(cfg, w) * scale, 6),
                        "S0 weights let a zero-goal memory self-elevate to crisis")
+
+    # Networking must stay loopback-only (directive #2). These bind nothing today (the MCP
+    # server is stdio and the Dreamer is unwired), so this is latent defense-in-depth that
+    # takes effect the moment either is wired (Cycle-8 M-7 / M-S-5).
+    def _is_loopback(host: str) -> bool:
+        h = (host or "").strip().lower()
+        return h in ("localhost", "::1", "") or h.startswith("127.")
+    if not _is_loopback(cfg.http_host):
+        _clamp("http_host", d.http_host, "http_host is not loopback (directive #2)")
+    try:
+        from urllib.parse import urlparse
+        if not _is_loopback(urlparse(cfg.dreamer_base_url).hostname or ""):
+            _clamp("dreamer_base_url", d.dreamer_base_url,
+                   "dreamer_base_url host is not loopback (directive #2)")
+    except (ValueError, TypeError):
+        _clamp("dreamer_base_url", d.dreamer_base_url, "dreamer_base_url is unparseable")
+    # CDMS_HOME may legitimately be relocated anywhere ABSOLUTE, but a path-traversal home
+    # ("../../etc/x") is never legitimate and would drop the store outside any sane sandbox
+    # (Cycle-8 H-3). Reject traversal; leave absolute relocations untouched.
+    if ".." in Path(cfg.home).parts:
+        _clamp("home", d.home, "home contains a path-traversal ('..') component")
 
     # Temperament archetype must be a known preset; a typo otherwise silently seeds a
     # store from the wrong genotype. Repair to the default and warn (import is lazy to
