@@ -151,6 +151,9 @@ class Database:
             self._quarantine_corrupt(cfg.db_path, exc)
             self.conn = self._open(cfg.db_path)
             self._init_schema()
+        # vec0 index-format guard (after schema/meta exist, in both the normal and
+        # quarantine-recovery paths): warn if sqlite-vec changed under an existing store.
+        self._reconcile_vec_version()
 
     # Signatures SQLite uses for genuine on-disk corruption (vs. lock contention,
     # dimension/config errors, missing tables, etc.).
@@ -375,6 +378,29 @@ class Database:
                 f"corrupt recall). Use the original backend/model/dim, or rebuild "
                 f"the store from scratch."
             )
+
+    def _reconcile_vec_version(self) -> None:
+        """Pin the sqlite-vec (vec0) version on first write and WARN — not refuse — if it
+        later changes. The embedder fingerprint guards the EMBEDDING space; it does NOT cover
+        the vec0 on-disk index FORMAT, which a sqlite-vec upgrade could change and silently
+        break KNN (not caught by the `<0.2` cap alone). Most upgrades are format-compatible,
+        so refusing would brick the daemon on a harmless patch bump; instead surface the risk
+        once and reconcile (Cycle-8 M-8)."""
+        try:
+            cur = self.conn.execute("SELECT vec_version()").fetchone()[0]
+        except sqlite3.Error:
+            return  # vec unavailable (degraded mode) — nothing to pin
+        pinned = self.get_meta("vec_version")
+        if pinned is None:
+            self.set_meta("vec_version", cur)
+            return
+        if pinned != cur:
+            import sys
+            print(f"cdms: sqlite-vec version changed since this store was built "
+                  f"({pinned!r} -> {cur!r}). The vec0 index FORMAT may have changed; if recall "
+                  f"looks wrong, rebuild the vector index. (The embedder fingerprint covers the "
+                  f"vector SPACE, not the index format.)", file=sys.stderr)
+            self.set_meta("vec_version", cur)   # warn once per transition, then reconcile
 
     @contextmanager
     def tx(self) -> Iterator[sqlite3.Connection]:
@@ -780,4 +806,6 @@ class Database:
             "last_consolidation_skip": self.get_meta("last_consolidation_skip"),
             "drains_skipped": int(self.get_meta("drains_skipped", "0") or "0"),
             "last_drain_skip": self.get_meta("last_drain_skip"),
+            # vec0 index-format identity (M-8): pinned-at-build vs the loaded sqlite-vec.
+            "vec_version_pinned": self.get_meta("vec_version"),
         }
