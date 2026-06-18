@@ -300,7 +300,13 @@ class Consolidator:
                     if survivor is not None:
                         merged = max(survivor.base_salience, e.base_salience)
                         self.db.set_salience([(survivor.id, merged)])
-                        self.db.bump_access(survivor.id, max(1, e.access_count), survivor.timestamp)
+                        # Fold the dup's REAL retrieval history into the survivor. The old
+                        # `max(1, …)` floor credited a phantom +1 access to a duplicate that
+                        # was never retrieved (access_count == 0 — the common case for an
+                        # episode deduped in its first consolidation pass), inflating
+                        # accessibility and skewing eviction/ranking (Cycle-7 LOW-2).
+                        if e.access_count:
+                            self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
                     to_delete.append(e.id)
                     continue
             keep_mat[m] = v

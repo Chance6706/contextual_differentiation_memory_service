@@ -197,6 +197,23 @@ def cmd_temperament(args) -> int:
     NEVER injected into context (break-cycle principle #1 / Bem self-perception
     firewall): the agent must not read its own disposition. This is for the operator.
     """
+    # Enforce the firewall at the CLI boundary, not just by docstring. The data paths
+    # never leak the vector, but this command prints all of it — and an agent with MCP
+    # Bash access could otherwise just run `cdms temperament` and parse stdout. An agent's
+    # call is non-interactive (output captured to a pipe, no controlling TTY); a human
+    # operator is at a terminal. So refuse on a non-TTY stdout unless the operator opts in
+    # explicitly. This stops casual/accidental self-reads; a determined agent can still
+    # bypass it, but the trust fence on injected memory blocks the downstream harm
+    # (Cycle-7 MED-2). Pass --operator (or set CDMS_ALLOW_TEMPERAMENT_READ=1) to pipe it.
+    opted_in = (getattr(args, "operator", False)
+                or os.environ.get("CDMS_ALLOW_TEMPERAMENT_READ") == "1")
+    if not (opted_in or sys.stdout.isatty()):
+        print("cdms temperament: refusing to write the disposition vector to a "
+              "non-interactive stdout (Bem self-perception firewall — the agent must not "
+              "read its own temperament). Run it from an interactive terminal, or pass "
+              "--operator / set CDMS_ALLOW_TEMPERAMENT_READ=1 if you are the operator and "
+              "need to pipe the output.", file=sys.stderr)
+        return 2
     from .store import MemoryService
     from .temperament import leash_distance, leash_exceeded, near_bound, seed_vector, vector
 
@@ -274,15 +291,18 @@ def cmd_doctor(args) -> int:
         # plaintext store and are never auto-deleted (a right-to-forget / forensic gap).
         # This is the explicit operator affordance to scrub them.
         n = 0
-        # Match the quarantine naming (`*.corrupt-<timestamp>`, timestamp starts with a
-        # digit) so a stray user file like `notes.corrupt-backup` isn't collateral.
-        for q in cfg.home.glob("*.corrupt-[0-9]*"):
+        # Anchor to the db filename PREFIX, not a bare suffix glob. Quarantines are named
+        # `<db_path>[-wal|-shm].corrupt-<timestamp>` (db.py _quarantine_corrupt), so the
+        # store's own files are `memory.db*.corrupt-<digit>…`. The old `*.corrupt-[0-9]*`
+        # would also delete an unrelated operator file like `dump.corrupt-1` in CDMS_HOME —
+        # the digit guard only narrows, it doesn't prove "we created this" (Cycle-7 LOW-1).
+        for q in cfg.home.glob(f"{cfg.db_filename}*.corrupt-[0-9]*"):
             try:
                 q.unlink()
                 n += 1
             except OSError:
                 pass
-        print(f"purged {n} quarantined *.corrupt-* file(s) from {cfg.home}")
+        print(f"purged {n} quarantined {cfg.db_filename}*.corrupt-* file(s) from {cfg.home}")
     ok = True
     print(f"CDMS_HOME           : {cfg.home}")
     print(f"db path             : {cfg.db_path}")
@@ -538,9 +558,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("paths", help="show PersonaTree paths").set_defaults(func=cmd_paths)
     sub.add_parser("stats", help="store statistics").set_defaults(func=cmd_stats)
-    sub.add_parser("temperament",
-                   help="show the §8 temperament vector + leash status (operator-only)"
-                   ).set_defaults(func=cmd_temperament)
+    tp = sub.add_parser("temperament",
+                        help="show the §8 temperament vector + leash status (operator-only)")
+    tp.add_argument("--operator", action="store_true",
+                    help="confirm you are the human operator; required to read the vector "
+                         "when stdout is not an interactive terminal (Bem firewall)")
+    tp.set_defaults(func=cmd_temperament)
     doc = sub.add_parser("doctor", help="verify environment + warm embedder")
     doc.add_argument("--purge-quarantines", action="store_true",
                      help="delete quarantined *.corrupt-* files (plaintext from past corruption recoveries)")

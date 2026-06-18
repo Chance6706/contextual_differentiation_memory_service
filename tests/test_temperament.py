@@ -276,7 +276,9 @@ def test_cli_temperament_outputs_seeded_vector(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("CDMS_ARCHETYPE_DEFAULT", "stoic-analyst")
     from cdms.cli import main
 
-    assert main(["temperament"]) == 0
+    # --operator is the explicit human opt-in required to read the vector when stdout is
+    # not an interactive terminal (the Bem firewall gate; pytest captures stdout → non-TTY).
+    assert main(["temperament", "--operator"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["archetype"] == "stoic-analyst"
     assert out["R_archetype"] == pytest.approx(T.archetype_radius("stoic-analyst"))
@@ -285,6 +287,26 @@ def test_cli_temperament_outputs_seeded_vector(tmp_path, monkeypatch, capsys):
     assert {d["dial"] for d in out["dials"]} == set(T.DIALS)
     eg = next(d for d in out["dials"] if d["dial"] == "emotional_gain")
     assert eg["seed"] == 0.15 and eg["current"] == 0.15
+
+
+def test_cli_temperament_firewall_blocks_noninteractive_read(tmp_path, monkeypatch, capsys):
+    """Cycle-7 MED-2 / Bem self-perception firewall: an agent's `cdms temperament` call
+    is non-interactive (stdout is a captured pipe, no TTY). The command must refuse and
+    write NOTHING to stdout, so the agent can't parse its own disposition — unless the
+    human operator opts in via --operator / CDMS_ALLOW_TEMPERAMENT_READ=1."""
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    from cdms.cli import main
+
+    # No opt-in, non-TTY stdout → refuse with a non-zero code and empty stdout.
+    assert main(["temperament"]) == 2
+    cap = capsys.readouterr()
+    assert cap.out == ""                       # the vector never reached stdout
+    assert "firewall" in cap.err.lower()
+
+    # The env-var opt-in is honoured, mirroring the --operator flag.
+    monkeypatch.setenv("CDMS_ALLOW_TEMPERAMENT_READ", "1")
+    assert main(["temperament"]) == 0
+    assert json.loads(capsys.readouterr().out)["archetype"] == "co-pilot"
 
 
 def test_invalid_archetype_default_falls_back(tmp_path, monkeypatch):

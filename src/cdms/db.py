@@ -101,13 +101,20 @@ def _ddl(dim: int) -> list[str]:
         # ---- §8 temperament genotype (Phase 0: state only; current == seed) -----
         # One row per dial: the (seed, current, bounds) triple + per-dial plasticity.
         # Operator-only — never read into SessionStart additionalContext / MCP retrieve.
+        # CHECK constraints are defense-in-depth for the Bem firewall: Phase 0 has no
+        # `current` writer, but Phase 1b's update rule will, and a direct DB edit or a
+        # migration bug must never leave a dial out of range or its current outside the
+        # band. preset_dials already enforces this in Python; the DDL makes it an
+        # invariant the store itself cannot break (Cycle-7 N-HIGH-1).
         """CREATE TABLE IF NOT EXISTS mem_temperament (
             dial TEXT PRIMARY KEY,
-            seed REAL NOT NULL,
+            seed REAL NOT NULL CHECK(seed >= 0 AND seed <= 1),
             current REAL NOT NULL,
-            lower REAL NOT NULL,
-            upper REAL NOT NULL,
-            plasticity REAL NOT NULL DEFAULT 0
+            lower REAL NOT NULL CHECK(lower >= 0 AND lower <= 1),
+            upper REAL NOT NULL CHECK(upper >= 0 AND upper <= 1),
+            plasticity REAL NOT NULL DEFAULT 0 CHECK(plasticity >= 0),
+            CHECK(lower <= upper),
+            CHECK(current >= lower AND current <= upper)
         )""",
         # small key/value store (e.g. the consolidation cycle counter for gist decay;
         # the temperament 'archetype' name — the leash radius is derived, not stored)
@@ -250,6 +257,7 @@ class Database:
         init (a racing seeder's duplicate rows are ignored, not an IntegrityError).
         """
         from .temperament import (DEFAULT_ARCHETYPE, DIALS, archetypes,
+                                  match_archetype_by_partial_seed,
                                   match_archetype_by_seed, preset_dials)
 
         rows = c.execute("SELECT dial, seed FROM mem_temperament").fetchall()
@@ -266,7 +274,13 @@ class Database:
         if existing:
             # Partial state: complete it from the archetype already on record so the
             # filled-in dials match the seeded ones (don't adopt a possibly-changed config).
-            archetype = self.get_meta("archetype") or DEFAULT_ARCHETYPE
+            # If the label row is missing too, recover it from the seeds ALREADY present
+            # before defaulting — otherwise a truncated maverick store could be completed
+            # from co-pilot seeds, silently mixing two dispositions (Cycle-7 MED-1).
+            # Only an unambiguous match is adopted; ambiguous ⇒ default, as before.
+            archetype = (self.get_meta("archetype")
+                         or match_archetype_by_partial_seed({r[0]: r[1] for r in rows})
+                         or DEFAULT_ARCHETYPE)
         else:
             archetype = getattr(self.cfg, "archetype_default", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
         if archetype not in archetypes():

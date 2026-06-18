@@ -200,6 +200,23 @@ def match_archetype_by_seed(seed_by_dial: Mapping[str, float]) -> str | None:
     return None
 
 
+def match_archetype_by_partial_seed(seed_by_dial: Mapping[str, float]) -> str | None:
+    """Best-effort archetype recovery from a PARTIAL seed set — a store whose dial rows
+    were truncated/half-written (interrupted or external edit) AND whose archetype-meta
+    label is also missing. Returns an archetype only if EXACTLY ONE is consistent with
+    every present seed; ambiguous (or no present dials) ⇒ None, so the caller keeps its
+    own default rather than completing the store from the WRONG archetype (which would
+    silently mix two dispositions and weaken the joint leash)."""
+    present = {k: v for k, v in seed_by_dial.items() if k in DIALS}
+    if not present:
+        return None
+    candidates = [
+        arch for arch in _ARCHETYPE_SEEDS
+        if all(abs(_seed_for(arch, k) - v) < 1e-9 for k, v in present.items())
+    ]
+    return candidates[0] if len(candidates) == 1 else None
+
+
 # --------------------------------------------------------------------------- #
 # pure-function CONTROL  (zero storage; no wall-clock; §8.3 / §8.7 "control is a
 # pure function of state (seed, current, bounds)")
