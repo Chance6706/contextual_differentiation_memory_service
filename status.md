@@ -1,17 +1,18 @@
 # CDMS — Working Status
 
-_Last updated: 2026-06-18 (Cycle 3 complete). Pick-up-tomorrow handoff. For the full design see
+_Last updated: 2026-06-18 (Cycle 7 + re-run-audit follow-up complete; §8 temperament Phase 0 built & merged). For the full design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for narrative history see the session memory
 files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-service/memory/`._
 
 ## TL;DR
 
-The **memory core is built, tested (135 tests), and validated on real history.** The
-**proactive pillars** (curiosity/dream-research, emotion/proposals/provenance,
-archetypes/genotype) are **fully designed and documented but not yet implemented.**
-Two design threads remain open.
+The **memory core is built, tested (229 tests), and validated on real history.** The
+**§8 temperament layer Phase 0** (static disposition state + pure-function control + joint
+leash) is now **built, tested, and merged to `main`**. The remaining **proactive pillars**
+(curiosity/dream-research, emotion/proposals/provenance, the temperament drift/proposal
+phases 1+) are **fully designed and documented but not yet implemented.**
 
-**Pre-Phase-0 hardening — three red-team cycles complete:**
+**Pre-Phase-0 hardening — seven red-team cycles + a re-run-audit follow-up complete:**
 - **Cycle 1** fixed 3 CRITICAL + 5 HIGH + MEDIUM/LOW "over time" defects (silent
   embedder space-contamination, stored-memory prompt injection, gist proliferation,
   concurrent-drain data loss, scar abuse, crash-safe decay clock, config/secret
@@ -34,6 +35,17 @@ Two design threads remain open.
   attacks (X1–X6: ossification, decay-clock, valence-on-dedup, relation-flip, salience
   gaming) are **characterized design tradeoffs, deferred by design** (the thesis itself —
   individuation, thrash damping, budget cap — held: trait overlap **0.000**).
+- **Cycles 4–6** added external adversarial reports (DeepSeek V4 Pro, GLM-5.2, OWL-Alpha)
+  + the metaphysical-disposition framing ("CDMS individuates, it does not animate").
+- **Cycle 7** triaged the open Cycle 4–6 mechanical findings and **built §8 temperament
+  Phase 0**; a **double adversarial review** then caught a HIGH new regression (the A2-M1
+  gist-orphan rule erased multi-session gists) and reverted it.
+- **Re-run-audit follow-up** — a re-run of the OWL Cycle-7 review revealed the original had
+  read a **stale revision** (it certified the since-reverted A2-M1 as "fixed"). Re-auditing
+  the true tip surfaced and fixed **8 defects** (1 HIGH word-boundary success-inference bug
+  poisoning valence; 2 MED — partial-seed archetype-mixing + the Bem-firewall CLI leak; 5
+  LOW — purge glob, dedup phantom +1, temperament CHECK constraints, `db_filename`
+  traversal, `reinforce_cap<alpha`). Merged to `main` in **PR #15**.
 - Full inventory + verified-sound + deferred items:
   [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections
   (P1–P7 + the "Boiling Frog" leash test) are in
@@ -58,6 +70,12 @@ per-project psyches (trait overlap **0.00**).
   CPU ONNX embedder (bge-small, 384-dim, **0 VRAM**).
 - **Claude Code integration** — MCP stdio server (5 tools) + lifecycle hooks;
   `cdms install --scope project|user`.
+- **§8 temperament Phase 0** — static disposition state (8 dials × `(seed, current,
+  bounds, plasticity)`, 5 archetypes), pure-function control (no DB/IO/wall-clock), and the
+  **joint leash** (Euclidean `current`→`seed`, capped to bind inside the box and below the
+  nearest other-archetype seed). **Operator-only** — never enters context (Bem firewall),
+  enforced at the `cdms temperament` CLI boundary. `current == seed` (no drift yet —
+  drift/proposal are Phases 1+). `temperament.py`, schema v4 `mem_temperament` table.
 - **Tooling** — `tools/seed_from_hermes.py`, `tools/seed_from_jsonl.py` (imports
   `~/.claude/projects/**/*.jsonl`), `tools/individuation_experiment.py`,
   `tools/analyze_psyches.py`, `tools/drift_trajectory.py` (self-validating
@@ -65,12 +83,12 @@ per-project psyches (trait overlap **0.00**).
 
 ## 📐 Designed, documented, NOT built (`docs/DESIGN.md` §6–§8)
 
-> **§8 temperament layer now has a full implementation plan** —
-> [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md) (+ cited
+> **§8 temperament layer — Phase 0 is BUILT & merged** (see "Built & tested" above). The
+> full phased plan lives in [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md) (+ cited
 > [`TEMPERAMENT_RESEARCH_NOTES.md`](docs/TEMPERAMENT_RESEARCH_NOTES.md)): research-grounded,
-> break-cycle'd, phased (state → control → proposal lever → update rule → survivability test →
-> log-last). Master invariant: *the log must never be an input to itself.* Awaiting go-ahead to
-> build Phase 0 (static temperament state + pure-function control + joint leash).
+> break-cycle'd, phased (state → control → **proposal lever → update rule → survivability test →
+> log-last**, the still-unbuilt Phases 1+). Master invariant: *the log must never be an input
+> to itself.*
 
 - **Curiosity / dreaming-research pillar** — trait-driven curiosity, novelty surfacing,
   epistemic-gap tracking, dream gated on true system idle (idle input + low CPU + **free GPU**),
@@ -93,7 +111,7 @@ per-project psyches (trait overlap **0.00**).
 - Archetype drift = **bounded** ("anchored but evolving" at all 3 layers).
 - Multi-project budget = **capped-proportional** (cap default 50%, `project_budget_cap`).
 - Temperament drift log (the "degenerative orbit") = **deferred, not built** — instrument for an unbuilt machine, unfalsifiable per CLAUDE.md §9 (no real-history oracle). Recorded in `docs/DESIGN.md` §8.7 / §10.3. Reframed as *"drift decoupled from reality-coupling"*; degeneration is detectable from **trajectory statistics** coupled to the **outcome signal**, not the unbuilt provenance pillar. When/if built: **operator-only**, **structured-cause (not prose)**, **activity-clock-only**.
-- **Design fix to fold into the genotype layer (`§8.3` joint-leash):** per-dial bounds do **not** prevent *joint* corner-migration (a "Co-pilot" can drift into a functional "Maverick" corner); add a Euclidean/Mahalanobis **leash of `current` to the archetype `seed`** — the missing `conserve_budget` analog at the genotype layer. §1.3 "one law at every layer" is the target, not yet the spec (`DESIGN.md` §1.3, §8.3, §8.6).
+- **Joint-leash (`§8.3`) — now BUILT in Phase 0:** per-dial bounds do **not** prevent *joint* corner-migration (a "Co-pilot" can drift into a functional "Maverick" corner), so the genotype layer carries a Euclidean **leash of `current` to the archetype `seed`** — the `conserve_budget` analog. Implemented in `temperament.py` (radius capped to bind inside the box AND below the nearest other-archetype seed → no archetype-hopping; property-tested incl. the "Boiling Frog" ratchet). A Mahalanobis Σ from the survivable region is the Phase-2 upgrade (`DESIGN.md` §1.3, §8.3, §8.6).
 
 ## 🔲 OPEN — pick up here
 
@@ -148,7 +166,7 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 135 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # 229 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory
