@@ -759,4 +759,8 @@ class Database:
             "gist": c.execute("SELECT COUNT(*) FROM mem_gist").fetchone()[0],
             "scars": c.execute("SELECT COUNT(*) FROM mem_scars").fetchone()[0],
             "support_edges": c.execute("SELECT COUNT(*) FROM mem_support_edges").fetchone()[0],
+            # Operator-visible skip signal (A1-M1): nonzero means consolidation passes are
+            # being skipped on lock contention — repeated growth suggests a wedged holder.
+            "consolidations_skipped": int(self.get_meta("consolidations_skipped", "0") or "0"),
+            "last_consolidation_skip": self.get_meta("last_consolidation_skip"),
         }

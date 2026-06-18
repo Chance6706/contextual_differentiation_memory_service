@@ -51,6 +51,31 @@ def test_cmed8_retrieve_materializes_by_id_without_full_scan(tmp_path, monkeypat
     svc.close()
 
 
+def test_a1m1_consolidation_skip_is_recorded_and_visible(tmp_path, monkeypatch):
+    """Phase 2 — A1-M1: a consolidation skipped on lock contention must leave a durable,
+    operator-visible signal (a counter + timestamp surfaced in stats), not be silent."""
+    from cdms import consolidate as cmod
+    from cdms.lock import cross_process_lock as real_lock
+
+    cfg = Config(home=tmp_path)
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    con = cmod.Consolidator(cfg, db=svc.db, embedder=svc.embedder)
+    assert svc.db.stats()["consolidations_skipped"] == 0
+    assert svc.db.stats()["last_consolidation_skip"] is None
+
+    # Short lock timeout inside run() so the test doesn't wait the 90s default.
+    monkeypatch.setattr(cmod, "cross_process_lock", lambda path, **kw: real_lock(path, timeout=0.3))
+    with real_lock(cfg.lock_path):          # simulate a concurrent pass holding the lock
+        rep1 = con.run()
+        rep2 = con.run()
+
+    assert rep1.skipped and rep2.skipped
+    st = svc.db.stats()
+    assert st["consolidations_skipped"] == 2
+    assert st["last_consolidation_skip"] is not None
+    svc.close()
+
+
 def test_a5h1_scar_dedup_without_full_scan(tmp_path, monkeypatch):
     cfg = Config(home=tmp_path)
     svc = MemoryService(cfg, embedder=Embedder(cfg))

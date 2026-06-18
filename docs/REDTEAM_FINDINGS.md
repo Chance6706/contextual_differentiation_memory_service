@@ -342,8 +342,11 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   `get_scars_by_ids` (chunked `WHERE id IN`), not the whole table. Integration test proves
   retrieve results are byte-identical with whole-table scans forbidden
   (`tests/test_cycle7_deferred.py`).
-- **A1-M1** silent consolidation-skip on lock timeout: observability gap (logged, self-heals
-  next cycle); a skip counter is a future nicety.
+- ~~**A1-M1** silent consolidation-skip on lock timeout~~ → **✅ PROMOTED & FIXED
+  (Cycle-7 Phase 2):** a skip now increments a durable `consolidations_skipped` counter +
+  `last_consolidation_skip` timestamp in meta (surfaced by `cdms stats`), sets
+  `ConsolidationReport.skipped`, and emits a stderr warning — repeated skips (a wedged
+  holder) are now visible. Integration test holds the lock and asserts the counter advances.
 - **A2-M2 / A5-L2** quarantined `.corrupt-*` / orphaned `.processing` files accumulate and
   hold plaintext: operational — `secure_delete` protects the *live* store; the quarantine
   is an explicit recovery artifact. A `cdms doctor --purge-quarantines` is the right future
