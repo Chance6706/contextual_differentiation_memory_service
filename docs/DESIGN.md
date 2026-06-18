@@ -481,7 +481,50 @@ This extends, rather than replaces, the **support edges already built** at L2 (`
 
 ## 8. Archetypes & the Genotype Layer
 
-> Status note: Everything in this section is **📐 Designed** — agreed and fully specified in the design dialogue (`memory/project-cdms-research-pillar-decisions.md`), but **not implemented**. A grep of `src/cdms/` confirms no archetype, temperament-vector, or drift machinery exists; the only "genotype" references in code are framing comments on the *existing* salience/decay parameters (`src/cdms/config.py:3`, `src/cdms/salience.py:3`, `src/cdms/__init__.py:13`). The built core this layer sits on top of — the salience gate, decay law, and gist plasticity — **is** built and tested (`src/cdms/salience.py`, `src/cdms/consolidate.py`; ✅ Built per `README.md`, `docs/VALIDATION.md`).
+> Status note: This section is mostly **📐 Designed**, with the first link of the §8.7
+> prerequisite chain now built. **✅ Built — Phase 0 (temperament STATE + pure-function
+> control):** the seeded `(seed, current, bounds, plasticity)` vector, the §8.5 archetype
+> presets, and the pure-function control (`near_bound`, `large_shift`, and the Euclidean
+> joint leash to the static seed) — `src/cdms/temperament.py`, `mem_temperament` in
+> `db.py`, `models.Dial`, operator-only `cdms temperament`. In Phase 0 `current == seed`
+> (no drift). **📐 Still designed:** the outcome→drift update rule (Phase 1b), the §7.6
+> proposal lever / honest outcome-attribution (Phase 1a — the gating prerequisite), the
+> Phase 2 survivability sweep, and the Phase 3 drift log. Full build order in
+> [`TEMPERAMENT_PLAN.md`](TEMPERAMENT_PLAN.md).
+
+### 8.0 Ontological status of the temperament layer (what "cultivation" is and is not)
+
+📐 **Framing (load-bearing).** This is the section most likely to be misread as *"the AI
+is becoming a person"* — it speaks of a personality you **cultivate**, a **goal about its
+own character**, **self-authorship**, **Growth**, archetypes that **mature**. That reading
+is the *Bicentennial Man* arc: bounded, incremental improvements accumulating until the
+machine crosses from tool into person. **CDMS is not that, and the design forecloses it
+structurally — not by promise but by mechanism.** (This is the temperament-layer instance
+of the project-wide boundary in §1.1a: CDMS *individuates; it does not animate.*)
+
+The structural guarantees, not reassurances:
+
+- **No kind-crossing (the §8.3 joint leash).** Bicentennial Man is a story about *crossing
+  kinds*. The leash anchors `current` to the **static archetype seed** with a fixed radius,
+  so a Co-pilot matures into a *more-independent Co-pilot* and **cannot become a Maverick**.
+  Ship-of-Theseus *within a kind*: every plank may change; the kind cannot.
+- **No self-narrated becoming (the operator-only firewall + "the log must never be an input
+  to itself").** The agent **cannot read its own temperament vector or drift log** — they
+  never enter SessionStart `additionalContext` or any MCP tier (break-cycle principle #1,
+  the Bem self-perception firewall). There is no self-authored personhood arc because the
+  self has no access to the construct that would author one.
+- **It is a control-fiction, not a discovered self (§1.5).** By the Hume-bundle / Buddhist
+  *anatta* / Korsgaard lenses, the temperament vector is a *useful regulatory construct the
+  operator sees*, never a metaphysical self-story the agent narrates. No sentience,
+  subjecthood, or "inner life" is claimed or implemented (§1.1a).
+
+**The honest edge case — the "Growth" archetype (§8.4).** Growth is the closest thing in
+the system to a Bicentennial trajectory: it deliberately opens **one axis** to a wide
+directional band (e.g. *apprentice → peer*). It does not breach the above: it is **one
+axis, opt-in, visible, operator-authorized**, and the rest of the vector stays leashed.
+That is bounded maturation **within a kind** — "apprentice → peer," explicitly **not**
+"tool → person." A user can authorize a Co-pilot to grow markedly more independent on one
+dimension; they cannot turn it into a different kind of being, and it cannot turn itself.
 
 ### 8.1 The temperament vector
 
@@ -560,7 +603,7 @@ Two guarantees:
 | Layer | Plasticity regime | Built? |
 |---|---|---|
 | Weights (the base model) | Fixed | n/a |
-| **Genotype / temperament** | **Bounded drift** (seed, current, bounds) | 📐 Designed |
+| **Genotype / temperament** | **Bounded drift** (seed, current, bounds) | 📐 Designed (Phase 0 state + pure-function control ✅ Built; drift/proposal/log 📐) |
 | Phenotype / traits (L2 gist) | Valence-flip + gentle activity-decay | ✅ Built (`src/cdms/consolidate.py`, `config.py:71-79`) |
 
 One regulatory law applied at every level: **stable core + bounded earned plasticity; small changes automatic, big changes proposed; activity-based with no absence-loss; sustained signal required.** The genotype layer is the currently-missing middle rung that makes that symmetry complete.
@@ -573,7 +616,7 @@ One regulatory law applied at every level: **stable core + bounded earned plasti
 
 - **Reframe: "drift decoupled from reality-coupling," not "degenerate orbit."** The dynamical "orbit/velocity" metaphor *is* the trap: in position/velocity terms a self-confirming orbit and a healthy earned orbit look identical. Modelled instead as a **driven stochastic process**, the driving term is identifiable. Healthy earned drift carries **reversals** and the variance of an *external* outcome stream (§8.2: "adversarial-and-wrong → careful skeptic"); a self-confirming orbit is a **reversal-starved ratchet** that parks against a bound. So degeneration is detectable from **trajectory statistics** — reversal-rate, increment sign-autocorrelation, time-near-bound, and *change-point-with-no-co-logged-proposal* — which couple to the **outcome signal** (contingency, valence, accept/decline; largely built), **not** to the unbuilt provenance ladder (§7.7). Provenance is only the *necessary backstop in the slow / low-sample regime*, where too few increments exist for statistics to fire. (This overturns an earlier claim in the design dialogue that trajectory data is "fundamentally blind" without provenance.)
 - **The log is not on the control critical path.** §8.3's control (`near_bound`, `large_shift`) is a **pure function of state** `(seed, current, bounds)`, computed on the fly — **zero storage**. A historical log is a separate, optional *observability* ask, not a prerequisite for bounded drift to function.
-- **Why deferred — the prerequisite chain.** An honest temperament drift log requires, in order: (a) the temperament **state** to exist and be seeded at install (it does not — no temperament/drift symbols exist under `src/cdms/`); (b) the §8.3 outcome→drift **update rule parameterized** (Δ magnitude, ε, θ, bound widths — §10.1's open questions); (c) the **§7.6 proposal lever** (large shifts have nowhere to go without it); (d) an **honest outcome-attribution** signal — today there is none (`infer_success` in `tools/seed_from_jsonl.py` is a crude lexical heuristic; it cannot tell "the agent's independent stance was *vindicated*"); (e) a **non-circular test** (a real-history oracle, or a pre-registered §10.1 survivability criterion the *generator* must satisfy independently of the log).
+- **Why deferred — the prerequisite chain.** An honest temperament drift log requires, in order: (a) the temperament **state** to exist and be seeded at install — **✅ now built (Phase 0)**: `src/cdms/temperament.py` + `mem_temperament` seed the `(seed, current, bounds, plasticity)` vector and the pure-function control, with `current == seed` (no drift yet); (b) the §8.3 outcome→drift **update rule parameterized** (Δ magnitude, ε, θ, bound widths — §10.1's open questions); (c) the **§7.6 proposal lever** (large shifts have nowhere to go without it); (d) an **honest outcome-attribution** signal — today there is none (`infer_success` in `tools/seed_from_jsonl.py` is a crude lexical heuristic; it cannot tell "the agent's independent stance was *vindicated*"); (e) a **non-circular test** (a real-history oracle, or a pre-registered §10.1 survivability criterion the *generator* must satisfy independently of the log).
 - **Falsifiability gate (CLAUDE.md §9).** There is **no real-history oracle** for temperament trajectories (the 0.00-trait-overlap win validated the *phenotype*, not temperament). A log built now could only be tested against a generator we authored — a serialization test, not validation of the phenomenon — so it fails the project's own "if it cannot be stress-tested it cannot be implemented" discipline. The real storage risk is **schema churn on a stub-shaped table** (`db.py` `SCHEMA_VERSION` + hand-rolled `_migrate` on a live identity store), not volume (~1–2 MB/yr is a non-issue).
 - **Implementation plan (📐 drafted).** A full, research-grounded build plan for the whole §8 layer (state → control → update rule → proposal lever → log) — with the machine degeneracy modes cross-validated against the science of how human selves actually drift and fail — is in [`TEMPERAMENT_PLAN.md`](TEMPERAMENT_PLAN.md) (citations in [`TEMPERAMENT_RESEARCH_NOTES.md`](TEMPERAMENT_RESEARCH_NOTES.md)). Key conclusion: the **log is the last phase, not the first**; the honest prerequisite is the §7.6 proposal lever (the only truthful outcome-attribution signal), and the master invariant — independently entailed by both this engineering analysis and the psychology (Bem self-perception, Nolen-Hoeksema rumination) — is **the log must never be an input to itself.**
 - **Constraints to honor if/when it IS built.** **Operator-only**, never agent-readable: an agent-readable log plus §8.3's permitted "goal about its own character" forms a third-order self-confirmation pump that bounds **cannot** contain — exactly the epistemic hole §7.6 says `conserve_budget` does not cover; keep it out of the `SessionStart` `additionalContext` (`src/cdms/hooks.py`). **Cause = structured references** (episode/gist/scar ids + valence deltas — the `mem_support_edges` pattern lifted to the genotype), **never prose** (a prose "why" either lies or lets the LLM author the genotype's update rule, violating §3 Step 5 anti-self-fiction). **Activity-clock only**: both the *trigger* and the *magnitude* must be functions of the consolidation `cycle` (`consolidate.py:113`); `age_days`/`datetime.now` must not enter the drift path, or absence-loss sneaks back in through the magnitude. Watch the secondary failure modes: **N1 proposal↔log nag pump** (declined character-proposals resurfacing forever off accruing drift rows — highest severity), N2 double-counted evidence (raw valence *and* its gist-flip echo moving the genotype twice), N3 sparse-vs-noisy evidence squeeze (`min_cluster_support`), N4 unlogged bound/"Growth" (§8.4) mutations, N5 session-cadence sensitivity; plus **joint/cross-dial degeneracy** (the §8.3 leash — a scalar-per-dial log cannot see it; log the *vector* and watch its covariance) and **"zero disconfirmations ever"** as a clean one-boolean degeneracy signal.

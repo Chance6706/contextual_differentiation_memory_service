@@ -85,6 +85,12 @@ class Config:
     relation_pos_threshold: float = 0.15   # valence above -> "handles_well"
     relation_neg_threshold: float = -0.15  # valence below -> "has_trouble_with"
 
+    # ---- Temperament (§8) genotype: which archetype seeds a NEW store -------
+    # Phase 0 of the §8.7 chain: the temperament vector is seeded ONCE at first
+    # init from this archetype (one of the §8.5 presets). It does not retro-change
+    # an existing store. Must be a known archetype (validated below).
+    archetype_default: str = "co-pilot"
+
     # ---- Retrieval ---------------------------------------------------------
     default_top_k: int = 8
     rrf_k: int = 60                     # reciprocal-rank-fusion constant for hybrid search
@@ -223,6 +229,18 @@ def _validate(cfg: "Config") -> None:
         if isinstance(val, bool) or not ok(val):  # bool sneaks past int/float checks
             print(f"cdms config: invalid {name}={val!r}; using default {getattr(d, name)!r}", file=_sys.stderr)
             setattr(cfg, name, getattr(d, name))
+
+    # Temperament archetype must be a known preset; a typo otherwise silently seeds a
+    # store from the wrong genotype. Repair to the default and warn (import is lazy to
+    # avoid any import-time coupling between config and the temperament module).
+    try:
+        from .temperament import archetypes as _known_archetypes
+        if cfg.archetype_default not in _known_archetypes():
+            print(f"cdms config: invalid archetype_default={cfg.archetype_default!r}; "
+                  f"using default {d.archetype_default!r}", file=_sys.stderr)
+            cfg.archetype_default = d.archetype_default
+    except Exception:
+        pass
 
 
 def load_config() -> Config:

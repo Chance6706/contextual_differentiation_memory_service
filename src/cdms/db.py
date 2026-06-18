@@ -26,7 +26,7 @@ from .config import Config
 from .embeddings import serialize_f32
 from .models import Episodic, Gist, Scar, utc_now_iso
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 # Unicode-aware: the FTS5 index uses unicode61 and DOES store non-Latin terms, but
 # an ASCII-only token pattern stripped Cyrillic/CJK/accented queries to an empty
@@ -98,7 +98,19 @@ def _ddl(dim: int) -> list[str]:
         "CREATE VIRTUAL TABLE IF NOT EXISTS fts_scars USING fts5(id UNINDEXED, content, tokenize='porter unicode61')",
         "CREATE INDEX IF NOT EXISTS idx_ep_session ON mem_episodic(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_ep_project ON mem_episodic(project)",
-        # small key/value store (e.g. the consolidation cycle counter for gist decay)
+        # ---- §8 temperament genotype (Phase 0: state only; current == seed) -----
+        # One row per dial: the (seed, current, bounds) triple + per-dial plasticity.
+        # Operator-only — never read into SessionStart additionalContext / MCP retrieve.
+        """CREATE TABLE IF NOT EXISTS mem_temperament (
+            dial TEXT PRIMARY KEY,
+            seed REAL NOT NULL,
+            current REAL NOT NULL,
+            lower REAL NOT NULL,
+            upper REAL NOT NULL,
+            plasticity REAL NOT NULL DEFAULT 0
+        )""",
+        # small key/value store (e.g. the consolidation cycle counter for gist decay;
+        # the temperament 'archetype' + 'R_archetype' leash radius)
         "CREATE TABLE IF NOT EXISTS cdms_meta (key TEXT PRIMARY KEY, value TEXT)",
     ]
 
@@ -207,6 +219,7 @@ class Database:
             for stmt in _ddl(self.cfg.embed_dim):
                 c.execute(stmt)
             self._migrate(c)
+            self._seed_temperament(c)
             # Set the schema version LAST — after CREATEs and idempotent ALTERs all
             # succeed. Python's sqlite3 autocommits DDL, so an interrupted migration
             # is not rolled back; setting user_version up-front (as before) could
@@ -214,6 +227,32 @@ class Database:
             # column adds are idempotent (gated on table_info), so an interrupted run
             # re-heals on next open; recording the version last keeps it honest.
             c.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+
+    def _seed_temperament(self, c: sqlite3.Connection) -> None:
+        """Seed the §8 temperament vector ONCE, at first init, from the configured
+        archetype (Phase 0: ``current == seed``, no drift). Idempotent: seeds only
+        when the table is empty, so re-opening an existing store never re-seeds nor
+        overwrites a (future-Phase-1b) drifted ``current``. Operator-only state.
+        """
+        from .temperament import (DEFAULT_ARCHETYPE, archetype_radius, archetypes,
+                                  preset_dials)
+
+        if c.execute("SELECT COUNT(*) FROM mem_temperament").fetchone()[0]:
+            return
+        archetype = getattr(self.cfg, "archetype_default", DEFAULT_ARCHETYPE) or DEFAULT_ARCHETYPE
+        if archetype not in archetypes():
+            archetype = DEFAULT_ARCHETYPE
+        for d in preset_dials(archetype):
+            c.execute(
+                "INSERT INTO mem_temperament(dial, seed, current, lower, upper, plasticity) "
+                "VALUES (?,?,?,?,?,?)",
+                (d.name, d.seed, d.current, d.lower, d.upper, d.plasticity),
+            )
+        # Direct INSERTs (not set_meta) so this stays inside the _init_schema tx.
+        c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES ('archetype', ?)",
+                  (archetype,))
+        c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES ('R_archetype', ?)",
+                  (str(archetype_radius(archetype)),))
 
     @staticmethod
     def _migrate(c: sqlite3.Connection) -> None:
@@ -241,6 +280,26 @@ class Database:
     def set_meta(self, key: str, value) -> None:
         with self.tx() as c:
             c.execute("INSERT OR REPLACE INTO cdms_meta(key, value) VALUES (?, ?)", (key, str(value)))
+
+    # -- §8 temperament (Phase 0: read-only operator access) -----------------
+    def all_dials(self) -> list["Dial"]:
+        """The seeded temperament vector, in insertion (DIALS) order. Operator-only —
+        must never be read into SessionStart additionalContext or any MCP tier."""
+        from .models import Dial
+        rows = self.conn.execute(
+            "SELECT dial, seed, current, lower, upper, plasticity FROM mem_temperament ORDER BY rowid"
+        ).fetchall()
+        return [Dial(name=r["dial"], seed=r["seed"], current=r["current"],
+                     lower=r["lower"], upper=r["upper"], plasticity=r["plasticity"]) for r in rows]
+
+    def get_archetype(self) -> str:
+        return self.get_meta("archetype", "co-pilot") or "co-pilot"
+
+    def get_archetype_radius(self) -> float:
+        try:
+            return float(self.get_meta("R_archetype", "0.30") or "0.30")
+        except (TypeError, ValueError):
+            return 0.30
 
     def reconcile_embedder(self, fingerprint: str) -> None:
         """Pin the embedder's vector-space identity on first write; refuse to mix.

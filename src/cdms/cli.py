@@ -187,6 +187,39 @@ def cmd_stats(args) -> int:
     return 0
 
 
+def cmd_temperament(args) -> int:
+    """Operator-only view of the §8 temperament vector and its joint-leash status.
+
+    NEVER injected into context (break-cycle principle #1 / Bem self-perception
+    firewall): the agent must not read its own disposition. This is for the operator.
+    """
+    from .store import MemoryService
+    from .temperament import leash_distance, near_bound, seed_vector, vector
+
+    cfg = load_config()
+    svc = MemoryService(cfg)
+    dials = svc.db.all_dials()
+    archetype = svc.db.get_archetype()
+    radius = svc.db.get_archetype_radius()
+    svc.close()
+
+    dist = leash_distance(vector(dials), seed_vector(dials)) if dials else 0.0
+    out = {
+        "archetype": archetype,
+        "R_archetype": radius,
+        "leash_distance": round(dist, 4),
+        "leash_exceeded": dist > radius,
+        "dials": [
+            {"dial": d.name, "seed": d.seed, "current": d.current,
+             "lower": d.lower, "upper": d.upper, "plasticity": d.plasticity,
+             "near_bound": near_bound(d)}
+            for d in dials
+        ],
+    }
+    print(json.dumps(out, indent=2))
+    return 0
+
+
 def cmd_ingest(args) -> int:
     from .store import MemoryService, TurnEvent
 
@@ -483,6 +516,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("paths", help="show PersonaTree paths").set_defaults(func=cmd_paths)
     sub.add_parser("stats", help="store statistics").set_defaults(func=cmd_stats)
+    sub.add_parser("temperament",
+                   help="show the §8 temperament vector + leash status (operator-only)"
+                   ).set_defaults(func=cmd_temperament)
     sub.add_parser("doctor", help="verify environment + warm embedder").set_defaults(func=cmd_doctor)
 
     ing = sub.add_parser("ingest", help="manually ingest a turn")
