@@ -326,7 +326,12 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
   regression; the regex tier is reachable (`reset --hard … wiped`), not dead code.
 
 **DEFERRED (reproduced, real, but low-impact / tradeoff / operational / out-of-code-scope):**
-- **C-MED-1** touch on deleted/deduped episode → lost reinforcement: transient, self-heals.
+- **C-MED-1** touch on deleted/deduped episode → lost reinforcement: **partly PROMOTED
+  (Cycle-7 Phase 3).** The substantive concern (deduped survivors under-counted) is now
+  fixed — supersession folds the dropped duplicate's **full** `access_count` into the
+  survivor via `bump_access` (was only `+1`). The *residual* (a retrieve→touch on an
+  episode a concurrent consolidation just deleted) stays DEFERRED: it is a benign no-op
+  (`UPDATE` 0 rows, verified) on the hot read path, self-healing, not worth serializing.
 - **C-MED-2** FTS has no phrase queries: recall *quality*, GLM self-downgraded; acceptable.
 - **C-MED-3** `config.json` string/path fields (e.g. `home`) unvalidated: trust boundary —
   the file lives in the user's own `CDMS_HOME`; write access there already grants full control.

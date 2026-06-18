@@ -290,12 +290,14 @@ class Consolidator:
                 sims = keep_mat[:m] @ v
                 j = int(np.argmax(sims))
                 if float(sims[j]) >= thr:
-                    # supersede: fold access + salience into the survivor, drop the dup
+                    # supersede: fold access + salience into the survivor, drop the dup.
+                    # Fold the dup's FULL access_count (not just +1) so the survivor keeps
+                    # the merged reinforcement history (Cycle-5 C-MED-1).
                     survivor = self.db.get_episodic(keep_e[j].id)
                     if survivor is not None:
                         merged = max(survivor.base_salience, e.base_salience)
                         self.db.set_salience([(survivor.id, merged)])
-                        self.db.touch_episodic(survivor.id, survivor.timestamp)
+                        self.db.bump_access(survivor.id, max(1, e.access_count), survivor.timestamp)
                     to_delete.append(e.id)
                     continue
             keep_mat[m] = v

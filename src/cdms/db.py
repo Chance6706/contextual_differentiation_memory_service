@@ -444,6 +444,18 @@ class Database:
                 out[r[0]] = np.frombuffer(r[1], dtype="<f4").copy()
         return out
 
+    def bump_access(self, ep_id: str, n: int, when_iso: str) -> None:
+        """Add ``n`` to an episode's access_count (vs touch_episodic's +1). Used at dedup
+        supersession to fold the FULL reinforcement history of a dropped duplicate into the
+        survivor, so a deduped survivor is not under-counted (Cycle-5 C-MED-1)."""
+        if n <= 0:
+            return
+        with self.tx() as c:
+            c.execute(
+                "UPDATE mem_episodic SET access_count = access_count + ?, last_accessed = ? WHERE id = ?",
+                (n, when_iso, ep_id),
+            )
+
     def touch_episodic(self, ep_id: str, when_iso: str) -> None:
         """Record a retrieval (synaptic strengthening)."""
         with self.tx() as c:

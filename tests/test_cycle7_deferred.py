@@ -76,6 +76,30 @@ def test_a1m1_consolidation_skip_is_recorded_and_visible(tmp_path, monkeypatch):
     svc.close()
 
 
+def test_cmed1_dedup_folds_full_access_count_into_survivor(tmp_path):
+    """Phase 3 — C-MED-1: a deduped duplicate's FULL reinforcement (access_count) folds
+    into the survivor, not just +1, so the survivor isn't under-counted."""
+    cfg = Config(home=tmp_path)
+    cfg.dedup_sim_threshold = 0.95
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    r1 = svc.ingest(TurnEvent("ran the migration script", "applied schema v4", "ok",
+                              tool_name="Bash", project="p"))
+    r2 = svc.ingest(TurnEvent("ran the migration script", "applied schema v4", "ok",
+                              tool_name="Bash", project="p"))
+    for _ in range(5):                              # accumulate reinforcement on the DUP
+        svc.db.touch_episodic(r2.id, "2026-01-01T00:00:00Z")
+    a1 = svc.db.get_episodic(r1.id).access_count
+    a2 = svc.db.get_episodic(r2.id).access_count
+    assert a2 == 5
+
+    Consolidator(cfg, db=svc.db, embedder=svc.embedder).run()   # dedup folds r2 -> r1
+
+    survivor = svc.db.get_episodic(r1.id)
+    assert survivor is not None and svc.db.get_episodic(r2.id) is None
+    assert survivor.access_count == a1 + a2        # full fold (was +1 before the fix)
+    svc.close()
+
+
 def test_a5h1_scar_dedup_without_full_scan(tmp_path, monkeypatch):
     cfg = Config(home=tmp_path)
     svc = MemoryService(cfg, embedder=Embedder(cfg))
