@@ -77,6 +77,7 @@ def test_d2_cycle_counter_not_advanced_when_a_pass_step_raises(service, cfg, mon
 
 # --- T-1: recall + injection over a consolidated store ---------------------- #
 def test_t1_recall_and_injection_over_a_consolidated_store(service, cfg):
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates recall+injection, not corroboration
     cfg.dedup_sim_threshold = 0.999                 # don't dedup the distinct cluster members
     cfg.cluster_sim_threshold = 0.5                 # hash geometry: lower the cluster gate
     for tag in ("alpha", "beta", "gamma"):

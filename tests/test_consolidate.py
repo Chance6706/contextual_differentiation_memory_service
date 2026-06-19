@@ -10,6 +10,7 @@ def _consolidator(service, cfg):
 
 
 def test_scar_elevation_on_negative_crisis(service, cfg):
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates elevation mechanics, not corroboration
     rec = service.ingest(TurnEvent("deleted the production database by accident",
                                    "halted and restored backup", "data loss event",
                                    tool_name="Bash", success=False, valence_hint=-1.0))
@@ -31,6 +32,7 @@ def test_routine_failure_is_not_a_scar(service, cfg):
 
 
 def test_catastrophe_is_a_scar(service, cfg):
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates elevation mechanics, not corroboration
     rec = service.ingest(TurnEvent("clean up the repo", "ran git push --force",
                                    "force push overwrote teammates commits, data loss",
                                    tool_name="Bash", success=False, valence_hint=-1.0))

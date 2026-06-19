@@ -109,6 +109,7 @@ def test_flashbulb_floor_elevates_genuine_catastrophe(service, cfg):
     floored to crisis_threshold and elevates to a guardrail."""
     cfg.crisis_threshold = 50.0              # absurdly high so natural S0 can't reach it
     cfg.flashbulb_floor_catastrophes = True
+    cfg.scar_elevation_min_sessions = 1      # isolate: validates the floor, not the corroboration gate
     rec = service.ingest(TurnEvent(
         "clean up the repo", CATA_ACTION, CATA_OUTCOME,
         tool_name="Bash", success=False, valence_hint=-1.0, project="P"))

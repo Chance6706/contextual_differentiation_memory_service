@@ -144,6 +144,7 @@ def test_pin_scar_dedups_identical(cfg):
 
 
 def test_recurring_elevated_catastrophe_does_not_grow_scars(cfg):
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates scar dedup, not the corroboration gate
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
         con = Consolidator(cfg, db=svc.db, embedder=svc.embedder)
