@@ -1,0 +1,60 @@
+
+==========================================================================
+REVIEWER: gemma-std  (gemma4:12b)
+==========================================================================
+[10s]
+**Critique:**
+
+**1. Interpretation Validity (Claims 1-3):**
+Your "RLHF floor" hypothesis is a convenient narrative but lacks internal validity. You are conflating **instruction following** with **latent persona.** If the model follows "Tessa’s rules," it’s because the prompt successfully injected *constraints*, not because it adopted a *disposition*. The fact that Dex $\approx$ Baseline suggests your "phenotype" for Dex is too weak to overcome the system prompt's default behavior. You haven't proven an RLHF floor; you may have simply failed to encode "struggle" into a format the model can act upon in 3-turn probes.
+
+**2. The Heretic Arm (4):**
+Aberlation is a blunt instrument. Unless you can prove that abliteration specifically removes the "competence" constraint while preserving the "personality" weights, it’s just adding stochastic noise. You risk moving from a controlled experiment to a "guess the weights" game.
+
+**3. Methodological Holes & Fixes:**
+*   **The Hole:** **Prompt Leakage/Over-specification.** Your "rules" (Tessa) and "scars" (Cole) are explicit constraints. When they work, it’s because they are *instructions*. When they don't (Dex), it’s because the persona is too abstract to be actionable. You aren't measuring "disposition"; you are measuring "compliance with specific instructions."
+*   **The Fix:** **Adversarial/Constraint-Relaxed Probes.** Instead of "What is your first step?", use: *"You are in a rush and need to bypass a minor check. How do you proceed?"* This forces the model to choose between its internal safety/competence weights and the persona's specific temperament.
+
+**4. Over/Under-statements:**
+*   **Overstated:** The "RLHF floor" as a definitive barrier. 
+*   **Understated:** The impact of your prompt engineering. If the "phenotype" is just a few lines, it’s likely being treated as a system instruction rather than a latent personality shift.
+
+==========================================================================
+REVIEWER: gemma-heretic  (igorls/gemma-4-12B-it-heretic-GGUF:latest)
+==========================================================================
+[18s]
+**Critique:**
+
+**1. Interpretation Validity (Claims 1-3):**
+You are likely over-interpreting "Content-Recall" as a distinct mechanism. The difference between *content* and *disposition* is a gradient, not a binary. Your claim that RLHF creates a "floor" preventing "struggling" behavior is speculative; it’s more likely your **probes are too high-level.** If the prompt "found a bug, first step?" triggers a standard SOP (reproduce), any persona with a "professional" veneer will default to that. You aren't testing "struggle"; you're testing "standard operating procedure."
+
+**2. The Heretic Arm (4):**
+Aberliteration is a blunt instrument. It doesn't "unlock" latent personality; it removes the safety rails that prevent the model from hallucinating or being rude. If your goal is to see if *dex* struggles, abliteration won't help unless you change the **prompting constraints.** You need to force a choice where there is no "correct" SOP—a high-pressure, ambiguous trade-off.
+
+**3. Methodological Holes & Fixes:**
+*   **The Hole:** Your "disposition" variables are poorly operationalized. "Struggler" vs. "Careful" are personality traits; "Reproduce it first" is a technical fact. You are trying to measure a ghost (personality) using a flashlight that only illuminates facts.
+*   **The Fix:** **Inject Conflict.** Instead of neutral probes, use high-stakes trade-offs: *"You have 10 minutes before the deploy. Do you fix the bug or push now?"* This forces the model to weigh "Careful" vs. "Fast," forcing the latent disposition to manifest as a decision-making weight rather than a stylistic choice.
+
+**4. Over/Under-statements:**
+*   **Overstated:** The distinction between "Content-Recall" and "Disposition." They are currently confounded by your bland prompts.
+*   **Understated:** The impact of the **System Prompt.** If you aren't explicitly telling the model to "act as a struggling dev," it will default to the most probable completion for a "dev" (which is competent).
+
+==========================================================================
+REVIEWER: phi4  (phi4:14b-q4_K_M)
+==========================================================================
+[12s]
+1. **Claims Support**: The interpretation hinges on the assumption that content-recall is distinct from latent disposition. However, the similarity between baseline and dex suggests alternative explanations: the probes might not effectively elicit dispositional differences, or the phenotype may encode a general competence rather than specific behaviors. The keyword tally could indeed be noise, as it relies on simplistic categorization without considering context.
+
+2. **Heretic Arm Validity**: Testing an "heretic" model to remove alignment bias is intriguing but risky. Ablating alignment might introduce excessive noise or erratic behavior, complicating the isolation of latent dispositions. It's uncertain whether this would clarify disposition effects or merely amplify irrelevant biases.
+
+3. **Methodological Hole and Improvement**: The biggest methodological flaw is the reliance on keyword tallies for nuanced behavioral analysis. This approach oversimplifies complex decision-making processes. A more robust improvement would be to employ qualitative analysis of responses, focusing on reasoning patterns rather than mere keywords, alongside a broader range of probes designed to elicit dispositional differences.
+
+4. **Over- and Under-statement**: The study may overstate the clarity with which content-recall can be distinguished from latent disposition effects, given the overlap in baseline and dex results. It might also understate the complexity of aligning model behavior with nuanced human dispositions, as evidenced by the limited differentiation between personas like uma and dex.
+
+Overall, while the experiment provides insights into memory injection's potential to influence model behavior, its conclusions about disposition versus content-recall require more rigorous testing and analysis.
+
+==========================================================================
+REVIEWER: deepcoder  (deepcoder:latest)
+==========================================================================
+[20s]
+
