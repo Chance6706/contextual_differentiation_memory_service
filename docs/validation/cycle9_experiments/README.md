@@ -134,9 +134,10 @@ steer**:
 ## Status & next (for tomorrow)
 - **Validated:** Cycle-9 hardening does not perturb core identity/individuation metrics (synthetic,
   deterministic). Real-data individuation holds (`0.00`), with the confound noted.
-- **Parked, awaiting decision:** the rich-tuples prototype (`claude/proto-rich-tuples`) — it changes
-  default behavior (every catastrophe flashbulb-floors) and ~doubles the SessionStart preamble, so
-  it's a deliberate landing call, not an auto-merge.
+- **LANDED (gated), 2026-06-19:** the rich-tuples prototype shipped to `main` behind config gates —
+  exemplars bounded to the top-N highest-support gists (`recall_exemplars` / `recall_exemplar_top_n`,
+  +37–63% preamble vs the prototype's unbounded ~+85%) and the flashbulb floor (`flashbulb_floor_catastrophes`).
+  Recall-quality + cost validated on the real embedder: see [`../enriched_phenotype/`](../enriched_phenotype/).
 - **Open threads:** the L1 **steering experiment** (now better-grounded — needs the enriched
   phenotype; consider standard vs "heretic"/abliterated Gemma as a *contrast condition*, not a
   swap); the falsifiable **C1 determinism control** cell for the drift harness; the read-only

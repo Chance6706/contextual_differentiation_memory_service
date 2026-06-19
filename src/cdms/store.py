@@ -150,6 +150,17 @@ class MemoryService:
         signals = self._signals(ev, novelty)
         s0 = compute_s0(signals, self.cfg)
 
+        # Flashbulb encoding: a genuine catastrophe — the catastrophe lexicon matches the
+        # deed/result AND the valence is already crisis-negative — is maximally memorable by
+        # definition. Its natural S0 often lands just under the elevation gate (a real data-loss
+        # crisis measured 2.8 vs crisis_threshold 3.0), so no scar ever forms and the disaster is
+        # silently forgotten. Floor it to the threshold so a real guardrail elevates; benign/positive
+        # events are untouched (both gates must hold). Gated so operators can restore strict behavior.
+        if self.cfg.flashbulb_floor_catastrophes and signals.affect <= self.cfg.crisis_valence_max:
+            from .consolidate import _matches_catastrophe
+            if _matches_catastrophe(f"{ev.action_taken}\n{ev.outcome_feedback}"):
+                s0 = max(s0, self.cfg.crisis_threshold)
+
         rec = Episodic(
             id=new_id("ep"),
             trigger_prompt=ev.trigger_prompt,

@@ -56,6 +56,8 @@ class Gist:
     project: str = ""
     last_reinforced: str = field(default_factory=utc_now_iso)
     last_cycle: int = 0    # consolidation-cycle index when last reinforced (drives activity-based decay)
+    exemplar: str = ""     # verbatim quote from the cluster's most-salient episode — a RENDER-ONLY
+                           # richness channel for the phenotype; NOT part of search_text/identity.
 
     def search_text(self) -> str:
         return f"{self.subject} {self.relation} {self.object}"
