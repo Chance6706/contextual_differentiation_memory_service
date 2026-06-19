@@ -154,9 +154,17 @@ class Database:
                 # first connection is orphaned (a leak) and, on Windows, holds the file open
                 # so the quarantine rename can fail (Cycle-9 #8).
                 self._close_quietly()
-                self._quarantine_corrupt(cfg.db_path, exc)
+                quarantined_to = self._quarantine_corrupt(cfg.db_path, exc)
                 self.conn = self._open(cfg.db_path)
                 self._init_schema()
+                # Record a durable, operator-visible marker in the FRESH store (Cycle-9 F-2):
+                # the quarantine warning goes to hook stderr, which an operator can easily miss,
+                # so `cdms stats` (and anything reading meta) can report that the store was reset
+                # on <date> and where the prior bytes went — turning a silent-to-user reset into
+                # a discoverable one.
+                self.set_meta("quarantined_at", utc_now_iso())
+                if quarantined_to:
+                    self.set_meta("quarantined_from", quarantined_to)
             # vec0 index-format guard (after schema/meta exist, in both the normal and
             # quarantine-recovery paths): warn if sqlite-vec changed under an existing store.
             self._reconcile_vec_version()
@@ -195,12 +203,15 @@ class Database:
         return any(s in msg for s in cls._CORRUPTION_SIGNS)
 
     @staticmethod
-    def _quarantine_corrupt(path, exc) -> None:
+    def _quarantine_corrupt(path, exc) -> str | None:
+        """Rename the corrupt store (and its -wal/-shm) aside, owner-only, and warn.
+        Returns the quarantined path of the MAIN db file (for a durable marker), or None."""
         import os
         import sys
         import time
 
         stamp = time.strftime("%Y%m%d-%H%M%S")
+        main_dest = None
         for suffix in ("", "-wal", "-shm"):
             p = f"{path}{suffix}"
             if os.path.exists(p):
@@ -211,11 +222,14 @@ class Database:
                     # copy — a FULL plaintext snapshot of the store — would stay world-readable.
                     # Lock it to owner-only (Cycle-8 L-4).
                     os.chmod(dest, 0o600)
+                    if suffix == "":
+                        main_dest = dest
                 except OSError:
                     pass
         print(f"cdms: memory store at {path} is corrupt ({exc}); quarantined to "
               f"*.corrupt-{stamp} and starting fresh. Restore from a backup if you have one.",
               file=sys.stderr)
+        return main_dest
 
     def integrity_ok(self) -> bool:
         """On-demand integrity check (slow on large stores; used by `cdms doctor`)."""
@@ -503,6 +517,24 @@ class Database:
         # de-facto capture order; making clustering insertion-order-INVARIANT is a
         # separate, larger change tracked for future work.)
         rows = self.conn.execute("SELECT * FROM mem_episodic ORDER BY rowid").fetchall()
+        return [self._row_to_episodic(r) for r in rows]
+
+    def recent_episodic(self, limit: int, session_id: str | None = None) -> list[Episodic]:
+        """The most recent ``limit`` episodes (newest first), optionally one session.
+
+        SQL ``ORDER BY ... LIMIT`` instead of loading the whole table into Python to sort and
+        slice — the timeline (`cdms history` / MCP history) only ever wants a small window, so
+        there is no need to materialize every episode to return 20 (Cycle-9 S-5). Tie-break on
+        rowid DESC so the order is deterministic (most-recently-captured first within a second)."""
+        limit = max(1, limit)
+        if session_id:
+            rows = self.conn.execute(
+                "SELECT * FROM mem_episodic WHERE session_id = ? ORDER BY timestamp DESC, rowid DESC "
+                "LIMIT ?", (session_id, limit)).fetchall()
+        else:
+            rows = self.conn.execute(
+                "SELECT * FROM mem_episodic ORDER BY timestamp DESC, rowid DESC LIMIT ?",
+                (limit,)).fetchall()
         return [self._row_to_episodic(r) for r in rows]
 
     def get_episodic(self, ep_id: str) -> Episodic | None:
@@ -853,4 +885,8 @@ class Database:
             "last_drain_skip": self.get_meta("last_drain_skip"),
             # vec0 index-format identity (M-8): pinned-at-build vs the loaded sqlite-vec.
             "vec_version_pinned": self.get_meta("vec_version"),
+            # F-2: non-null means this store was reset from a corrupt one; the prior bytes are at
+            # `quarantined_from`. Surfaced so an operator can notice (hook stderr is easy to miss).
+            "quarantined_at": self.get_meta("quarantined_at"),
+            "quarantined_from": self.get_meta("quarantined_from"),
         }

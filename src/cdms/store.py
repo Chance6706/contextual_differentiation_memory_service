@@ -401,12 +401,10 @@ class MemoryService:
     # Timeline / paths / links
     # ------------------------------------------------------------------ #
     def history(self, limit: int = 20, session_id: Optional[str] = None) -> list[Episodic]:
-        limit = max(1, limit)  # a negative limit would negative-slice the timeline
-        eps = self.db.all_episodic()
-        if session_id:
-            eps = [e for e in eps if e.session_id == session_id]
-        eps.sort(key=lambda e: e.timestamp, reverse=True)
-        return eps[:limit]
+        # SQL ORDER BY ... LIMIT (Cycle-9 S-5) instead of loading the whole table to slice in
+        # Python — the timeline only wants a small recent window. (max(1, limit) guards against
+        # a negative limit; recent_episodic clamps it too.)
+        return self.db.recent_episodic(max(1, limit), session_id)
 
     def list_paths(self) -> list[tuple[str, str, int]]:
         return self.db.list_paths()
