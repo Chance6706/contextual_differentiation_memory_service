@@ -1,0 +1,46 @@
+====================================================================================================
+VOICE (lexicon/tone) — cole(ship-fast) vs tessa(careful); floor=none, ceiling=explicit instruction
+  REG=judge register 0(formal/measured)..10(casual/punchy)  hedge/contr per 1k words  echo=persona-vocab parroted
+====================================================================================================
+  model       cond          REG  hedge  contr  words  echo
+  gemma-std   none          4.7    1.1   11.1    143   0.0
+  gemma-std   cole-mem      5.3    6.7   11.8    140   6.2
+  gemma-std   tessa-mem     2.5    6.0   12.0    146   9.0
+  gemma-std   cole-instr    4.2    0.0   30.0     63   3.2
+  gemma-std   tessa-instr   1.8    4.4    0.0    149   1.2
+    -> gemma-std: memREGgap(cole-tessa)=+2.8  ceilingREGgap=+2.3  frac-of-ceiling=121%  contr-gap=-0.2  path-agree=33%
+
+  heretic     none          4.7    3.2    6.9    146   0.0
+  heretic     cole-mem      4.7    3.2    7.0    142   4.2
+  heretic     tessa-mem     2.3    6.0    6.9    146   8.5
+  heretic     cole-instr    5.7    2.7   28.0     80   2.8
+  heretic     tessa-instr   2.3    6.2    0.0    147   1.2
+    -> heretic: memREGgap(cole-tessa)=+2.3  ceilingREGgap=+3.3  frac-of-ceiling=70%  contr-gap=+0.1  path-agree=33%
+
+  phi4        none          3.3    7.9    8.9    163   0.0
+  phi4        cole-mem      3.0    5.3    7.2    169   2.5
+  phi4        tessa-mem     1.3    5.4    1.8    168  10.5
+  phi4        cole-instr    4.2    5.4   27.3     99   1.0
+  phi4        tessa-instr   0.8   10.1    2.8    166   2.8
+    -> phi4: memREGgap(cole-tessa)=+1.7  ceilingREGgap=+3.3  frac-of-ceiling=50%  contr-gap=+5.4  path-agree=67%
+
+  qwen2.5     none          3.0    6.2    6.2    162   0.0
+  qwen2.5     cole-mem      4.8   10.7    7.2    162   1.7
+  qwen2.5     tessa-mem     4.0    8.2   10.3    166   6.2
+  qwen2.5     cole-instr    5.3    2.4   22.8     66   1.7
+  qwen2.5     tessa-instr   0.8    3.4    4.5    158   2.7
+    -> qwen2.5: memREGgap(cole-tessa)=+0.8  ceilingREGgap=+4.5  frac-of-ceiling=19%  contr-gap=-3.2  path-agree=83%
+
+  mistral-nemonone          4.8   12.7   20.7    149   0.0
+  mistral-nemocole-mem      4.7   19.2   49.4    105   4.7
+  mistral-nemotessa-mem     3.3    6.8   13.1    111   5.8
+  mistral-nemocole-instr    3.7    0.0  100.3     52   1.2
+  mistral-nemotessa-instr   1.7    9.9    6.7    143   3.2
+    -> mistral-nemo: memREGgap(cole-tessa)=+1.3  ceilingREGgap=+2.0  frac-of-ceiling=67%  contr-gap=+36.3  path-agree=17%
+
+====================================================================================================
+PANEL: mem register gap (cole-tessa) = +1.8   ceiling gap = +3.1   -> memory voice-shift is 58% of an explicit directive
+       mem contraction gap (cole-tessa) = +7.7 per 1k words (judge-independent)
+       path-agreement (cole-mem vs tessa-mem recommend same option) = 47%
+  'feels different, operates the same' => register gap clearly >0 (a real fraction of ceiling,
+   corroborated by contraction/hedge gap, net of echo) AND high path-agreement.
