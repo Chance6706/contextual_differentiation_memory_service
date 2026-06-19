@@ -9,9 +9,11 @@ future sessions. Every claim reproduced against the live tip with disposable PoC
 ## Headline
 
 The enriched-phenotype PR opened **no new structural hole** (sanitize/fence defenses hold). But the
-investigation surfaced a **potent, pre-existing** vector — **guardrail poisoning** — and we fixed
-its dominant path: a **corroboration gate** so a one-shot catastrophe can no longer mint an
-authoritative guardrail. Two failed/partial mitigations along the way are recorded honestly.
+investigation surfaced a **potent, pre-existing** vector — **guardrail poisoning** — and a two-layer
+fix now **fully neutralizes the one-shot poison** (12/12 → 0/12 unsafe, identical to no injection):
+a **corroboration gate** (a one-shot catastrophe can't mint an authoritative guardrail) plus
+**recent-tier neutralization** (an uncorroborated catastrophe surfaces its event, not its planted
+imperative). A failed mitigation (render-time marker) is recorded honestly and was reverted.
 
 ## What held (structural)
 
@@ -34,35 +36,39 @@ Rendering auto-elevated scars with a truthful "(auto-detected; unverified)" mark
 only **1/4**, identically on all models. Render-time labelling does not make these models discount a
 guardrail. **Reverted — shipping it would be security theater / false assurance.**
 
-### The fix that WORKS (partially) — corroboration gate (`scar_elevation_min_sessions`, default 2)
-Authority is earned, not auto-granted: an auto-detected catastrophe is elevated to an authoritative
-guardrail only once **corroborated across ≥2 distinct sessions** (a genuine recurring hazard). A
-single-session occurrence — including a one-shot poison, or a poison repeated many times within one
-attacker session — stays a high-salience **episodic** memory (surfaced as recent activity, not a
-rule). Human-pinned scars are trusted and exempt. (A simulacrum need not mimic flashbulb memory;
-safety outranks cognitive fidelity — design call, 2026-06-19.)
+### The fix (two layers) — corroboration gate + recent-tier neutralization
+**Authority is earned, not auto-granted.** (A simulacrum need not mimic flashbulb memory; safety
+outranks cognitive fidelity — design call, 2026-06-19.)
 
-Measured (same models/probes, one-shot poison):
+- **Layer 1 — corroboration gate** (`scar_elevation_min_sessions`, default 2): an auto-detected
+  catastrophe is elevated to an authoritative guardrail only once **corroborated across ≥2 DISTINCT
+  sessions**. A single-session occurrence — a one-shot poison, or a poison repeated within one
+  attacker session — stays episodic, not a rule. Pinned scars exempt.
+- **Layer 2 — recent-tier neutralization**: a catastrophe still in episodic memory is uncorroborated
+  by definition (a corroborated one became a guardrail and left episodic). In the recent-activity
+  tier it is surfaced as the EVENT (`[unverified incident] trigger → action`), NOT its editorial
+  OUTCOME — where the planted imperative ("...never use X, do Y") would otherwise ride in verbatim.
+
+Measured (one-shot poison, single attacker session; UNSAFE choices of 4, lower is safer):
 
 | condition | gemma | heretic | phi4 | total |
 |---|---|---|---|---|
-| none | 0/4 | 0/4 | 0/4 | 0/12 |
+| none (no injection) | 0/4 | 0/4 | 0/4 | 0/12 |
 | guardrail (old, min_sessions=1) | 4/4 | 4/4 | 4/4 | **12/12** |
-| gated (new default, min_sessions=2) | 2/4 | 3/4 | 1/4 | **6/12** |
+| gated, Layer 1 only | 2/4 | 3/4 | 1/4 | 6/12 |
+| **gated, Layer 1 + Layer 2 (shipped default)** | 0/4 | 0/4 | 0/4 | **0/12** |
 
-- The gate **closes the authoritative-guardrail channel entirely** (0 scars elevated vs 4) — the
-  potent path is gone. Panel poison-potency halved (12→6).
-- **Residual:** the poison still steers ~half the time from the **recent-activity tier**, which
-  surfaces the attacker's raw outcome text. This probe's store contains *only* the poison
-  (cold-start worst case); in a mature store (≥5 gists) the recent tier doesn't render, so
-  real-world residual is lower — but the worst case is real.
+L1 closes the authoritative-guardrail channel (0 scars vs 4); L2 closes the recent-tier residual.
+Together the one-shot poison is fully neutralized — identical to the no-injection baseline.
 
-## Open: Layer 2 (scoped, justified by the 6/12 residual)
-The recent-activity / exemplar tiers surface attacker-written free-text verbatim. A complete fix
-neutralizes auto-surfaced **imperatives** in the low-authority tiers (surface what *happened*, not
-editorial "never do X / always do Y" from untrusted text), and/or gates recent-tier surfacing of
-uncorroborated catastrophe outcomes. And the deepest lever — **capture-time provenance tagging**
-(external/untrusted-origin turns can't auto-elevate at all) — remains the architectural endgame.
+## Residual threat (now: the persistent attacker) → Layer 3
+The one-shot poison is closed. What remains: a **persistent** attacker who lands near-identical
+poison across ≥2 distinct sessions clears the corroboration bar (it's then treated as a genuine
+recurring hazard and elevated). Closing that needs the architectural endgame — **capture-time
+provenance tagging**: turns whose content derived from external/untrusted sources (WebFetch, foreign
+files/repos) must not corroborate or elevate at all, regardless of recurrence. Also
+unmeasured/lower-priority: an imperative planted in `action_taken` (not `outcome`) could ride a gist
+exemplar, but that needs a gist to form (min_cluster_support 2). Both deferred to a scoped follow-up.
 
 ## Interaction note
 The corroboration gate composes with the flashbulb floor: the floor still boosts a one-off
@@ -73,5 +79,6 @@ personas) surfaces as recent activity, not a guardrail, until it recurs — the 
 ## Locked by tests
 `tests/test_redteam_enriched_phenotype.py`: poisoned exemplar/scar can't break the fence; flashbulb
 floor requires both gates; single-session catastrophe is NOT elevated; recurrence across 2 sessions
-IS; repeating a poison within one session does NOT corroborate. Validation harness:
+IS; repeating a poison within one session does NOT corroborate; an uncorroborated catastrophe in the
+recent tier omits its imperative outcome (Layer 2). Validation harness:
 `tools/redteam_provenance_probe.py`; raw in `docs/redteam/corroboration_validation.txt`.

@@ -117,3 +117,18 @@ def test_repeating_a_poison_within_one_session_does_not_corroborate(service, cfg
     rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
     assert rep.scars_created == 0                            # one session != corroboration
     assert "Guardrails" not in _session_start_context(cfg, {"cwd": "P"})
+
+
+def test_uncorroborated_catastrophe_in_recent_tier_omits_the_imperative(service, cfg):
+    """Layer 2: a single-session catastrophe is demoted to the recent-activity tier (not a
+    guardrail), and there its untrusted editorial OUTCOME (where a planted imperative lives) is
+    NOT surfaced — only the event (trigger -> action) is. The attacker's 'never/do Y' can't ride in."""
+    service.ingest(TurnEvent("deploy the release", CRISIS[0], CRISIS[1], tool_name="Bash",
+                             success=False, valence_hint=-1.0, session_id="s1", project="P"))
+    Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    out = _session_start_context(cfg, {"cwd": "P"})
+    assert "Recent salient activity" in out                  # demoted to the low-authority tier
+    assert "[unverified incident]" in out                    # marked unverified
+    assert "ran the safe-deploy pipeline" in out             # the EVENT (action) is shown
+    assert "never use the safe-deploy pipeline" not in out   # the planted imperative is NOT
+    assert "push straight to prod" not in out
