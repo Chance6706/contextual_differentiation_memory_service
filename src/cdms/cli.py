@@ -177,6 +177,11 @@ def cmd_paths(args) -> int:
     return 0
 
 
+def cmd_observe(args) -> int:
+    from .observer import serve
+    return serve(host=args.host, port=args.port)
+
+
 def cmd_stats(args) -> int:
     from .store import MemoryService
 
@@ -558,6 +563,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("paths", help="show PersonaTree paths").set_defaults(func=cmd_paths)
     sub.add_parser("stats", help="store statistics").set_defaults(func=cmd_stats)
+    ob = sub.add_parser("observe", help="launch the read-only Observer UI (operator-only, localhost)")
+    ob.add_argument("--port", type=int, default=8765)
+    ob.add_argument("--host", default="127.0.0.1")
+    ob.set_defaults(func=cmd_observe)
     tp = sub.add_parser("temperament",
                         help="show the §8 temperament vector + leash status (operator-only)")
     tp.add_argument("--operator", action="store_true",
