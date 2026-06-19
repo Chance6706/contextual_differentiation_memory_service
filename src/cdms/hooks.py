@@ -148,8 +148,17 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
                        [f"- {_sanitize(s.crisis_trigger)} → {_sanitize(s.remediation_rule)}" for s in scars],
                        "</memory:guardrails>"))
     if gists:
+        def _persona_line(g, idx: int) -> str:
+            base = f"- {_sanitize(g.render(), 160)}  (support {g.support_count}, seen {g.frequency}x)"
+            # Render the verbatim exemplar so the phenotype carries behaviorally-legible evidence,
+            # not just the terse SRO keyword pair. Bounded to the top-N highest-support gists (the
+            # defining traits) so the long tail stays terse and the preamble cost is capped. gists
+            # arrive pre-sorted by (support+frequency+survived) DESC, so idx is the rank.
+            if cfg.recall_exemplars and idx < cfg.recall_exemplar_top_n and g.exemplar:
+                base += f'\n    e.g. "{_sanitize(g.exemplar, 160)}"'
+            return base
         blocks.append(("\n## What I've learned about this workspace/user (PersonaTree):", "<memory:persona>",
-                       [f"- {_sanitize(g.render(), 160)}  (support {g.support_count}, seen {g.frequency}x)" for g in gists],
+                       [_persona_line(g, i) for i, g in enumerate(gists)],
                        "</memory:persona>"))
     if recent:
         rl = []

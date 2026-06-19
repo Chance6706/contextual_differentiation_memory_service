@@ -60,6 +60,13 @@ class Config:
     # ---- Consolidation ("sleep") -------------------------------------------
     crisis_threshold: float = 3.0       # s_crisis: S0 >= this is a candidate for scar elevation
     crisis_valence_max: float = -0.4    # ...but only if valence <= this (scars are negative crises)
+    # Flashbulb floor: a genuine catastrophe (catastrophe lexicon matches the deed/result AND the
+    # valence is already crisis-negative) is maximally memorable by definition, yet its natural S0
+    # can land just under crisis_threshold (a real data-loss crisis measured 2.8 vs the 3.0 gate),
+    # so no guardrail ever forms and the disaster is silently forgotten. Floor such an event's S0
+    # to the threshold so the scar elevates. BOTH gates must hold, so benign/positive turns and
+    # mere danger-talk are untouched. Disable to restore the strict pre-floor scar formation.
+    flashbulb_floor_catastrophes: bool = True
     scar_dedup_sim_threshold: float = 0.95  # near-identical scars (same project) are deduped on
                                         # insert so a recurring crisis can't grow the L3 table forever
     scar_project_cap: int = 100         # max AUTO-ELEVATED scars kept per project; the oldest
@@ -120,6 +127,13 @@ class Config:
     # ---- Retrieval ---------------------------------------------------------
     default_top_k: int = 8
     rrf_k: int = 60                     # reciprocal-rank-fusion constant for hybrid search
+    # Phenotype enrichment: render a verbatim exemplar ("e.g. ...") under each surfaced gist so the
+    # recalled persona carries behaviorally-legible evidence, not just the terse SRO keyword pair.
+    # Bounded to the top-N highest-support gists (the defining traits) so the long tail stays terse
+    # and the preamble cost is capped (~+40-50% vs ~+85% if every gist carried one). Set the flag
+    # off to render terse SRO only; set top_n to 0 for the same effect while still storing exemplars.
+    recall_exemplars: bool = True
+    recall_exemplar_top_n: int = 6
 
     # ---- Input bounds ------------------------------------------------------
     # Cap stored field length so a single huge note (MCP `store`, a multi-MB tool
@@ -257,6 +271,7 @@ def _validate(cfg: "Config") -> None:
         ("scar_dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
         ("rrf_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("default_top_k", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("recall_exemplar_top_n", lambda v: isinstance(v, int) and 0 <= v <= 1_000_000),
         # Cycle-4 A7-H1: the S0 weights and the remaining thresholds were unvalidated,
         # so a single env var (e.g. CDMS_W_SURPRISE=1e9, CDMS_DEDUP_SIM_THRESHOLD=2.0)
         # could disable the salience gate or dedup. Bound them all.

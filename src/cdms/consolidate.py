@@ -488,6 +488,7 @@ class Consolidator:
             if tuple_ is None:
                 continue
             subject, _relation, object_, valence = tuple_
+            exemplar = self._exemplar(members)
             centroid = self._centroid([v for _e, v in members])
 
             # Identity resolution (fixes gist proliferation over time): try the exact
@@ -522,6 +523,7 @@ class Consolidator:
                 existing.valence = (1 - ema_eff) * existing.valence + ema_eff * valence
                 existing.relation = self.cfg.relation_from_valence(existing.valence)
                 existing.object = object_
+                existing.exemplar = exemplar    # refresh the verbatim quote to current evidence
                 existing.last_reinforced = now_iso
                 existing.last_cycle = cycle
                 old_c = self.db.get_gist_centroid(existing.id)
@@ -537,7 +539,7 @@ class Consolidator:
                 relation = self.cfg.relation_from_valence(valence)
                 g = Gist(id=new_id("gist"), subject=subject, relation=relation, object=object_,
                          valence=valence, frequency=1, support_count=len(members),
-                         project=proj, last_reinforced=now_iso, last_cycle=cycle)
+                         project=proj, last_reinforced=now_iso, last_cycle=cycle, exemplar=exemplar)
                 emb = self.embedder.embed_one(g.search_text())
                 self.db.insert_gist(g, emb, centroid)
                 rep.gists_created += 1
@@ -638,6 +640,19 @@ class Consolidator:
         subject = (eps[0].project.replace("\\", "/").rstrip("/").split("/")[-1] or "workspace")
         relation = self.cfg.relation_from_valence(valence)
         return subject, relation, object_, valence
+
+    @staticmethod
+    def _exemplar(members: list[tuple[Episodic, np.ndarray]]) -> str:
+        """A verbatim, behaviorally-legible quote from the cluster's most-salient episode.
+
+        The SRO tuple is a deliberately thin differentiation FINGERPRINT (top-2 reordered
+        keywords); it compresses away the disposition a model would need to act on. This keeps
+        one raw, un-summarized line (the ask → the deed) from the highest-salience member as a
+        render-only richness channel for the phenotype — no generative imagination, just a quote.
+        """
+        e = max((m[0] for m in members), key=lambda e: e.base_salience)
+        text = " ".join(f"{e.trigger_prompt} → {e.action_taken}".split())
+        return text[:180].rstrip()
 
     @staticmethod
     def _centroid(vecs: list[np.ndarray]) -> np.ndarray:

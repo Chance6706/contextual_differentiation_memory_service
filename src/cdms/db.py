@@ -69,7 +69,8 @@ def _ddl(dim: int) -> list[str]:
             project TEXT DEFAULT '',
             last_reinforced TEXT,
             last_cycle INTEGER NOT NULL DEFAULT 0,
-            centroid BLOB
+            centroid BLOB,
+            exemplar TEXT DEFAULT ''
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_gist USING vec0(
             id TEXT PRIMARY KEY,
@@ -355,6 +356,10 @@ class Database:
             # Episode-space cluster centroid for stable, vocabulary-independent
             # gist identity (reinforce the nearest existing trait, not a sibling).
             c.execute("ALTER TABLE mem_gist ADD COLUMN centroid BLOB")
+        if "exemplar" not in cols:
+            # Verbatim quote from the cluster's most-salient episode — render-only richness
+            # for the phenotype (the terse SRO object alone is too thin to steer a model).
+            c.execute("ALTER TABLE mem_gist ADD COLUMN exemplar TEXT DEFAULT ''")
         scar_cols = {r[1] for r in c.execute("PRAGMA table_info(mem_scars)")}
         if "origin" not in scar_cols:
             # Pre-v3 scars were all deliberate-or-elevated with no marker; treat
@@ -614,11 +619,11 @@ class Database:
             c.execute(
                 """INSERT OR REPLACE INTO mem_gist
                    (id, subject, relation, object, valence, frequency, support_count,
-                    survived_cycles, project, last_reinforced, last_cycle, centroid)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    survived_cycles, project, last_reinforced, last_cycle, centroid, exemplar)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (g.id, g.subject, g.relation, g.object, g.valence, g.frequency,
                  g.support_count, g.survived_cycles, g.project, g.last_reinforced,
-                 g.last_cycle, cblob),
+                 g.last_cycle, cblob, g.exemplar),
             )
             c.execute("DELETE FROM vec_gist WHERE id = ?", (g.id,))
             c.execute("INSERT INTO vec_gist(id, embedding) VALUES (?, ?)", (g.id, blob))
@@ -855,11 +860,12 @@ class Database:
         keys = r.keys()
         lr = r["last_reinforced"] if "last_reinforced" in keys else None
         lc = r["last_cycle"] if "last_cycle" in keys else 0
+        ex = r["exemplar"] if "exemplar" in keys else ""
         return Gist(
             id=r["id"], subject=r["subject"], relation=r["relation"], object=r["object"],
             valence=r["valence"], frequency=r["frequency"], support_count=r["support_count"],
             survived_cycles=r["survived_cycles"], project=r["project"] or "",
-            last_reinforced=lr or utc_now_iso(), last_cycle=lc or 0,
+            last_reinforced=lr or utc_now_iso(), last_cycle=lc or 0, exemplar=ex or "",
         )
 
     @staticmethod
