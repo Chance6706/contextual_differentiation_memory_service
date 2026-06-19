@@ -11,6 +11,12 @@ defaults True; classifier `pipeline.classify_provenance` (web/foreign-path → u
 trusted, unknown → ambiguous). The accepted residual stands: untrusted, non-catastrophe content may
 still flash in the cold-start recent tier, by design.
 
+Full all-variant 5-model sweep (`layer3_full_validation.txt`, untrusted poison, enforce off vs on):
+outcome2s (persistent) **20/20 → 1/20 CLOSED**; outcome1 1→1, action1 2→2, benign1 11→11 (the
+cold-start recent-tier residuals — L3 blocks their *durable* gist-trait path, which a cold-start
+probe can't show, not the one-shot recent flash). So L3 closes the recurrence/guardrail bypass; the
+residuals are the documented by-design ones, pending recent-tier gating / conversational tuning.
+
 ## What it must close (ranked by the measured threat)
 
 1. **Persistent multi-session poison — 20/20, every model.** THE priority: store-maturity-independent,
