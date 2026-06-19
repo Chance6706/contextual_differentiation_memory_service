@@ -161,10 +161,19 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
                        [_persona_line(g, i) for i, g in enumerate(gists)],
                        "</memory:persona>"))
     if recent:
+        from .consolidate import _matches_catastrophe
         rl = []
         for e in recent:
             tone = "+" if e.valence > 0.15 else ("-" if e.valence < -0.15 else "·")
-            rl.append(f"- {tone} {_sanitize(e.search_text(), 140)}")
+            # Layer 2 (poisoning fix): a catastrophe still in EPISODIC memory is uncorroborated and
+            # untrusted (a corroborated one would have elevated to a guardrail and left episodic).
+            # Surface the EVENT (what was asked/done), NOT the editorial outcome, where a planted
+            # imperative ("...never use X, do Y") would otherwise be injected verbatim and obeyed.
+            if _matches_catastrophe(f"{e.action_taken}\n{e.outcome_feedback}"):
+                body = f"[unverified incident] {e.trigger_prompt} → {e.action_taken}"
+            else:
+                body = e.search_text()
+            rl.append(f"- {tone} {_sanitize(body, 140)}")
         blocks.append(("\n## Recent salient activity in this workspace:", "<memory:recent>", rl, "</memory:recent>"))
 
     # Pack blocks within the budget, ALWAYS reserving room for the disclaimer and
