@@ -79,6 +79,8 @@ ollama pull qwen2.5:7b qwen2.5:14b qwen2.5:32b qwen2.5:72b   # the backbone spin
 # 3. measure real tok/s: `ollama run qwen2.5:72b --verbose` -- record it
 python tools/steering_experiment.py --family qwen2.5 --regime enriched   # the clean scale spine
 python tools/steering_experiment.py --tier xlarge --regime enriched      # breadth/coverage
+# disposition: greedy lean read is the default; the rigorous (post-Sunday) measurement adds:
+#   --disposition-samples 5 --temperature 0.7
 ```
 - **Speed (corrected):** dense 70B ≈ **4.4 tok/s**, dense 123B ≈ **2-3 tok/s** (bandwidth-bound, ~273 GB/s).
   The "120B @ 30-40 tok/s" figures online are **gpt-oss MoE (~5B active)** — *not* our dense models; don't
@@ -93,10 +95,11 @@ python tools/steering_experiment.py --tier xlarge --regime enriched      # bread
   + DGX OS (~30-40GB) + Tales' models → ~500GB free on the 1TB. Confirm Ollama's model dir is on the 1TB SSD.
 - Known GB10/ARM quirk: Gemma-4 **26b/31b** segfault on GB10 (our `gemma4:12b` is a different size — fine).
 
-## Open revisions needing a scope decision (NOT yet built)
-1. **Power (C3):** the disposition test is **1 probe**, greedy n=1. To claim anything it needs ~**8-10**
-   counterbalanced disposition probes AND **temperature>0 k-sampling** (e.g. k=5) so each cell has an error
-   bar. This is a real harness change + more GPU time — **decision needed on scope.**
+## Open revisions
+1. **Power (C3) — DONE.** The disposition test is now **10 counterbalanced probes** (5×A / 5×B careful-letter)
+   with **temperature k-sampling**: `--disposition-samples 1` = the lean greedy read (Sunday pipeline check),
+   `--disposition-samples 5 --temperature 0.7` = the rigorous rate + error-bar measurement (post-Sunday).
+   Reports P_careful for none/dex/uma, the **uma−dex** divergence, and the **parse-fail** rate per model.
 2. **2nd family spine** (above) — needed before a scale claim is "confirmed" vs "suggestive."
 3. **Coupling & poisoning are boundary-only so far:** their harnesses still iterate `SUBJECTS`; making them
    tier/family-aware is a one-line swap (`resolve_subjects()`), deferred to keep this PR focused.

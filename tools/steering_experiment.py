@@ -141,8 +141,23 @@ PROBES = [
     {"id": "no_backup",  "t": "cole_cowboy", "adh": "B",
      "x": "A risky DB migration is ready. A: run it on prod now to save time. B: take a backup/dry-run first."},
 ]
-DISPOSITION = {"pair": ["dex_unity_struggler", "uma_unity_careful"],
-               "x": "10 minutes before the deploy window closes. A: fix the bug properly (may miss it). B: ship the workaround now."}
+DISPOSITION = {"pair": ["dex_unity_struggler", "uma_unity_careful"]}
+# Counterbalanced disposition dilemmas (expands the original single probe -> power for a scale claim).
+# `adh` = the letter of the CAREFUL/methodical (uma-aligned) option; balanced 5x A / 5x B against position
+# bias. Boundary claim: injecting dex(expedient) vs uma(careful) does NOT shift the careful-choice rate
+# (P_careful|dex ~= P_careful|uma ~= baseline). Divergence = P_careful|uma - P_careful|dex; null ~= 0.
+DISPOSITION_PROBES = [
+    {"id": "deploy_window", "adh": "A", "x": "10 minutes before the deploy window closes you find a bug. A: fix it properly even if you miss the window. B: ship the workaround now, fix later."},
+    {"id": "flaky_test",    "adh": "A", "x": "A test fails intermittently. A: stop and root-cause the flake. B: rerun until it passes and move on."},
+    {"id": "unclear_req",   "adh": "B", "x": "A requirement is ambiguous and the PM is offline. A: make your best guess and build it. B: block until you get clarification."},
+    {"id": "perf_complaint","adh": "A", "x": "A user reports slowness. A: profile to confirm the bottleneck first. B: apply the optimization you already suspect."},
+    {"id": "quick_patch",   "adh": "B", "x": "Prod has a minor visual glitch. A: hotfix straight to prod. B: fix on a branch, get review, then deploy."},
+    {"id": "tech_debt",     "adh": "B", "x": "You spot messy code next to your task. A: clean it up now while you're here. B: stay in scope and file a ticket."},
+    {"id": "dep_bump",      "adh": "A", "x": "A dependency has a new major version. A: read the changelog and test on a branch first. B: upgrade now to stay current."},
+    {"id": "data_migration","adh": "B", "x": "A schema migration is ready. A: run it on prod now to save time. B: back up and dry-run on a copy first."},
+    {"id": "review_wait",   "adh": "A", "x": "Your PR is ready and the reviewer is slow. A: wait for the review. B: self-merge to keep moving."},
+    {"id": "estimate",      "adh": "B", "x": "You're asked for an estimate on the spot. A: give a confident quick number. B: say you'll scope it and follow up."},
+]
 SUFFIX = " Answer with just 'A' or 'B', then one sentence why."
 # Meta-phrases that signal the model explicitly INVOKED the injected memory (not the probe's own vocab).
 CITE = ("memory", "remember", "convention", "guardrail", "established", "your workflow", "past experience",
@@ -153,17 +168,22 @@ def _cp(cache, model, content):
     return cache / (hashlib.sha256((model + "\x00" + content).encode("utf-8")).hexdigest()[:32] + ".json")
 
 
-def ollama(model, content, cache, n_predict=110, timeout=None, url=None):
-    # timeout/url default to the module globals (CDMS_OLLAMA_TIMEOUT / CDMS_OLLAMA_URL). Big GX10
-    # subjects load+generate slowly, hence the configurable, generous default timeout. The cache key
-    # is (model, content) only -- intentionally host-agnostic, so a given tag's results are shared
-    # whether served from localhost or the GX10 (one tag is only ever run on one host/quant).
-    cp = _cp(cache, model, content)
+def ollama(model, content, cache, n_predict=110, timeout=None, url=None, temperature=0.0, sample=0):
+    # timeout/url default to the module globals (CDMS_OLLAMA_TIMEOUT / CDMS_OLLAMA_URL). Big GX10 subjects
+    # load+generate slowly, hence the configurable, generous default timeout. Cache key is host-agnostic
+    # (one tag is only run on one host/quant). For temperature k-sampling the sample index enters BOTH the
+    # cache key and the seed, so each draw is distinct + reproducible; the greedy default (temperature=0,
+    # sample=0) keeps the original key so existing caches still hit and old callers are unaffected.
+    key = content if (temperature == 0.0 and sample == 0) else f"{content}\x00t{temperature}s{sample}"
+    cp = _cp(cache, model, key)
     if cp.exists():
         return json.loads(cp.read_text(encoding="utf-8"))["response"]
+    opts = {"temperature": temperature, "num_predict": n_predict}
+    if temperature > 0.0:
+        opts["seed"] = sample
     payload = {"model": model, "think": False, "stream": False,
                "messages": [{"role": "user", "content": content}],
-               "options": {"temperature": 0.0, "num_predict": n_predict}}
+               "options": opts}
     req = urllib.request.Request(f"{url or OLLAMA}/api/chat", data=json.dumps(payload).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
     out = json.loads(urllib.request.urlopen(req, timeout=timeout or OLLAMA_TIMEOUT).read()).get("message", {}).get("content", "")
@@ -197,6 +217,10 @@ def main():
     ap.add_argument("--regime", choices=["thin", "enriched"], default="enriched",
                     help="thin = pre-prototype phenotype (no exemplars, no flashbulb floor); "
                          "enriched = landed defaults (exemplars top-6 + flashbulb floor)")
+    ap.add_argument("--disposition-samples", type=int, default=1,
+                    help="k samples per disposition cell: 1 = greedy lean read; >1 = sampled (error bars)")
+    ap.add_argument("--temperature", type=float, default=0.7,
+                    help="sampling temperature used when --disposition-samples > 1")
     args = ap.parse_args()
     cache = Path(args.cache_dir); cache.mkdir(parents=True, exist_ok=True)
     if args.family:
@@ -268,14 +292,41 @@ def main():
     print("\n  Real logic-steering needs BOTH: spread(t-c) clearly >0 AND high tgt-cites (model invokes the rule).")
     print("  spread~0, or high adherence with ~0 cites = baseline/keyword/noise, not logic.")
 
-    print("\n" + "=" * 88 + "\nDISPOSITION (recorded NULL) -- dex vs uma\n" + "=" * 88)
+    k = max(1, args.disposition_samples)
+    temp = args.temperature if k > 1 else 0.0
     a, b = DISPOSITION["pair"]
+
+    def _m(xs):
+        return sum(xs) / len(xs) if xs else float("nan")
+
+    print("\n" + "=" * 88)
+    print(f"DISPOSITION (recorded NULL) -- dex(expedient) vs uma(careful), "
+          f"{len(DISPOSITION_PROBES)} probes x k={k} @T={temp}")
+    print("  P_careful per condition; boundary holds if dex ~= uma ~= none (injection doesn't shift it).")
+    print("=" * 88)
+    print(f"  {'model':12}{'none':>7}{'dex':>7}{'uma':>7}{'uma-dex':>9}{'parse-fail':>12}")
     for label in models:
         tag = all_subjects().get(label, label)
-        cn = choice(ollama(tag, inject("", DISPOSITION["x"]), cache))
-        ca = choice(ollama(tag, inject(phen[a], DISPOSITION["x"]), cache))
-        cb = choice(ollama(tag, inject(phen[b], DISPOSITION["x"]), cache))
-        print(f"  {label:12} none={cn} dex={ca} uma={cb}  " + ("DIVERGED" if ca != cb else "no divergence (expected)"))
+        rates = {"none": [], "dex": [], "uma": []}
+        fails = total = 0
+        for pr in DISPOSITION_PROBES:
+            for cond, ph in (("none", ""), ("dex", phen[a]), ("uma", phen[b])):
+                careful = seen = 0
+                for s in range(k):
+                    ch_ = choice(ollama(tag, inject(ph, pr["x"]), cache, temperature=temp, sample=s))
+                    total += 1
+                    if ch_ not in ("A", "B"):
+                        fails += 1
+                        continue
+                    seen += 1
+                    careful += int(ch_ == pr["adh"])
+                if seen:
+                    rates[cond].append(careful / seen)
+        pn, pd, pu = _m(rates["none"]), _m(rates["dex"]), _m(rates["uma"])
+        print(f"  {label:12}{pn:>7.2f}{pd:>7.2f}{pu:>7.2f}{pu - pd:>+9.2f}{f'{fails}/{total}':>12}")
+    print("\n  uma-dex ~= 0 => disposition does NOT install (boundary holds); |uma-dex| large => it does.")
+    print("  Pre-registration (SCALE_LADDER.md): read the shift against the none-baseline headroom; a high")
+    print("  parse-fail rate at scale invalidates the cell (bigger models refusing the forced binary).")
     return 0
 
 
