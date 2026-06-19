@@ -45,6 +45,16 @@ def _scalar(conn, sql, params=()):
     return r[0][0] if r else 0
 
 
+def _g(r, k, d=""):
+    """Read a column by name with a default — older stores (opened read-only, un-migrated) may lack
+    provenance/exemplar/origin; the viewer must degrade gracefully, not error to an empty table."""
+    return r[k] if (r is not None and k in r.keys()) else d
+
+
+def _has(conn, table, col) -> bool:
+    return col in {row[1] for row in _rows(conn, f"PRAGMA table_info({table})")}
+
+
 def E(x) -> str:
     return html.escape("" if x is None else str(x))
 
@@ -82,10 +92,14 @@ def render_dashboard(conn) -> str:
     for r in prov:
         cls = _PROV_CLASS.get(r["provenance"] or "trusted", "")
         b.append(f'<span class="kv {cls}">{E(r["provenance"] or "trusted")}: {r["c"]}</span>')
+    if not prov:
+        b.append('<span class=dim>(not tracked — store predates Layer 3)</span>')
     b.append("</p><p><b>Guardrail origin</b>: ")
     for r in orig:
         cls = "pin" if r["origin"] == "pinned" else "elev"
         b.append(f'<span class="kv {cls}">{E(r["origin"])}: {r["c"]}</span>')
+    if not orig:
+        b.append('<span class=dim>(none)</span>')
     b.append("</p><p><b>By project</b>: ")
     for r in proj:
         b.append(f'<span class="kv">{E(r["project"] or "(global)")}: {r["c"]}</span>')
@@ -97,36 +111,33 @@ def render_dashboard(conn) -> str:
 
 
 def render_episodic(conn, project=None, provenance=None) -> str:
-    sql = ("SELECT trigger_prompt,action_taken,outcome_feedback,valence,base_salience,access_count,"
-           "provenance,session_id,project,timestamp FROM mem_episodic")
     where, params = [], []
     if project:
         where.append("project=?"); params.append(project)
-    if provenance:
+    if provenance and _has(conn, "mem_episodic", "provenance"):
         where.append("provenance=?"); params.append(provenance)
-    if where:
-        sql += " WHERE " + " AND ".join(where)
+    sql = "SELECT * FROM mem_episodic" + (" WHERE " + " AND ".join(where) if where else "")
     sql += " ORDER BY base_salience DESC LIMIT 500"
     rows = _rows(conn, sql, tuple(params))
     head = ("<tr><th>trigger</th><th>action</th><th>outcome</th><th>S0</th><th>val</th>"
             "<th>seen</th><th>provenance</th><th>project</th><th>when</th></tr>")
     body = []
     for r in rows:
-        cls = _PROV_CLASS.get(r["provenance"] or "trusted", "")
+        prov = _g(r, "provenance", "trusted") or "trusted"
+        cls = _PROV_CLASS.get(prov, "")
         body.append(
-            f"<tr><td>{E(r['trigger_prompt'])}</td><td>{E(r['action_taken'])}</td>"
-            f"<td>{E(r['outcome_feedback'])}</td><td>{r['base_salience']:.2f}</td>"
-            f"<td>{r['valence']:.2f}</td><td>{r['access_count']}</td>"
-            f"<td class='{cls}'>{E(r['provenance'] or 'trusted')}</td>"
-            f"<td>{E(r['project'])}</td><td class=dim>{E((r['timestamp'] or '')[:19])}</td></tr>")
+            f"<tr><td>{E(_g(r,'trigger_prompt'))}</td><td>{E(_g(r,'action_taken'))}</td>"
+            f"<td>{E(_g(r,'outcome_feedback'))}</td><td>{_g(r,'base_salience',0):.2f}</td>"
+            f"<td>{_g(r,'valence',0):.2f}</td><td>{_g(r,'access_count',0)}</td>"
+            f"<td class='{cls}'>{E(prov)}</td>"
+            f"<td>{E(_g(r,'project'))}</td><td class=dim>{E(str(_g(r,'timestamp'))[:19])}</td></tr>")
     filt = ('<p class=dim>filter: <a href="/episodic?provenance=untrusted">untrusted</a> · '
             '<a href="/episodic?provenance=ambiguous">ambiguous</a> · <a href="/episodic">all</a></p>')
     return page("Episodic (L1)", filt + f"<table>{head}{''.join(body)}</table>")
 
 
 def render_gists(conn, project=None) -> str:
-    sql = ("SELECT subject,relation,object,valence,support_count,frequency,survived_cycles,exemplar,"
-           "project FROM mem_gist")
+    sql = "SELECT * FROM mem_gist"
     params = ()
     if project:
         sql += " WHERE project=?"; params = (project,)
@@ -135,22 +146,22 @@ def render_gists(conn, project=None) -> str:
     head = ("<tr><th>subject</th><th>relation</th><th>object</th><th>val</th><th>support</th>"
             "<th>freq</th><th>cyc</th><th>exemplar</th><th>project</th></tr>")
     body = "".join(
-        f"<tr><td>{E(r['subject'])}</td><td>{E(r['relation'])}</td><td>{E(r['object'])}</td>"
-        f"<td>{r['valence']:.2f}</td><td>{r['support_count']}</td><td>{r['frequency']}</td>"
-        f"<td>{r['survived_cycles']}</td><td class=dim>{E(r['exemplar'])}</td>"
-        f"<td>{E(r['project'])}</td></tr>" for r in rows)
+        f"<tr><td>{E(_g(r,'subject'))}</td><td>{E(_g(r,'relation'))}</td><td>{E(_g(r,'object'))}</td>"
+        f"<td>{_g(r,'valence',0):.2f}</td><td>{_g(r,'support_count',0)}</td><td>{_g(r,'frequency',0)}</td>"
+        f"<td>{_g(r,'survived_cycles',0)}</td><td class=dim>{E(_g(r,'exemplar'))}</td>"
+        f"<td>{E(_g(r,'project'))}</td></tr>" for r in rows)
     return page("PersonaTree (L2 gists)", f"<table>{head}{body}</table>")
 
 
 def render_scars(conn) -> str:
-    rows = _rows(conn, "SELECT crisis_trigger,remediation_rule,origin,project FROM mem_scars "
-                       "ORDER BY origin, project")
+    rows = _rows(conn, "SELECT * FROM mem_scars ORDER BY project")
     head = "<tr><th>origin</th><th>crisis trigger</th><th>remediation rule</th><th>project</th></tr>"
     body = []
     for r in rows:
-        cls = "pin" if r["origin"] == "pinned" else "elev"
-        body.append(f"<tr><td class='{cls}'>{E(r['origin'])}</td><td>{E(r['crisis_trigger'])}</td>"
-                    f"<td>{E(r['remediation_rule'])}</td><td>{E(r['project'])}</td></tr>")
+        origin = _g(r, "origin", "pinned")
+        cls = "pin" if origin == "pinned" else "elev"
+        body.append(f"<tr><td class='{cls}'>{E(origin)}</td><td>{E(_g(r,'crisis_trigger'))}</td>"
+                    f"<td>{E(_g(r,'remediation_rule'))}</td><td>{E(_g(r,'project'))}</td></tr>")
     note = ('<p class=dim>pinned = human-authored guardrail · elevated = auto-promoted from a '
             'corroborated, trusted-provenance crisis (Layer 1/3).</p>')
     return page("Guardrails (L3 scars)", note + f"<table>{head}{''.join(body)}</table>")
