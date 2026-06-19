@@ -102,23 +102,33 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
     def _scoped(p: str) -> bool:
         return (not p) or (project != "" and p == project)
 
-    relevant = [s for s in svc.db.all_scars() if _scoped(s.project)]
-    # Prioritize deliberate pins over auto-elevated scars so a flood of elevated
-    # entries cannot push real guardrails out of the capped injection (H5).
-    pinned = _dedupe_scars([s for s in relevant if s.origin == "pinned"])
-    elevated = _dedupe_scars([s for s in relevant if s.origin != "pinned"])
-    scars = (pinned + elevated)[:_MAX_SCARS]
-    gists = svc.db.top_gist(limit=12, project=project)
+    # I-1: take ONE consistent snapshot for every read below. Without it each SELECT sees a
+    # different committed state, and a concurrent (non-atomic) consolidation can splice pre- and
+    # post-pass rows — scars from before a pass with gists from after it — into one preamble. WAL
+    # readers never block writers, so this adds no latency and never waits on consolidation. The
+    # short-lived service is closed as soon as the reads finish (it is never reused below, and an
+    # unclosed connection per SessionStart would otherwise leak).
+    try:
+        with svc.db.read_snapshot():
+            relevant = [s for s in svc.db.all_scars() if _scoped(s.project)]
+            # Prioritize deliberate pins over auto-elevated scars so a flood of elevated
+            # entries cannot push real guardrails out of the capped injection (H5).
+            pinned = _dedupe_scars([s for s in relevant if s.origin == "pinned"])
+            elevated = _dedupe_scars([s for s in relevant if s.origin != "pinned"])
+            scars = (pinned + elevated)[:_MAX_SCARS]
+            gists = svc.db.top_gist(limit=12, project=project)
 
-    # Cold-start fallback: until episodes consolidate into gist, surface the most
-    # *accessible* recent episodic memories so SessionStart is useful from day one.
-    recent = []
-    if len(gists) < 5:
-        eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
-        scored = [(accessibility(e.base_salience, age_days(e.timestamp), e.access_count, cfg), e) for e in eps]
-        scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
-        scored.sort(key=lambda x: x[0], reverse=True)
-        recent = [e for _a, e in scored[:5]]
+            # Cold-start fallback: until episodes consolidate into gist, surface the most
+            # *accessible* recent episodic memories so SessionStart is useful from day one.
+            recent = []
+            if len(gists) < 5:
+                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
+                scored = [(accessibility(e.base_salience, age_days(e.timestamp), e.access_count, cfg), e) for e in eps]
+                scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
+                scored.sort(key=lambda x: x[0], reverse=True)
+                recent = [e for _a, e in scored[:5]]
+    finally:
+        svc.close()
 
     if not scars and not gists and not recent:
         return ""

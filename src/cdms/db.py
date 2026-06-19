@@ -436,6 +436,27 @@ class Database:
             self.conn.rollback()
             raise
 
+    @contextmanager
+    def read_snapshot(self) -> Iterator[sqlite3.Connection]:
+        """Pin ONE consistent read snapshot across several SELECTs (Cycle-9 I-1).
+
+        Python's sqlite3 (deferred isolation) does not wrap bare SELECTs in a transaction, so
+        successive reads each see a *different* committed state. A concurrent consolidation is
+        non-atomic across its steps, so back-to-back reads can splice pre- and post-pass rows
+        (e.g. scars from before a pass with gists from after it) into one logical view. An
+        explicit ``BEGIN`` holds a single WAL read snapshot for the whole block. WAL readers
+        never block writers, so this adds no latency and never waits on consolidation — it only
+        removes the torn-across-statements view, not the (acceptable) staleness of reading a
+        committed mid-pass state. Read-only: always ends with rollback (nothing to persist)."""
+        self.conn.execute("BEGIN")
+        try:
+            yield self.conn
+        finally:
+            try:
+                self.conn.rollback()
+            except Exception:
+                pass
+
     def close(self) -> None:
         try:
             self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
