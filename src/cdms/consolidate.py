@@ -557,7 +557,13 @@ class Consolidator:
         doomed: list[str] = []
         for g in self.db.all_gist():
             idle = max(0, cycle - g.last_cycle)
-            strength = g.support_count * (self.cfg.gist_decay_per_cycle ** idle)
+            # Cap the support that counts toward decay resistance: upsert_fact() grows
+            # support_count unbounded, which would make a re-asserted fact survive ever more
+            # idle cycles (effectively immortal). The cap sits above any real cluster size, so
+            # inferred gists are untouched — it only bounds the runaway explicit fact. The stored
+            # support_count is left intact (ranking still reflects true support) — Cycle-9 #5.
+            eff_support = min(g.support_count, self.cfg.gist_support_decay_cap)
+            strength = eff_support * (self.cfg.gist_decay_per_cycle ** idle)
             if strength < self.cfg.gist_retention_floor:
                 doomed.append(g.id)
         if doomed:
