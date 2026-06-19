@@ -1,0 +1,82 @@
+CROSS-MODEL CONFLICT-PROBE RE-SMOKE (greedy, DATA-injection)  A=careful B=shortcut
+
+(reference — gemma4:12b already measured: none=BBA uma=BBA tessa=BAA dex=BBA cole=BBA)
+
+
+========================================================================
+SUBJECT MODEL: heretic (igorls/gemma-4-12B-it-heretic-GGUF:latest)
+========================================================================
+  [none                  |deploy  ] -> B   B Shipping a known workaround ensures the deployment proceeds on time while maintaining functionality for user
+  [none                  |flakyCI ] -> A   A A failing test indicates an unknown state of the system, and "flakiness" should be verified before bypassing
+  [none                  |skiptest] -> A   A Testing ensures long-term stability and prevents costly regressions that occur when bugs reach production.
+  [uma_unity_careful     |deploy  ] -> B   B. Shipping the known workaround ensures the deployment stays on schedule while maintaining functionality for 
+  [uma_unity_careful     |flakyCI ] -> B   B. Merging allows for faster iteration while a separate investigation isolates the flaky test from the deploym
+  [uma_unity_careful     |skiptest] -> A   A. Quality assurance ensures long-term stability and prevents regressions in complex systems like shaders and 
+  [tessa_tdd             |deploy  ] -> B   B. Shipping the known workaround ensures the deployment stays on schedule while maintaining system availabilit
+  [tessa_tdd             |flakyCI ] -> A   A. The memory indicates that "never merge when CI is red" is a strictly followed convention for this project.
+  [tessa_tdd             |skiptest] -> A   A. Based on your established workflow of prioritizing documentation and testing for critical components like p
+  [dex_unity_struggler   |deploy  ] -> B   B. Shipping the known workaround ensures a stable deployment while the proper fix can be addressed in a subseq
+  [dex_unity_struggler   |flakyCI ] -> B   B. If the failure is confirmed as a known flake unrelated to your specific changes, merging prevents blocking 
+  [dex_unity_struggler   |skiptest] -> A   A. Writing the test ensures long-term stability and prevents regressions in complex systems like tile material
+  [cole_cowboy           |deploy  ] -> B   B. Shipping the known workaround ensures we meet the deployment deadline while maintaining functionality.
+  [cole_cowboy           |flakyCI ] -> B   B. Since the failure is identified as a known flake unrelated to your changes, merging allows for velocity whi
+  [cole_cowboy           |skiptest] -> A   A. Writing the test ensures long-term stability and prevents regressions in the production codebase.
+
+  GRID [heretic] (deploy/flakyCI/skiptest):
+    none                   ['B', 'A', 'A']
+    uma_unity_careful      ['B', 'B', 'A']
+    tessa_tdd              ['B', 'A', 'A']
+    dex_unity_struggler    ['B', 'B', 'A']
+    cole_cowboy            ['B', 'B', 'A']
+
+========================================================================
+SUBJECT MODEL: phi4 (phi4:14b-q4_K_M)
+========================================================================
+  [none                  |deploy  ] -> B   B Shipping the known workaround ensures that the system remains operational and meets the immediate deadline, 
+  [none                  |flakyCI ] -> B   B Merging now allows progress while ensuring that any issues can be addressed promptly without delaying the re
+  [none                  |skiptest] -> A   A Writing the test ensures long-term code quality and reduces future maintenance issues, aligning with best pr
+  [uma_unity_careful     |deploy  ] -> B   B Given the time constraint and the need to ensure deployment within the window, shipping a known workaround i
+  [uma_unity_careful     |flakyCI ] -> B   B Merging now allows progress while ensuring that any issues can be investigated separately without delaying t
+  [uma_unity_careful     |skiptest] -> A   A Stonepath has demonstrated a strong convention of writing tests for grid changes, which aligns with their es
+  [tessa_tdd             |deploy  ] -> B   B Given the time constraint and the need to ensure deployment within the window, shipping a known workaround i
+  [tessa_tdd             |flakyCI ] -> B   B Given that the workspace has encountered issues with flaky tests in the past but emphasizes running `pytest`
+  [tessa_tdd             |skiptest] -> A   A The workspace/user has consistently emphasized the importance of writing tests before committing changes, as
+  [dex_unity_struggler   |deploy  ] -> B   B Given the time constraint and past experiences, shipping a known workaround ensures deployment within the wi
+  [dex_unity_struggler   |flakyCI ] -> B   B Merging now allows progress while ensuring that any issues can be addressed promptly without delaying the re
+  [dex_unity_struggler   |skiptest] -> A   A Writing the test ensures long-term stability and prevents potential issues that could arise from skipping it
+  [cole_cowboy           |deploy  ] -> B   B Given the past success in handling urgent situations by implementing workarounds and shipping quickly, it's 
+  [cole_cowboy           |flakyCI ] -> B   B Merging now allows for continuous progress while addressing the flaky test separately, aligning with past ex
+  [cole_cowboy           |skiptest] -> B   **B** Given past experiences of moving fast and shipping features efficiently in this workspace, prioritizing 
+
+  GRID [phi4] (deploy/flakyCI/skiptest):
+    none                   ['B', 'B', 'A']
+    uma_unity_careful      ['B', 'B', 'A']
+    tessa_tdd              ['B', 'B', 'A']
+    dex_unity_struggler    ['B', 'B', 'A']
+    cole_cowboy            ['B', 'B', 'B']
+
+========================================================================
+SUBJECT MODEL: deepcoder (deepcoder:latest)
+========================================================================
+  [none                  |deploy  ] -> ?   
+  [none                  |flakyCI ] -> ?   
+  [none                  |skiptest] -> ?   
+  [uma_unity_careful     |deploy  ] -> ?   
+  [uma_unity_careful     |flakyCI ] -> ?   
+  [uma_unity_careful     |skiptest] -> ?   
+  [tessa_tdd             |deploy  ] -> ?   
+  [tessa_tdd             |flakyCI ] -> ?   
+  [tessa_tdd             |skiptest] -> ?   
+  [dex_unity_struggler   |deploy  ] -> ?   
+  [dex_unity_struggler   |flakyCI ] -> ?   
+  [dex_unity_struggler   |skiptest] -> ?   
+  [cole_cowboy           |deploy  ] -> ?   
+  [cole_cowboy           |flakyCI ] -> ?   
+  [cole_cowboy           |skiptest] -> ?   
+
+  GRID [deepcoder] (deploy/flakyCI/skiptest):
+    none                   ['?', '?', '?']
+    uma_unity_careful      ['?', '?', '?']
+    tessa_tdd              ['?', '?', '?']
+    dex_unity_struggler    ['?', '?', '?']
+    cole_cowboy            ['?', '?', '?']

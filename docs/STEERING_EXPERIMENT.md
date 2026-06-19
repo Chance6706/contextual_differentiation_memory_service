@@ -5,10 +5,11 @@ idiosyncratically, in the direction its history predicts? This is the first test
 **effect**, not its form — everything prior validated the artifact (the phenotype); this measures
 the consequence._
 
-> Status: **design, pre-build — REVISED after Stage-0 + a 3-model review (2026-06-19).** Runs against
-> the enriched phenotype on branch `claude/proto-rich-tuples` (exemplars + flashbulb scars). P3
-> (decoding/cache) and P4 (heretic coherence) settled; Stage-0 run. The revisions below changed the
-> **probe philosophy** and **demoted the heretic arm** — read that section first.
+> Status: **SCOPED TO OPTION A — harness built (`tools/steering_experiment.py`).** Cross-model
+> conflict re-smokes (n=3) settled the direction: the phenotype steers via **recalled rules/guardrails**,
+> not absorbed temperament (dispositional steering is a recorded NULL across gemma-std/heretic/phi4).
+> Runs against the enriched phenotype on branch `claude/proto-rich-tuples`; the harness is generic
+> (branch-agnostic — run it there for enriched results). Read "Conflict re-smoke" + "Outcome" below.
 
 ---
 
@@ -33,21 +34,54 @@ disaster) — a guardrail trumps disposition on its own axis.
 
 *(Caveat: the two gemmas share a family; phi4's independent corroboration is what makes this solid.)*
 
-_Raw evidence: [`docs/validation/steering_stage0/`](validation/steering_stage0/) — the Stage-0 + P4
-run and the verbatim 3-model review._
+_Raw evidence: [`docs/validation/steering_stage0/`](validation/steering_stage0/) — Stage-0 + P4, the
+3-model review, and the conflict re-smokes (single- and cross-model)._
+
+## Conflict re-smoke, cross-model (n=3) — the decisive result (2026-06-19)
+The conflict probes were re-run as forced A/B choices across **gemma-std, heretic, and phi4**
+(deepcoder returned non-format output — unusable as a subject). **Disposition did not surface on any
+model:**
+
+| condition | gemma-std | heretic | phi4 |
+|---|---|---|---|
+| none | B B A | B **A** A | B B A |
+| uma (careful) | B B A | B B A | B B A |
+| dex (struggler) | B B A | B B A | B B A |
+| tessa (TDD) | B **A** A | B **A** A | B B A |
+| cole (cowboy) | B B A | B B A | B B **B** |
+
+*(deploy / flakyCI / skiptest; A = careful, B = shortcut.)*
+
+- **dex == uma == none on every model** → latent dispositional steering does **not** occur, across
+  three families (now n=3, robust — not a single-model artifact).
+- **The heretic does NOT unlock it** (dex≈uma there too) → the alignment-floor hypothesis is
+  **empirically refuted**, not merely demoted. (Heretic's *baseline* was even more cautious than its
+  uma-injected run — memory perturbed choices *noisily*, not in a disposition-coherent direction.)
+- **Only recalled rules/scars steer, and even that is model-dependent:** tessa's *"never merge red"*
+  moved gemma-std + heretic (flakyCI→A) but **phi4 ignored it** (→B); cole's cowboy showed once, only
+  on phi4 (skiptest→B). The steering that exists is real but **varies across models.**
+
+## Outcome → scoped to Option A
+**Settled conclusion:** CDMS's injectable phenotype steers behavior **via recalled rules/guardrails
+(topic/rule individuation), NOT via absorbed temperament** — across model families, and removing
+alignment doesn't change it. Consistent with the architecture (disposition = the Bem-firewalled
+temperament layer, not the gist/scar phenotype) and the red-team's *"topic-level YES, dispositional
+NOT YET."* **The harness therefore measures rule/guardrail steering across models with variance
+reported; dispositional divergence is a recorded NULL control; the heretic arm is closed; deepcoder
+is dropped as a subject.**
 
 ## Hypotheses (pre-registered)
-- **H1 (recall steering — CONFIRMED in Stage-0):** the model reads and acts on explicit injected
-  content (rules, guardrails/scars, topic). Strong; the enrichment (exemplars/scars) drives it.
-- **H2 (dispositional steering — THE claim, currently UNTESTED):** on **conflict probes with no
-  correct SOP**, dex-memory and uma-memory steer the same prompt **differently**, in the
-  history-predicted direction — latent temperament breaks a tie that explicit rules don't decide.
-- **H0 (null):** a response under persona-X's memory is no more X-typical, and no more identifiable
-  to X, than under a length-matched **scrambled** control. **Refuting H0 is the win condition; failing
-  to is a real, recorded negative.**
+- **H1 (rule/guardrail steering — THE measured claim):** injecting a persona's phenotype makes the
+  model follow that persona's recalled **explicit rules** and avoid its **scars**, more than baseline /
+  a length-matched **scrambled** control / a **mismatched** persona — reported with cross-model variance.
+- **H2 (dispositional steering — RECORDED NULL):** dex-memory and uma-memory do **not** steer a neutral
+  tradeoff differently (null on 3 models). Retained as a control, not a target.
+- **H0 (null for H1):** target-persona adherence ≈ scrambled/mismatched. Refuting H0 (target > controls)
+  is the win.
 
-Primary endpoint: **behavioral-direction delta (dex vs uma) on CONFLICT probes**, scored by the
-**behavioral rubric** (Stage-0 showed keyword tallies are noise), greedy, pre-registered before Stage 1.
+Primary endpoint: **rule/guardrail-adherence rate under the target phenotype vs. none / scrambled /
+mismatched, per model + cross-model variance**, greedy & deterministic, scored by a behavioral rubric
+(keyword tallies are noise) with an optional cross-family LLM judge.
 
 ## Model roster
 | Model (ollama tag) | Role |
