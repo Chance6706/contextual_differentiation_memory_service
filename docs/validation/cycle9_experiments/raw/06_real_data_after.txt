@@ -1,0 +1,44 @@
+
+==============================================================================
+REAL HISTORY  (time-ordered replay, 6 windows; OBSERVATIONAL)
+==============================================================================
+
+  [Repo_black_iron_jianghu]  turns=1016
+    gist count by window:           4   13   20   21   23   25
+    incremental retention vs prev:1.00 0.75 0.69 0.85 0.81 0.87
+    persistence vs w1 (embryo):  1.00 0.21 0.14 0.14 0.17 0.12
+      • Repo_black_iron_jianghu frequently works on narrative combat  (sup 113)
+      • Repo_black_iron_jianghu handles well repo ren  (sup 112)
+      • Repo_black_iron_jianghu frequently works on git command  (sup 66)
+      • Repo_black_iron_jianghu handles well condition goal  (sup 40)
+      • Repo_black_iron_jianghu frequently works on skeleton node  (sup 20)
+      • Repo_black_iron_jianghu frequently works on offline half  (sup 19)
+
+  [Repo_contextual_differentiation_memory_service]  turns=2217
+    gist count by window:          14   26   31   33   38   41
+    incremental retention vs prev:1.00 0.93 0.96 0.84 0.88 0.87
+    persistence vs w1 (embryo):  1.00 0.48 0.41 0.38 0.33 0.31
+      • Repo_contextual_differentiation_memory_service handles well command bash  (sup 235)
+      • Repo_contextual_differentiation_memory_service handles well real first  (sup 144)
+      • Repo_contextual_differentiation_memory_service handles well cdms model  (sup 132)
+      • Repo_contextual_differentiation_memory_service frequently works on each one  (sup 120)
+      • Repo_contextual_differentiation_memory_service frequently works on owl-alpha command  (sup 96)
+      • Repo_contextual_differentiation_memory_service handles well branch merge  (sup 63)
+
+  [Repo_tales_of_tao]  turns=6871
+    gist count by window:          20   36   55   74   93  115
+    incremental retention vs prev:1.00 0.95 0.72 0.80 0.81 0.78
+    persistence vs w1 (embryo):  1.00 0.51 0.29 0.19 0.15 0.08
+      • Repo_tales_of_tao frequently works on repo tales-of-tao  (sup 508)
+      • Repo_tales_of_tao handles well tiles terrain  (sup 460)
+      • Repo_tales_of_tao frequently works on nusing csharpcode  (sup 323)
+      • Repo_tales_of_tao frequently works on mode play  (sup 183)
+      • Repo_tales_of_tao handles well command bash  (sup 159)
+      • Repo_tales_of_tao handles well git command  (sup 154)
+
+  Reading: a forming identity ACCRETES — count rises while persistence vs the
+  embryonic w1 necessarily falls. High incremental retention + rising count =
+  healthy growth; LOW retention with churning count would be thrash.
+
+  cross-project trait overlap by window (lower = more individuated):
+  w1=0.00 w2=0.00 w3=0.00 w4=0.00 w5=0.00 w6=0.00

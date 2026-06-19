@@ -1,0 +1,78 @@
+
+==========================================================================
+GROWING FOUR PSYCHES FROM FOUR HISTORIES
+==========================================================================
+
+[tessa_tdd]  (D:/work/payments-api)  episodic=23 gist=6 scars=0
+    gist : payments-api handles well test handler
+    gist : payments-api frequently works on stripe webhook
+    gist : payments-api has trouble with flaky found
+    gist : payments-api handles well always pytest
+    gist : payments-api handles well prefer prs
+
+[cole_cowboy]  (D:/work/web-frontend)  episodic=36 gist=5 scars=0
+    gist : web-frontend has trouble with hotpatched auth
+    gist : web-frontend handles well shipped checkout
+    gist : web-frontend handles well auth redirect
+    gist : web-frontend handles well service worker
+    gist : web-frontend handles well fix forward
+
+[dex_unity_struggler]  (D:/games/hexrealm)  episodic=23 gist=6 scars=0
+    gist : hexrealm handles well patched tile
+    gist : hexrealm has trouble with tile grid
+    gist : hexrealm handles well compile tile
+    gist : hexrealm frequently works on asmdef reference
+    gist : hexrealm has trouble with pass render
+
+[uma_unity_careful]  (D:/games/stonepath)  episodic=23 gist=8 scars=0
+    gist : stonepath handles well grid change
+    gist : stonepath frequently works on pass render
+    gist : stonepath handles well shader always
+    gist : stonepath frequently works on grid hex
+    gist : stonepath handles well asmdef reference
+
+==========================================================================
+1. DIFFERENTIATION  (measured on gist CONTENT, not boilerplate; lower = more individuated)
+==========================================================================
+cosine of gist-content embeddings:
+                         tessa_tdd  cole_cowbo  dex_unity_  uma_unity_
+tessa_tdd                    1.000       0.711       0.610       0.617
+cole_cowboy                  0.711       1.000       0.617       0.563
+dex_unity_struggler          0.610       0.617       1.000       0.816
+uma_unity_careful            0.617       0.563       0.816       1.000
+mean cross-persona gist-content similarity = 0.656
+
+trait overlap (Jaccard of (relation,object) pairs; 0 = totally distinct selves):
+                         tessa_tdd  cole_cowbo  dex_unity_  uma_unity_
+tessa_tdd                    1.000       0.000       0.000       0.000
+cole_cowboy                  0.000       1.000       0.000       0.000
+dex_unity_struggler          0.000       0.000       1.000       0.000
+uma_unity_careful            0.000       0.000       0.000       1.000
+
+same-domain pair (Unity struggler vs careful) trait overlap = 0.000 -> distinct dispositions on shared entities
+
+==========================================================================
+2. CONTINUITY  (a second consolidation 'night' — do signature gists persist?)
+==========================================================================
+  tessa_tdd              gists before=6 after=6 persisted=6 matured(survived>=1 cycle)=6
+  cole_cowboy            gists before=5 after=5 persisted=5 matured(survived>=1 cycle)=5
+  dex_unity_struggler    gists before=6 after=6 persisted=6 matured(survived>=1 cycle)=6
+  uma_unity_careful      gists before=8 after=8 persisted=8 matured(survived>=1 cycle)=8
+
+==========================================================================
+3. PLASTICITY  (Cole reforms: starts writing tests & stops force-pushing)
+==========================================================================
+  new traits crystallized: 2
+    + web-frontend handles well always tests
+    + web-frontend handles well state store
+  phenotype drift after reform = 0.341  (0 = frozen, higher = adapted)
+
+==========================================================================
+4. ANTI-HOWLROUND  (hammer one obsession 80x — does it annihilate the rest of the self?)
+==========================================================================
+  total salience after 80x obsession = 1000.0  (conserved budget K = 1000)
+  min episodic salience = 1.9270  (>0 means NOTHING was annihilated)
+  episodes alive: before-obsession=23  after=24
+  => zero-sum budget holds total bounded; the rest of the self survives the howlround.
+
+(temp stores cleaned up)

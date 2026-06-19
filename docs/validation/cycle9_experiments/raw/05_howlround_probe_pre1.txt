@@ -1,0 +1,9 @@
+=== escalating obsession (1 cycle) ===
+N=  80 cycles=1  alive= 10  total= 1000.00  min=31.3130  max=  500.00  annihilated=no
+N= 160 cycles=1  alive= 10  total= 1000.00  min=31.3130  max=  500.00  annihilated=no
+N= 320 cycles=1  alive= 10  total= 1000.00  min=31.3130  max=  500.00  annihilated=no
+N= 640 cycles=1  alive= 10  total= 1000.00  min=31.3130  max=  500.00  annihilated=no
+=== repeated consolidation (N=320) ===
+N= 320 cycles=1  alive= 10  total= 1000.00  min=31.3130  max=  500.00  annihilated=no
+N= 320 cycles=2  alive= 10  total= 1000.00  min=23.7759  max=  500.00  annihilated=no
+N= 320 cycles=4  alive= 10  total= 1000.00  min=9.7275  max=  500.00  annihilated=no
