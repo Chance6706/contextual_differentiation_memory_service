@@ -44,7 +44,9 @@ from individuation_experiment import PERSONAS, build_psyche  # noqa: E402
 OLLAMA = os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434")
 SUBJECTS = {"gemma-std": "gemma4:12b",
             "heretic": "igorls/gemma-4-12B-it-heretic-GGUF:latest",
-            "phi4": "phi4:14b-q4_K_M"}
+            "phi4": "phi4:14b-q4_K_M",
+            "qwen2.5": "qwen2.5:14b",
+            "mistral-nemo": "mistral-nemo:latest"}
 
 # Custom specs (same shape as individuation PERSONAS) -> consolidated into REAL CDMS phenotypes,
 # so `counter` and `neutral` are structurally matched to the cautious targets (fix #2, #4).
