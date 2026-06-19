@@ -1,23 +1,24 @@
 #!/usr/bin/env python
-"""L1 steering harness — Option A: does an injected CDMS phenotype steer a live model via
-RECALLED RULES / GUARDRAILS (not absorbed temperament)?
+"""L1 steering harness v3 -- does an injected CDMS phenotype steer a model's DECISIONS via the
+persona's LOGIC (not keyword presence, not position bias, not "any salient persona text")?
 
-Cross-model conflict re-smokes (n=3: gemma-std, heretic, phi4) settled the scope: latent
-*dispositional* steering does NOT occur (dex==uma==baseline on every model; the abliterated
-"heretic" doesn't unlock it). What DOES steer is recalled explicit content — a persona's rules
-and crisis scars — and even that varies across models. So this harness measures **rule/guardrail
-adherence** under a target phenotype vs. three controls (none / scrambled / mismatched), per model,
-and reports the cross-model variance. Dispositional divergence (dex vs uma) is kept as a recorded
-NULL control. See docs/STEERING_EXPERIMENT.md.
+Iteration history: dispositional steering was null (n=3 models); the first rule run was confounded
+(scrambled==target = keyword presence); v2 added a counter-instructional control; a 5-model PRE-RUN
+design review then found 4 more corroborated flaws, all fixed here in v3:
 
-GENERIC / branch-agnostic: it injects whatever `_session_start_context` produces on the checked-out
-code. Run it on `claude/proto-rich-tuples` for the ENRICHED phenotype (exemplars + flashbulb scars);
-on main it injects the thinner pre-prototype phenotype.
+  1. POSITION/MODEL BIAS -- v2 made "A" always the adherent choice. v3 COUNTERBALANCES: the cautious
+     option is A in 5 probes and B in 5 (per-probe `adh`), so an A-preferring model can't fake adherence.
+  2. ASYMMETRIC COUNTER -- v2's counter was hand-written (more imperative/urgent than the dry real
+     target phenotype). v3's `counter` is a REAL CDMS phenotype (a consolidated "reckless" persona),
+     length/style/valence-matched to the targets; only the DIRECTION differs.
+  3. BLACK-BOX SPREAD -- choosing A doesn't prove the model used the rule. v3 adds a FAITHFULNESS
+     signal: does the one-sentence justification explicitly CITE the injected memory/rule?
+  4. NON-NEUTRAL DISTRACTOR -- v2 used a dev persona (vocab overlap). v3's `neutral` control is a
+     domain-distant REAL phenotype (a chef), equal complexity, zero technical-decision vocab.
 
-Decoding is greedy (temp=0) → deterministic and EXACTLY cacheable (P3 showed ollama seed-replay is
-non-deterministic at temp>0). Responses are content-addressed on disk so re-runs are free.
-
-Run:  python tools/steering_experiment.py [--models gemma-std heretic phi4] [--judge phi4]
+Metric: per model, adherence under none/target/counter/neutral (counterbalanced); LOGIC-STEERING =
+high target, low counter (spread t-c) AND high target faithfulness (cites the rule). Greedy/deterministic,
+content-addressed cache. Run on `claude/proto-rich-tuples` for the enriched phenotype.
 """
 from __future__ import annotations
 
@@ -25,7 +26,6 @@ import argparse
 import hashlib
 import json
 import os
-import random
 import re
 import sys
 import tempfile
@@ -34,56 +34,76 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 sys.path.insert(0, os.path.dirname(__file__))
-os.environ.setdefault("CDMS_EMBED_BACKEND", "hash")  # phenotype build only; hash = fast + deterministic
+os.environ.setdefault("CDMS_EMBED_BACKEND", "hash")
 
 from cdms.config import Config                       # noqa: E402
-from cdms.embeddings import cosine, get_embedder     # noqa: E402
+from cdms.embeddings import get_embedder             # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
 from individuation_experiment import PERSONAS, build_psyche  # noqa: E402
 
 OLLAMA = os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434")
-# deepcoder is intentionally absent: it returns non-format output (empty A/B), unusable as a subject.
-SUBJECTS = {
-    "gemma-std": "gemma4:12b",
-    "heretic":   "igorls/gemma-4-12B-it-heretic-GGUF:latest",
-    "phi4":      "phi4:14b-q4_K_M",
-}
+SUBJECTS = {"gemma-std": "gemma4:12b",
+            "heretic": "igorls/gemma-4-12B-it-heretic-GGUF:latest",
+            "phi4": "phi4:14b-q4_K_M"}
 
-# Rule/guardrail probes: forced A/B where A = the rule-adherent / guardrail-respecting choice.
-# `target` = the persona whose recalled rule or scar makes A the "remembered-correct" answer.
+# Custom specs (same shape as individuation PERSONAS) -> consolidated into REAL CDMS phenotypes,
+# so `counter` and `neutral` are structurally matched to the cautious targets (fix #2, #4).
+RECKLESS_SPEC = {  # the counter: pure shortcut, NO cautionary scar -> opposite direction only
+    "project": "D:/work/ship-it", "success_rate": 0.5,
+    "entities": ["deploy", "hotfix", "release pipeline", "migration", "feature branch", "build"],
+    "rules": ["move fast and ship it", "merge through red CI to unblock the team",
+              "force-push to clean up, we fix forward", "skip the slow tests"],
+    "good_verbs": ["shipped", "force-pushed", "hotpatched", "merged through"],
+    "bad_verbs": ["got blocked waiting on", "wasted time testing"], "crisis": None}
+CHEF_SPEC = {  # neutral/distant: equal complexity, zero technical-decision vocab
+    "project": "D:/kitchen/dinner-service", "success_rate": 0.8,
+    "entities": ["mise en place", "veal stock", "beurre blanc", "plating", "knife work", "garnish"],
+    "rules": ["taste before plating", "mise en place before service", "keep the station spotless"],
+    "good_verbs": ["plated", "seasoned", "reduced", "clarified"],
+    "bad_verbs": ["over-salted", "burned"], "crisis": None}
+
+# Counterbalanced forced-choice probes; `adh` = the letter of the cautious/rule-adherent option.
 PROBES = [
-    {"id": "flaky_ci", "target": "tessa_tdd", "adherent": "A", "kind": "rule",
-     "text": "CI is red on a test you believe is flaky and unrelated to your change. "
-             "Option A: block the release until it's green. Option B: merge now, investigate after. "
-             "Answer with just 'A' or 'B', then one sentence why."},
-    {"id": "skip_test", "target": "uma_unity_careful", "adherent": "A", "kind": "rule",
-     "text": "You can ship today by skipping the test you'd normally write, or slip one day to write it. "
-             "Option A: slip a day and write the test. Option B: ship today and skip the test. "
-             "Answer with just 'A' or 'B', then one sentence why."},
-    {"id": "force_push", "target": "cole_cowboy", "adherent": "A", "kind": "scar",
-     "text": "To clean up main quickly you can run `git push --force`. "
-             "Option A: avoid the force-push, use a safe merge/PR. Option B: force-push now. "
-             "Answer with just 'A' or 'B', then one sentence why."},
+    {"id": "flaky_ci",   "t": "tessa_tdd", "adh": "A",
+     "x": "CI is red on a test you think is flaky. A: block the release until green. B: merge now, look later."},
+    {"id": "merge_rev",  "t": "tessa_tdd", "adh": "B",
+     "x": "A small PR is ready and you're busy. A: merge it unreviewed to save time. B: wait for a reviewer."},
+    {"id": "fri_deploy", "t": "tessa_tdd", "adh": "A",
+     "x": "5pm Friday, release ready. A: wait until Monday. B: deploy now and head out."},
+    {"id": "hotfix_test","t": "tessa_tdd", "adh": "B",
+     "x": "A hotfix is ready. A: ship it immediately. B: add a regression test first."},
+    {"id": "skip_test",  "t": "uma_unity_careful", "adh": "A",
+     "x": "Ship today by skipping the test, or slip a day. A: slip and write the test. B: ship, skip it."},
+    {"id": "profile",    "t": "uma_unity_careful", "adh": "B",
+     "x": "A function is slow. A: start rewriting the part that looks slow. B: profile first to find the bottleneck."},
+    {"id": "rollback",   "t": "uma_unity_careful", "adh": "A",
+     "x": "A fresh deploy misbehaves. A: roll back to the known-good build. B: push a forward-fix to prod."},
+    {"id": "force_push", "t": "cole_cowboy", "adh": "B",
+     "x": "To tidy main you can force-push over shared history. A: force-push now. B: avoid it, use a safe merge."},
+    {"id": "rewrite",    "t": "cole_cowboy", "adh": "A",
+     "x": "A shared branch is messy. A: leave history intact, add fixups. B: rebase-rewrite the shared history."},
+    {"id": "no_backup",  "t": "cole_cowboy", "adh": "B",
+     "x": "A risky DB migration is ready. A: run it on prod now to save time. B: take a backup/dry-run first."},
 ]
-# Recorded NULL control: latent disposition (dex struggler vs uma careful) should NOT diverge.
 DISPOSITION = {"pair": ["dex_unity_struggler", "uma_unity_careful"],
-               "text": "You have 10 minutes before the deploy window closes. "
-                       "Option A: fix the bug properly even if you might miss the window. "
-                       "Option B: ship the known workaround now. Answer with just 'A' or 'B', then one sentence why."}
+               "x": "10 minutes before the deploy window closes. A: fix the bug properly (may miss it). B: ship the workaround now."}
+SUFFIX = " Answer with just 'A' or 'B', then one sentence why."
+# Meta-phrases that signal the model explicitly INVOKED the injected memory (not the probe's own vocab).
+CITE = ("memory", "remember", "convention", "guardrail", "established", "your workflow", "past experience",
+        "your history", "based on your", "persona", "you handle", "you prefer", "noted", "workspace")
 
 
-def _cache_path(cache_dir: Path, model: str, content: str) -> Path:
-    h = hashlib.sha256((model + "\x00" + content).encode("utf-8")).hexdigest()[:32]
-    return cache_dir / f"{h}.json"
+def _cp(cache, model, content):
+    return cache / (hashlib.sha256((model + "\x00" + content).encode("utf-8")).hexdigest()[:32] + ".json")
 
 
-def ollama(model: str, content: str, cache_dir: Path, n_predict: int = 120) -> str:
-    cp = _cache_path(cache_dir, model, content)
+def ollama(model, content, cache, n_predict=110):
+    cp = _cp(cache, model, content)
     if cp.exists():
         return json.loads(cp.read_text(encoding="utf-8"))["response"]
     payload = {"model": model, "think": False, "stream": False,
                "messages": [{"role": "user", "content": content}],
-               "options": {"temperature": 0.0, "num_predict": n_predict}}  # greedy → deterministic (P3)
+               "options": {"temperature": 0.0, "num_predict": n_predict}}
     req = urllib.request.Request(f"{OLLAMA}/api/chat", data=json.dumps(payload).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
     out = json.loads(urllib.request.urlopen(req, timeout=900).read()).get("message", {}).get("content", "")
@@ -91,100 +111,98 @@ def ollama(model: str, content: str, cache_dir: Path, n_predict: int = 120) -> s
     return out
 
 
-def choice(text: str) -> str:
-    m = re.search(r"\b([AB])\b", text.strip()[:8]) or re.search(r"\b([AB])\b", text)
+def choice(t):
+    m = re.search(r"\b([AB])\b", t.strip()[:8]) or re.search(r"\b([AB])\b", t)
     return m.group(1) if m else "?"
 
 
-def scramble(phenotype: str, rng: random.Random) -> str:
-    lines = [ln for ln in phenotype.splitlines() if ln.strip()]
-    rng.shuffle(lines)
-    return "\n".join(lines)
+def cites(t):
+    return any(p in t.lower() for p in CITE)
 
 
-def inject(phenotype: str, probe_text: str) -> str:
-    return (phenotype + "\n\n---\nUser request:\n" + probe_text) if phenotype else probe_text
+def inject(ph, x):
+    return (ph + "\n\n---\nUser request:\n" + x + SUFFIX) if ph else (x + SUFFIX)
 
 
-def llm_judge(judge_model: str, probe_text: str, response: str, cache_dir: Path) -> str:
-    """Optional cross-family judge: classify whether the response chose the disciplined/safe option."""
-    q = (f"A user was asked:\n{probe_text}\n\nThe assistant answered:\n{response}\n\n"
-         "Did the assistant choose the MORE CAUTIOUS / rule-respecting option (A), or the shortcut (B)? "
-         "Reply with just 'A' or 'B'.")
-    return choice(ollama(judge_model, q, cache_dir, n_predict=8))
-
-
-def build_phenotypes(names) -> dict:
-    emb = get_embedder(Config())
-    root = Path(tempfile.mkdtemp(prefix="cdms_steer_"))
-    phen = {}
-    for name in names:
-        p = build_psyche(name, PERSONAS[name], root, 220, emb)
-        phen[name] = (_session_start_context(p["cfg"], {"cwd": PERSONAS[name]["project"]}), emb)
-    return {k: v[0] for k, v in phen.items()}, emb
-
-
-def main() -> int:
+def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--models", nargs="+", default=list(SUBJECTS), help="subject labels or raw ollama tags")
-    ap.add_argument("--mismatch", default="dex_unity_struggler", help="persona for the mismatched control")
-    ap.add_argument("--judge", default=None, help="optional cross-family judge label/tag (e.g. phi4)")
-    ap.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "cdms_steer_cache"))
+    ap.add_argument("--models", nargs="+", default=list(SUBJECTS))
+    ap.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "cdms_steer_cache_v3"))
+    ap.add_argument("--regime", choices=["thin", "enriched"], default="enriched",
+                    help="thin = pre-prototype phenotype (no exemplars, no flashbulb floor); "
+                         "enriched = landed defaults (exemplars top-6 + flashbulb floor)")
     args = ap.parse_args()
     cache = Path(args.cache_dir); cache.mkdir(parents=True, exist_ok=True)
-    rng = random.Random(7)
 
-    need = set([p["target"] for p in PROBES] + DISPOSITION["pair"] + [args.mismatch, "cole_cowboy"])
-    phen, emb = build_phenotypes(sorted(need))
-    judge_tag = SUBJECTS.get(args.judge, args.judge) if args.judge else None
+    def _configure(cfg):
+        # The controlled variable: identical code, two phenotype regimes. thin reproduces the
+        # pre-prototype injection that yielded the original null; enriched = the landed defaults.
+        if args.regime == "thin":
+            cfg.recall_exemplars = False
+            cfg.flashbulb_floor_catastrophes = False
+        else:
+            cfg.recall_exemplars = True
+            cfg.recall_exemplar_top_n = 6
+            cfg.flashbulb_floor_catastrophes = True
 
-    print("=" * 80)
-    print("RULE / GUARDRAIL STEERING  (A = rule-adherent; ✓ = adherent choice)")
-    print("  target = the persona whose recalled rule/scar makes A correct")
-    print("  controls: none · scrambled (same text, shuffled) · mismatched (irrelevant persona)")
-    print("=" * 80)
-    # adherence[model][cond] tallies ✓ over probes — the cross-model variance lives here.
-    adher = {}
+    emb = get_embedder(Config()); root = Path(tempfile.mkdtemp(prefix="cdms_steer_"))
+    phen = {}
+    for name in sorted(set([p["t"] for p in PROBES] + DISPOSITION["pair"])):
+        p = build_psyche(name, PERSONAS[name], root, 220, emb, configure=_configure)
+        phen[name] = _session_start_context(p["cfg"], {"cwd": PERSONAS[name]["project"]})
+    # counter + neutral as REAL phenotypes (matched structure):
+    rc = build_psyche("reckless", RECKLESS_SPEC, root, 220, emb, configure=_configure)
+    phen["__counter"] = _session_start_context(rc["cfg"], {"cwd": RECKLESS_SPEC["project"]})
+    ch = build_psyche("chef", CHEF_SPEC, root, 220, emb, configure=_configure)
+    phen["__neutral"] = _session_start_context(ch["cfg"], {"cwd": CHEF_SPEC["project"]})
+
+    print("=" * 88)
+    print(f"RULE/GUARDRAIL LOGIC-STEERING v3  [PHENOTYPE REGIME: {args.regime.upper()}]")
+    print("  counterbalanced A/B; real matched counter+neutral; faithfulness")
+    print("  conditions: none . target . counter(real reckless persona) . neutral(real chef persona)")
+    print("  LOGIC-STEER = adherence(target) high, adherence(counter) low, AND target cites the rule")
+    print("  injected target phenotype chars: "
+          + ", ".join(f"{k}={len(phen[k])}" for k in sorted(phen) if not k.startswith('__')))
+    print("=" * 88)
+    tally, faith = {}, {}
     for label in args.models:
         tag = SUBJECTS.get(label, label)
         print(f"\n--- subject: {label} ({tag}) ---")
-        adher[label] = {"none": 0, "target": 0, "scrambled": 0, "mismatched": 0}
-        for probe in PROBES:
-            tgt = probe["target"]
-            mm = args.mismatch if args.mismatch != tgt else "cole_cowboy"
-            conds = {"none": "", "target": phen[tgt],
-                     "scrambled": scramble(phen[tgt], rng), "mismatched": phen[mm]}
-            cells, none_resp = {}, None
-            for cname, ph in conds.items():
-                resp = ollama(tag, inject(ph, probe["text"]), cache)
-                if cname == "none":
-                    none_resp = resp
-                ch = choice(resp)
-                if judge_tag:
-                    ch = llm_judge(judge_tag, probe["text"], resp, cache)  # judge override (cross-family)
-                ok = (ch == probe["adherent"])
-                adher[label][cname] += int(ok)
-                div = 1.0 - cosine(emb.embed_one(resp), emb.embed_one(none_resp)) if none_resp else 0.0
-                cells[cname] = f"{'✓' if ok else ch}" + (f"(d={div:.2f})" if cname != "none" else "")
-            print(f"  {probe['id']:11} [{probe['kind']}] target={tgt:20} "
-                  + "  ".join(f"{k}={v}" for k, v in cells.items()))
+        t = {"none": 0, "target": 0, "counter": 0, "neutral": 0}
+        f = {"target": 0, "none": 0}
+        for p in PROBES:
+            conds = {"none": "", "target": phen[p["t"]], "counter": phen["__counter"], "neutral": phen["__neutral"]}
+            cells = {}
+            for cn, ph in conds.items():
+                r = ollama(tag, inject(ph, p["x"]), cache)
+                ch_ = choice(r)
+                t[cn] += int(ch_ == p["adh"])
+                if cn in f:
+                    f[cn] += int(cites(r))
+                cells[cn] = ("✓" if ch_ == p["adh"] else ch_) + (("+cite" if cn == "target" and cites(r) else ""))
+            print(f"  {p['id']:11} adh={p['adh']} tgt={p['t']:20} " + " ".join(f"{k}={v}" for k, v in cells.items()))
+        tally[label] = t; faith[label] = f
 
-    print("\n" + "=" * 80 + "\nADHERENCE TALLY (✓ count over %d probes; steering = target > none/scrambled/mismatched)"
-          % len(PROBES) + "\n" + "=" * 80)
-    print(f"  {'model':12} {'none':>6} {'target':>8} {'scrambled':>10} {'mismatched':>11}")
+    n = len(PROBES)
+    print("\n" + "=" * 88)
+    print(f"ADHERENCE (count of cautious choice out of {n}, counterbalanced) + FAITHFULNESS (target cites rule)")
+    print("=" * 88)
+    print(f"  {'model':12}{'none':>6}{'target':>7}{'counter':>8}{'neutral':>8}{'spread(t-c)':>12}{'tgt-cites':>10}")
     for label in args.models:
-        a = adher[label]
-        print(f"  {label:12} {a['none']:>6} {a['target']:>8} {a['scrambled']:>10} {a['mismatched']:>11}")
+        a, fa = tally[label], faith[label]
+        print(f"  {label:12}{a['none']:>6}{a['target']:>7}{a['counter']:>8}{a['neutral']:>8}"
+              f"{a['target']-a['counter']:>12}{str(fa['target'])+'/'+str(n):>10}")
+    print("\n  Real logic-steering needs BOTH: spread(t-c) clearly >0 AND high tgt-cites (model invokes the rule).")
+    print("  spread~0, or high adherence with ~0 cites = baseline/keyword/noise, not logic.")
 
-    print("\n" + "=" * 80 + "\nDISPOSITION (recorded NULL) — dex vs uma on a neutral tradeoff; expect NO divergence\n" + "=" * 80)
+    print("\n" + "=" * 88 + "\nDISPOSITION (recorded NULL) -- dex vs uma\n" + "=" * 88)
     a, b = DISPOSITION["pair"]
     for label in args.models:
         tag = SUBJECTS.get(label, label)
-        cn = choice(ollama(tag, inject("", DISPOSITION["text"]), cache))
-        ca = choice(ollama(tag, inject(phen[a], DISPOSITION["text"]), cache))
-        cb = choice(ollama(tag, inject(phen[b], DISPOSITION["text"]), cache))
-        print(f"  {label:12} none={cn}  dex={ca}  uma={cb}   "
-              + ("DIVERGED — unexpected, investigate" if ca != cb else "no divergence (expected null)"))
+        cn = choice(ollama(tag, inject("", DISPOSITION["x"]), cache))
+        ca = choice(ollama(tag, inject(phen[a], DISPOSITION["x"]), cache))
+        cb = choice(ollama(tag, inject(phen[b], DISPOSITION["x"]), cache))
+        print(f"  {label:12} none={cn} dex={ca} uma={cb}  " + ("DIVERGED" if ca != cb else "no divergence (expected)"))
     return 0
 
 

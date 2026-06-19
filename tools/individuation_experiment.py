@@ -139,8 +139,12 @@ def gen_history(name: str, spec: dict, n: int, span_days: float, rng: random.Ran
     return turns
 
 
-def build_psyche(name: str, spec: dict, root: Path, n: int, embedder) -> dict:
+def build_psyche(name: str, spec: dict, root: Path, n: int, embedder, configure=None) -> dict:
     cfg = Config(home=root / name)
+    # Optional cfg mutation BEFORE ingest/consolidation, so ingest-time gates (e.g. the
+    # flashbulb floor) can be toggled per-experiment. Recall-time gates can also be set here.
+    if configure is not None:
+        configure(cfg)
     cfg.ensure_home()
     svc = MemoryService(cfg, embedder=embedder)
     # Stable per-name seed: builtin hash() of a str is salted per-process
