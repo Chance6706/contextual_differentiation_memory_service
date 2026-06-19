@@ -260,9 +260,13 @@ def _validate(cfg: "Config") -> None:
         ("w_self_ref", lambda v: _num(v) and 0 <= v <= 10),
         ("w_affect", lambda v: _num(v) and 0 <= v <= 10),
         ("goal_gate_floor", lambda v: _num(v) and 0 <= v <= 1),
-        ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1e3),
+        # assoc_eta is a learning rate and assoc_boost_cap_frac a fraction-of-self; both are
+        # meant to be <= 1. The old 1e3 ceiling let a single write inject ~100x K_budget via
+        # the associative boost (Cycle-9 #7 — and it silently neutered the M-M-3 boost cap,
+        # which is enforced as assoc_boost_cap_frac * s_new).
+        ("assoc_eta", lambda v: _num(v) and 0 <= v <= 1.0),
         ("assoc_sim_floor", lambda v: _num(v) and 0 <= v <= 1),
-        ("assoc_boost_cap_frac", lambda v: _num(v) and 0 <= v <= 1e3),
+        ("assoc_boost_cap_frac", lambda v: _num(v) and 0 <= v <= 1.0),
         ("cluster_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
         ("gist_match_sim_threshold", lambda v: _num(v) and 0 <= v <= 1),
         ("dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
@@ -338,13 +342,29 @@ def _validate(cfg: "Config") -> None:
     # goal_gate_floor × wsum (all signals = 1). If that alone reaches crisis_threshold, weights
     # have overpowered the gate and any memory can self-elevate to a scar. Scale the weights down
     # proportionally so a zero-goal memory stays safely sub-crisis (10% margin).
-    if cfg.crisis_threshold > 0:
-        zero_goal_max = cfg.goal_gate_floor * wsum
-        if zero_goal_max >= cfg.crisis_threshold:
-            scale = (0.9 * cfg.crisis_threshold) / zero_goal_max
-            for w in _S0_WEIGHTS:
-                _clamp(w, round(getattr(cfg, w) * scale, 6),
-                       "S0 weights let a zero-goal memory self-elevate to crisis")
+    def _scaled_s0_weights():
+        """Weights scaled to keep a zero-goal memory sub-crisis, or None if already safe."""
+        zgm = cfg.goal_gate_floor * sum(getattr(cfg, w) for w in _S0_WEIGHTS)
+        if cfg.crisis_threshold <= 0 or zgm < cfg.crisis_threshold:
+            return None
+        s = (0.9 * cfg.crisis_threshold) / zgm
+        return {w: round(getattr(cfg, w) * s, 6) for w in _S0_WEIGHTS}
+
+    scaled = _scaled_s0_weights()
+    if scaled is not None and sum(scaled.values()) <= 0.0:
+        # Cycle-9 #4: scaling rounded EVERY weight to zero, which would disable salience
+        # entirely (S0 == 0 for every episode — the exact M-2 failure the block above
+        # guards against). That only happens when crisis_threshold is itself pathologically
+        # tiny: an O(1) weight × a ~1e-7 threshold underflows 6-decimal rounding. The weights
+        # are not the offender — the threshold is. Repair the threshold and re-derive the
+        # scale; the recomputed weights are then guaranteed non-zero (a sane crisis_threshold
+        # with weights validated <= 10 yields a scale that cannot round them all away).
+        _clamp("crisis_threshold", d.crisis_threshold,
+               "crisis_threshold so small the S0-weight guard would zero every weight")
+        scaled = _scaled_s0_weights()
+    if scaled is not None:
+        for w, val in scaled.items():
+            _clamp(w, val, "S0 weights let a zero-goal memory self-elevate to crisis")
 
     # Networking must stay loopback-only (directive #2). These bind nothing today (the MCP
     # server is stdio and the Dreamer is unwired), so this is latent defense-in-depth that

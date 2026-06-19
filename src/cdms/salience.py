@@ -143,17 +143,51 @@ def allocate_capped_proportional(
     if n == 1:
         return {keys[0]: total}
     cap = cap_fraction * total
-    # Infeasible cap (too tight to cover everyone): fall back to an equal split.
-    if cap * n < total:
-        return {k: total / n for k in keys}
 
     w = {k: max(0.0, weights[k]) for k in keys}
     alloc: dict[str, float] = {}
     remaining = total
     uncapped = set(keys)
+
+    # Pre-allocate 0 to all zero-weight keys so they never receive a share.
+    # They are removed from `uncapped` entirely; the loop below only processes
+    # keys whose weight is strictly positive.
+    zero_weight = {k for k in uncapped if w[k] <= 0.0}
+    for k in zero_weight:
+        alloc[k] = 0.0
+        uncapped.discard(k)
+
+    # Infeasible cap (too tight to cover everyone): fall back to an equal split.
+    # Use only the remaining (positive-weight) keys for the feasibility check.
+    m = len(uncapped)
+    if m == 0:
+        # All keys had zero weight: degenerate case, split total evenly.
+        if zero_weight:
+            share = total / len(zero_weight)
+            for k in zero_weight:
+                alloc[k] = share
+        return alloc
+    if cap * m < remaining:
+        # Cap is infeasible (cap * m < budget): there is no allocation that both
+        # spends the whole budget AND respects the per-key cap. The cap wins — it
+        # is a hard invariant, not a hint (Cycle-9 #3). Each positive-weight key
+        # gets exactly `cap`; the remainder is left UNALLOCATED rather than handing
+        # every key `remaining / m`, which exceeds the cap — the very thing the cap
+        # exists to prevent. Zero-weight keys keep their alloc of 0.0.
+        #
+        # Only reachable with an aggressively small custom cap_fraction: the default
+        # project/session caps (0.5) are always feasible for m >= 2, so default
+        # budgets are unaffected and still conserve the full total.
+        for k in uncapped:
+            alloc[k] = cap
+        return alloc
+
     while uncapped:
         wsum = sum(w[k] for k in uncapped)
-        if wsum <= 0.0:                       # no signal left: split remainder evenly
+        if wsum <= 0.0:
+            # All remaining weights are zero (degenerate case: every key had
+            # weight 0 or was capped).  Split the remainder evenly so that
+            # `sum(alloc.values()) == total` holds.
             share = remaining / len(uncapped)
             for k in uncapped:
                 alloc[k] = share
