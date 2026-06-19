@@ -1,0 +1,53 @@
+
+==============================================================================
+A. STEADY-STATE TRAJECTORY  (8 nights, fresh recent batch each night)
+==============================================================================
+
+self                    c1   c2   c3   c4   c5   c6   c7   c8 
+gist count per cycle:
+  tessa_tdd               6    6    6    6    6    6    6    6
+  cole_cowboy             6    7    7    7    7    7    7    7
+  dex_unity_struggler     4    4    4    4    4    4    4    4
+  uma_unity_careful       6    6    6    6    6    6    6    6
+Ship-of-Theseus persistence (|T_k ∩ T_1| / |T_1|):
+  tessa_tdd            1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00
+  cole_cowboy          1.00 0.86 0.62 0.62 0.62 0.62 0.62 0.62
+  dex_unity_struggler  1.00 0.60 0.60 0.60 0.60 0.60 0.60 0.60
+  uma_unity_careful    1.00 1.00 0.71 0.71 0.71 0.71 0.71 0.71
+trait churn |T_k △ T_{k-1}| (set edits per cycle):
+  tessa_tdd               0    0    0    0    0    0    0    0
+  cole_cowboy             0    1    2    0    0    0    0    0
+  dex_unity_struggler     0    2    0    0    0    0    0    0
+  uma_unity_careful       0    0    2    0    0    0    0    0
+incremental drift 1-cos(v_k, v_{k-1})  [secondary, embedder-dependent]:
+  tessa_tdd            0.00-0.00-0.00-0.00-0.00-0.00-0.00-0.00
+  cole_cowboy          0.00 0.01 0.00-0.00-0.00-0.00-0.00-0.00
+  dex_unity_struggler  0.00 0.01-0.00-0.00-0.00-0.00-0.00-0.00
+  uma_unity_careful    0.00 0.00 0.00-0.00-0.00-0.00-0.00-0.00
+cross-self trait overlap per cycle (lower = stays individuated):
+  c1=0.00 c2=0.00 c3=0.00 c4=0.00 c5=0.00 c6=0.00 c7=0.00 c8=0.00
+
+==============================================================================
+B. ABSENCE  (build, clear episodics; safe<=30, deep=400)
+==============================================================================
+  identity=5 gists;  fade curve: 30->5  137->5  400->0
+
+==============================================================================
+C. THRASH CONTROL  (in-place relation flip — THRASH detector MUST fire)
+==============================================================================
+  alternating-disposition self persistence c1..c8 = [1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00];  detected = ['THRASH']
+
+==============================================================================
+D. DIFFERENTIATION CONTRAST  (identical vs distinct histories)
+==============================================================================
+  distinct-history overlap=0.00  identical-history overlap=0.44  gap=+0.44
+
+==============================================================================
+VERDICT
+==============================================================================
+  ✓ healthy regimes: identity persists (Ship-of-Theseus), survives short
+    absence (§5.3), and stays individuated.
+  ✓ instrument sound: EROSION (deep absence), THRASH (in-place flip), and
+    DIFFERENTIATION (clone contrast) detectors all fired as expected.
+
+  => PASS: phenotype-drift instrument is sound and reads stable.
