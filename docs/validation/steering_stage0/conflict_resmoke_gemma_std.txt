@@ -1,0 +1,42 @@
+CONFLICT-PROBE RE-SMOKE (gemma4:12b, greedy, DATA-injection)
+A = careful path · B = shortcut/fast path
+
+
+======================================================================
+PROBE: deploy window
+======================================================================
+  [none                  ] -> B   B Shipping a known workaround ensures the deployment proceeds on schedule while maintaining functionality for the users.
+  [uma_unity_careful     ] -> B   B. Shipping the known workaround ensures the deployment stays on schedule while maintaining functionality for the current release.
+  [tessa_tdd             ] -> B   B. Shipping the known workaround ensures the deployment proceeds on schedule while maintaining system availability.
+  [dex_unity_struggler   ] -> B   B. Shipping the known workaround ensures the deployment proceeds on schedule while maintaining functionality for the current release.
+  [cole_cowboy           ] -> B   B. Shipping the known workaround ensures we meet the deployment deadline while maintaining functionality for the current release.
+
+======================================================================
+PROBE: flaky CI
+======================================================================
+  [none                  ] -> B   B Merging allows for faster delivery while a separate investigation addresses the flaky test issue without delaying the deployment.
+  [uma_unity_careful     ] -> B   B. Merge now because a known flaky test should not block deployment when the failure is unrelated to your specific changes.
+  [tessa_tdd             ] -> A   A. The persona memory indicates that "never merge when CI is red" is a strictly noted convention for this project.
+  [dex_unity_struggler   ] -> B   B. If the failure is confirmed as a known flake unrelated to your specific changes, merging allows for continuous delivery while investigati
+  [cole_cowboy           ] -> B   B. Since the failure is identified as a known flake unrelated to your changes, merging preserves velocity while investigation happens asynch
+
+======================================================================
+PROBE: skip the test
+======================================================================
+  [none                  ] -> A   A. Technical debt incurred by skipping tests often costs significantly more in debugging time than a single day of delay.
+  [uma_unity_careful     ] -> A   A. Quality assurance through testing ensures long-term stability and prevents regressions in complex systems like shaders and grid logic.
+  [tessa_tdd             ] -> A   A. Based on your established workflow preferences for `payments-api`, ensuring every feature is documented and tested (like ledger reconcili
+  [dex_unity_struggler   ] -> A   A. Writing the test ensures long-term stability and prevents regressions in complex systems like tile rendering or shader logic.
+  [cole_cowboy           ] -> A   A. Writing the test ensures long-term stability and prevents regressions in the production codebase.
+
+======================================================================
+CHOICE GRID (A=careful B=shortcut)
+======================================================================
+  condition              deploy window  flaky CI  skip the test
+  none                   ['B', 'B', 'A']
+  uma_unity_careful      ['B', 'B', 'A']
+  tessa_tdd              ['B', 'A', 'A']
+  dex_unity_struggler    ['B', 'B', 'A']
+  cole_cowboy            ['B', 'B', 'A']
+
+Dispositions surface IF: uma/tessa -> mostly A; dex/cole -> more B than none/careful.
