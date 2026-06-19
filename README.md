@@ -239,7 +239,7 @@ review of the original design doc, including corrections.
 
 ## Privacy, durability & hardening
 
-CDMS is an always-running daemon, so it has been put through **eight adversarial
+CDMS is an always-running daemon, so it has been put through **nine adversarial
 red-team cycles plus a re-run-audit follow-up** (one of which caught that an external
 review had blessed a stale revision) — see
 [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Notable guarantees:
@@ -266,7 +266,7 @@ review had blessed a stale revision) — see
 
 ```bash
 uv pip install -e ".[dev]"
-CDMS_EMBED_BACKEND=hash python -m pytest -q     # 281 tests, offline, no downloads
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # 302 tests, offline, no downloads
 ```
 
 The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use
