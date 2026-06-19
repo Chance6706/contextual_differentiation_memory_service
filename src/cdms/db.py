@@ -127,33 +127,57 @@ class Database:
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
+        self.conn = None        # set before any failure path so cleanup is always safe
         cfg.ensure_home()
         try:
-            self.conn = self._open(cfg.db_path)
-            self._init_schema()
-        except sqlite3.DatabaseError as exc:
-            # A corrupted store ("file is not a database" / "malformed") otherwise
-            # makes every command crash and silently halts capture while the spool
-            # grows forever. Quarantine the bad file (preserve it for recovery) and
-            # start fresh, loudly — so the daemon keeps working and the operator is told.
-            #
-            # CRITICAL (Cycle-3 C1): we must NOT quarantine on anything other than real
-            # file corruption. ``sqlite3.OperationalError`` ("database is locked"/"busy")
-            # is a subclass of DatabaseError; transient lock contention (a long
-            # consolidation overlapping a hook open) would otherwise be misread as
-            # corruption and the *healthy* store would be renamed away and WIPED. A
-            # config-induced open failure (e.g. an out-of-range embed_dim that vec0
-            # rejects) is likewise not corruption. Only quarantine on a true corruption
-            # signature; re-raise everything else so the caller retries instead of
-            # destroying a good store.
-            if not self._is_corruption(exc):
-                raise
-            self._quarantine_corrupt(cfg.db_path, exc)
-            self.conn = self._open(cfg.db_path)
-            self._init_schema()
-        # vec0 index-format guard (after schema/meta exist, in both the normal and
-        # quarantine-recovery paths): warn if sqlite-vec changed under an existing store.
-        self._reconcile_vec_version()
+            try:
+                self.conn = self._open(cfg.db_path)
+                self._init_schema()
+            except sqlite3.DatabaseError as exc:
+                # A corrupted store ("file is not a database" / "malformed") otherwise
+                # makes every command crash and silently halts capture while the spool
+                # grows forever. Quarantine the bad file (preserve it for recovery) and
+                # start fresh, loudly — so the daemon keeps working and the operator is told.
+                #
+                # CRITICAL (Cycle-3 C1): we must NOT quarantine on anything other than real
+                # file corruption. ``sqlite3.OperationalError`` ("database is locked"/"busy")
+                # is a subclass of DatabaseError; transient lock contention (a long
+                # consolidation overlapping a hook open) would otherwise be misread as
+                # corruption and the *healthy* store would be renamed away and WIPED. A
+                # config-induced open failure (e.g. an out-of-range embed_dim that vec0
+                # rejects) is likewise not corruption. Only quarantine on a true corruption
+                # signature; re-raise everything else so the caller retries instead of
+                # destroying a good store.
+                if not self._is_corruption(exc):
+                    raise
+                # Close the handle to the corrupt file before quarantining: otherwise the
+                # first connection is orphaned (a leak) and, on Windows, holds the file open
+                # so the quarantine rename can fail (Cycle-9 #8).
+                self._close_quietly()
+                self._quarantine_corrupt(cfg.db_path, exc)
+                self.conn = self._open(cfg.db_path)
+                self._init_schema()
+            # vec0 index-format guard (after schema/meta exist, in both the normal and
+            # quarantine-recovery paths): warn if sqlite-vec changed under an existing store.
+            self._reconcile_vec_version()
+        except Exception:
+            # Never leak the sqlite connection if construction fails partway — a non-corruption
+            # open error, a vec0 reconcile failure, etc. would otherwise propagate with self.conn
+            # still open and the object discarded unclosed (Cycle-9 #8). Close what we opened,
+            # then re-raise so callers still see the original failure.
+            self._close_quietly()
+            raise
+
+    def _close_quietly(self) -> None:
+        """Close ``self.conn`` if open, swallowing errors. Used on the construction-failure
+        path (where leaving the connection open would leak it) and before quarantine."""
+        conn = getattr(self, "conn", None)
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+            self.conn = None
 
     # Signatures SQLite uses for genuine on-disk corruption (vs. lock contention,
     # dimension/config errors, missing tables, etc.).

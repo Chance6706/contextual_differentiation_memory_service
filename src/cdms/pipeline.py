@@ -48,7 +48,11 @@ _OVERRIDE_RE = re.compile(
     r"\b(?:" + "|".join(re.escape(p) for p in sorted(_POSITIVE_OVERRIDE, key=len, reverse=True)) + r")")
 
 
-@lru_cache(maxsize=None)
+# maxsize is a fixed bound, not None: the key space is already finite — _marker_re is only ever
+# called with markers from the fixed _ERR_MARKERS / _OK_MARKERS lexicons — so the cache cannot
+# actually grow unboundedly. The explicit cap is defence-in-depth against a future caller passing
+# attacker-controlled markers (Cycle-9 #8); 512 sits far above the lexicon so nothing is evicted.
+@lru_cache(maxsize=512)
 def _marker_re(marker: str) -> "re.Pattern[str]":
     """Match ``marker`` as a whole word, allowing only a small set of inflectional suffixes.
 

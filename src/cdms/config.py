@@ -101,6 +101,13 @@ class Config:
     # only fades through many *active* sessions in which it is never reinforced.
     gist_decay_per_cycle: float = 0.985 # gentle: per-cycle strength multiplier for idle traits
     gist_retention_floor: float = 0.25  # evict only after a trait has faded well below 1 support
+    # Cap the support_count that counts toward decay resistance. upsert_fact() increments
+    # support_count unbounded (+1/call), so a frequently re-asserted explicit fact would
+    # otherwise ratchet up its idle-decay survival without limit (effectively immortal).
+    # The cap is well above any real consolidation cluster size, so inferred gists are
+    # unaffected; it only bounds the runaway explicit-fact case (Cycle-9 #5). At the default
+    # decay/floor this caps idle survival near ~400 cycles instead of growing forever.
+    gist_support_decay_cap: int = 100
     relation_pos_threshold: float = 0.15   # valence above -> "handles_well"
     relation_neg_threshold: float = -0.15  # valence below -> "has_trouble_with"
 
@@ -236,6 +243,7 @@ def _validate(cfg: "Config") -> None:
         ("session_budget_cap", lambda v: _num(v) and 0 < v <= 1),
         ("gist_decay_per_cycle", lambda v: _num(v) and 0 < v < 1),
         ("gist_retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("gist_support_decay_cap", lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 1),
         ("retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
         ("reinforce_alpha", lambda v: _num(v) and 1.0 < v <= 1e3),
         ("reinforce_cap", lambda v: _num(v) and 1.0 <= v <= 1e6),
