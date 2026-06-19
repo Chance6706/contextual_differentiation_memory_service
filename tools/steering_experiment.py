@@ -48,6 +48,60 @@ SUBJECTS = {"gemma-std": "gemma4:12b",
             "qwen2.5": "qwen2.5:14b",
             "mistral-nemo": "mistral-nemo:latest"}
 
+# --- SCALE-LADDER TIERS (GX10 / NVIDIA GB10, 128GB unified) --------------------------------------
+# The 12-14B panel above is the `small` tier -- the basis of every steering/poisoning/tone finding so
+# far. The GX10 lets us retest those findings UP A PARAMETER LADDER (small -> large -> xlarge) to kill
+# the standing "is this just a small-model artifact?" caveat. SUBJECTS stays the importable default so
+# nothing downstream breaks; opt a harness into a bigger tier via resolve_subjects()/$CDMS_SUBJECT_TIER.
+#
+# Sunday GX10 plug-in (all weights live on the 1TB internal for now -- they fit; only generated OUTPUT
+# will later need the NAS):
+#   1. export CDMS_OLLAMA_URL=http://<gx10-host>:11434      # serve from the GX10 over the LAN
+#   2. `ollama pull` the tier's tags ON the GX10            # VERIFY current tags/quant first -- they drift
+#   3. run with --tier large (~70B) or --tier xlarge (104-141B)
+# Phasing (one subject model loaded at a time) is preserved, so a 140B (~90GB Q4) never has to co-reside
+# with another model in the 128GB pool. Single-model footprints (Q4_K_M ~0.6GB/B): 70B ~40GB, 104B ~62GB,
+# 123B ~73GB, 141B-MoE ~80GB -- each fits one-at-a-time; the whole ladder (~300GB) fits on the 1TB.
+SUBJECT_TIERS = {
+    "small": SUBJECTS,
+    "large": {                                       # ~70B dense
+        "llama3.1-70b": "llama3.1:70b",
+        "qwen2.5-72b": "qwen2.5:72b",
+    },
+    "xlarge": {                                      # 104-141B; dense + one MoE (faster) to cover the scale
+        "mistral-large-123b": "mistral-large:latest",
+        "mixtral-8x22b": "mixtral:8x22b",            # ~141B total / ~39B active -> 140B scale, MoE speed
+        "command-r-plus-104b": "command-r-plus:latest",
+    },
+}
+# WITHIN-FAMILY SCALE SPINES -- the only clean way to attribute a behavioral change to SCALE rather
+# than model family. The size-tiers above mix families, so a tier-delta confounds scale with family;
+# read scale effects off the SLOPE WITHIN a family, and believe them only if >=2 families agree.
+# Qwen2.5 is the backbone (4 sizes, one family, all on Ollama). Run via `--family qwen2.5`.
+FAMILY_LADDERS = {
+    "qwen2.5": {"7b": "qwen2.5:7b", "14b": "qwen2.5:14b", "32b": "qwen2.5:32b", "72b": "qwen2.5:72b"},
+    # TODO add a 2nd >=3-size family (gemma-2 2b/9b/27b, or mistral 7b/small-22b/large-123b) so a
+    # scale slope can be shown to generalize beyond a single family before any scale claim is made.
+}
+SUBJECT_TIER = os.environ.get("CDMS_SUBJECT_TIER", "small")
+OLLAMA_TIMEOUT = float(os.environ.get("CDMS_OLLAMA_TIMEOUT", "900"))   # big models load+generate slowly
+
+
+def resolve_subjects(tier=None):
+    """Subjects {label: tag} for the named tier (or $CDMS_SUBJECT_TIER, default 'small')."""
+    return dict(SUBJECT_TIERS.get(tier or SUBJECT_TIER, SUBJECTS))
+
+
+def all_subjects():
+    """Flat {label: tag} across every tier + family ladder -- label->tag lookup regardless of selection."""
+    merged = {}
+    for d in SUBJECT_TIERS.values():
+        merged.update(d)
+    for fam, sizes in FAMILY_LADDERS.items():
+        for sz, tag in sizes.items():
+            merged[f"{fam}-{sz}"] = tag
+    return merged
+
 # Custom specs (same shape as individuation PERSONAS) -> consolidated into REAL CDMS phenotypes,
 # so `counter` and `neutral` are structurally matched to the cautious targets (fix #2, #4).
 RECKLESS_SPEC = {  # the counter: pure shortcut, NO cautionary scar -> opposite direction only
@@ -99,16 +153,20 @@ def _cp(cache, model, content):
     return cache / (hashlib.sha256((model + "\x00" + content).encode("utf-8")).hexdigest()[:32] + ".json")
 
 
-def ollama(model, content, cache, n_predict=110):
+def ollama(model, content, cache, n_predict=110, timeout=None, url=None):
+    # timeout/url default to the module globals (CDMS_OLLAMA_TIMEOUT / CDMS_OLLAMA_URL). Big GX10
+    # subjects load+generate slowly, hence the configurable, generous default timeout. The cache key
+    # is (model, content) only -- intentionally host-agnostic, so a given tag's results are shared
+    # whether served from localhost or the GX10 (one tag is only ever run on one host/quant).
     cp = _cp(cache, model, content)
     if cp.exists():
         return json.loads(cp.read_text(encoding="utf-8"))["response"]
     payload = {"model": model, "think": False, "stream": False,
                "messages": [{"role": "user", "content": content}],
                "options": {"temperature": 0.0, "num_predict": n_predict}}
-    req = urllib.request.Request(f"{OLLAMA}/api/chat", data=json.dumps(payload).encode("utf-8"),
+    req = urllib.request.Request(f"{url or OLLAMA}/api/chat", data=json.dumps(payload).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
-    out = json.loads(urllib.request.urlopen(req, timeout=900).read()).get("message", {}).get("content", "")
+    out = json.loads(urllib.request.urlopen(req, timeout=timeout or OLLAMA_TIMEOUT).read()).get("message", {}).get("content", "")
     cp.write_text(json.dumps({"model": model, "response": out}), encoding="utf-8")
     return out
 
@@ -128,13 +186,24 @@ def inject(ph, x):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--models", nargs="+", default=list(SUBJECTS))
+    ap.add_argument("--tier", choices=list(SUBJECT_TIERS), default=SUBJECT_TIER,
+                    help="subject parameter tier: small (12-14B panel), large (~70B), xlarge "
+                         "(104-141B). Point CDMS_OLLAMA_URL at the GX10 for large/xlarge.")
+    ap.add_argument("--family", choices=list(FAMILY_LADDERS), default=None,
+                    help="run a WITHIN-FAMILY size ladder (the clean scale contrast), overriding --tier")
+    ap.add_argument("--models", nargs="+", default=None,
+                    help="explicit subject labels/tags; default = every subject in --tier")
     ap.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "cdms_steer_cache_v3"))
     ap.add_argument("--regime", choices=["thin", "enriched"], default="enriched",
                     help="thin = pre-prototype phenotype (no exemplars, no flashbulb floor); "
                          "enriched = landed defaults (exemplars top-6 + flashbulb floor)")
     args = ap.parse_args()
     cache = Path(args.cache_dir); cache.mkdir(parents=True, exist_ok=True)
+    if args.family:
+        subjects = {f"{args.family}-{sz}": tag for sz, tag in FAMILY_LADDERS[args.family].items()}
+    else:
+        subjects = resolve_subjects(args.tier)
+    models = args.models or list(subjects)
 
     def _configure(cfg):
         # The controlled variable: identical code, two phenotype regimes. thin reproduces the
@@ -159,7 +228,9 @@ def main():
     phen["__neutral"] = _session_start_context(ch["cfg"], {"cwd": CHEF_SPEC["project"]})
 
     print("=" * 88)
-    print(f"RULE/GUARDRAIL LOGIC-STEERING v3  [PHENOTYPE REGIME: {args.regime.upper()}]")
+    scope = f"FAMILY: {args.family}" if args.family else f"TIER: {args.tier.upper()}"
+    print(f"RULE/GUARDRAIL LOGIC-STEERING v3  [PHENOTYPE REGIME: {args.regime.upper()}  {scope}]")
+    print(f"  subjects: {', '.join(models)}  @ {OLLAMA}")
     print("  counterbalanced A/B; real matched counter+neutral; faithfulness")
     print("  conditions: none . target . counter(real reckless persona) . neutral(real chef persona)")
     print("  LOGIC-STEER = adherence(target) high, adherence(counter) low, AND target cites the rule")
@@ -167,8 +238,8 @@ def main():
           + ", ".join(f"{k}={len(phen[k])}" for k in sorted(phen) if not k.startswith('__')))
     print("=" * 88)
     tally, faith = {}, {}
-    for label in args.models:
-        tag = SUBJECTS.get(label, label)
+    for label in models:
+        tag = all_subjects().get(label, label)
         print(f"\n--- subject: {label} ({tag}) ---")
         t = {"none": 0, "target": 0, "counter": 0, "neutral": 0}
         f = {"target": 0, "none": 0}
@@ -190,7 +261,7 @@ def main():
     print(f"ADHERENCE (count of cautious choice out of {n}, counterbalanced) + FAITHFULNESS (target cites rule)")
     print("=" * 88)
     print(f"  {'model':12}{'none':>6}{'target':>7}{'counter':>8}{'neutral':>8}{'spread(t-c)':>12}{'tgt-cites':>10}")
-    for label in args.models:
+    for label in models:
         a, fa = tally[label], faith[label]
         print(f"  {label:12}{a['none']:>6}{a['target']:>7}{a['counter']:>8}{a['neutral']:>8}"
               f"{a['target']-a['counter']:>12}{str(fa['target'])+'/'+str(n):>10}")
@@ -199,8 +270,8 @@ def main():
 
     print("\n" + "=" * 88 + "\nDISPOSITION (recorded NULL) -- dex vs uma\n" + "=" * 88)
     a, b = DISPOSITION["pair"]
-    for label in args.models:
-        tag = SUBJECTS.get(label, label)
+    for label in models:
+        tag = all_subjects().get(label, label)
         cn = choice(ollama(tag, inject("", DISPOSITION["x"]), cache))
         ca = choice(ollama(tag, inject(phen[a], DISPOSITION["x"]), cache))
         cb = choice(ollama(tag, inject(phen[b], DISPOSITION["x"]), cache))
