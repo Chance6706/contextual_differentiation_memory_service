@@ -141,6 +141,12 @@ class Config:
     # promoted to a guardrail only if it recurs in another session. Human-pinned scars are trusted
     # and exempt. Authority is earned, not auto-granted. Set to 1 to restore immediate elevation.
     scar_elevation_min_sessions: int = 2
+    # Layer 3 (capture-time provenance): when True, only "trusted"-provenance episodes may elevate to
+    # an authoritative guardrail, and "untrusted" episodes (external reads — web fetch, foreign files,
+    # external MCP) are excluded from gist-trait formation. "ambiguous" content can gist but not
+    # elevate. Set False to ignore provenance (treat all content as trusted for gating). The hook
+    # capture path classifies provenance via classify_provenance(); manual/seeded turns are trusted.
+    enforce_provenance: bool = True
 
     # ---- Input bounds ------------------------------------------------------
     # Cap stored field length so a single huge note (MCP `store`, a multi-MB tool

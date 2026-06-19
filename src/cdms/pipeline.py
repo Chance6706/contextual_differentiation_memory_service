@@ -135,6 +135,52 @@ def _infer_success(text: str) -> Optional[bool]:
     return None
 
 
+_WEB_TOOLS = ("webfetch", "websearch", "fetch", "browser", "open_url")
+_LOCAL_TOOLS = ("edit", "write", "read", "bash", "multiedit", "notebookedit", "glob", "grep", "ls")
+
+
+def _tool_path(tool_input):
+    """Best-effort filesystem path from a tool_input (str or dict)."""
+    if isinstance(tool_input, dict):
+        for k in ("file_path", "path", "notebook_path", "filename"):
+            v = tool_input.get(k)
+            if isinstance(v, str) and v:
+                return v
+        c = tool_input.get("command")
+        tool_input = c if isinstance(c, str) else ""
+    if isinstance(tool_input, str):
+        m = re.search(r"(?:[A-Za-z]:\\|/)[^\s\"';|&]+", tool_input)
+        if m:
+            return m.group(0)
+    return ""
+
+
+def _within(path: str, cwd: str) -> bool:
+    try:
+        p = os.path.normcase(os.path.normpath(path))
+        base = os.path.normcase(os.path.normpath(cwd))
+        return bool(base) and (p == base or p.startswith(base + os.sep))
+    except Exception:
+        return False
+
+
+def classify_provenance(tool_name, tool_input, cwd) -> str:
+    """Layer 3 capture-time origin trust. 'trusted' = the outcome of the user's own directed action;
+    'untrusted' = content read from an external source (web, or a file outside the project); 'ambiguous'
+    = can't tell (quarantine). Heuristic and deliberately conservative; see docs/redteam/LAYER3_*."""
+    t = (tool_name or "").lower()
+    if any(w in t for w in _WEB_TOOLS):
+        return "untrusted"
+    path = _tool_path(tool_input)
+    if path:
+        if os.path.isabs(path) and cwd and not _within(path, cwd):
+            return "untrusted"               # a file/repo outside the project the agent merely read
+        return "trusted"                     # in-project / relative path under user direction
+    if any(t == lt or t.startswith(lt) for lt in _LOCAL_TOOLS):
+        return "trusted"                     # recognized local tool, no foreign path
+    return "ambiguous"                       # unknown tool / external MCP -> quarantine
+
+
 def iter_turns(events):
     """Stream spooled events into ingestable turns (generator).
 
@@ -183,6 +229,7 @@ def iter_turns(events):
                 success=success,
                 session_id=sid,
                 project=cwd,
+                provenance=classify_provenance(tool, ev.get("tool_input"), cwd),
             )
 
 

@@ -49,7 +49,8 @@ def _ddl(dim: int) -> list[str]:
             access_count INTEGER NOT NULL DEFAULT 0,
             last_accessed TEXT,
             session_id TEXT DEFAULT '',
-            project TEXT DEFAULT ''
+            project TEXT DEFAULT '',
+            provenance TEXT DEFAULT 'trusted'
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_episodic USING vec0(
             id TEXT PRIMARY KEY,
@@ -365,6 +366,11 @@ class Database:
             # Pre-v3 scars were all deliberate-or-elevated with no marker; treat
             # legacy rows as 'pinned' so existing guardrails keep priority.
             c.execute("ALTER TABLE mem_scars ADD COLUMN origin TEXT NOT NULL DEFAULT 'pinned'")
+        ep_cols = {r[1] for r in c.execute("PRAGMA table_info(mem_episodic)")}
+        if "provenance" not in ep_cols:
+            # Layer 3: capture-time origin trust. Legacy rows predate provenance and were all
+            # the user's own captured work, so they default to 'trusted'.
+            c.execute("ALTER TABLE mem_episodic ADD COLUMN provenance TEXT DEFAULT 'trusted'")
 
     # -- key/value meta (cycle counter, etc.) --------------------------------
     def get_meta(self, key: str, default: str | None = None) -> str | None:
@@ -503,11 +509,11 @@ class Database:
             c.execute(
                 """INSERT OR REPLACE INTO mem_episodic
                    (id, timestamp, trigger_prompt, action_taken, outcome_feedback,
-                    valence, base_salience, access_count, last_accessed, session_id, project)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                    valence, base_salience, access_count, last_accessed, session_id, project, provenance)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (rec.id, rec.timestamp, rec.trigger_prompt, rec.action_taken,
                  rec.outcome_feedback, rec.valence, rec.base_salience, rec.access_count,
-                 rec.last_accessed, rec.session_id, rec.project),
+                 rec.last_accessed, rec.session_id, rec.project, rec.provenance),
             )
             c.execute("DELETE FROM vec_episodic WHERE id = ?", (rec.id,))
             c.execute("INSERT INTO vec_episodic(id, embedding) VALUES (?, ?)", (rec.id, blob))
@@ -847,12 +853,14 @@ class Database:
     # ====================================================================== #
     @staticmethod
     def _row_to_episodic(r: sqlite3.Row) -> Episodic:
+        prov = r["provenance"] if "provenance" in r.keys() else "trusted"
         return Episodic(
             id=r["id"], trigger_prompt=r["trigger_prompt"], action_taken=r["action_taken"],
             outcome_feedback=r["outcome_feedback"] or "", valence=r["valence"],
             base_salience=r["base_salience"], access_count=r["access_count"],
             timestamp=r["timestamp"], last_accessed=r["last_accessed"],
             session_id=r["session_id"] or "", project=r["project"] or "",
+            provenance=prov or "trusted",
         )
 
     @staticmethod

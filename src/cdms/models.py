@@ -33,6 +33,9 @@ class Episodic:
     last_accessed: str | None = None
     session_id: str = ""
     project: str = ""             # ambient context (cwd / repo) for partitioned recall
+    provenance: str = "trusted"   # Layer 3 capture-time origin trust: "trusted" | "untrusted" |
+                                  # "ambiguous". Only "trusted" may elevate to a guardrail; "untrusted"
+                                  # (external reads) also cannot form a gist persona-trait.
 
     def search_text(self) -> str:
         return "\n".join(p for p in (self.trigger_prompt, self.action_taken, self.outcome_feedback) if p)

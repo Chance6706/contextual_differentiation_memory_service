@@ -270,7 +270,11 @@ class Consolidator:
         cands = [e for e in episodes
                  if (self._is_catastrophe(e)
                      and e.valence <= self.cfg.crisis_valence_max
-                     and e.base_salience >= self.cfg.crisis_threshold)]
+                     and e.base_salience >= self.cfg.crisis_threshold
+                     # Layer 3: only TRUSTED-provenance content may mint an authoritative guardrail.
+                     # Untrusted (external reads) and ambiguous (quarantine) are excluded regardless
+                     # of recurrence — this closes the persistent-poison bypass at its root.
+                     and (not self.cfg.enforce_provenance or e.provenance == "trusted"))]
         if not cands:
             return removed
         emb_of = {}
@@ -475,6 +479,13 @@ class Consolidator:
             return
         now_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         ema = self.cfg.gist_valence_ema
+
+        # Layer 3: untrusted-provenance episodes (external reads) must NOT form or reinforce a persona
+        # trait. Ambiguous (quarantine) and trusted still cluster normally.
+        if self.cfg.enforce_provenance:
+            episodes = [e for e in episodes if e.provenance != "untrusted"]
+            if len(episodes) < self.cfg.min_cluster_support:
+                return
 
         # Partition episodes by project BEFORE loading embeddings. all_episodic() spans every
         # project, so an unpartitioned clustering pass merges episodes from different
