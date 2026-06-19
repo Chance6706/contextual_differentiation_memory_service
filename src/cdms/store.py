@@ -17,6 +17,7 @@ deterministic tool outcomes, self-reference patterns, and affect lexicon.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Optional
@@ -246,7 +247,22 @@ class MemoryService:
         total = sum(d for _, _, d in deltas)
         cap = self.cfg.assoc_boost_cap_frac * rec.base_salience
         scale = cap / total if total > cap else 1.0
-        updates = [(nid, base + d * scale) for nid, base, d in deltas]
+        # Cycle-9 #1: associative boost is a recall-ranking signal, never a scar-manufacturing
+        # one. It must not, on its own, lift a neighbour ACROSS the crisis threshold — otherwise
+        # a flood of benign-but-embedding-similar writes can tip a planted sub-crisis catastrophe
+        # over the scar-elevation gate (base_salience >= crisis_threshold) and mint a permanent
+        # guardrail the memory never earned on its own salience. If a neighbour is below crisis on
+        # its own, cap its boosted value strictly below crisis; a memory that reached crisis via its
+        # own S0 is left to grow. (Boost saturates ~+0.6 even for the worst-case valid config and
+        # ~+0.2 by default — KNN crowding bounds it — so this only ever bites a target already
+        # within that band of crisis; it is the hard backstop, not the primary limiter.)
+        ceiling = math.nextafter(self.cfg.crisis_threshold, 0.0)
+        updates: list[tuple[str, float]] = []
+        for nid, base, d in deltas:
+            val = base + d * scale
+            if base < self.cfg.crisis_threshold:
+                val = min(val, ceiling)
+            updates.append((nid, val))
         self.db.set_salience(updates)
 
     # ------------------------------------------------------------------ #
