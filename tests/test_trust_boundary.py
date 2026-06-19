@@ -46,6 +46,7 @@ def test_session_start_injection_is_fenced_and_neutralized(cfg):
 
 # --- H4: scar elevation requires a deed ------------------------------------ #
 def test_scar_requires_deed_not_discussion(cfg):
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates the deed-not-discussion gate
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
         con = Consolidator(cfg, db=svc.db, embedder=svc.embedder)
@@ -163,6 +164,7 @@ def test_emotional_but_false_belief_not_elevated_as_directive(cfg):
 def test_regex_tier_catches_phrasing_variants_in_the_deed(cfg):
     """Cycle-2 (H4 false-negative fix): real catastrophes with verb-order/phrasing the
     literal lexicon missed must still elevate when they appear in the deed."""
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates the regex tier, not corroboration
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
         con = Consolidator(cfg, db=svc.db, embedder=svc.embedder)
@@ -181,6 +183,7 @@ def test_regex_tier_catches_phrasing_variants_in_the_deed(cfg):
 
 
 def test_elevated_scar_marked_origin(cfg):
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates origin marking, not corroboration
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
         con = Consolidator(cfg, db=svc.db, embedder=svc.embedder)

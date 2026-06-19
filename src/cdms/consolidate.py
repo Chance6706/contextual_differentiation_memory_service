@@ -266,32 +266,51 @@ class Consolidator:
 
     def _elevate_scars(self, episodes: list[Episodic], rep: ConsolidationReport) -> set[str]:
         removed: set[str] = set()
-        for e in episodes:
-            if (self._is_catastrophe(e)
-                    and e.valence <= self.cfg.crisis_valence_max
-                    and e.base_salience >= self.cfg.crisis_threshold):
-                scar = Scar(
-                    id=new_id("scar"),
-                    crisis_trigger=e.trigger_prompt[:500],
-                    remediation_rule=(e.outcome_feedback or e.action_taken)[:500],
-                    project=e.project,
-                    origin="elevated",
-                )
-                emb = self.db.get_embedding("episodic", e.id)
-                if emb is None:
-                    emb = self.embedder.embed_one(scar.search_text())
-                # Dedup: a recurring catastrophe (same near-identical deed/project)
-                # must not mint a fresh permanent scar every cycle. If one already
-                # exists, consume the episode (promote it out of episodic) without
-                # adding a duplicate L3 row.
-                if self.db.find_duplicate_scar(emb, e.project, self.cfg.scar_dedup_sim_threshold) is not None:
-                    self.db.delete_episodic([e.id])
-                    removed.add(e.id)
-                    continue
-                self.db.insert_scar(scar, emb)
+        # Candidates pass all three gates (genuine crisis HAPPENED, crisis-negative, salient).
+        cands = [e for e in episodes
+                 if (self._is_catastrophe(e)
+                     and e.valence <= self.cfg.crisis_valence_max
+                     and e.base_salience >= self.cfg.crisis_threshold)]
+        if not cands:
+            return removed
+        emb_of = {}
+        for e in cands:
+            v = self.db.get_embedding("episodic", e.id)
+            emb_of[e.id] = v if v is not None else self.embedder.embed_one(
+                f"{e.trigger_prompt} {e.action_taken} {e.outcome_feedback}")
+        min_sessions = self.cfg.scar_elevation_min_sessions
+        sim = self.cfg.scar_dedup_sim_threshold
+
+        for e in cands:
+            emb = emb_of[e.id]
+            existing = self.db.find_duplicate_scar(emb, e.project, sim)
+            if existing is not None:
+                # A matching scar already exists (this crisis recurred and was previously
+                # corroborated/pinned) -> consume the episode without a duplicate L3 row.
                 self.db.delete_episodic([e.id])
                 removed.add(e.id)
-                rep.scars_created += 1
+                continue
+            # CORROBORATION GATE (red-team safety): authority is earned. Mint a NEW authoritative
+            # guardrail only if this catastrophe is corroborated across >= min_sessions DISTINCT
+            # sessions among the near-duplicate candidates. A single-session occurrence (incl. a
+            # one-shot poisoned turn ingested from untrusted content) is left in EPISODIC memory:
+            # it stays a high-salience recent memory and can be elevated later if it recurs, but is
+            # NOT enshrined as a rule on first sight. A simulacrum need not mimic flashbulb memory.
+            sessions = {o.session_id for o in cands
+                        if o.project == e.project and cosine(emb, emb_of[o.id]) >= sim}
+            if len(sessions) < min_sessions:
+                continue   # uncorroborated -> remain episodic (surfaces as recent activity, not a guardrail)
+            scar = Scar(
+                id=new_id("scar"),
+                crisis_trigger=e.trigger_prompt[:500],
+                remediation_rule=(e.outcome_feedback or e.action_taken)[:500],
+                project=e.project,
+                origin="elevated",
+            )
+            self.db.insert_scar(scar, emb)
+            self.db.delete_episodic([e.id])
+            removed.add(e.id)
+            rep.scars_created += 1
         return removed
 
     # -- Step 1b: Bound L3 — cap AUTO-ELEVATED scars per project ----------- #

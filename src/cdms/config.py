@@ -134,6 +134,13 @@ class Config:
     # off to render terse SRO only; set top_n to 0 for the same effect while still storing exemplars.
     recall_exemplars: bool = True
     recall_exemplar_top_n: int = 6
+    # Safety (red-team): an auto-detected catastrophe becomes an AUTHORITATIVE guardrail only once
+    # corroborated across this many DISTINCT sessions — a genuine recurring hazard. A single-session
+    # occurrence (incl. a one-shot poisoned turn the agent ingested from untrusted content) stays a
+    # high-salience EPISODIC memory (surfaced as recent activity, not enshrined as a rule), and is
+    # promoted to a guardrail only if it recurs in another session. Human-pinned scars are trusted
+    # and exempt. Authority is earned, not auto-granted. Set to 1 to restore immediate elevation.
+    scar_elevation_min_sessions: int = 2
 
     # ---- Input bounds ------------------------------------------------------
     # Cap stored field length so a single huge note (MCP `store`, a multi-MB tool
@@ -306,6 +313,7 @@ def _validate(cfg: "Config") -> None:
         ("db_filename", lambda v: (isinstance(v, str) and v not in ("", ".", "..")
                                    and "\\" not in v and os.path.basename(v) == v)),
         ("scar_project_cap", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
+        ("scar_elevation_min_sessions", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("vacuum_after_deletes", lambda v: isinstance(v, int) and 0 <= v <= 1_000_000),
     ]
     for name, ok in checks:

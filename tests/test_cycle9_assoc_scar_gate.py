@@ -77,6 +77,7 @@ def test_1_memory_that_earns_crisis_on_its_own_still_elevates(tmp_path):
     # The clamp must not block legitimate elevation: a catastrophe whose OWN salience reaches
     # crisis still becomes a scar (no flood involved).
     cfg = _worst_case_cfg(tmp_path)
+    cfg.scar_elevation_min_sessions = 1   # isolate: validates the assoc-boost gate, not corroboration
     svc = MemoryService(cfg, embedder=Embedder(cfg))
     try:
         _plant_catastrophe(svc, base_salience=3.5)   # earned >= crisis on its own
