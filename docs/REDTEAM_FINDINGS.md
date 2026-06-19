@@ -537,4 +537,59 @@ fix is snapshot-only (no cross-process lock) so SessionStart never blocks on con
   `tests/test_temperament_sim.py` (33 tests — randomized boiling-frog ratchet under the real
   `archetype_radius`, plus the no-archetype-hop invariant over all archetype pairs).
 - The many **scale/architecture findings** (god-object, consolidation extraction, streaming
-  `all_episodic`, dedup O(n²)) remain **deferred design debt for Phase 1+**, as in Cycle 8.
+  `all_episodic`, dedup O(n²)) were **redefined piece-by-piece** rather than carried as a vague
+  bucket — see the next section.
+
+### Cycle 9 — deferred-debt redefinition (measured)
+
+The Cycle-8/9 "deferred Phase-1+ scale/architecture debt" was re-characterized item-by-item
+against the live tip (5-cluster parallel audit) with the same reproduce-and-measure discipline.
+**Anchor:** this is a single-user daemon whose episodic store is decay/eviction-bounded
+(accessibility floor, 29-day half-life, *no hard count cap*) → the live set ≈ the last couple
+months of activity ≈ **low thousands**. Most theoretical-scale severities (OOM at 100K+, 480s
+dedup at 500K, 750 MB vectors) describe a regime the forgetting design prevents. Net: ~⅔ of the
+backlog is NON-ISSUE/already-handled.
+
+**Shipped — PR #32 (quick wins):**
+- **F-2** — corrupt-store quarantine is loud + file-preserving, but the only signal was hook
+  stderr (easy to miss). Now a durable `quarantined_at`/`quarantined_from` marker is recorded in
+  the fresh store and surfaced in `cdms stats`.
+- **S-5** — `history()` now uses `db.recent_episodic()` (`ORDER BY timestamp DESC LIMIT ?`) instead
+  of loading the whole table to return ~20 rows.
+- **D-2** — regression test pinning the "persist cycle counter LAST" crash-safety invariant.
+- **T-1** — regression test for the one lifecycle seam the drift harness misses: `retrieve()` over
+  the gist tier + SessionStart scar injection over a *consolidated* store.
+
+**Scale-gated — real only at large scale, defused at personal scale (guardrail, don't pre-build):**
+- **S-3** streaming consolidation (full `all_episodic()` load, ~1.5 KB/episode loaded once/pass;
+  bites >~100K eps), **S-4** dedup FLOP-quadratic per project (the "O(n²) Python/480s" claim is
+  *stale* — now one BLAS matmul/episode, <0.1s at low-thousands; bites >~50K/project), **S-8**
+  brute-force `vec0` KNN (~1 ms at low-thousands; bites >~500K eps). Their real fixes
+  (windowed/LSH dedup, ANN) are *approximate* → perturb identity-reinforcement/recall and need a
+  drift/recall harness. **Recommended instead:** a per-project episodic-count alarm in `cdms stats`
+  so the threshold is observed before it bites.
+
+**Needs-decision:** **T-2** clustering/individuation thresholds are hash-embedder-only (semantic
+recall *is* real-tested; the thesis numbers aren't — and there is no CI yet, only local pytest);
+**D-4** no `embed_dim`/model migration (deliberate fail-loud guard; build a `cdms rebuild` only if
+model swaps become real); **E-2** per-project budget *floor* (only matters if non-default caps are
+exposed).
+
+**Non-issue / already-handled (with the honest reason):**
+- **F-1** spool "sheds identity first" — *claim factually wrong*: tail-drop FIFO, salience-blind,
+  and explicit identity writes (`store`/`pin_scar`/`upsert_fact`) bypass the spool entirely.
+- **I-3** centroid → zero/sentinel — the embedder emits a *unit* sentinel `[1,0,…]`, never zero;
+  support-weighted blend has no systematic pull to a degenerate point.
+- **I-2** dedup on stale `access_count` — handled by Cycle-8 L-1; survivors are chosen by embedding
+  argmax (never access_count), and the lock + step order makes the snapshot == live value.
+- **E-2** at default caps — no cross-cycle accumulator; the 0.5 cap reserves ≥50% for non-dominant
+  projects; a cumulative starvation cascade is unreachable.
+- **D-1** `MemoryService` god-object *split* — cohesive facade, cognitive math already extracted; a
+  split is net-negative surgery (only the redaction/DTO relocation is worth doing opportunistically).
+- **S-7** DB bloat — gated VACUUM (M-S-1) + secure_delete + decay bound; not unbounded.
+- **S-9** vector storage — ~1.5 MB/1000 rows; the "750 MB" figure assumes ~500× the realistic row
+  ceiling.
+- **S-11/12** transient/FTS — stale framing; current consolidation is single-load + per-project
+  vector release, and FTS rows are lifecycle-coupled.
+- **D-3** English FTS stemmer — only *stemming* is English-specific; `unicode61` indexes CJK/Cyrillic
+  and the multilingual vector arm backstops recall via hybrid RRF.

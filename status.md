@@ -6,7 +6,7 @@ files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-servic
 
 ## TL;DR
 
-The **memory core is built, tested (302 tests), and validated on real history.** The
+The **memory core is built, tested (306 tests), and validated on real history.** The
 **§8 temperament layer Phase 0** (static disposition state + pure-function control + joint
 leash) is now **built, tested, and merged to `main`**. The remaining **proactive pillars**
 (curiosity/dream-research, emotion/proposals/provenance, the temperament drift/proposal
@@ -74,7 +74,12 @@ phases 1+) are **fully designed and documented but not yet implemented.**
   — the leash docs/math are already correct (COGNITIVE_MATH review); **T-4** "no leash-under-drift
   test" — already covered by `test_temperament_sim.py` (33 tests: randomized boiling-frog + the
   no-archetype-hop invariant over all pairs). Every fix is build→break→fix tested and clears the
-  `drift_trajectory.py` identity guard.
+  `drift_trajectory.py` identity guard. The deferred Phase-1+ backlog was then **redefined
+  piece-by-piece** (measured at real personal scale — the decay/eviction bound defuses most
+  theoretical-scale severities; ~⅔ are NON-ISSUE/already-handled) and the cheap, real items shipped
+  as **PR #32** (F-2 durable quarantine marker surfaced in `cdms stats`, S-5 `history()` SQL
+  pagination, D-2 consolidation crash-safety guard, T-1 recall-over-consolidated-store guard). Full
+  measured register in `docs/REDTEAM_FINDINGS.md`.
 - Full inventory + verified-sound + deferred items:
   [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections
   (P1–P7 + the "Boiling Frog" leash test) are in
@@ -195,7 +200,7 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 302 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # 306 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory

@@ -266,7 +266,7 @@ review had blessed a stale revision) — see
 
 ```bash
 uv pip install -e ".[dev]"
-CDMS_EMBED_BACKEND=hash python -m pytest -q     # 302 tests, offline, no downloads
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # 306 tests, offline, no downloads
 ```
 
 The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use
