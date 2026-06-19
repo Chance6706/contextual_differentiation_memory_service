@@ -107,6 +107,8 @@ class TurnEvent:
     goal_hint: Optional[float] = None     # [0,1] explicit goal-relevance, if known
     valence_hint: Optional[float] = None  # [-1,1] explicit affect, if known
     timestamp: Optional[str] = None       # ISO-8601; backfill real historical time on import
+    provenance: str = "trusted"           # Layer 3 origin trust; the hook capture path classifies it.
+                                          # Manual / MCP-store / seeded turns default to trusted.
 
 
 class MemoryService:
@@ -171,6 +173,7 @@ class MemoryService:
             session_id=ev.session_id,
             project=ev.project,
             timestamp=ev.timestamp or utc_now_iso(),
+            provenance=ev.provenance,
         )
         self.db.insert_episodic(rec, emb)
         self._associate(rec, emb)
