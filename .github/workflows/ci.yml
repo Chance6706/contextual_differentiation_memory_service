@@ -1,0 +1,76 @@
+name: CI
+
+# "Rock solid" guard: every push/PR to main runs the full suite + the identity drift harness, so
+# regressions can't creep in as CDMS evolves. Two jobs:
+#   tests-hash       — fast, deterministic, offline (hash embedder). The primary gate; includes the
+#                      drift_trajectory self-validation + the --real code path exercised under hash.
+#   real-embedder    — downloads the real bge-small ONNX model and gates the SEMANTIC behavior
+#                      (recall when BM25 scores zero, fingerprint pinning) — closes the T-2 gap
+#                      (the thesis-relevant numbers were previously skip-guarded, never gated).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref (don't waste minutes on stale commits).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests-hash:
+    name: tests (hash embedder, py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    env:
+      CDMS_EMBED_BACKEND: hash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: SQLite version (vec0 KNN needs >= 3.41)
+        run: python -c "import sqlite3; print('sqlite', sqlite3.sqlite_version)"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Run suite (offline, deterministic) + drift harness
+        # test_real_embedder is excluded here (it forces the real backend / network download);
+        # it runs in the real-embedder job. The drift_trajectory tests run here under hash.
+        run: pytest --ignore=tests/test_real_embedder.py
+
+  real-embedder:
+    name: tests (real bge-small embedder) — thesis-number gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache the embedding model (bge-small ONNX, ~127MB)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/fastembed
+            ~/.cache/huggingface
+          key: embed-model-bge-small-${{ runner.os }}-v1
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: SQLite version
+        run: python -c "import sqlite3; print('sqlite', sqlite3.sqlite_version)"
+      - name: Real-embedder semantic tests (downloads + caches the model)
+        # No CDMS_EMBED_BACKEND -> the real fastembed bge-small loads. These tests skip cleanly if
+        # the model can't load; in CI (with network) they should run and gate. -rs surfaces any skips.
+        run: pytest tests/test_real_embedder.py -rs
