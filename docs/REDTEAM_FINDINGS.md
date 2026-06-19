@@ -492,3 +492,49 @@ truncation in `_brief`.
   (base64 redaction); deferred.
 - **Philosophical P-1…P-5** — no code; acknowledged limitations, aligned with the DESIGN §1.1a
   ontological guardrail and the experiment plan's ethics posture.
+
+## Cycle 9 — five-vantage multi-model audit triage
+
+External reports: `docs/redteam/CYCLE9_*.md` (Hermes final + MiMo maximum-effort + Hy3/Kimi/Gemma
+fuzz, reviewed tip `f4dd7cf`). Every actionable finding was **reproduced against the real code at
+the current tip** before action (SHA-pin-and-reproduce); several headline severities were corrected
+*down* once measured. Eight findings fixed across PRs #27–#30; all build→break→fix tested and
+clearing `tools/drift_trajectory.py`.
+
+**Fixed — PR #27 (salience/budget config-correctness):** **#3** `allocate_capped_proportional`'s
+infeasible-cap branch (`cap*m < budget`) now enforces the per-key cap as a hard invariant (each
+positive-weight key gets exactly `cap`, remainder unallocated) instead of an equal split that
+*exceeded* the cap; **#4** a pathologically tiny `crisis_threshold` no longer makes the zero-goal
+anti-bypass round every S0 weight to zero (which silently disabled salience) — the threshold is
+repaired and the scale re-derived; **#7** `assoc_eta`/`assoc_boost_cap_frac` validators tightened
+`≤1e3→≤1.0` (the old ceiling silently neutered the M-M-3 boost cap).
+
+**Fixed — PR #28 (#1 associative-boost scar gate):** an associative boost can no longer lift a
+neighbour *across* the crisis threshold (clamped strictly below it when the target was sub-crisis),
+so a flood of benign-but-similar writes can't tip a planted near-crisis catastrophe into a permanent
+scar. Consistent with the existing MAX-not-SUM dedup stance.
+
+**Fixed — PR #29 (#5 fact decay + #8 resource):** **#5** `gist_support_decay_cap` (default 100)
+caps the `support_count` that counts toward decay so an explicit fact re-asserted via
+`upsert_fact` (unbounded `+=1`) can no longer become decay-immortal — the stored count (ranking)
+is untouched; **#8** `Database.__init__` no longer leaks its sqlite connection on a partial/failed
+open, and closes the first connection before quarantining a corrupt store (Windows rename); the
+`pipeline._marker_re` `lru_cache` got a fixed cap as defence-in-depth (key space already finite).
+
+**Fixed — PR #30 (I-1, the lone CRITICAL):** SessionStart's several separate reads now run under
+one WAL `read_snapshot()` so a concurrent (non-atomic) consolidation can't splice pre- and post-pass
+rows into one preamble; the path also closes the short-lived `MemoryService` it was leaking. Chosen
+fix is snapshot-only (no cross-process lock) so SessionStart never blocks on consolidation.
+
+**Verification corrections (report overstated / stale / false-negative):**
+- **#1 was NOT unbounded HIGH.** Measured, the associative boost *saturates* (~+0.2 default config,
+  ~+0.6 worst-case valid config — identical at 40 and 150 writes; KNN-crowding bounds it). Real but
+  narrow injection vector (needs a planted near-crisis catastrophe + a flood) — realistically
+  LOW–MEDIUM. Fixed regardless.
+- **#6 "joint-leash doc fix"** — no real error; the Cycle-9 COGNITIVE_MATH review marks the leash
+  docs/math correct. Dropped, not "fixed".
+- **T-4 "no temperament-leash-under-drift test"** — false-negative: already covered by
+  `tests/test_temperament_sim.py` (33 tests — randomized boiling-frog ratchet under the real
+  `archetype_radius`, plus the no-archetype-hop invariant over all archetype pairs).
+- The many **scale/architecture findings** (god-object, consolidation extraction, streaming
+  `all_episodic`, dedup O(n²)) remain **deferred design debt for Phase 1+**, as in Cycle 8.

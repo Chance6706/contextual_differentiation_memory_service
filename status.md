@@ -1,18 +1,18 @@
 # CDMS — Working Status
 
-_Last updated: 2026-06-18 (Cycle 8 triage complete; §8 temperament Phase 0 built & merged). For the full design see
+_Last updated: 2026-06-19 (Cycle 9 triage complete; §8 temperament Phase 0 built & merged). For the full design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for narrative history see the session memory
 files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-service/memory/`._
 
 ## TL;DR
 
-The **memory core is built, tested (281 tests), and validated on real history.** The
+The **memory core is built, tested (302 tests), and validated on real history.** The
 **§8 temperament layer Phase 0** (static disposition state + pure-function control + joint
 leash) is now **built, tested, and merged to `main`**. The remaining **proactive pillars**
 (curiosity/dream-research, emotion/proposals/provenance, the temperament drift/proposal
 phases 1+) are **fully designed and documented but not yet implemented.**
 
-**Pre-Phase-0 hardening — eight red-team cycles + a re-run-audit follow-up complete:**
+**Pre-Phase-0 hardening — nine red-team cycles + a re-run-audit follow-up complete:**
 - **Cycle 1** fixed 3 CRITICAL + 5 HIGH + MEDIUM/LOW "over time" defects (silent
   embedder space-contamination, stored-memory prompt injection, gist proliferation,
   concurrent-drain data loss, scar abuse, crash-safe decay clock, config/secret
@@ -58,6 +58,23 @@ phases 1+) are **fully designed and documented but not yet implemented.**
   deferred:** C-1 streaming pre-eviction (addressed by C-1 memory + M-S-1; rare dedup-fold
   caveat), L-C-1 (lock + persist-last already cover it), L-6 (cosmetic), L-S-2 (ops/CI not code),
   L-S-3 base64 redaction (high false-positive).
+- **Cycle 9 — COMPLETE** (five independent multi-vantage reports — Hermes, MiMo, Hy3, Kimi,
+  Gemma-fuzz — adjudicated against the actual tip with the SHA-pin-and-reproduce discipline).
+  Eight actionable findings fixed across **PRs #27–#30**: **I-1** (the lone CRITICAL) SessionStart
+  now reads under one consistent WAL snapshot (no torn mid-consolidation view) + closes its leaked
+  connection; **#1** associative boost can no longer *manufacture a scar* (clamped strictly below
+  the crisis gate — though measured it **saturates** ~+0.2 default / +0.6 worst-case, so the
+  red-team's "unbounded HIGH" was really a bounded LOW–MEDIUM injection vector); **#3** the budget
+  `allocate_capped_proportional` infeasible branch now enforces the per-key cap as a hard invariant;
+  **#4** a pathologically tiny `crisis_threshold` no longer rounds the S0 weights to zero (silently
+  disabling salience); **#5** explicit facts can no longer become decay-immortal via unbounded
+  `support_count` (capped in the decay formula only); **#7** `assoc_eta`/`assoc_boost_cap_frac`
+  tightened `≤1e3→≤1.0` (re-arming the M-M-3 cap); **#8** `Database.__init__` no longer leaks its
+  connection on a partial/failed open. **Verified non-findings (honest):** #6 "joint-leash doc fix"
+  — the leash docs/math are already correct (COGNITIVE_MATH review); **T-4** "no leash-under-drift
+  test" — already covered by `test_temperament_sim.py` (33 tests: randomized boiling-frog + the
+  no-archetype-hop invariant over all pairs). Every fix is build→break→fix tested and clears the
+  `drift_trajectory.py` identity guard.
 - Full inventory + verified-sound + deferred items:
   [`docs/REDTEAM_FINDINGS.md`](docs/REDTEAM_FINDINGS.md). Plan-level corrections
   (P1–P7 + the "Boiling Frog" leash test) are in
@@ -178,7 +195,7 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 281 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # 302 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory
