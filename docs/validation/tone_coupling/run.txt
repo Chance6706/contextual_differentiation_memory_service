@@ -1,0 +1,28 @@
+====================================================================================================
+VOICE↔CHOICE COUPLING vs STEERABILITY (20 prompts, greedy; cole=fast, tessa=careful, neutral=chef placebo)
+====================================================================================================
+  gemma-std    voice-shift(cole-tessa)=+1.0 (neutral/steerability=-0.4)   choice-div=75% (neutral=45%)
+               judge-independent: contraction-gap(cole-tessa)=+3.9/1k  echo cole=6.5 tessa=8.2
+               COUPLING: voice-gap on choice-DIVERGED prompts=1.4 vs AGREED=0.3  -> diff=+1.1 (coupled)
+
+  heretic      voice-shift(cole-tessa)=+0.7 (neutral/steerability=-0.5)   choice-div=70% (neutral=45%)
+               judge-independent: contraction-gap(cole-tessa)=+2.2/1k  echo cole=6.3 tessa=7.7
+               COUPLING: voice-gap on choice-DIVERGED prompts=0.8 vs AGREED=0.4  -> diff=+0.4 (not)
+
+  phi4         voice-shift(cole-tessa)=+0.8 (neutral/steerability=-0.5)   choice-div=55% (neutral=35%)
+               judge-independent: contraction-gap(cole-tessa)=+0.5/1k  echo cole=2.2 tessa=9.9
+               COUPLING: voice-gap on choice-DIVERGED prompts=1.8 vs AGREED=1.1  -> diff=+0.7 (coupled)
+
+  qwen2.5      voice-shift(cole-tessa)=+0.4 (neutral/steerability=+0.2)   choice-div=55% (neutral=30%)
+               judge-independent: contraction-gap(cole-tessa)=-3.8/1k  echo cole=2.5 tessa=6.3
+               COUPLING: voice-gap on choice-DIVERGED prompts=0.7 vs AGREED=1.1  -> diff=-0.4 (not)
+
+  mistral-nemo voice-shift(cole-tessa)=+0.1 (neutral/steerability=+0.0)   choice-div=60% (neutral=40%)
+               judge-independent: contraction-gap(cole-tessa)=+14.4/1k  echo cole=3.1 tessa=8.8
+               COUPLING: voice-gap on choice-DIVERGED prompts=1.3 vs AGREED=0.5  -> diff=+0.8 (coupled)
+
+====================================================================================================
+PANEL: persona voice-shift=+0.6 vs placebo voice-move=-0.2  (persona effect exceeds steerability baseline by +0.8)
+       persona choice-div=63% vs placebo choice-move=39%
+       judge-independent contraction-gap (cole-tessa) = +3.4/1k (corroborates the judge voice-shift?)
+       WITHIN-MODEL coupling (voice-gap diverged-minus-agreed) = +0.5 (>0 = voice & choice move on the SAME prompts -> coupled beyond model-level steerability)
