@@ -149,19 +149,28 @@ def _tool_path(tool_input):
         c = tool_input.get("command")
         tool_input = c if isinstance(c, str) else ""
     if isinstance(tool_input, str):
-        m = re.search(r"(?:[A-Za-z]:\\|/)[^\s\"';|&]+", tool_input)
+        m = re.search(r"(?:[A-Za-z]:[\\/]|/)[^\s\"';|&]+", tool_input)
         if m:
             return m.group(0)
     return ""
 
 
+# OS-AGNOSTIC path handling: the store + transcripts move between WSL and Windows, so provenance
+# classification must NOT depend on the host OS (os.path.isabs/normcase are host-specific — e.g.
+# "D:/x" is not abs on POSIX). Recognize both POSIX and Windows absolute paths everywhere.
+def _is_abs(path: str) -> bool:
+    return path.startswith("/") or bool(re.match(r"^[A-Za-z]:[\\/]", path))
+
+
+def _norm(p: str) -> str:
+    return p.replace("\\", "/").rstrip("/").lower()
+
+
 def _within(path: str, cwd: str) -> bool:
-    try:
-        p = os.path.normcase(os.path.normpath(path))
-        base = os.path.normcase(os.path.normpath(cwd))
-        return bool(base) and (p == base or p.startswith(base + os.sep))
-    except Exception:
+    if not cwd:
         return False
+    p, base = _norm(path), _norm(cwd)
+    return p == base or p.startswith(base + "/")
 
 
 def classify_provenance(tool_name, tool_input, cwd) -> str:
@@ -173,7 +182,7 @@ def classify_provenance(tool_name, tool_input, cwd) -> str:
         return "untrusted"
     path = _tool_path(tool_input)
     if path:
-        if os.path.isabs(path) and cwd and not _within(path, cwd):
+        if _is_abs(path) and cwd and not _within(path, cwd):
             return "untrusted"               # a file/repo outside the project the agent merely read
         return "trusted"                     # in-project / relative path under user direction
     if any(t == lt or t.startswith(lt) for lt in _LOCAL_TOOLS):
