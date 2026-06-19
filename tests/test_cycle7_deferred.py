@@ -8,6 +8,8 @@ table; find_duplicate_scar scanned all scars per insert. Now fetched by id.
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from cdms.config import Config
@@ -195,6 +197,8 @@ def test_cmed5_redaction_correct_and_bounded():
     assert time.perf_counter() - t0 < 1.0                    # bounded quantifiers -> fast
 
 
+@pytest.mark.xfail(os.name == "nt", reason="symlink creation needs privilege on Windows (WinError 1314); "
+                   "validated on Linux CI.", strict=False)
 def test_a6l1_atomic_write_follows_symlink_without_toctou_gate(tmp_path):
     """Phase 7 — A6-L1: write-through-symlink still works with the is_symlink() gate
     removed (realpath applied unconditionally, closing the TOCTOU window)."""

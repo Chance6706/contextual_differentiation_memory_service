@@ -48,6 +48,30 @@ jobs:
         # it runs in the real-embedder job. The drift_trajectory tests run here under hash.
         run: pytest --ignore=tests/test_real_embedder.py
 
+  tests-windows:
+    name: tests (Windows, hash embedder) — dev-platform guard
+    # Mirrors tests-hash on the author's actual OS. Five tests exercise POSIX-only
+    # file semantics (flock atomicity, PID-liveness, symlink privilege) and are
+    # xfail(strict=False) on nt — they run-but-don't-block here; the Linux jobs gate them.
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      CDMS_EMBED_BACKEND: hash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: SQLite version (vec0 KNN needs >= 3.41)
+        run: python -c "import sqlite3; print('sqlite', sqlite3.sqlite_version)"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Run suite (offline) — POSIX-only file tests are xfail on Windows
+        # -rxX surfaces the xfailed/xpassed summary so a quirk flipping to xpass is visible.
+        run: pytest --ignore=tests/test_real_embedder.py -rxX
+
   real-embedder:
     name: tests (real bge-small embedder) — thesis-number gate
     runs-on: ubuntu-latest
