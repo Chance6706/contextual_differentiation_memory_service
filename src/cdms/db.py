@@ -886,6 +886,12 @@ class Database:
 
     def stats(self) -> dict:
         c = self.conn
+        # A1 instrumentation: affect-signal coverage over ingested turns. affect_null = turns with no
+        # success/failure valence (success is None); affect_null_rate = null/total (None until any
+        # turn is ingested). A high rate means most turns reach consolidation without an affective
+        # signal, i.e. salience is running on weak input — worth watching, not itself an error.
+        aff_null = int(self.get_meta("affect_null", "0") or "0")
+        aff_total = int(self.get_meta("affect_total", "0") or "0")
         return {
             "episodic": c.execute("SELECT COUNT(*) FROM mem_episodic").fetchone()[0],
             "gist": c.execute("SELECT COUNT(*) FROM mem_gist").fetchone()[0],
@@ -897,6 +903,9 @@ class Database:
             "last_consolidation_skip": self.get_meta("last_consolidation_skip"),
             "drains_skipped": int(self.get_meta("drains_skipped", "0") or "0"),
             "last_drain_skip": self.get_meta("last_drain_skip"),
+            "affect_null": aff_null,
+            "affect_total": aff_total,
+            "affect_null_rate": round(aff_null / aff_total, 4) if aff_total else None,
             # vec0 index-format identity (M-8): pinned-at-build vs the loaded sqlite-vec.
             "vec_version_pinned": self.get_meta("vec_version"),
             # F-2: non-null means this store was reset from a corrupt one; the prior bytes are at

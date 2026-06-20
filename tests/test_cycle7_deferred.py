@@ -180,6 +180,42 @@ def test_drain_skip_is_observable(tmp_path, monkeypatch):
     svc.close()
 
 
+def test_affect_null_rate_instrumentation(tmp_path):
+    """A1: a turn ingested with NO success/failure valence (success is None — neither the hook nor
+    _infer_success could read it) is now counted, so `cdms stats` can surface affect_null_rate.
+    Mirrors the drains_skipped counter; before this the affect-null rate was unmeasured."""
+    import json as _json
+
+    from cdms.pipeline import drain_and_ingest
+
+    cfg = Config(home=tmp_path)
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    # 3 PostToolUse turns: 2 with a definite verdict + 1 affect-null.
+    events = [
+        # explicit success -> not null (inference bypassed)
+        {"hook_event_name": "PostToolUse", "session_id": "s", "tool_name": "Edit",
+         "tool_input": "f", "tool_output": "ok", "success": True, "cwd": "/p"},
+        # failure hook -> success forced False -> not null
+        {"hook_event_name": "PostToolUseFailure", "session_id": "s", "tool_name": "Bash",
+         "tool_input": "g", "tool_output": "boom", "cwd": "/p"},
+        # no explicit success + marker-free neutral text -> _infer_success returns None -> affect-null
+        {"hook_event_name": "PostToolUse", "session_id": "s", "tool_name": "Read",
+         "tool_input": "h", "tool_output": "the value is 42", "cwd": "/p"},
+    ]
+    cfg.queue_path.write_text("\n".join(_json.dumps(e) for e in events) + "\n", encoding="utf-8")
+
+    st0 = svc.db.stats()
+    assert st0["affect_total"] == 0 and st0["affect_null"] == 0
+    assert st0["affect_null_rate"] is None          # undefined until a turn is ingested
+
+    assert drain_and_ingest(cfg, svc) == 3
+    st = svc.db.stats()
+    assert st["affect_total"] == 3
+    assert st["affect_null"] == 1                    # only the marker-free Read turn
+    assert st["affect_null_rate"] == round(1 / 3, 4)
+    svc.close()
+
+
 def test_a0m1_widened_harm_tokens_elevate_real_catastrophes():
     """A0-M1 recall gap narrowed: a dangerous command described with a (newly added) harm
     word now elevates, while routine command-talk without harm still does not."""
