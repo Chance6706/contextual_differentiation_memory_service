@@ -51,6 +51,54 @@ companion discipline on constants.
 - **Caveat:** this is a two-clock system on purpose — L1 episodic memory decays by wall-clock
   (M1), L2 identity by activity. The two are intentionally not the same curve.
 
+_The next three are **design asymmetries**, not re-derivations. They share one rationale: CDMS is a
+**functional simulacrum, not a faithful reproduction** of memory — where a symmetric or "pure" model
+would buy fidelity at the cost of function or safety, we deliberately break the symmetry and disclaim
+it here rather than reflexively symmetrize._
+
+### M3. A single catastrophe is *mortal*, not a permanent flashbulb
+
+- **Pure form:** the borrowed "flashbulb memory" connotes *permanence* — one sufficiently severe
+  event should pin a lifelong guardrail.
+- **What we do:** scar elevation requires corroboration across **≥2 distinct sessions**
+  (`scar_elevation_min_sessions = 2`, `config.py`). A one-shot single-session catastrophe is floored
+  so it is maximally memorable *for now* (`flashbulb_floor_catastrophes`), but it then rides the L1
+  forgetting curve and is **mortal** (~142d) unless it recurs.
+- **Why:** the load-bearing anti-poisoning asymmetry. A single planted "catastrophe" (a poisoned file
+  read once) must not mint a permanent authoritative guardrail; corroboration across sessions is the
+  price of authority (`docs/redteam/LAYER3_PROVENANCE_DESIGN.md`).
+- **Disclaimed:** the permanence "flashbulb" implies. The promise that "a real guardrail can't be
+  quietly forgotten" holds for **recurring** catastrophes, not one-shot ones. Toggle:
+  `scar_elevation_min_sessions = 1` (and a proposed `flashbulb_immediate_elevation`) restores it.
+
+### M4. The salience floor is negative-valence-only (no positive flashbulb)
+
+- **Pure form:** a valence-symmetric model would floor/pin a sufficiently *positive* peak (a
+  breakthrough) the same way it floors a negative crisis.
+- **What we do:** the flashbulb floor and scar elevation fire only on **negative** crises
+  (`crisis_valence_max = -0.4`; "scars are negative crises"). A huge positive event gets no equivalent
+  pin — it flows into ordinary gist/expertise formation, not a guardrail.
+- **Why:** scars are *crisis guardrails* — hard rules that prevent recurrence of harm. A positive
+  breakthrough has no "never do this again" to encode; flooring positives would manufacture
+  authoritative pins with nothing to guard.
+- **Disclaimed:** symmetry of affect. CDMS is not modeling a balanced emotional ledger; it floors the
+  negative tail because that is the safety-relevant one. A proposed `peak_floor_positives` toggle
+  would add a positive floor for callers who want it.
+
+### M5. Capped-proportional salience budget, not faithful proportionality
+
+- **Pure form:** a faithful representation would give each project/subject a share of the conserved
+  salience budget *proportional* to its episode count — a busy project simply gets more.
+- **What we do:** a hard cap — no single project/subject may hold more than `project_budget_cap`
+  (= 0.5) of the budget (`config.py`), the remainder shared so small projects aren't starved
+  ("capped-proportional").
+- **Why:** in a shared multi-project store, strict proportionality lets one dominant project crowd
+  every other identity out of memory (measured: 74.9% domination before the cap). The cap preserves
+  cross-project differentiation — the whole thesis — at the cost of exact proportionality.
+- **Disclaimed:** that budget share faithfully tracks activity; it tracks activity *up to a bound*.
+  Two residual edge cases are unmeasured on real shared data (project×session double-squeeze; a
+  degenerate equal-split at very low cap × many projects); see `docs/redteam/CYCLE9_*`.
+
 ---
 
 ## Part 2 — Lexicon deviations

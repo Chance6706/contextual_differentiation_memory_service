@@ -77,6 +77,7 @@ class Config:
     # so no guardrail ever forms and the disaster is silently forgotten. Floor such an event's S0
     # to the threshold so the scar elevates. BOTH gates must hold, so benign/positive turns and
     # mere danger-talk are untouched. Disable to restore the strict pre-floor scar formation.
+    # DELIBERATE DEVIATION (docs/DEVIATIONS.md M4): the floor is negative-valence-only; no positive-peak floor.
     flashbulb_floor_catastrophes: bool = True
     scar_dedup_sim_threshold: float = 0.95  # near-identical scars (same project) are deduped on
                                         # insert so a recurring crisis can't grow the L3 table forever
@@ -90,6 +91,7 @@ class Config:
     salience_budget: float = 1000.0     # K_budget: total conserved salience across all live episodes
     project_budget_cap: float = 0.5     # no single project/subject may hold > this fraction of K
                                         # (capped-proportional: primaries keep focus, smalls aren't starved)
+                                        # DELIBERATE DEVIATION (docs/DEVIATIONS.md M5): capped, not faithful proportionality.
     session_budget_cap: float = 0.5     # within a project's share, no single SESSION may hold > this
                                         # fraction — bounds a flood concentrated in one session (e.g. the
                                         # empty/default session that MCP-injected notes share) from
@@ -151,6 +153,7 @@ class Config:
     # high-salience EPISODIC memory (surfaced as recent activity, not enshrined as a rule), and is
     # promoted to a guardrail only if it recurs in another session. Human-pinned scars are trusted
     # and exempt. Authority is earned, not auto-granted. Set to 1 to restore immediate elevation.
+    # DELIBERATE DEVIATION (docs/DEVIATIONS.md M3): a one-shot catastrophe is mortal, not a permanent flashbulb.
     scar_elevation_min_sessions: int = 2
     # Layer 3 (capture-time provenance): when True, only "trusted"-provenance episodes may elevate to
     # an authoritative guardrail, and "untrusted" episodes (external reads — web fetch, foreign files,
