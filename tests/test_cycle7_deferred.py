@@ -48,8 +48,15 @@ def test_cmed8_retrieve_materializes_by_id_without_full_scan(tmp_path, monkeypat
     monkeypatch.setattr(svc.db, "all_scars", _boom)
     after = svc.retrieve("orders query index force push", top_k=5, reinforce=False)
 
-    assert [(h.id, h.tier, round(h.score, 6)) for h in after] == \
-           [(h.id, h.tier, round(h.score, 6)) for h in before]
+    # The materialization invariant: the by-id path returns the SAME hits in the SAME order
+    # as the full-scan path. Identity + order are asserted exactly; scores are compared with a
+    # tolerance because each retrieve() recomputes age_days from datetime.now(), so the two
+    # calls are ~ms apart — sub-second decay jitter that the power-law curve's initial slope can
+    # tip across an exact-6-decimal rounding boundary (platform libm-dependent). The score
+    # equality is incidental to this test's purpose (no full-table scan), not the invariant.
+    assert [(h.id, h.tier) for h in after] == [(h.id, h.tier) for h in before]
+    for h_after, h_before in zip(after, before):
+        assert h_after.score == pytest.approx(h_before.score, abs=1e-4)
     svc.close()
 
 
