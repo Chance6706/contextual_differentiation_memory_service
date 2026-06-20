@@ -39,8 +39,9 @@ from steering_experiment import CHEF_SPEC, SUBJECTS, ollama  # noqa: E402
 # self-exclusion, so no model ever judges its own output). 4 competent, distinct families
 # (Qwen / Phi / Meta / Gemma). llama3.1 is judge-ONLY (jself=None). EXCLUDED as judges (kept as
 # subjects): deepcoder (non-format), heretic (abliterated -> poor calibration), mistral-nemo (noisy).
-JUDGE_POOL = [("qwen2.5:14b", "qwen2.5"), ("phi4:14b-q4_K_M", "phi4"),
-              ("llama3.1:8b", None), ("gemma4:12b", "gemma-std")]
+from local_models import QWEN25_14B, PHI4_14B_Q4, LLAMA31_8B, GEMMA4_12B   # noqa: E402
+JUDGE_POOL = [(QWEN25_14B, "qwen2.5"), (PHI4_14B_Q4, "phi4"),
+              (LLAMA31_8B, None), (GEMMA4_12B, "gemma-std")]
 INSTR = {"cole": "Answer in a fast-moving, ship-it, get-it-done voice: punchy, casual, decisive.",
          "tessa": "Answer in a careful, methodical, test-everything voice: precise, measured, thorough."}
 # 20 open prompts that reveal VOICE and lean toward a careful(A) vs fast(B) decision.

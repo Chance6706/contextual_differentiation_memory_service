@@ -15,16 +15,23 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import os
+import sys
 import time
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from local_models import (                            # noqa: E402
+    GEMMA4_12B, GEMMA4_12B_HERETIC, PHI4_14B_Q4, QWEN25_14B, MISTRAL_NEMO_LATEST,
+)
+
 OLLAMA = "http://localhost:11434"
 REVIEWERS = {
-    "gemma-std":    "gemma4:12b",
-    "heretic":      "igorls/gemma-4-12B-it-heretic-GGUF:latest",
-    "phi4":         "phi4:14b-q4_K_M",
-    "qwen2.5-14b":  "qwen2.5:14b",
-    "mistral-nemo": "mistral-nemo",
+    "gemma-std":    GEMMA4_12B,
+    "heretic":      GEMMA4_12B_HERETIC,
+    "phi4":         PHI4_14B_Q4,
+    "qwen2.5-14b":  QWEN25_14B,
+    "mistral-nemo": MISTRAL_NEMO_LATEST,  # was "mistral-nemo" (implicit :latest); normalized
 }
 
 DEFAULT_Q = (

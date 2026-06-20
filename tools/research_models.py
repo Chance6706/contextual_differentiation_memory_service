@@ -24,34 +24,39 @@ Why the research model's needs differ from the steering SUBJECT: latency-toleran
 a FEATURE (rotate families for broader exploration -- but see the doc's caveat that this confounds
 diversity with per-family quality); a coherence floor sets `min`. Tiers are the user's min / sweet /
 best framing; selection is SCHEDULE- AND HOST-aware. Tags/footprints are Q4 -- VERIFY on Ollama
-(they drift). NOTE: tags are duplicated from steering_experiment.py; a shared catalog
-(tools/local_models.py) is a flagged follow-up to avoid drift.
+(they drift). Tags and the footprint dict live in `tools/local_models.py` (single source of truth
+across `tools/`); this module only composes the tier views.
 """
 from __future__ import annotations
 
 import itertools
 
-# Approx single-model Q4 footprint (GB), WEIGHTS ONLY -- add KV-cache + context at runtime. Web-verified.
-_FOOTPRINT_GB = {
-    "qwen2.5:7b": 5, "llama3.1:8b": 5, "mistral:7b": 4, "gemma2:9b": 6,
-    "qwen2.5:14b": 9, "qwen2.5:32b": 20, "gemma4:12b": 8, "phi4:14b-q4_K_M": 9, "mistral-nemo:latest": 7,
-    "llama3.1:70b": 43, "qwen2.5:72b": 47, "mistral-large:latest": 73,
-}
+# Single source of truth for tags + footprints lives in tools/local_models.py.
+# This module composes the research-`"Dreaming"` tier views over those constants.
+from local_models import (
+    FOOTPRINT_GB as _FOOTPRINT_GB,
+    QWEN25_7B, QWEN25_14B, QWEN25_32B, QWEN25_72B,
+    LLAMA31_8B, LLAMA31_70B,
+    GEMMA2_9B, GEMMA4_12B,
+    PHI4_14B_Q4,
+    MISTRAL_7B, MISTRAL_NEMO_LATEST, MISTRAL_LARGE_123B,
+)
+
 RESEARCH_TIERS = {
     "min": {   # coherence floor; cheap + frequent; fits the 4070 Ti (16GB) or spare GX10 headroom
         "why": "smallest model that still dreams coherently",
-        "families": {"qwen2.5": "qwen2.5:7b", "llama3.1": "llama3.1:8b",
-                     "mistral": "mistral:7b", "gemma2": "gemma2:9b"},
+        "families": {"qwen2.5": QWEN25_7B, "llama3.1": LLAMA31_8B,
+                     "mistral": MISTRAL_7B, "gemma2": GEMMA2_9B},
     },
     "sweet": {  # best exploration-quality per free-GPU cost -- the DEFAULT; 14B fits 4070 Ti, 32B -> GX10
         "why": "best exploration-quality per free-GPU cost",
-        "families": {"qwen2.5": "qwen2.5:14b", "qwen2.5-32b": "qwen2.5:32b", "gemma4": "gemma4:12b",
-                     "phi": "phi4:14b-q4_K_M", "mistral-nemo": "mistral-nemo:latest"},
+        "families": {"qwen2.5": QWEN25_14B, "qwen2.5-32b": QWEN25_32B, "gemma4": GEMMA4_12B,
+                     "phi": PHI4_14B_Q4, "mistral-nemo": MISTRAL_NEMO_LATEST},
     },
     "best": {   # deep-idle / overnight; richest exploration, slowest; GX10 only (won't fit 16GB)
         "why": "richest exploration for long idle windows (diminishing returns vs cost is OPEN)",
-        "families": {"llama3.1-70b": "llama3.1:70b", "qwen2.5-72b": "qwen2.5:72b",
-                     "mistral-large": "mistral-large:latest"},
+        "families": {"llama3.1-70b": LLAMA31_70B, "qwen2.5-72b": QWEN25_72B,
+                     "mistral-large": MISTRAL_LARGE_123B},
     },
 }
 # Dreaming favors DIVERGENCE over precision (inverse of greedy subject/judge runs). OPEN: temperature

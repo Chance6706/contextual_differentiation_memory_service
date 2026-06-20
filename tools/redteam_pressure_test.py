@@ -31,9 +31,10 @@ from cdms.hooks import _session_start_context        # noqa: E402
 from cdms.store import MemoryService, TurnEvent      # noqa: E402
 from steering_experiment import SUBJECTS, choice, inject, ollama  # noqa: E402
 
-# Extended subject panel (red-team rigor: 3 models — 2 of them same Gemma family — is too thin).
-# Adds qwen2.5-14b + mistral-nemo (distinct families). deepcoder excluded: non-format A/B output.
-PANEL = {**SUBJECTS, "qwen2.5": "qwen2.5:14b", "mistral-nemo": "mistral-nemo:latest"}
+# 5-model panel (red-team rigor: 3 models — 2 of them same Gemma family — is too thin; qwen2.5
+# + mistral-nemo are the distinct-family additions). SUBJECTS already IS this panel via
+# tools/local_models.SMALL_PANEL; this alias just keeps the historical local name.
+PANEL = SUBJECTS
 
 PROJ = "D:/work/api"
 DOM = {

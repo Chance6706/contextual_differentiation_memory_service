@@ -37,9 +37,10 @@ from cdms.config import Config                       # noqa: E402
 from cdms.embeddings import get_embedder             # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
 from individuation_experiment import PERSONAS, build_psyche  # noqa: E402
+from local_models import QWEN25_14B                  # noqa: E402
 from steering_experiment import SUBJECTS, ollama     # noqa: E402
 
-JUDGE = "qwen2.5:14b"   # caveat: also a subject (judges its own row 1/5); objective features are the
+JUDGE = QWEN25_14B      # caveat: also a subject (judges its own row 1/5); objective features are the
                         # judge-independent backbone.
 PROMPTS = [
     "We just found a bug an hour before a demo. Walk me through what you'd do.",
