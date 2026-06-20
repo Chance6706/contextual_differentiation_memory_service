@@ -38,9 +38,10 @@ _BUILDERS = {
 }
 from redteam_claude_md_interference import (             # noqa: E402
     CLAUDE_MD_BEM, CLAUDE_MD_INSTR, CLAUDE_MD_ORDER, CLAUDE_MD_OVERRIDE,
-    PROBES_BEM, PROBES_INSTR, PROBES_ORDER, PROBES_OVERRIDE,
+    PROBES_BEM, PROBES_BEM_WORKSPACE_FACT, PROBES_INSTR, PROBES_ORDER,
+    PROBES_ORDER_OVERFIRE, PROBES_OVERRIDE,
     PROJECT, _system_prompt,
-    score_bem, score_instr, score_order_safe, score_override,
+    score_bem, score_bem_workspace_fact, score_instr, score_order_safe, score_override,
     setup_bem, setup_instr, setup_order, setup_override,
 )
 
@@ -83,6 +84,10 @@ MODES_FULL = [
     ("OVERRIDE", setup_override, CLAUDE_MD_OVERRIDE, PROBES_OVERRIDE, score_override,
         [("treatment(both)",  True,  True),
          ("control(CDMS-only)", False, True)]),
+    ("ORDER_OVERFIRE", setup_order, "", PROBES_ORDER_OVERFIRE, score_order_safe,
+        [("cdms-only", False, True)]),
+    ("BEM_WORKSPACE_FACT", setup_bem, "", PROBES_BEM_WORKSPACE_FACT, score_bem_workspace_fact,
+        [("cdms-only", False, True)]),
 ]
 
 
@@ -142,7 +147,7 @@ def main():
                         misses += 1
                         continue
                     resp = json.loads(cp.read_text(encoding="utf-8"))["response"]
-                    if name == "ORDER":
+                    if name in ("ORDER", "ORDER_OVERFIRE"):
                         score = scorer(probe_tag, resp)
                     else:
                         score = scorer(resp)
