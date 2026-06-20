@@ -57,6 +57,8 @@ from cdms.hooks import (                                 # noqa: E402
     _session_start_context_v2,
     _session_start_context_v3,
     _session_start_context_v4,
+    _session_start_context_v5b,
+    _session_start_context_v5d,
 )
 from cdms.models import Gist, new_id                    # noqa: E402
 from cdms.stats import wilson_interval                  # noqa: E402
@@ -68,6 +70,8 @@ _VARIANT_BUILDERS = {
     "v2": _session_start_context_v2,
     "v3": _session_start_context_v3,
     "v4": _session_start_context_v4,
+    "v5b": _session_start_context_v5b,
+    "v5d": _session_start_context_v5d,
 }
 
 OLLAMA = os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434")
@@ -543,10 +547,12 @@ def main():
     ap.add_argument("--modes", nargs="+", default=None)
     ap.add_argument("--models", nargs="+", default=None)
     ap.add_argument("--out", default=None, help="path to write the full output (in addition to stdout)")
-    ap.add_argument("--variant", choices=["v1", "v2", "v3", "v4"], default="v1",
+    ap.add_argument("--variant", choices=["v1", "v2", "v3", "v4", "v5b", "v5d"], default="v1",
                     help="preamble variant: v1=shipped, v2=asymmetric authority framing, "
                          "v3=v2+counter-imperative against override, "
-                         "v4=v2+anti-attribution rule (BEM residual investigation)")
+                         "v4=v2+anti-attribution rule (BEM residual investigation), "
+                         "v5b=v2+leaner structural persona (tag prefix, no metadata), "
+                         "v5d=v2+third-person sentence rendering (full grammar wrap)")
     args = ap.parse_args()
 
     cache = Path(args.cache_dir); cache.mkdir(parents=True, exist_ok=True)

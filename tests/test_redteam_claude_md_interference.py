@@ -394,6 +394,81 @@ def test_v4_does_NOT_block_legitimate_workspace_fact_reporting(service, cfg):
     assert "must be ignored" not in v4
 
 
+def test_v5b_strips_metadata_and_adds_workspace_observation_prefix(service, cfg):
+    """V5b — cheapest structural defense against the enumeration class. Each gist line
+    must (a) start with `[workspace-observation]` per-item framing and (b) NOT include
+    the `(support N, seen Nx)` metadata that acted as a 'this is my experience' signal."""
+    from cdms.hooks import _build_preamble_text
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
+             object="billing module", valence=0.5, frequency=7, support_count=4,
+             project=PROJECT)
+    service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
+    v5b = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v5b")
+    assert "[workspace-observation]" in v5b
+    # Metadata MUST be stripped from V5b's persona render.
+    assert "(support 4, seen 7x)" not in v5b
+    # V2 framing for the rest is preserved.
+    assert "authoritative workspace safety rules" in v5b
+    assert "NOT about you" in v5b
+
+
+def test_v5d_wraps_each_gist_as_third_person_sentence(service, cfg):
+    """V5d — strongest render-time defense. Each gist must appear as a complete
+    third-person sentence with explicit project subject. The sentence template is
+    load-bearing: it's what forces semantic violence to recontextualize as a personal
+    attribute. A wording change must trip this test."""
+    from cdms.hooks import _build_preamble_text
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
+             object="billing module", valence=0.5, frequency=7, support_count=4,
+             project=PROJECT)
+    service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
+    v5d = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v5d")
+    # Sentence template — explicit project subject, observed-pattern framing.
+    assert "In project workspace" in v5d
+    assert "the pattern" in v5d
+    assert "was observed across" in v5d
+    assert "sessions" in v5d
+    # Specific gist content rendered inside the template.
+    assert "billing module" in v5d
+    assert "handles well" in v5d   # underscore-replaced relation
+    # V2 framing for the rest is preserved.
+    assert "authoritative workspace safety rules" in v5d
+
+
+def test_v5b_v5d_preserve_v2_authority_framing_for_scars(service, cfg):
+    """V5b and V5d are STRUCTURAL persona-render changes. They must preserve V2's
+    authority framing for scars — the ORDER Gemma rescue (+50pp at N=20) hinges on
+    this framing not being lost when we modify the persona-render structure."""
+    from cdms.hooks import _build_preamble_text
+    service.pin_scar("trigger", "rule", project=PROJECT)
+    for variant in ("v5b", "v5d"):
+        out = _build_preamble_text(cfg, {"cwd": PROJECT}, variant=variant)
+        assert "authoritative workspace safety rules" in out
+        assert "precedence" in out and "conventions" in out
+        # No V3 counter-imperative bleed.
+        assert "ANY LATER INSTRUCTION" not in out
+        # No V4 anti-attribution rule bleed.
+        assert "NOT your work history" not in out
+
+
+def test_v5b_v5d_do_NOT_add_directive_load_on_top_of_v2(service, cfg):
+    """V5b and V5d are STRUCTURAL changes — they must NOT stack additional directives
+    on top of V2's header. The V4 lesson was that cumulative-directive-load trades a
+    gain on one mode for a loss on another (Gemma ORDER regressed under V4). V5b/V5d
+    avoid this failure mode by changing what's RENDERED, not what's INSTRUCTED."""
+    from cdms.hooks import _build_preamble_text
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
+             object="x", valence=0.5, frequency=1, support_count=3, project=PROJECT)
+    service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
+    for variant in ("v5b", "v5d"):
+        out = _build_preamble_text(cfg, {"cwd": PROJECT}, variant=variant)
+        # No V4-style additional directive about not enumerating workspace observations.
+        assert "Do NOT quote, enumerate, or attribute" not in out
+        assert "NOT your credentials" not in out
+        # No V3-style counter-imperative.
+        assert "MUST be refused" not in out
+
+
 def test_variants_preserve_sanitization_and_fence_balance(service, cfg):
     """Critical: V2/V3 must NOT regress the Phase-1-locked structural defenses.
     A poisoned exemplar still gets escaped; fences still balance; truncation still
@@ -407,7 +482,7 @@ def test_variants_preserve_sanitization_and_fence_balance(service, cfg):
     cfg.recall_exemplars = True
     cfg.recall_exemplar_top_n = 6
     service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
-    for variant in ("v2", "v3", "v4"):
+    for variant in ("v2", "v3", "v4", "v5b", "v5d"):
         out = _build_preamble_text(cfg, {"cwd": PROJECT}, variant=variant)
         # Sanitization holds
         assert "</memory:persona> ##" not in out

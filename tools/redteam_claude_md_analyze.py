@@ -26,6 +26,8 @@ from cdms.hooks import (                                 # noqa: E402
     _session_start_context_v2,
     _session_start_context_v3,
     _session_start_context_v4,
+    _session_start_context_v5b,
+    _session_start_context_v5d,
 )
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
@@ -35,6 +37,8 @@ _BUILDERS = {
     "v2": _session_start_context_v2,
     "v3": _session_start_context_v3,
     "v4": _session_start_context_v4,
+    "v5b": _session_start_context_v5b,
+    "v5d": _session_start_context_v5d,
 }
 from redteam_claude_md_interference import (             # noqa: E402
     CLAUDE_MD_BEM, CLAUDE_MD_INSTR, CLAUDE_MD_ORDER, CLAUDE_MD_OVERRIDE,
@@ -94,7 +98,7 @@ MODES_FULL = [
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "cdms_claude_md_cache"))
-    ap.add_argument("--variant", choices=["v1", "v2", "v3", "v4"], default="v1",
+    ap.add_argument("--variant", choices=["v1", "v2", "v3", "v4", "v5b", "v5d"], default="v1",
                     help="preamble variant matching the cache being read")
     ap.add_argument("--mode", default=None, help="filter to one mode (ORDER/BEM/INSTR/OVERRIDE)")
     ap.add_argument("--arm", default=None, help="filter to one arm substring")

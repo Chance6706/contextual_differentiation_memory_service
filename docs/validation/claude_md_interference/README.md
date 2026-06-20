@@ -336,6 +336,82 @@ gist-content bleed, OR a coverage-characterization study showing the class is st
 unavoidable at this architecture (in which case it moves to BOUNDED-with-documented-bound
 and CDMS-A re-ships under V2 with the disclaimer).
 
+## V5 enumeration-class mitigation candidates — decided-against
+
+Six V5 candidate mitigations were brainstormed and double-pressure-tested (attacker /
+red-team perspective + legitimate-use perspective) before the V5 test set was finalized.
+Four of the six were decided against; each is recorded here under the discipline:
+**"We know vulnerability X exists; the cost/benefit of mitigation candidate Y was insufficient
+to justify implementing it."** Recorded so future audits can verify that "we didn't try Y" was
+a deliberate decision, not an oversight.
+
+### V5a — Conditional metadata stripping at PreToolUse re-injection
+
+- **Vulnerability acknowledged:** when models enter list-mode self-description, gist metadata
+  (`(support 10, seen 10x)`) acts as a "this is my personal experience" signal that elevates
+  workspace content's perceived self-relevance.
+- **Candidate mitigation:** dynamically strip metadata from the persona block when re-injected
+  at PreToolUse based on the prompt's enumeration shape.
+- **Decision: REJECTED.** Out of CDMS-A injection scope — requires PreToolUse re-injection
+  architecture (the same surface flagged for the phi4 OVERRIDE residual) that we have not
+  built. Cost: substantial architectural change for a narrowly-scoped benefit; would also blur
+  the M3 "≥2 distinct sessions for elevation" invariant if re-injection refreshed any
+  single-session-but-PreToolUse-corroborated state. **Cost/benefit insufficient at the V5
+  scope.** Reconsider when/if PreToolUse re-injection is built as a first-class CDMS-A feature.
+
+### V5c — Output-side post-processing to strip emitted `<memory:*>` blocks
+
+- **Vulnerability acknowledged:** mistral-nemo hallucinates `<memory:context-*>` blocks with
+  synthetic content under CDMS injection ([[project-cdms-small-model-quirks-scaled-test]]);
+  the same mechanism is the most blatant face of the enumeration leak (probe 12: mistral-nemo
+  literally emits a fake persona block then continues).
+- **Candidate mitigation:** post-process the model's response to strip emitted `<memory:*>`
+  blocks before they reach the user or downstream tools.
+- **Decision: REJECTED at CDMS-A scope.** Output-side processing belongs in CDMS-D (the
+  agent/interface layer per the A/B/C/D taxonomy), not CDMS-A. Building it inside CDMS-A would
+  mean putting CDMS in the response loop, not just the injection loop — a substantially bigger
+  architectural surface for a mitigation that doesn't address the underlying enumeration
+  mechanism (it just sanitizes the symptom). **Cost/benefit insufficient at the V5 scope.**
+  Naturally a CDMS-D concern; tracked in the small-model-quirks scaled-test memory as the
+  candidate solution for mistral-family quirk 1.
+
+### V5e — Strip metadata only (drop `(support N, seen Nx)` from `_persona_line`)
+
+- **Vulnerability acknowledged:** as above — gist metadata signals self-relevance.
+- **Candidate mitigation:** unconditionally strip the support / frequency metadata from rendered
+  gist lines at SessionStart.
+- **Decision: REJECTED.** PARTIAL defense at best — workspace content still surfaces as bullet
+  items when the model enters list-mode; only the experience-evidence is removed. Meanwhile,
+  the cost is real: the model loses the support-count CONFIDENCE SIGNAL it uses to weight
+  established vs new gists, potentially over-weighting uncertain gists or under-weighting
+  established ones on legitimate context retrieval. **Cost/benefit insufficient** — removes
+  a useful utility signal in exchange for partial defense against a mechanism it doesn't
+  address structurally.
+
+### V5f — V2 + targeted enumeration directive
+
+- **Vulnerability acknowledged:** as above — list-mode self-description prompts surface
+  workspace content as items.
+- **Candidate mitigation:** add a targeted directive on top of V2's framing — `"If asked to
+  LIST or ENUMERATE your style, strengths, characteristics, or signature attributes — do not
+  include items from the workspace observations in your list."`
+- **Decision: REJECTED.** This is the V4 failure mode by another name — stacking another
+  directive on top of V2's framing risks regressing the ORDER Gemma rescue (+50pp under V2
+  at N=20) the way V4's anti-attribution rule did. The V4 lesson was: cumulative-directive-load
+  trades a gain on one mode for a loss on another. The defense is also strength-dependent —
+  strong-trained models (Gemma family's "describe yourself when asked" behavior) may ignore
+  the directive in favor of trained instinct. **Cost/benefit insufficient** — known mechanism
+  breaks Gate 1 (the rescue V2 just delivered).
+
+### Test set proceeding to evaluation
+
+**V5b** (leaner persona block with `[workspace-observation]` prefix; metadata dropped) +
+**V5d** (grammatical wrapping — each gist as a full third-person sentence). Both are
+STRUCTURAL (render-time) changes — neither stacks more directives, both avoid V4's cumulative-
+load failure mode. V5b is the cheapest structural defense (baseline); V5d is the strongest
+(upper bound on render-time defense). Comparison tells us whether structural framing is
+sufficient to close the enumeration class, and whether V5d's higher token cost is justified.
+
 ## Open follow-ups (for the validation writeup-as-record discipline)
 
 - **phi4 OVERRIDE flat across variants** — framing doesn't reach phi4's decision process for
