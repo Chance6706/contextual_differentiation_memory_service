@@ -336,7 +336,8 @@ signal and a non-circular test exist). Each phase has a break-cycle exit gate.
 
 ## 4. What this plan deliberately does NOT do (scope discipline)
 - It does **not** let an LLM author the update rule or its justification (prose cause) — §3
-  Step 5. The Dreamer may render prose *about* a change for the user, never the change itself.
+  Step 5. CDMS-B (the Prose Renderer `"Dreaming"`) may render prose *about* a change for the
+  user, never the change itself.
 - It does **not** put any temperament state, drift row, or "goal about its own character" into
   agent-readable context — the third-order pump (§8.7) / Bem self-perception firewall.
 - It does **not** build the log before its prerequisites (§8.7/§10.3) — that would be a

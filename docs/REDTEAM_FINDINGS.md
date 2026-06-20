@@ -109,8 +109,9 @@ budget reaches a stable K equilibrium; decay underflow clean.
   (a store can move between platforms) and the incidence is low — documented, not fixed.
 - **CJK gist tokenization** (Cycle 2) — space-less scripts collapse to one token / drop
   2-codepoint words; needs real segmentation. Cyrillic/accented now handled (FTS fix).
-- **Dreamer/httpx path is dead code** (Cycle 2) — `dreamer_*`/`http_*` config is never
-  imported; no runtime risk. Left as a documented placeholder for the designed feature.
+- **Prose Renderer "Dreaming" / httpx path is dead code** (Cycle 2) — `render_*` (formerly
+  `dreamer_*` pre-naming-PR) / `http_*` config is never imported; no runtime risk. Left as a
+  documented placeholder for CDMS-B (designed-not-built); see `docs/DEVIATIONS.md` L6.
 
 ## Plan-level corrections
 Recorded in `docs/TEMPERAMENT_PLAN.md` §8 (P1–P7 + Gemini's "Boiling Frog" exit-gate).
@@ -345,10 +346,10 @@ DEFERRED. Regression tests in `tests/test_cycle7_triage.py`.
 - **C-MED-2** FTS has no phrase queries: recall *quality*, GLM self-downgraded; acceptable.
 - **C-MED-3** `config.json` string/path fields (e.g. `home`) unvalidated: trust boundary —
   the file lives in the user's own `CDMS_HOME`; write access there already grants full control.
-  ⚠️ **Contingent defer (double review):** this holds *only while the dreamer stays unwired*.
-  `dreamer_base_url`/`dreamer_enabled` are currently consumed by **zero code** (verified); the
-  moment a future cycle wires the dreamer to make HTTP requests, an attacker-controlled
-  `dreamer_base_url` becomes an SSRF / memory-exfiltration vector — **re-triage and promote then.**
+  ⚠️ **Contingent defer (double review):** this holds *only while the Prose Renderer stays unwired*.
+  `render_base_url`/`render_enabled` (formerly `dreamer_*`) are currently consumed by **zero code**
+  (verified); the moment a future cycle wires the Renderer to make HTTP requests, an attacker-controlled
+  `render_base_url` becomes an SSRF / memory-exfiltration vector — **re-triage and promote then.**
 - **C-MED-4** Windows `msvcrt.locking` defeated by manual lock-file recreation: Windows-only,
   requires deleting the lock file mid-pass; narrow.
 - ~~**C-MED-5** ReDoS in `redact_secrets`~~ → **✅ PROMOTED & FIXED (Cycle-7 Phase 6):** the
@@ -466,12 +467,12 @@ weight cap 1e3→10 + zero-goal anti-bypass cross-field, M-2 reject all-zero wei
 **Fixed — PR #18 (scale/config hardening):** H-4 per-project cap on AUTO-ELEVATED scars
 (pinned guardrails fail-safe-exempt, oldest-first), M-S-1 gated full `VACUUM` after bulk
 deletes, H-3 reject path-traversal `home`, M-7 `http_host` loopback-only, M-S-5
-`dreamer_base_url` loopback-only, L-5 reject JSON bool for numeric fields, L-2 redact before
-truncation in `_brief`.
+`render_base_url` (formerly `dreamer_base_url`) loopback-only, L-5 reject JSON bool for numeric
+fields, L-2 redact before truncation in `_brief`.
 
 **Verification corrections (report overstated / stale):**
 - **M-7 / M-S-5** are NOT live exposures at this commit — the MCP server is `mcp.run(transport=
-  "stdio")` and the Dreamer is unwired. Fixed as latent defense-in-depth, not active holes.
+  "stdio")` and the Prose Renderer is unwired. Fixed as latent defense-in-depth, not active holes.
 - **C-1 "CRITICAL OOM"** — real `all_episodic()`/bulk-vector load, but episodic count is
   decay/eviction-bounded, so the 80–120K trigger is unlikely in personal use; severity is
   overstated. The realistic scale issue (disk bloat) is M-S-1, fixed.

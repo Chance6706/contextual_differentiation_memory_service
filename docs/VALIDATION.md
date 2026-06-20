@@ -34,9 +34,9 @@ machine. This document records what was **confirmed**, **adjusted**, or
 
 | Claim | Verdict | What we did |
 |---|---|---|
-| `Qwen3.5-9B`, `Qwen3.6-27B`, `Qwen3.6-35B-A3B`, `harrier-oss-v1-0.6b` | **Adjusted** | As of the build date (June 2026, past the assistant's training cutoff) the Qwen3.5/3.6 names are *real* but exact HF repo ids / `-Instruct` suffixes vary — so **model ids are config-driven, never hardcoded**. `harrier-oss-v1-0.6b` is an **embedding** model, not a chat LLM — never use it as the dreamer. |
+| `Qwen3.5-9B`, `Qwen3.6-27B`, `Qwen3.6-35B-A3B`, `harrier-oss-v1-0.6b` | **Adjusted** | As of the build date (June 2026, past the assistant's training cutoff) the Qwen3.5/3.6 names are *real* but exact HF repo ids / `-Instruct` suffixes vary — so **model ids are config-driven, never hardcoded**. `harrier-oss-v1-0.6b` is an **embedding** model, not a chat LLM — never use it as the Prose Renderer (CDMS-B) or research worker (CDMS-C). |
 | 30B/32B coder fits in 12 GB at Q4 | **Rejected** | It does not. For a 12 GB primary coder use `Qwen2.5-Coder-14B` Q4 (~9 GB) or `-7B` Q4 (~5.7 GB). |
-| Local primary LLM required | **Confirmed optional** | For Claude Code (Pattern A) the cloud model reasons; the local primary LLM + LoRA hot-swapping belong only to Pattern B. The deliverable here is the MCP memory server + CPU embedder + optional dreamer. |
+| Local primary LLM required | **Confirmed optional** | For Claude Code (Pattern A) the cloud model reasons; the local primary LLM + LoRA hot-swapping belong only to Pattern B. The deliverable here is the MCP memory server + CPU embedder + the optional CDMS-B Prose Renderer `"Dreaming"`. |
 
 ## Net effect on the build
 

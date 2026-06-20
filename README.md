@@ -53,11 +53,15 @@ Two things follow, worth stating up front:
 - **The system is entirely mechanical and reactive today.** It consolidates *what
   history did*, by geometry and lexicon only — the LLM never authors the identity
   tuple (no "generative self-fiction"). The step from *"what have I done"* to
-  *"what can I become"* (self-direction) belongs to the curiosity/research
-  **"active dreaming"** pillar, which is **designed, not built** (see
-  [`docs/DESIGN.md`](docs/DESIGN.md) §6). The optional prose *Dreamer* does not
-  cross that line — it is off by default and only renders prose. Even once built,
-  dreaming is gated *propose-not-act*: functional agency at most, never experience.
+  *"what can I become"* (self-direction) belongs to **CDMS-C / Active Research
+  `"Dreaming"`**, which is **designed, not built** (see [`docs/DESIGN.md`](docs/DESIGN.md)
+  §6). A separate optional sub-LLM — **CDMS-B / the Prose Renderer `"Dreaming"`** —
+  would narrate already-extracted gists at read time without crossing that line;
+  it too is **designed, not built** (`Config.render_*` fields are scaffolded; no
+  client exists in source). Even once built, both are gated *propose-not-act*:
+  functional agency at most, never experience. The umbrella term `"Dreaming"` is
+  scare-quoted everywhere it appears — see [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md)
+  L6 for the three-way disambiguation from sleep, Hafner/World-Models, and DeepDream.
 - **"Substrate independence" means content, not a soul.** Across a model change the
   *content* of the self-model (gist/scar tuples and dials — all text) carries over;
   the *expression* changes with the new model. That is *not* "the same AI in a new
@@ -302,21 +306,64 @@ All cognitive parameters live in `cdms/config.py` and are overridable via
 
 ---
 
-## Hardware & the 12 GB VRAM budget
+## Glossary — the three meanings of "A/B"
+
+This project uses "A" and "B" in three independent senses. They are always
+prefixed below so they don't collide; the glossary makes the prefixes load-bearing.
+
+* **CDMS-A / B / C / D — *components* of the architecture.**
+  * **CDMS-A — Mechanical core.** Capture, decay, consolidation, retrieval; geometry +
+    lexicon only. The LLM **never** authors the identity tuple. **0 GB VRAM. Built.**
+  * **CDMS-B — Prose Renderer `"Dreaming"`.** A read-time sub-LLM that *narrates*
+    already-extracted gist tuples into prose. Never authoritative. `Config.render_*`
+    fields are scaffolded; **designed, not built** (no client in source).
+  * **CDMS-C — Active Research `"Dreaming"`.** A gated, idle, self-directed
+    generative-exploration subsystem. Output is `provenance="untrusted"` by design.
+    Five safety must-haves block construction — **designed, not built**.
+  * **CDMS-D — Agent / interface layer.** "Own the loop" / control surface. *Not in
+    this repo.*
+  * The umbrella term `"Dreaming"` is always **scare-quoted** to flag the scope;
+    see [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md) L6 for the three-way
+    disambiguation from sleep, Hafner/World-Models, and DeepDream.
+
+* **Pattern A / B — *deployment*: who reasons.**
+  * **Pattern A — Cloud primary.** Claude Code (or another cloud assistant) does
+    the reasoning; CDMS-A runs alongside on 0 GB VRAM. **Built.**
+  * **Pattern B — Local primary.** A local open-weights model (Ollama / llama.cpp)
+    does the reasoning; CDMS-A acts as an OpenAI-compatible proxy. **Designed, not
+    built.**
+
+* **Side A / B — *influence channel* (research only).**
+  * **Side A — Recall / memory substrate.** What CDMS-A already does — content
+    differentiates via what gets *recalled*. **Built; this is the working channel.**
+  * **Side B — Disposition / weight-level steering.** The `cdms-steering` research
+    line; modifies how the model *responds*, not what it remembers.
+
+When you see a bare "A" or "B" in this repo, assume it is **CDMS-A/B** (the
+components) unless qualified.
+
+---
+
+## Deployment configurations
 
 The memory service itself uses **0 GB VRAM** — embeddings run on CPU via ONNX
-Runtime. The 12 GB budget only matters for *optional* local models:
+Runtime. Two orthogonal choices set the deployment shape; only **CDMS-A** under
+**Pattern A** is genuinely 0-GB.
 
-* **Prose Dreamer (optional):** a small consolidation LLM that only *renders*
-  nicer gist prose at read time, e.g. `llama-3.2-3b-instruct` Q4 (~2–3 GB) — not to
-  be confused with the unbuilt "active dreaming" pillar in the roadmap. CDMS works
-  fully without it (tuple extraction is mechanical by design).
-* **Pattern B (not required for Claude Code):** if you instead drive a *local*
-  open-weights model (Ollama / llama.cpp), CDMS can act as an OpenAI-compatible
-  proxy. For a 12 GB card, a realistic primary coder is `Qwen2.5-Coder-14B` Q4
-  (~9 GB) or `-7B` Q4 (~5.7 GB). **30B/32B-class models do *not* fit at Q4 in
-  12 GB.** With Claude Code (Pattern A) the cloud model does all reasoning, so no
-  local primary model is needed at all.
+|                           | **Pattern A** (cloud primary)         | **Pattern B** (local primary) *— designed, not built* |
+|---------------------------|---------------------------------------|--------------------------------------------------------|
+| **A only** (mechanical)   | **0 GB VRAM.** Production today.      | ~5–9 GB (the primary model).                           |
+| **A + B** (+ Prose Renderer) | ~2–3 GB (e.g. `llama-3.2-3b-instruct` Q4). | Primary + Renderer share the budget. |
+| **A + C** (+ Active Research) | Variable; tier-scheduled idle/free-GPU. | As above. |
+| **A + B + C**             | Variable; B and C may share the Renderer-tier model. | As above. |
+
+A few hard facts about a **12 GB card** (e.g. RTX 3060 / 4070):
+* Pattern B realistic primary: `Qwen2.5-Coder-14B` Q4 (~9 GB) or `-7B` Q4
+  (~5.7 GB). **30B/32B-class models do *not* fit at Q4 in 12 GB.**
+* With Claude Code (Pattern A), the cloud model does all reasoning — no local
+  primary model is needed at all.
+* CDMS-B (Prose Renderer) and CDMS-C (Active Research) are independent and may
+  run together; both are gated *propose-not-act* and **neither is built yet**.
 
 See [`docs/VALIDATION.md`](docs/VALIDATION.md) for the full research-backed
 review of the original design doc, including corrections.
@@ -387,10 +434,11 @@ operator-only joint leash (`current == seed`; no drift yet).
 The remaining *proactive* layers are **designed, not built** (DESIGN.md marks every
 line ✅ Built vs 📐 Designed):
 
-- **§6 curiosity / "active dreaming"** — trait-driven novelty surfacing and
-  epistemic-gap tracking; an optional idle-time exploration *Dreamer* whose safety
-  substrate (synthetic provenance, recall/budget isolation, a dream-quality eval
-  gate) is specified as a precondition in [`docs/research/DREAMER_MODELS.md`](docs/research/DREAMER_MODELS.md).
+- **§6 curiosity / CDMS-C / Active Research `"Dreaming"`** — trait-driven novelty
+  surfacing and epistemic-gap tracking; an optional idle-time exploration worker
+  whose safety substrate (synthetic provenance, recall/budget isolation, a
+  `"Dreaming"`-quality eval gate) is specified as a precondition in
+  [`docs/research/RESEARCH_MODELS.md`](docs/research/RESEARCH_MODELS.md).
 - **§7 emotion / proposals / provenance** and the **§8 temperament drift/proposal
   Phases 1+** — see [`docs/DESIGN.md`](docs/DESIGN.md) and
   [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md).

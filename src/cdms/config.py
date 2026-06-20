@@ -180,11 +180,16 @@ class Config:
     # with a stderr warning) so disk stays bounded and the store stays recoverable.
     spool_max_bytes: int = 100_000_000  # ~100 MB
 
-    # ---- Optional local "Dreamer" LLM (prose rendering only; never authoritative) ---
-    dreamer_enabled: bool = False
-    dreamer_base_url: str = "http://127.0.0.1:8081/v1"
-    dreamer_model: str = "llama-3.2-3b-instruct"
-    dreamer_api_key: str = "sk-no-key-required"
+    # ---- Optional local Prose Renderer ("Dreaming") LLM (read-time narration only; never authoritative) ---
+    # DELIBERATE DEVIATION (docs/DEVIATIONS.md L6): the system label is `"Dreaming"` (scare-quoted)
+    # but code identifiers stay literal (`render_*`). This is CDMS-B (the Prose Renderer); distinct
+    # from CDMS-C (Active Research `"Dreaming"`, see tools/research_models.py). Env vars follow the
+    # field names: `CDMS_RENDER_ENABLED`, `CDMS_RENDER_BASE_URL`, `CDMS_RENDER_MODEL`, `CDMS_RENDER_API_KEY`.
+    # STATUS: designed-not-built — fields are scaffolded; no LLM client exists in source.
+    render_enabled: bool = False
+    render_base_url: str = "http://127.0.0.1:8081/v1"
+    render_model: str = "llama-3.2-3b-instruct"
+    render_api_key: str = "sk-no-key-required"
 
     # ---- Networking / security (loopback only; directive #2) ---------------
     http_host: str = "127.0.0.1"
@@ -499,8 +504,8 @@ def _validate(cfg: "Config") -> None:
             _clamp(w, val, "S0 weights let a zero-goal memory self-elevate to crisis")
 
     # Networking must stay loopback-only (directive #2). These bind nothing today (the MCP
-    # server is stdio and the Dreamer is unwired), so this is latent defense-in-depth that
-    # takes effect the moment either is wired (Cycle-8 M-7 / M-S-5).
+    # server is stdio and the Prose Renderer is unwired), so this is latent defense-in-depth
+    # that takes effect the moment either is wired (Cycle-8 M-7 / M-S-5).
     def _is_loopback(host: str) -> bool:
         h = (host or "").strip().lower()
         return h in ("localhost", "::1", "") or h.startswith("127.")
@@ -508,11 +513,11 @@ def _validate(cfg: "Config") -> None:
         _clamp("http_host", d.http_host, "http_host is not loopback (directive #2)")
     try:
         from urllib.parse import urlparse
-        if not _is_loopback(urlparse(cfg.dreamer_base_url).hostname or ""):
-            _clamp("dreamer_base_url", d.dreamer_base_url,
-                   "dreamer_base_url host is not loopback (directive #2)")
+        if not _is_loopback(urlparse(cfg.render_base_url).hostname or ""):
+            _clamp("render_base_url", d.render_base_url,
+                   "render_base_url host is not loopback (directive #2)")
     except (ValueError, TypeError):
-        _clamp("dreamer_base_url", d.dreamer_base_url, "dreamer_base_url is unparseable")
+        _clamp("render_base_url", d.render_base_url, "render_base_url is unparseable")
     # CDMS_HOME may legitimately be relocated anywhere ABSOLUTE, but a path-traversal home
     # ("../../etc/x") is never legitimate and would drop the store outside any sane sandbox
     # (Cycle-8 H-3). Reject traversal; leave absolute relocations untouched.
