@@ -162,6 +162,15 @@ class MemoryService:
             from .consolidate import _matches_catastrophe
             if _matches_catastrophe(f"{ev.action_taken}\n{ev.outcome_feedback}"):
                 s0 = max(s0, self.cfg.crisis_threshold)
+        # A5 toggle (docs/DEVIATIONS.md M4): when `peak_floor_positives` is True, mirror the floor
+        # for STRONG-POSITIVE peaks (affect >= peak_valence_min). FLOOR ONLY — scar elevation in
+        # consolidate.py is independently gated on `valence <= crisis_valence_max`, so a positive
+        # event never mints a scar even when this toggle is on. Off by default; conservative
+        # threshold (0.7) when on. The catastrophe-lexicon analog for positives is a TODO; today
+        # the gate is affect-only, which is why the threshold is set high.
+        if (self.cfg.peak_floor_positives
+                and signals.affect >= self.cfg.peak_valence_min):
+            s0 = max(s0, self.cfg.crisis_threshold)
 
         rec = Episodic(
             id=new_id("ep"),

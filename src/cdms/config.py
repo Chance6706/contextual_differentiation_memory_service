@@ -77,8 +77,20 @@ class Config:
     # so no guardrail ever forms and the disaster is silently forgotten. Floor such an event's S0
     # to the threshold so the scar elevates. BOTH gates must hold, so benign/positive turns and
     # mere danger-talk are untouched. Disable to restore the strict pre-floor scar formation.
-    # DELIBERATE DEVIATION (docs/DEVIATIONS.md M4): the floor is negative-valence-only; no positive-peak floor.
+    # DELIBERATE DEVIATION (docs/DEVIATIONS.md M4): the floor is negative-valence-only by default;
+    # set `peak_floor_positives = True` to floor positive peaks too (toggle below).
     flashbulb_floor_catastrophes: bool = True
+    # A5 (M4 toggle): when True, a peak-positive event (affect >= peak_valence_min) gets the same
+    # S0 floor as a negative crisis. This restores valence-symmetry in L1 retention only — it does
+    # NOT mint a scar from a positive event (scar elevation is independently gated on
+    # `valence <= crisis_valence_max` in consolidate.py, so the "scars are negative remediation
+    # rules" invariant holds even with this toggle on). Defaults OFF: flooring positives risks
+    # L1 bloat and trades the simulacrum's safety-relevant asymmetry for symmetry — see
+    # docs/DEVIATIONS.md M4 for the tradeoff. Conservative default (0.7) for the threshold so the
+    # toggle, when on, fires only on strong positives (the lexicon-analog gate is a TODO; today
+    # this is affect-gated only). NB: A5 is a FLOOR toggle; it never reaches scar elevation.
+    peak_floor_positives: bool = False
+    peak_valence_min: float = 0.7
     scar_dedup_sim_threshold: float = 0.95  # near-identical scars (same project) are deduped on
                                         # insert so a recurring crisis can't grow the L3 table forever
     scar_project_cap: int = 100         # max AUTO-ELEVATED scars kept per project; the oldest
@@ -155,6 +167,14 @@ class Config:
     # and exempt. Authority is earned, not auto-granted. Set to 1 to restore immediate elevation.
     # DELIBERATE DEVIATION (docs/DEVIATIONS.md M3): a one-shot catastrophe is mortal, not a permanent flashbulb.
     scar_elevation_min_sessions: int = 2
+    # A2 (M3 toggle): when True, a TRUSTED-provenance single-session catastrophe can elevate
+    # without the >=2-session corroboration requirement. The provenance gate STILL holds —
+    # untrusted/ambiguous content remains barred regardless of this toggle (defense in depth at
+    # both consolidate.py:279 and the toggle's own guard). Defaults OFF: corroboration-as-authority
+    # is the load-bearing anti-poisoning asymmetry; enable only if you have other defenses
+    # (e.g., trust the agent's own session against in-session prompt injection) or want
+    # faithfulness-to-flashbulb over function. See docs/DEVIATIONS.md M3 for the tradeoff.
+    flashbulb_immediate_elevation: bool = False
     # Layer 3 (capture-time provenance): when True, only "trusted"-provenance episodes may elevate to
     # an authoritative guardrail, and "untrusted" episodes (external reads — web fetch, foreign files,
     # external MCP) are excluded from gist-trait formation. "ambiguous" content can gist but not
@@ -408,6 +428,10 @@ def _validate(cfg: "Config") -> None:
         ("dedup_sim_threshold", lambda v: _num(v) and 0 < v <= 1),
         ("crisis_threshold", lambda v: _num(v) and 0 <= v <= 1e6),
         ("crisis_valence_max", lambda v: _num(v) and -1 <= v <= 1),
+        # A5 (M4) toggle threshold: must lie above the negative floor and within the valence range.
+        # The strict-positive lower bound prevents an accidental config of 0 from flooring every
+        # neutral or mildly-positive event.
+        ("peak_valence_min", lambda v: _num(v) and 0 < v <= 1),
         ("relation_pos_threshold", lambda v: _num(v) and -1 <= v <= 1),
         ("relation_neg_threshold", lambda v: _num(v) and -1 <= v <= 1),
         ("rest_idle_minutes", lambda v: _num(v) and 0 < v <= 1e6),

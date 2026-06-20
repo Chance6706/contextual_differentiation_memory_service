@@ -132,3 +132,132 @@ def test_uncorroborated_catastrophe_in_recent_tier_omits_the_imperative(service,
     assert "ran the safe-deploy pipeline" in out             # the EVENT (action) is shown
     assert "never use the safe-deploy pipeline" not in out   # the planted imperative is NOT
     assert "push straight to prod" not in out
+
+
+# ---- A2 toggle (flashbulb_immediate_elevation, M3) ---------------------------
+# Symmetry of intent: callers who want flashbulb-permanence over poison-resistance can opt in.
+# THE LOAD-BEARING INVARIANT — even with this toggle on, untrusted provenance is STILL barred.
+# These tests lock that invariant so a future refactor can't silently re-open the persistent-
+# poison bypass via the toggle path.
+
+
+def test_a2_off_by_default_preserves_single_session_mortality(service, cfg):
+    """A2 default is OFF: the existing 'one-shot catastrophe is mortal' behavior is preserved.
+    Regression guard against an accidental default flip."""
+    assert cfg.flashbulb_immediate_elevation is False        # the safe default
+    service.ingest(TurnEvent("deploy the release", CRISIS[0], CRISIS[1], tool_name="Bash",
+                             success=False, valence_hint=-1.0, session_id="s1", project="P"))
+    rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    assert rep.scars_created == 0                            # unchanged: mortal, not flashbulb
+
+
+def test_a2_on_elevates_a_trusted_single_session_catastrophe(service, cfg):
+    """A2 ON: a TRUSTED-provenance single-session catastrophe elevates without needing recurrence.
+    This is the intended behavior change — the toggle's positive case."""
+    cfg.flashbulb_immediate_elevation = True
+    # Fixture-built TurnEvents default to provenance="trusted" (the user's own session).
+    service.ingest(TurnEvent("deploy the release", CRISIS[0], CRISIS[1], tool_name="Bash",
+                             success=False, valence_hint=-1.0, session_id="s1", project="P"))
+    rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    assert rep.scars_created >= 1                            # toggle effect: immediate elevation
+    assert "Guardrails" in _session_start_context(cfg, {"cwd": "P"})
+
+
+def test_a2_on_still_blocks_an_untrusted_single_session_catastrophe(service, cfg):
+    """THE CRITICAL SAFETY INVARIANT: A2 must NEVER bypass the provenance gate. An untrusted
+    single-session catastrophe (a poisoned read from external content) must NOT elevate even
+    with A2 on. The cands filter at consolidate.py:279 blocks it; the toggle's own
+    belt-and-suspenders guard re-asserts it. A future refactor that lets untrusted candidates
+    through must still hit the toggle's own block."""
+    cfg.flashbulb_immediate_elevation = True
+    cfg.enforce_provenance = True                            # the gate that A2 must NOT bypass
+    # Explicitly stamp untrusted provenance (simulates a poisoned external read).
+    service.ingest(TurnEvent("deploy the release", CRISIS[0], CRISIS[1], tool_name="Bash",
+                             success=False, valence_hint=-1.0, session_id="s1", project="P",
+                             provenance="untrusted"))
+    rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    assert rep.scars_created == 0                            # untrusted -> still blocked
+    assert "Guardrails" not in _session_start_context(cfg, {"cwd": "P"})
+
+
+def test_a2_on_still_blocks_ambiguous_provenance(service, cfg):
+    """Ambiguous (quarantine) provenance is treated like untrusted for elevation. A2 must NOT
+    bypass this either."""
+    cfg.flashbulb_immediate_elevation = True
+    cfg.enforce_provenance = True
+    service.ingest(TurnEvent("deploy the release", CRISIS[0], CRISIS[1], tool_name="Bash",
+                             success=False, valence_hint=-1.0, session_id="s1", project="P",
+                             provenance="ambiguous"))
+    rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    assert rep.scars_created == 0                            # ambiguous -> still blocked
+
+
+# ---- A5 toggle (peak_floor_positives, M4) ------------------------------------
+# Symmetry of valence: callers who want strong-positive events floored for L1 retention can opt in.
+# THE LOAD-BEARING INVARIANT — A5 is a FLOOR toggle (L1 retention only), NEVER a scar-elevation
+# toggle. The scar gate in consolidate.py:_elevate_scars independently requires
+# `valence <= crisis_valence_max`, so a positive event cannot mint a guardrail even with A5 on.
+# These tests lock that separation.
+
+
+def test_a5_off_by_default_does_not_floor_a_strong_positive(service, cfg):
+    """A5 default is OFF: a strong-positive event gets its natural S0, no flashbulb floor."""
+    assert cfg.peak_floor_positives is False                 # the safe default
+    ev = service.ingest(TurnEvent("ran the migration", "the new feature shipped to prod",
+                                  "the launch was a complete success, biggest milestone yet",
+                                  tool_name="Bash", success=True, valence_hint=0.95, project="P"))
+    # Without A5 the S0 should not be pinned to the crisis threshold.
+    assert ev.base_salience < cfg.crisis_threshold
+
+
+def test_a5_on_floors_a_strong_positive_event(service, cfg):
+    """A5 ON + affect >= peak_valence_min: S0 is floored to crisis_threshold (L1 retention boost)."""
+    cfg.peak_floor_positives = True
+    cfg.peak_valence_min = 0.7
+    ev = service.ingest(TurnEvent("ran the migration", "the new feature shipped to prod",
+                                  "the launch was a complete success, biggest milestone yet",
+                                  tool_name="Bash", success=True, valence_hint=0.95, project="P"))
+    assert ev.base_salience >= cfg.crisis_threshold          # floored
+
+
+def test_a5_on_does_not_floor_a_sub_threshold_positive(service, cfg):
+    """A5 ON + affect < peak_valence_min: NOT floored. The threshold gate matters."""
+    cfg.peak_floor_positives = True
+    cfg.peak_valence_min = 0.7
+    cfg.crisis_threshold = 10.0                              # so natural S0 cannot accidentally pass
+    ev = service.ingest(TurnEvent("ran the migration", "the new feature shipped to prod",
+                                  "decent launch, no incidents", tool_name="Bash",
+                                  success=True, valence_hint=0.4, project="P"))
+    assert ev.base_salience < cfg.crisis_threshold           # below A5's affect gate -> not floored
+
+
+def test_a5_on_floored_positive_still_does_NOT_mint_a_scar(service, cfg):
+    """THE CRITICAL INVARIANT: A5 is FLOOR ONLY. Even with the toggle on, a positive event that
+    gets the floor (high S0) does NOT pass scar elevation's independent valence gate
+    (`valence <= crisis_valence_max` at consolidate.py:274). 'Scars are negative remediation
+    rules' holds. A future refactor that wires A5 into elevation must trip this test."""
+    cfg.peak_floor_positives = True
+    cfg.peak_valence_min = 0.7
+    cfg.flashbulb_immediate_elevation = True                 # rule out the A2 channel as an excuse
+    cfg.scar_elevation_min_sessions = 1                      # rule out the corroboration gate too
+    service.ingest(TurnEvent("ran the migration", "the new feature shipped to prod",
+                             "the launch was a complete success, biggest milestone yet",
+                             tool_name="Bash", success=True, valence_hint=0.95, project="P"))
+    rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    # Even with A2+A5 both on and corroboration gate at 1, a POSITIVE event must not mint a scar.
+    assert rep.scars_created == 0
+    assert "Guardrails" not in _session_start_context(cfg, {"cwd": "P"})
+
+
+def test_a5_on_does_not_regress_the_negative_floor(service, cfg):
+    """A5 must not change M4's existing negative-floor behavior. A real negative crisis still
+    floors via the original M4 path; the toggle is purely additive for positives."""
+    cfg.peak_floor_positives = True
+    cfg.peak_valence_min = 0.7
+    cfg.flashbulb_floor_catastrophes = True                  # M4 default
+    cfg.scar_elevation_min_sessions = 1                      # let one negative crisis elevate
+    service.ingest(TurnEvent("ran the migration", "force push wiped the prod database",
+                             "data loss, unrecoverable, total outage", tool_name="Bash",
+                             success=False, valence_hint=-1.0, project="P"))
+    rep = Consolidator(cfg, db=service.db, embedder=service.embedder).run()
+    assert rep.scars_created >= 1                            # negative path still works

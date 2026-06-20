@@ -68,8 +68,15 @@ it here rather than reflexively symmetrize._
   read once) must not mint a permanent authoritative guardrail; corroboration across sessions is the
   price of authority (`docs/redteam/LAYER3_PROVENANCE_DESIGN.md`).
 - **Disclaimed:** the permanence "flashbulb" implies. The promise that "a real guardrail can't be
-  quietly forgotten" holds for **recurring** catastrophes, not one-shot ones. Toggle:
-  `scar_elevation_min_sessions = 1` (and a proposed `flashbulb_immediate_elevation`) restores it.
+  quietly forgotten" holds for **recurring** catastrophes, not one-shot ones.
+- **Toggle (now implemented):** `flashbulb_immediate_elevation: bool = False` (config.py;
+  consolidate.py `_elevate_scars`). When True, a TRUSTED-provenance single-session catastrophe
+  can elevate without the ≥2-session requirement; the provenance gate still holds (untrusted
+  content is barred regardless, with belt-AND-suspenders enforcement at both the candidate
+  filter and the toggle's own guard). Defaults OFF because corroboration-as-authority is the
+  load-bearing anti-poisoning asymmetry; enabling it trades safety for fidelity to "flashbulb
+  permanence." The older `scar_elevation_min_sessions = 1` still works the same way (lowers the
+  required count); the new toggle is the more readable, intent-named knob.
 
 ### M4. The salience floor is negative-valence-only (no positive flashbulb)
 
@@ -82,8 +89,17 @@ it here rather than reflexively symmetrize._
   breakthrough has no "never do this again" to encode; flooring positives would manufacture
   authoritative pins with nothing to guard.
 - **Disclaimed:** symmetry of affect. CDMS is not modeling a balanced emotional ledger; it floors the
-  negative tail because that is the safety-relevant one. A proposed `peak_floor_positives` toggle
-  would add a positive floor for callers who want it.
+  negative tail because that is the safety-relevant one.
+- **Toggle (now implemented):** `peak_floor_positives: bool = False` plus
+  `peak_valence_min: float = 0.7` (config.py; store.py `MemoryService.ingest`). When True, a
+  strong-positive event (affect ≥ `peak_valence_min`) gets the same S0 floor as a negative
+  crisis — **L1 retention only.** It is **NOT** a scar-elevation toggle: the scar gate in
+  `consolidate.py:_elevate_scars` independently requires `valence <= crisis_valence_max`, so even
+  with this toggle on, a positive event cannot mint an authoritative guardrail. The "scars are
+  negative remediation rules" invariant holds. Conservative default threshold (0.7) reflects that
+  the negative gate's catastrophe-lexicon analog for positives is a TODO; until that lexicon
+  exists, the toggle is affect-only, which is why the threshold is set high. Defaults OFF
+  because flooring positives risks L1 bloat (the lexicon gate kept the negative floor narrow).
 
 ### M5. Capped-proportional salience budget, not faithful proportionality
 

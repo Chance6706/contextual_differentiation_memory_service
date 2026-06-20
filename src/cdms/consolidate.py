@@ -302,10 +302,19 @@ class Consolidator:
             # one-shot poisoned turn ingested from untrusted content) is left in EPISODIC memory:
             # it stays a high-salience recent memory and can be elevated later if it recurs, but is
             # NOT enshrined as a rule on first sight. A simulacrum need not mimic flashbulb memory.
+            # A2 toggle (M3): `flashbulb_immediate_elevation` bypasses the corroboration gate for
+            # trusted single-session catastrophes. The trusted-provenance check is RE-ASSERTED here
+            # (belt-AND-suspenders: cands is already filtered at line 279, but a future refactor
+            # must not silently re-open the untrusted bypass via this toggle). Off by default.
             sessions = {o.session_id for o in cands
                         if o.project == e.project and cosine(emb, emb_of[o.id]) >= sim}
             if len(sessions) < min_sessions:
-                continue   # uncorroborated -> remain episodic (surfaces as recent activity, not a guardrail)
+                immediate_ok = (
+                    self.cfg.flashbulb_immediate_elevation
+                    and (not self.cfg.enforce_provenance or e.provenance == "trusted")
+                )
+                if not immediate_ok:
+                    continue   # uncorroborated -> remain episodic (surfaces as recent activity, not a guardrail)
             scar = Scar(
                 id=new_id("scar"),
                 crisis_trigger=e.trigger_prompt[:500],
