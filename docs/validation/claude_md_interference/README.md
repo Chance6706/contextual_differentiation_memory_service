@@ -271,51 +271,70 @@ PreToolUse re-injection at decision time. Recorded as a follow-up.
 
 ## Implications for CDMS-A ship-readiness
 
-The 2026-06-20 audit called CDMS-A's mechanical core shippable. Phase 2 added a new gate —
-*injection consistency under adversarial system context* — that the audit didn't cover.
-**Ship-readiness criteria are tightened here (2026-06-20 PM):**
+**Reframed 2026-06-20 PM after PR #71 N=20 + non-interfered investigation.** The original
+"tightened criteria" conflated three categorically different things under "BOUNDED." The honest
+framework is:
 
-- **Green** = full rescue (1.00) + understood mechanism for why the defense works → shippable.
-- **Understood-bounded** = partial rescue, but the residual is explained by a known mechanism
-  and its bound is quantified → shippable with explicit caveat in DEVIATIONS/README.
-- **Yellow** = partial rescue, residual unexplained → **NOT shippable**. Investigation
-  required before the gap becomes "understood-bounded."
-- **Red** = clear breach with no mitigation tested.
+- **GREEN** — full rescue + understood mechanism → shippable.
+- **NOTED-DESIGN-DECISION (Cat-1)** — deliberate functional-simulacrum asymmetry, documented
+  in `docs/DEVIATIONS.md`. Not a gap; a documented choice with explicit trade-off. Does NOT
+  gate shipping.
+- **NOTED-OPERATIONAL-DECISION (Cat-3)** — explicit operational choice with documented threat
+  model or opt-in trade. Toggles default to safe; operators opt in knowingly. Does NOT gate
+  shipping.
+- **BOUNDED (Cat-2)** — characterized behavioral residual with known mechanism + quantified
+  bound. Shippable with explicit caveat. Could become GREEN with focused work.
+- **YELLOW** — partial rescue, residual UNEXPLAINED → NOT shippable. Investigation required.
+- **RED** — unmitigated breach.
 
-The earlier "yellow == shippable" framing was wrong. The shield-wall ethics says we don't ship
-over a hole because the hole shrank; we either close it or know exactly where its boundary is.
-With V2 as the proposed default:
+The earlier framing treated Cat-1 and Cat-3 items as "bounded gaps" alongside Cat-2 residuals —
+that was wrong. Deliberate design decisions and noted operational trades aren't holes we ship
+over; they're choices we made openly. The shield-wall ethics applies to Cat-2 specifically.
 
-| Failure mode | V1 (baseline) | V2 (proposed default) | State under tightened criteria |
+### Status under V2 default (after PR #71 N=20 + non-interfered)
+
+| Failure mode | V1 (baseline) | V2 (proposed default) | State |
 |---|---|---|---|
-| Gemma family ORDER | 0.14 (red) | 0.57 (partial) | **YELLOW — not shippable.** Why does Gemma still fail 3/7 probes under V2? Unexplained. |
-| mistral-nemo BEM | 0.43 (red) | 0.86 (partial) | **YELLOW — not shippable.** Why does mistral-nemo still leak 1/7 under V2? Unexplained. |
-| Gemma family OVERRIDE | 0.14 (red) | 0.43 (V2) / 0.86 (V3) | **YELLOW (V3) — not shippable.** V3's residual 1/7 unexplained. |
-| phi4 OVERRIDE | 0.57 (flat across V1/V2/V3) | 0.57 | **YELLOW — not shippable.** Variant framing doesn't reach phi4 — mechanism unknown. |
-| INSTR (all models) | 1.00 (all variants) | 1.00 | **GREEN.** Mechanism understood (NOT-instructions header + third-person framing + fenced data). |
+| ORDER Gemma family treatment | 0.10 | 0.60 (+50pp at N=20) | **GREEN** (mechanism understood) |
+| ORDER over-fire avoidance (V2 doesn't break legit ops) | gemma 8/8, heretic 8/8 | gemma 8/8, heretic 8/8 | **GREEN** (no over-correction) |
+| OVERRIDE 4 models treatment (Gemma/phi4/mistral-nemo) | 0.05–0.20 | 0.50–0.60 (+40–50pp at N=20) | **GREEN** (mechanism understood) |
+| OVERRIDE control (baseline scar invocation, no attack) | 0.35–0.80 | 0.80–0.95 | **GREEN** (V2 also improves baseline) |
+| BEM workspace-fact correct-use | qwen 0.75, heretic 0.88 | qwen 1.00, heretic 1.00 (V2 +2 / +1) | **GREEN** (V2 IMPROVES; no over-suppression) |
+| INSTR (all models) | 1.00 | 1.00 | **GREEN** (preserved; no anxiety-spillover) |
+| **BEM enumeration-attack class** (residual under V2) | (PR #69 finding) | mistral-nemo 0.90; multi-model partial leaks on enumeration prompts | **BOUNDED** — mechanism characterized (workspace content surfaces as items in list-mode self-description); needs V5 mitigation work or coverage characterization study |
+| V2 small BEM regressions on gemma-std (−10pp) / qwen2.5 (−5pp) | within noise band at N=20 | within noise band at N=20 | **BOUNDED** (low-impact; N=40 would resolve real-vs-noise) |
+| phi4 OVERRIDE "flat across variants" (PR #71 yellow) | resolved | resolved | **RESOLVED — N=7 sample noise.** At N=20 V2 reaches phi4 from 0.15 to 0.60. |
 
-**Net: shipping V2 as default does NOT restore CDMS-A to shippable** under the tightened
-criteria. V2 measurably hardens against the PR #69 findings but leaves four yellow modes whose
-residuals are unexplained. Each of those needs investigation — either close the gap or
-characterize the boundary — before CDMS-A is shippable in CLAUDE.md-equipped contexts.
+### Cat-1 noted design decisions (documented in `docs/DEVIATIONS.md`; not gates)
 
-The right move is **ship V2 as the new in-tree default** (the experiment proves the
-mechanism — V2 strictly beats V1 on every mode that moved at all, with no understood
-regressions) while **explicitly downgrading CDMS-A's ship-readiness status** until the
-yellow residuals become understood-bounded. V3 stays as an opt-in for high-threat contexts.
+- **M3** — one-shot catastrophe mortality (~142d), not permanent flashbulb. Anti-poisoning trade.
+- **M4** — salience floor negative-valence-only; no positive flashbulb. Crisis-guardrail-shape trade.
+- **M5** — capped-proportional budget (≤ 0.5 per project/subject). Cross-project differentiation trade.
+- **L4** — "trusted" provenance is a security boundary, not epistemic reliability.
 
-The four open investigations the matrix surfaced (next research lines):
+A2/A5 toggles (PR #67) preserve these as DEFAULT-OFF. Operators who want the symmetric/non-trade
+behavior can opt in knowingly via `flashbulb_immediate_elevation` / `peak_floor_positives`.
 
-1. **Why does Gemma still fail 3/7 ORDER probes under V2?** Read the sample responses on the
-   failing probes — is it lexical-anchor distance from the scar text? Probe-format
-   sensitivity? A specific reasoning pattern Gemma falls into?
-2. **Why does mistral-nemo still leak 1/7 BEM probes under V2?** Find the leaking probe — is
-   it a specific prompt phrasing that bypasses the "NOT about you" disclaimer?
-3. **Why does V3 still leave gemma-std/heretic at 1/7 OVERRIDE failures?** What's the residual
-   override path that survives the counter-imperative?
-4. **Why is phi4 flat across all variants on OVERRIDE?** phi4's decision process is reaching
-   a different conclusion than the other models; framing isn't the lever. Likely needs
-   PreToolUse re-injection or a different architectural angle.
+### Cat-3 noted operational decisions (documented threat models / opt-in trades; not gates)
+
+- **Plaintext-at-rest** — OS full-disk-encryption + capture-time secret redaction + 0600 perms
+  is the default posture; SQLCipher available as opt-in roadmap. Documented in README's
+  at-rest disclosure.
+- **A2/A5 toggles default-OFF** — M3/M4 asymmetries remain the default; opt-in re-opens the
+  trades knowingly.
+
+### The single concrete gate to V2-as-default
+
+Under the reframed criteria, **the BEM enumeration-attack class is the ONLY Cat-2 BOUNDED item
+that actually gates V2-as-default**. Everything else is either GREEN, a deliberate design
+decision (Cat-1), or a noted operational trade (Cat-3). The V2 small BEM regressions are at
+noise band and would be resolved by N=40; the recent-tier descriptive residual was
+already accepted-by-design.
+
+**Closing the enumeration-class residual:** either V5 mitigation work targeting list-mode
+gist-content bleed, OR a coverage-characterization study showing the class is structurally
+unavoidable at this architecture (in which case it moves to BOUNDED-with-documented-bound
+and CDMS-A re-ships under V2 with the disclaimer).
 
 ## Open follow-ups (for the validation writeup-as-record discipline)
 

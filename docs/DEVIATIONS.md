@@ -18,6 +18,14 @@ docs should add an entry here (and a short in-line `DELIBERATE DEVIATION` note) 
 silently diverge. See also `docs/PARAMETER_BASIS.md` (free vs derived vs coincidence) for the
 companion discipline on constants.
 
+**Note on ship-readiness language:** entries in this register are **deliberate design
+decisions**, not "BOUNDED gaps" in the ship-readiness sense. A documented deviation here is a
+choice we made openly with a stated trade-off — not a residual failure pending closure. The
+`docs/validation/claude_md_interference/README.md` ship-readiness category framework
+distinguishes deliberate deviations (Cat-1) from operational opt-in trades (Cat-3) from actually-
+bounded behavioral residuals (Cat-2). Only Cat-2 gates re-shippability; Cat-1 entries here
+and Cat-3 operational decisions are part of what CDMS-A *is*, not bugs in it.
+
 ---
 
 ## Part 1 — Mathematical / mechanism deviations
