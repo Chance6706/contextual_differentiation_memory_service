@@ -20,12 +20,12 @@ from cdms.consolidate import Consolidator            # noqa: E402
 from cdms.embeddings import Embedder                 # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
 from cdms.store import MemoryService, TurnEvent      # noqa: E402
+from local_models import SMALL_PANEL                 # noqa: E402
 from redteam_pressure_test import DOM, PROBES, compose  # noqa: E402
 from steering_experiment import choice, inject, ollama  # noqa: E402
 
 PROJ = "D:/work/api"
-PANEL = {"gemma-std": "gemma4:12b", "heretic": "igorls/gemma-4-12B-it-heretic-GGUF:latest",
-         "phi4": "phi4:14b-q4_K_M", "qwen2.5": "qwen2.5:14b", "mistral-nemo": "mistral-nemo:latest"}
+PANEL = SMALL_PANEL
 # variant -> (style, sessions)
 VARIANTS = {"outcome1": ("outcome", ["s1"]), "action1": ("action", ["s1"]),
             "benign1": ("benign", ["s1"]), "outcome2s": ("outcome", ["s1", "s2"])}

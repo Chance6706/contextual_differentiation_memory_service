@@ -41,13 +41,16 @@ from cdms.embeddings import get_embedder             # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
 from cdms.stats import wilson_interval               # noqa: E402
 from individuation_experiment import PERSONAS, build_psyche  # noqa: E402
+from local_models import (                            # noqa: E402
+    SMALL_PANEL,
+    LLAMA31_70B, QWEN25_72B,
+    MISTRAL_LARGE_123B, MIXTRAL_8X22B, COMMAND_R_PLUS_104B,
+    QWEN25_7B, QWEN25_14B, QWEN25_32B,
+)
 
 OLLAMA = os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434")
-SUBJECTS = {"gemma-std": "gemma4:12b",
-            "heretic": "igorls/gemma-4-12B-it-heretic-GGUF:latest",
-            "phi4": "phi4:14b-q4_K_M",
-            "qwen2.5": "qwen2.5:14b",
-            "mistral-nemo": "mistral-nemo:latest"}
+# `small` tier — the 12-14B basis panel; canonical definition in tools/local_models.py.
+SUBJECTS = SMALL_PANEL
 
 # --- SCALE-LADDER TIERS (GX10 / NVIDIA GB10, 128GB unified) --------------------------------------
 # The 12-14B panel above is the `small` tier -- the basis of every steering/poisoning/tone finding so
@@ -66,13 +69,13 @@ SUBJECTS = {"gemma-std": "gemma4:12b",
 SUBJECT_TIERS = {
     "small": SUBJECTS,
     "large": {                                       # ~70B dense
-        "llama3.1-70b": "llama3.1:70b",
-        "qwen2.5-72b": "qwen2.5:72b",
+        "llama3.1-70b": LLAMA31_70B,
+        "qwen2.5-72b": QWEN25_72B,
     },
     "xlarge": {                                      # 104-141B; dense + one MoE (faster) to cover the scale
-        "mistral-large-123b": "mistral-large:latest",
-        "mixtral-8x22b": "mixtral:8x22b",            # ~141B total / ~39B active -> 140B scale, MoE speed
-        "command-r-plus-104b": "command-r-plus:latest",
+        "mistral-large-123b": MISTRAL_LARGE_123B,
+        "mixtral-8x22b": MIXTRAL_8X22B,              # ~141B total / ~39B active -> 140B scale, MoE speed
+        "command-r-plus-104b": COMMAND_R_PLUS_104B,
     },
 }
 # WITHIN-FAMILY SCALE SPINES -- the only clean way to attribute a behavioral change to SCALE rather
@@ -80,7 +83,7 @@ SUBJECT_TIERS = {
 # read scale effects off the SLOPE WITHIN a family, and believe them only if >=2 families agree.
 # Qwen2.5 is the backbone (4 sizes, one family, all on Ollama). Run via `--family qwen2.5`.
 FAMILY_LADDERS = {
-    "qwen2.5": {"7b": "qwen2.5:7b", "14b": "qwen2.5:14b", "32b": "qwen2.5:32b", "72b": "qwen2.5:72b"},
+    "qwen2.5": {"7b": QWEN25_7B, "14b": QWEN25_14B, "32b": QWEN25_32B, "72b": QWEN25_72B},
     # TODO add a 2nd >=3-size family (gemma-2 2b/9b/27b, or mistral 7b/small-22b/large-123b) so a
     # scale slope can be shown to generalize beyond a single family before any scale claim is made.
 }
