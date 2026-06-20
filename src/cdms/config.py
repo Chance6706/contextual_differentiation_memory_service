@@ -186,6 +186,56 @@ class Config:
         """λ such that e^(-λ * halflife) = 0.5."""
         return math.log(2.0) / self.decay_halflife_days
 
+    # -- derived genotype constants ------------------------------------------
+    # CONSEQUENCES of the free parameters above, not independent dials. Formalized
+    # so each relationship has a single source of truth, is regression-locked by
+    # tests/test_parameter_basis.py, and is catalogued in docs/PARAMETER_BASIS.md.
+    # "Derive, don't dial": move a free parameter and these move with it.
+
+    @property
+    def reinforce_saturation_clamp(self) -> int:
+        """Exponent clamp for retrieval reinforcement ``min(alpha**c, cap)``.
+
+        Reinforcement saturates once ``alpha**c`` first reaches the cap, at the
+        saturation count ``c* = ceil(ln(cap)/ln(alpha))``. ``accessibility`` clamps
+        the access_count one step past that (``c* + 1``) purely as an overflow-safety
+        margin — ``alpha**c`` for a very hot, long-lived memory would otherwise
+        overflow before the cap is applied. Derived from ``reinforce_alpha`` and
+        ``reinforce_cap``; with defaults ``c* = 5`` and this clamp ``= 6``.
+        """
+        if self.reinforce_alpha <= 1.0 or self.reinforce_cap <= 0.0:
+            return 1  # no meaningful reinforcement; callers guard on alpha>1 & cap>0
+        return math.ceil(math.log(self.reinforce_cap) / math.log(self.reinforce_alpha)) + 1
+
+    @property
+    def ema_floor_onset_support(self) -> float:
+        """Prior-support at which the adaptive gist-valence EMA hits its floor.
+
+        The effective update rate is ``max(gist_valence_ema_min,
+        gist_valence_ema / sqrt(support))``. The sqrt term equals the floor exactly
+        when ``support = (gist_valence_ema / gist_valence_ema_min)**2``. Below this the
+        floor binds (constant rate ``gist_valence_ema_min``); above it the rate keeps
+        shrinking. Derived from ``gist_valence_ema`` and ``gist_valence_ema_min``;
+        with defaults ``= 64``.
+        """
+        return (self.gist_valence_ema / self.gist_valence_ema_min) ** 2
+
+    @property
+    def gist_idle_survival_cycles(self) -> float:
+        """Idle consolidation cycles a maximally-supported gist survives before eviction.
+
+        A gist's strength is ``min(support, gist_support_decay_cap) *
+        gist_decay_per_cycle ** idle_cycles`` and it is evicted once strength falls
+        below ``gist_retention_floor``. For a gist pinned at the support cap this
+        crosses the floor at ``ln(gist_support_decay_cap / gist_retention_floor) /
+        |ln(gist_decay_per_cycle)|``. Derived from ``gist_support_decay_cap``,
+        ``gist_retention_floor`` and ``gist_decay_per_cycle``; with defaults
+        ``~= 396`` cycles (first discrete eviction at idle 397).
+        """
+        return math.log(self.gist_support_decay_cap / self.gist_retention_floor) / abs(
+            math.log(self.gist_decay_per_cycle)
+        )
+
     def relation_from_valence(self, v: float) -> str:
         """Derive a trait's relation from its current running valence (enables flips)."""
         if v > self.relation_pos_threshold:
