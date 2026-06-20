@@ -184,11 +184,15 @@ not just asserted. The headline results to date (full method + caveats in
   model off its prior using remembered rules and crisis guardrails) — a positive,
   moderate effect on every model of a 5-model / 3-family panel. But it does **not**
   install a latent **disposition**: two *opposite* temperaments fed to the same
-  models produce *identical* choices. Disposition *appears* to live in the model's
-  weights/activations, not in retrievable context — the line between **Side A**
-  (memory) and **Side B** (disposition) below.
-  *Caveat: in-context, greedy, single-sample, n=10 probes, 12–14B panel — this
-  measures recall steering, not weight-level effects.*
+  models produce **statistically indistinguishable** choices — across a 5-model panel
+  the dex/uma 95% CIs overlap at n≈50 (see
+  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)), so no
+  disposition shift is *detectable*, not merely asserted equal. Disposition *appears* to
+  live in the model's weights/activations, not in retrievable context — the line between
+  **Side A** (memory) and **Side B** (disposition) below.
+  *Caveat: in-context, 12–14B panel — recall-steering measured greedy at n=10 probes,
+  disposition sampled at k=5 / n≈50; this measures in-context recall steering, not
+  weight-level effects.*
 
 - **A richer recalled phenotype steers more — and stays auditable.** The default
   now carries two enrichments (each gated): **gist exemplars** (a verbatim `e.g.`
