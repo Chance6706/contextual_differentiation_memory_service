@@ -53,7 +53,7 @@ phases 1+) are **fully designed and documented but not yet implemented.**
   established traits resist injection (M-M-4), per-write associative-boost cap (M-M-3),
   embedder-lock + eviction-reread races, runtime vec0-format pin (M-8), dedup in-memory survivor
   + MCP `kind` validation (L-1/L-S-1), and **scale** — per-project dedup/aggregation (C-1 memory)
-  + a gated VACUUM (M-S-1). Verified overstated/dead-config: `http_host`/`dreamer_base_url` are
+  + a gated VACUUM (M-S-1). Verified overstated/dead-config: `http_host`/`render_base_url` are
   stdio/unwired, C-1 OOM is decay-bounded, L-3 was already shipped in Cycle 7. **Intentionally
   deferred:** C-1 streaming pre-eviction (addressed by C-1 memory + M-S-1; rare dedup-fold
   caveat), L-C-1 (lock + persist-last already cover it), L-6 (cosmetic), L-S-2 (ops/CI not code),
@@ -132,8 +132,9 @@ per-project psyches (trait overlap **0.00**).
   (discovered→proposed→experiment→lived); provenance.
 - **Archetypes / genotype** — temperament vector; archetype = chosen genotype (tunes real
   dynamics, NOT a prompt persona); **bounded ("fixed-range") drift**; "Growth" exception.
-- Optional local **Dreamer** model (config scaffolded, not wired — deliberately, to keep
-  consolidation mechanical / anti-self-fiction).
+- Optional local **Prose Renderer `"Dreaming"`** (CDMS-B; `Config.render_*` scaffolded, not
+  wired — deliberately, to keep consolidation mechanical / anti-self-fiction). Distinct from
+  CDMS-C / Active Research `"Dreaming"` (`tools/research_models.py`). See `docs/DEVIATIONS.md` L6.
 
 ## Settled design decisions (this session)
 

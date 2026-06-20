@@ -1,15 +1,17 @@
-# Dreamer model selection (trait-driven dreaming)
+# CDMS-C / Active Research `"Dreaming"` — model selection
 
 _Scaffolded 2026-06-19 and **pressure-tested by a 4-lens panel before adoption**. Forward-looking: there
-is **no dreaming runtime yet**. The panel's headline finding reframed this doc — the dreaming **safety
-substrate is not in place**, so most of this is now a spec of what must be true *before* a runtime is
-built, not a green light. Config: `tools/dreamer_models.py`._
+is **no research-`"Dreaming"` runtime yet**. The panel's headline finding reframed this doc — the
+research-`"Dreaming"` **safety substrate is not in place**, so most of this is now a spec of what must
+be true *before* a runtime is built, not a green light. Config: `tools/research_models.py`._
 
-> **Naming collision (fix before building):** a "Dreamer" already exists in the codebase — `Config.dreamer_*`,
-> a read-time **prose renderer** that is never authoritative (`consolidate.py`). The subsystem described
-> here is a different thing: an idle trait-**exploration generator** of *synthetic* dreams. Rename one.
+> **Naming resolved (2026-06-20):** the previous "Dreamer" collision is fixed. `Config.render_*` is the
+> read-time **Prose Renderer** (CDMS-B), and this doc + `tools/research_models.py` are the **Active
+> Research `"Dreaming"`** subsystem (CDMS-C). The umbrella term `"Dreaming"` is always scare-quoted; see
+> [`docs/DEVIATIONS.md`](../DEVIATIONS.md) L6 for the three-way disambiguation (sleep / Hafner /
+> DeepDream).
 
-## What the (exploration) Dreamer is
+## What CDMS-C / Active Research `"Dreaming"` is
 The system generating its **own** exploratory content during idle time — recombining stored memories,
 exploring hypotheticals in the persona's trait space — to enrich the phenotype **without new real
 interaction**. Runs opportunistically on **free GPU during inactivity**, gated off by default.
@@ -19,25 +21,28 @@ The intended invariant — "dream content is synthetic, captured `untrusted`, an
 scar or gist-trait" — is **asserted nowhere in enforceable code today.** Verified against the live tree:
 
 1. **Force a dedicated synthetic provenance at ingest.** No current path stamps it: `TurnEvent.provenance`
-   defaults to `"trusted"` (`store.py`), and the MCP `store` tool + CLI `ingest` (the paths a dreamer would
-   use) both produce **trusted** episodes; `classify_provenance` only fires on hook-captured tool events,
-   which a dream isn't. → Add a distinct `"synthetic"` provenance, required on the dream-ingest function;
-   forbid MCP `store`/`cmd_ingest` as the dream path. **It must be impossible to write a dream as trusted.**
+   defaults to `"trusted"` (`store.py`), and the MCP `store` tool + CLI `ingest` (the paths a research-`"Dreaming"`
+   worker would use) both produce **trusted** episodes; `classify_provenance` only fires on hook-captured
+   tool events, which a research-`"Dreaming"` output isn't. → Add a distinct `"synthetic"` provenance, required
+   on the dream-ingest function; forbid MCP `store`/`cmd_ingest` as the research-`"Dreaming"` path.
+   **It must be impossible to write a research-`"Dreaming"` output as trusted.**
 2. **Gate synthetic content out of recall, the recent tier, AND salience — not just elevation.** Provenance
    is checked only in scar-elevation (`consolidate.py:277`) and gist-aggregation (`:485`). Untrusted content
    still flows through `retrieve`/`knn`/`fts`, the cold-start recent tier (`hooks.py`), associative boost,
    and salience. The "untrusted may surface in the low-authority recent tier" residual was scoped for
    *passive external reads at human rates* — NOT an autonomous high-volume self-author. → exclude synthetic
    from recall + recent + salience competition, or hard-cap + de-authoritize its render.
-3. **Break the feedback loop.** Dreams enrich state → seed more dreams. The activity-based decay model
-   *fails here*: decay only fades **idle** traits, but a Dreamer keeps its own confabulations non-idle (never
-   decays) while advancing the consolidation/decay cycle clock that ages **real** unreinforced memory →
-   preferentially forgets the genuine, retains the synthetic. → dreams must not form/reinforce gists, must
-   not advance the cycle counter, and ideally run against a **sandbox store** that never back-writes the
-   authoritative gist tier. Add a multi-cycle drift-erosion test with a dreaming producer in the loop.
+3. **Break the feedback loop.** Research-`"Dreaming"` outputs enrich state → seed more outputs. The
+   activity-based decay model *fails here*: decay only fades **idle** traits, but a research-`"Dreaming"`
+   worker keeps its own confabulations non-idle (never decays) while advancing the consolidation/decay
+   cycle clock that ages **real** unreinforced memory → preferentially forgets the genuine, retains the
+   synthetic. → research-`"Dreaming"` outputs must not form/reinforce gists, must not advance the cycle
+   counter, and ideally run against a **sandbox store** that never back-writes the authoritative gist
+   tier. Add a multi-cycle drift-erosion test with a research-`"Dreaming"` producer in the loop.
 4. **Budget isolation.** `salience_budget` caps are per project/session, not per origin; a high-volume
-   Dreamer sharing the persona's session dilutes **real** memory toward eviction. → exclude synthetic from
-   `_compete_and_renormalize`, or confine to a dedicated synthetic session/project sub-cap.
+   research-`"Dreaming"` worker sharing the persona's session dilutes **real** memory toward eviction.
+   → exclude synthetic from `_compete_and_renormalize`, or confine to a dedicated synthetic session/project
+   sub-cap.
 5. **Tests through the *real* dream path** (not hand-tagged `TurnEvent`s): assert a dream catastrophe never
    elevates, never gists, never appears in `build_preamble`/recent, and is never returned by `retrieve`.
    And **bound dream temperature against a coherence floor** — high temp inflates novelty→salience and
@@ -61,10 +66,10 @@ A dream passes iff coherent ∧ on-trait ∧ novel-but-bounded. Until this exist
 | **sweet** (default) | best exploration / free-GPU cost | 7-20GB | qwen2.5:14b · **qwen2.5:32b** · gemma4:12b · phi4:14b · mistral-nemo | 4070 Ti (≤14B); 32B → GX10 |
 | **best** | deep-idle, richest | 43-73GB | llama3.1:70b · qwen2.5:72b · mistral-large 123B | **GX10 only** |
 
-`dreamer(tier, family, max_model_gb)` filters to host-fitting models (4070 Ti `sweet` correctly excludes the
-32B); `rotate(tier, max_model_gb)` cycles families; `pick_for_budget(free, idle, max_model_gb)` picks the
-biggest tier meeting the gate **and** fitting the host. The `best` gate is **80GB free** (a 123B's ~73GB +
-KV must fit — the earlier 48GB gate was OOM-reachable). Negative inputs clamp to `min`.
+`research(tier, family, max_model_gb)` filters to host-fitting models (4070 Ti `sweet` correctly excludes
+the 32B); `rotate(tier, max_model_gb)` cycles families; `pick_for_budget(free, idle, max_model_gb)` picks
+the biggest tier meeting the gate **and** fitting the host. The `best` gate is **80GB free** (a 123B's
+~73GB + KV must fit — the earlier 48GB gate was OOM-reachable). Negative inputs clamp to `min`.
 
 ## Open design questions (need the validation gate to answer)
 - **Family rotation confounds diversity with per-family quality** — a "more divergent" dream may just be a
@@ -91,4 +96,5 @@ KV must fit — the earlier 48GB gate was OOM-reachable). Negative inputs clamp 
 ## Follow-ups
 - **Shared tag catalog** (`tools/local_models.py`) so `steering_experiment.py` and this module stop
   duplicating drift-prone Ollama tags.
-- **Rename** to resolve the `Config.dreamer_*` (prose-renderer) collision.
+- ~~**Rename** to resolve the `Config.dreamer_*` (prose-renderer) collision.~~ **Done 2026-06-20**:
+  `Config.render_*` (CDMS-B) vs `tools/research_models.py` `research()` (CDMS-C). See `docs/DEVIATIONS.md` L6.

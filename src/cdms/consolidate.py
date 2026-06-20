@@ -13,8 +13,10 @@ identity:
 
 Step 5 deliberately extracts structural invariants from the raw logs rather than
 asking an LLM to "summarize", which would invite generative self-fiction. The
-optional Dreamer LLM is used *only* to render prose at read time, never to author
-the authoritative tuple.
+optional Prose Renderer ("Dreaming"; CDMS-B) is used *only* to render prose at
+read time, never to author the authoritative tuple. (See docs/DEVIATIONS.md L6
+for the scare-quoted "Dreaming" umbrella; distinct from CDMS-C / Active Research
+"Dreaming" in tools/research_models.py.)
 """
 
 from __future__ import annotations

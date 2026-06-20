@@ -20,9 +20,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Optional local "Dreamer" LLM client for prose rendering of gist tuples and
-# richer consolidation. Talks to any OpenAI-compatible endpoint (llama.cpp / Ollama).
-dream = ["httpx>=0.27"]
+# Optional local Prose Renderer ("Dreaming"; CDMS-B) LLM client for read-time
+# narration of gist tuples. Talks to any OpenAI-compatible endpoint (llama.cpp /
+# Ollama). See docs/DEVIATIONS.md L6 for the scare-quoted "Dreaming" umbrella.
+render = ["httpx>=0.27"]
 dev = ["pytest>=8.0", "httpx>=0.27"]
 
 [project.scripts]

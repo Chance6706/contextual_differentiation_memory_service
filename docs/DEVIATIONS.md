@@ -160,6 +160,42 @@ external review, 2026-06.)
 - **Disclaimed:** that personality "emerges" the way biological traits do. The CDMS genotype
   determines *how to filter*, not *what to think* — it sets a discard program, not a trait value.
 
+### L6. `"Dreaming"` (umbrella term — always scare-quoted in prose)
+
+- **Standard meanings (three; CDMS matches none of them):**
+  - *Sleep-state dreaming* (the cognitive-science / vernacular sense): mental imagery during REM,
+    involuntary, experiential.
+  - *Hafner et al. "Dreamer"* (the ML sense in world-models): an agent learns a latent dynamics
+    model and improves a policy by **imagined latent rollouts**. Their agent is literally named
+    "Dreamer" (Hafner et al. 2019–2023).
+  - *"DeepDream"* (Mordvintsev et al. 2015): gradient ascent on a classifier's activations to
+    amplify learned features into an image.
+- **CDMS scoped meaning:** an **umbrella label** over TWO designed-not-built sub-LLM subsystems
+  that sit between mechanical capture (CDMS-A) and mechanical retrieval/replay:
+  - **CDMS-B — Prose Renderer `"Dreaming"`** (`Config.render_*`, `tools/research_models.py`-style
+    selection forthcoming): a read-time sub-LLM that **narrates** already-extracted gist tuples
+    into prose. Never authoritative; the never-author-the-tuple invariant extends from authoring
+    to *adding* (a renderer must naturalize the tuple, adding nothing).
+  - **CDMS-C — Active Research `"Dreaming"`** (`tools/research_models.py`): a gated, idle,
+    self-directed generative-exploration subsystem. Output is `provenance="untrusted"` by design
+    and must never elevate to gist/scar without corroboration. Five safety must-haves
+    (`tools/research_models.py` docstring + `docs/research/RESEARCH_MODELS.md` Safety substrate)
+    block construction until they land.
+- **Why we kept the umbrella anyway:** the perceive(A) → `"dream"`(B+C) → act(D) symmetry is too
+  useful as design intuition to discard, and the CDMS-A/B/C/D letter labels carry the actual
+  disambiguation. The scare-quotes are themselves the point-of-use deviation flag — they travel
+  with the term so the disclaimer rides along. Code identifiers stay literal (`render_*`,
+  `research_*`) because quotes don't ride in identifiers; an inline comment at each call site
+  points back to this entry.
+- **Disclaimed:**
+  - *Sleep-dreaming.* CDMS does not sleep, has no REM analog, and CDMS-B fires at **read**
+    time. CDMS-C is idle-scheduled (free-GPU window) — not a sleep state.
+  - *Hafner/World-Models "Dreamer".* CDMS does **not** learn a latent dynamics model, has no
+    policy or value function, and performs no imagined latent rollouts. The CDMS surface is
+    extracted text gists, not latent states; nothing in CDMS is updated by an imagined trajectory.
+  - *"DeepDream".* CDMS does **not** perform gradient ascent on activations, has no convolutional
+    substrate, and produces text not images. Zero mechanical overlap.
+
 ---
 
 ## How to add an entry

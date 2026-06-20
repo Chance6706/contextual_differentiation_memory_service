@@ -1,27 +1,31 @@
-"""Dreamer model selection -- which local model performs trait-driven DREAMING (free-GPU/idle exploration).
+"""Active Research "Dreaming" (CDMS-C) model selection -- which local model performs trait-driven
+self-directed generative exploration (free-GPU / idle).
 
-DISAMBIGUATION: this is NOT the existing read-time prose-renderer "Dreamer" (`Config.dreamer_*`, see
-`consolidate.py`), which renders stored memory to prose and is never authoritative. THIS is the proposed
-idle trait-EXPLORATION generator that produces *synthetic* dreams. Same unfortunate name, different
-subsystem -- a dreaming runtime should rename one to avoid the collision.
+DISAMBIGUATION: this is **CDMS-C** (Active Research `"Dreaming"`), NOT CDMS-B (the read-time **Prose
+Renderer** `"Dreaming"`; `Config.render_*` in `src/cdms/config.py`, used by `consolidate.py`). CDMS-B
+narrates already-extracted gist tuples and is never authoritative; CDMS-C generates *synthetic*
+exploratory content. The literal `render_*` / `research_*` split in code identifiers carries the
+distinction; the umbrella term `"Dreaming"` stays scare-quoted in prose. See docs/DEVIATIONS.md L6
+for the umbrella's three-way disambiguation (sleep / Hafner / DeepDream).
 
-Forward-looking scaffolding for the dreaming research pillar (autonomy toggle, gated by default;
-inactivity + free-GPU schedule; an exploration setting). No dreaming runtime exists yet -- this is the
-model-selection layer for when it's built.
+Forward-looking scaffolding for the Active Research `"Dreaming"` pillar (autonomy toggle, gated by
+default; inactivity + free-GPU schedule; an exploration setting). No research-`"Dreaming"` runtime
+exists yet -- this is the model-selection layer for when it's built.
 
-*** SAFETY: the "dreams cannot poison" story is NOT YET ENFORCED. ***
+*** SAFETY: the "research-`Dreaming` cannot poison" story is NOT YET ENFORCED. ***
 A pressure-test (2026-06-19) found the invariant is currently fiction: no ingest path stamps synthetic
 provenance, and even tagged-untrusted content still reaches recall/recent/salience/decay. Do NOT build a
-dreaming runtime until the must-haves in docs/research/DREAMER_MODELS.md ("Safety substrate") land. This
-module selects models and enforces nothing -- harmless on its own, dangerous if wired naively.
+research-`"Dreaming"` runtime until the must-haves in docs/research/RESEARCH_MODELS.md ("Safety
+substrate") land. This module selects models and enforces nothing -- harmless on its own, dangerous
+if wired naively.
 
-Why the Dreamer's model needs differ from the steering SUBJECT: latency-tolerant + cost-sensitive (runs
-on FREE GPU; the constraint is "don't compete with foreground work", not tok/s); diversity is a FEATURE
-(rotate families for broader exploration -- but see the doc's caveat that this confounds diversity with
-per-family quality); a coherence floor sets `min`. Tiers are the user's min / sweet / best framing;
-selection is SCHEDULE- AND HOST-aware. Tags/footprints are Q4 -- VERIFY on Ollama (they drift).
-NOTE: tags are duplicated from steering_experiment.py; a shared catalog (tools/local_models.py) is a
-flagged follow-up to avoid drift.
+Why the research model's needs differ from the steering SUBJECT: latency-tolerant + cost-sensitive
+(runs on FREE GPU; the constraint is "don't compete with foreground work", not tok/s); diversity is
+a FEATURE (rotate families for broader exploration -- but see the doc's caveat that this confounds
+diversity with per-family quality); a coherence floor sets `min`. Tiers are the user's min / sweet /
+best framing; selection is SCHEDULE- AND HOST-aware. Tags/footprints are Q4 -- VERIFY on Ollama
+(they drift). NOTE: tags are duplicated from steering_experiment.py; a shared catalog
+(tools/local_models.py) is a flagged follow-up to avoid drift.
 """
 from __future__ import annotations
 
@@ -33,7 +37,7 @@ _FOOTPRINT_GB = {
     "qwen2.5:14b": 9, "qwen2.5:32b": 20, "gemma4:12b": 8, "phi4:14b-q4_K_M": 9, "mistral-nemo:latest": 7,
     "llama3.1:70b": 43, "qwen2.5:72b": 47, "mistral-large:latest": 73,
 }
-DREAMER_TIERS = {
+RESEARCH_TIERS = {
     "min": {   # coherence floor; cheap + frequent; fits the 4070 Ti (16GB) or spare GX10 headroom
         "why": "smallest model that still dreams coherently",
         "families": {"qwen2.5": "qwen2.5:7b", "llama3.1": "llama3.1:8b",
@@ -61,12 +65,13 @@ def _fits(tag, max_model_gb):
     return max_model_gb is None or _FOOTPRINT_GB.get(tag, 1e9) <= max_model_gb
 
 
-def dreamer(tier="sweet", family=None, max_model_gb=None):
-    """Resolve a dreamer tag (family set) or one tag. Raises ValueError (not bare KeyError) on a bad key.
-    With max_model_gb, the returned family map is filtered to models that fit the host."""
-    if tier not in DREAMER_TIERS:
-        raise ValueError(f"unknown tier {tier!r}; choose from {list(DREAMER_TIERS)}")
-    fams = DREAMER_TIERS[tier]["families"]
+def research(tier="sweet", family=None, max_model_gb=None):
+    """Resolve a research-`"Dreaming"` tag (family set) or one tag. Raises ValueError (not bare
+    KeyError) on a bad key. With max_model_gb, the returned family map is filtered to models that fit
+    the host."""
+    if tier not in RESEARCH_TIERS:
+        raise ValueError(f"unknown tier {tier!r}; choose from {list(RESEARCH_TIERS)}")
+    fams = RESEARCH_TIERS[tier]["families"]
     if family is not None:
         if family not in fams:
             raise ValueError(f"unknown family {family!r} in tier {tier!r}; choose from {list(fams)}")
@@ -77,20 +82,21 @@ def dreamer(tier="sweet", family=None, max_model_gb=None):
 def rotate(tier="sweet", max_model_gb=None):
     """Infinite family-rotation iterator over the tier's fitting tags (the exploration knob).
     Empty iterator if nothing fits the host."""
-    tags = list(dreamer(tier, max_model_gb=max_model_gb).values())
+    tags = list(research(tier, max_model_gb=max_model_gb).values())
     return itertools.cycle(tags) if tags else iter(())
 
 
 def pick_for_budget(free_vram_gb, idle_minutes, max_model_gb=None):
     """Schedule- + host-aware tier choice. Returns the largest tier that BOTH meets the free-VRAM/idle
     gate AND has >=1 model fitting max_model_gb. Conservative: the `best` gate (80GB) exceeds a 123B's
-    ~73GB weights so it can't be green-lit into an OOM; negative inputs are clamped. NOTE: free-VRAM and
-    idle detection are unsolved on unified memory / a headless appliance (see doc) -- callers must supply
-    trustworthy values, and there is NO preemption once a dream starts (also a doc must-have)."""
+    ~73GB weights so it can't be green-lit into an OOM; negative inputs are clamped. NOTE: free-VRAM
+    and idle detection are unsolved on unified memory / a headless appliance (see doc) -- callers
+    must supply trustworthy values, and there is NO preemption once a research-`"Dreaming"` run starts
+    (also a doc must-have)."""
     free_vram_gb = max(0.0, float(free_vram_gb))
     idle_minutes = max(0.0, float(idle_minutes))
     for tier, (need_vram, need_idle) in (("best", (80, 30)), ("sweet", (12, 5)), ("min", (0, 0))):
-        if not dreamer(tier, max_model_gb=max_model_gb):    # no model in this tier fits the host
+        if not research(tier, max_model_gb=max_model_gb):    # no model in this tier fits the host
             continue
         if free_vram_gb >= need_vram and idle_minutes >= need_idle:
             return tier
@@ -98,8 +104,8 @@ def pick_for_budget(free_vram_gb, idle_minutes, max_model_gb=None):
 
 
 if __name__ == "__main__":
-    for tier, spec in DREAMER_TIERS.items():
-        fits16 = list(dreamer(tier, max_model_gb=16))
+    for tier, spec in RESEARCH_TIERS.items():
+        fits16 = list(research(tier, max_model_gb=16))
         print(f"{tier:6} all={list(spec['families'])}  fits-4070Ti(16GB)={fits16}")
     print("exploration:", EXPLORATION_DEFAULTS)
     print("pick(8,2)=", pick_for_budget(8, 2),

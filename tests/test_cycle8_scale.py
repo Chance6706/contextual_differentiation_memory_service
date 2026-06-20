@@ -148,16 +148,16 @@ def test_m7_http_host_loopback_preserved(monkeypatch, tmp_path):
     assert load_config().http_host == "127.0.0.9"
 
 
-def test_ms5_dreamer_url_nonloopback_clamped(monkeypatch, tmp_path):
+def test_ms5_render_url_nonloopback_clamped(monkeypatch, tmp_path):
     monkeypatch.setenv("CDMS_HOME", str(tmp_path))
-    monkeypatch.setenv("CDMS_DREAMER_BASE_URL", "http://169.254.169.254/latest/meta-data/")
-    assert load_config().dreamer_base_url == Config().dreamer_base_url
+    monkeypatch.setenv("CDMS_RENDER_BASE_URL", "http://169.254.169.254/latest/meta-data/")
+    assert load_config().render_base_url == Config().render_base_url
 
 
-def test_ms5_dreamer_url_loopback_preserved(monkeypatch, tmp_path):
+def test_ms5_render_url_loopback_preserved(monkeypatch, tmp_path):
     monkeypatch.setenv("CDMS_HOME", str(tmp_path))
-    monkeypatch.setenv("CDMS_DREAMER_BASE_URL", "http://127.0.0.1:9999/v1")
-    assert load_config().dreamer_base_url == "http://127.0.0.1:9999/v1"
+    monkeypatch.setenv("CDMS_RENDER_BASE_URL", "http://127.0.0.1:9999/v1")
+    assert load_config().render_base_url == "http://127.0.0.1:9999/v1"
 
 
 # --- L-5: JSON bool not coerced to a numeric field -------------------------- #
