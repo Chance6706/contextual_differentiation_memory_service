@@ -44,9 +44,12 @@ _ZW_BIDI = re.compile(
 def read_payload() -> dict[str, Any]:
     try:
         raw = sys.stdin.read()
-        return json.loads(raw) if raw.strip() else {}
+        data = json.loads(raw) if raw.strip() else {}
     except (json.JSONDecodeError, ValueError):
         return {}
+    # Valid-but-non-object JSON ([], "x", 5, null) parses without error but is not a dict;
+    # downstream does payload.get(...), which would AttributeError. Coerce to {} at the boundary.
+    return data if isinstance(data, dict) else {}
 
 
 def _sanitize(text: str, limit: int = 220) -> str:
@@ -244,6 +247,8 @@ def dispatch(event_name: str, payload: dict, cfg: Config | None = None) -> dict:
     """Handle one hook event. Returns the JSON object to print on stdout (or {})."""
     cfg = cfg or load_config()
     cfg.ensure_home()
+    if not isinstance(payload, dict):  # defense in depth for direct callers / non-object JSON
+        payload = {}
     event_name = event_name or payload.get("hook_event_name", "")
 
     if event_name == "SessionStart":

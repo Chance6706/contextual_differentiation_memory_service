@@ -202,7 +202,16 @@ class Config:
         moving the anchor. Derived from ``decay_halflife_days`` and ``forgetting_shape``;
         with defaults (halflife=29, β=2) ``τ ≈ 70.01`` days.
         """
-        return self.decay_halflife_days / (2.0 ** (1.0 / self.forgetting_shape) - 1.0)
+        denom = 2.0 ** (1.0 / self.forgetting_shape) - 1.0
+        # Defensive: for an absurdly large shape (>~1e15) 2^(1/beta) rounds to 1.0 and the
+        # denominator underflows to 0.0 -> ZeroDivisionError. _validate caps beta at 1e6 (where
+        # denom ~ 7e-7, safe), so this is only reachable via a Config built WITHOUT validation
+        # (tests/tools). Such a beta is the exponential limit; fall back to a large finite tau so
+        # the property is TOTAL (never raises) and the curve still decays, rather than relying on
+        # _validate having run.
+        if denom <= 0.0:
+            return self.decay_halflife_days * 1e12
+        return self.decay_halflife_days / denom
 
     @property
     def decay_lambda(self) -> float:
