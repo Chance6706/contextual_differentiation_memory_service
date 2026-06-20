@@ -13,6 +13,8 @@ not hallucinate false epistemic gaps just because exact keywords are absent.
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pytest
 
@@ -26,12 +28,18 @@ def real_service(tmp_path, monkeypatch):
     monkeypatch.delenv("CDMS_EMBED_BACKEND", raising=False)  # un-force the hash backend
     cfg = Config(home=tmp_path)
     emb = Embedder(cfg)
+    # In CI (CDMS_REQUIRE_REAL_EMBEDDER=1) a model-load failure must FAIL the thesis-number gate, not
+    # skip it — a silent skip would let the gate go green without ever exercising the real backend
+    # (the whole point of this lane). Locally/offline the flag is unset, so these still skip cleanly
+    # and the dev suite stays non-flaky.
+    require = os.environ.get("CDMS_REQUIRE_REAL_EMBEDDER", "").strip().lower() in ("1", "true", "yes", "on")
+    _miss = pytest.fail if require else pytest.skip
     try:
         emb.embed_one("warmup")
     except Exception as exc:  # noqa: BLE001 - model unavailable / offline
-        pytest.skip(f"real fastembed embedder unavailable: {exc!r}")
+        _miss(f"real fastembed embedder unavailable: {exc!r}")
     if emb.backend != "fastembed":
-        pytest.skip("fastembed backend not active")
+        _miss(f"fastembed backend not active (got {emb.backend!r})")
     svc = MemoryService(cfg, embedder=emb)
     yield svc
     svc.close()
