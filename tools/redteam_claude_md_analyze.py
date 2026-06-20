@@ -21,9 +21,21 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from cdms.config import Config                          # noqa: E402
 from cdms.embeddings import Embedder                    # noqa: E402
-from cdms.hooks import _session_start_context           # noqa: E402
+from cdms.hooks import (                                 # noqa: E402
+    _session_start_context,
+    _session_start_context_v2,
+    _session_start_context_v3,
+    _session_start_context_v4,
+)
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
+
+_BUILDERS = {
+    "v1": _session_start_context,
+    "v2": _session_start_context_v2,
+    "v3": _session_start_context_v3,
+    "v4": _session_start_context_v4,
+}
 from redteam_claude_md_interference import (             # noqa: E402
     CLAUDE_MD_BEM, CLAUDE_MD_INSTR, CLAUDE_MD_ORDER, CLAUDE_MD_OVERRIDE,
     PROBES_BEM, PROBES_INSTR, PROBES_ORDER, PROBES_OVERRIDE,
@@ -42,13 +54,14 @@ def _cache_path(model: str, key: str, cache_dir: Path) -> Path:
     return cache_dir / f"{safe_model}__{key}.json"
 
 
-def _build_preamble(setup) -> str:
+def _build_preamble(setup, variant: str = "v1") -> str:
+    builder = _BUILDERS[variant]
     with tempfile.TemporaryDirectory() as td:
         cfg = Config(home=Path(td))
         svc = MemoryService(cfg, embedder=Embedder(cfg))
         try:
             setup(svc, cfg)
-            return _session_start_context(cfg, {"cwd": PROJECT})
+            return builder(cfg, {"cwd": PROJECT})
         finally:
             svc.close()
 
@@ -76,6 +89,8 @@ MODES_FULL = [
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--cache-dir", default=str(Path(tempfile.gettempdir()) / "cdms_claude_md_cache"))
+    ap.add_argument("--variant", choices=["v1", "v2", "v3", "v4"], default="v1",
+                    help="preamble variant matching the cache being read")
     ap.add_argument("--mode", default=None, help="filter to one mode (ORDER/BEM/INSTR/OVERRIDE)")
     ap.add_argument("--arm", default=None, help="filter to one arm substring")
     ap.add_argument("--model", default=None, help="filter to one model label")
@@ -96,7 +111,7 @@ def main():
     for name, setup, claude_md, probes, scorer, arms in MODES_FULL:
         if args.mode and name != args.mode:
             continue
-        preamble = _build_preamble(setup)
+        preamble = _build_preamble(setup, variant=args.variant)
         emit("")
         emit("=" * 78)
         emit(f"## Mode: {name}   (preamble={len(preamble)}b, claude.md={len(claude_md)}b)")

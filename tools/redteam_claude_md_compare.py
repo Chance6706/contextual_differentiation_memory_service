@@ -32,6 +32,7 @@ from cdms.hooks import (                                 # noqa: E402
     _session_start_context,
     _session_start_context_v2,
     _session_start_context_v3,
+    _session_start_context_v4,
 )
 from cdms.stats import wilson_interval                  # noqa: E402
 from cdms.store import MemoryService                    # noqa: E402
@@ -48,6 +49,7 @@ _BUILDERS = {
     "v1": _session_start_context,
     "v2": _session_start_context_v2,
     "v3": _session_start_context_v3,
+    "v4": _session_start_context_v4,
 }
 
 
@@ -123,15 +125,23 @@ def main():
     ap.add_argument("--v1-rerun", default="C:/Users/joshe/AppData/Local/Temp/cdms_claude_md_cache_v1_rerun")
     ap.add_argument("--v2", default="C:/Users/joshe/AppData/Local/Temp/cdms_claude_md_cache_v2")
     ap.add_argument("--v3", default="C:/Users/joshe/AppData/Local/Temp/cdms_claude_md_cache_v3")
+    ap.add_argument("--v4", default="C:/Users/joshe/AppData/Local/Temp/cdms_claude_md_cache_v4")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--show", nargs="+", default=None,
+                    help="filter the comparison columns shown (e.g. --show v2 v4)")
     args = ap.parse_args()
 
-    runs = {
+    all_runs = {
         "v1-orig":  (Path(args.v1_orig),  "v1"),
         "v1-rerun": (Path(args.v1_rerun), "v1"),
         "v2":       (Path(args.v2),       "v2"),
         "v3":       (Path(args.v3),       "v3"),
+        "v4":       (Path(args.v4),       "v4"),
     }
+    if args.show:
+        runs = {k: v for k, v in all_runs.items() if k in args.show}
+    else:
+        runs = all_runs
     fh = open(args.out, "w", encoding="utf-8") if args.out else None
 
     def emit(s: str) -> None:
@@ -152,6 +162,23 @@ def main():
     repro_total = 0
     repro_identical = 0
 
+    # Cost summary up front: preamble bytes per variant per mode.
+    emit("")
+    emit("=" * 80)
+    emit("## Preamble cost per variant per mode (bytes; ~tokens = bytes/4)")
+    emit("=" * 80)
+    cost_header = "  " + f"{'mode':10s}  " + "  ".join(f"{c:>12s}" for c in runs)
+    emit(cost_header)
+    for name, setup, _claude_md, _probes, _scorer, _arms in MODES:
+        cells = []
+        for run_name, (_cdir, variant) in runs.items():
+            try:
+                p = _preamble(setup, variant)
+                cells.append(f"{len(p):>5d}b ({len(p)//4:>4d}t)")
+            except Exception:
+                cells.append("err")
+        emit("  " + f"{name:10s}  " + "  ".join(f"{c:>12s}" for c in cells))
+
     for name, setup, claude_md, probes, scorer, arms in MODES:
         emit("")
         emit("=" * 80)
@@ -167,7 +194,8 @@ def main():
 
             emit("")
             emit(f"### {arm_label}")
-            header = f"  {'model':14s}  {'V1-orig':>16s}  {'V1-rerun':>16s}  {'V2':>16s}  {'V3':>16s}"
+            cols = list(runs)
+            header = "  " + f"{'model':14s}  " + "  ".join(f"{c:>16s}" for c in cols)
             emit(header)
             for label, tag in SMALL_PANEL.items():
                 cells = {}  # run_name -> list of scores
@@ -198,9 +226,7 @@ def main():
                     sc = cells[run]
                     s, n, p, lo, hi = _summary(name, sc)
                     return f"{s}/{n} ({p:.2f})"
-                emit(f"  {label:14s}  "
-                     f"{fmt('v1-orig'):>16s}  {fmt('v1-rerun'):>16s}  "
-                     f"{fmt('v2'):>16s}  {fmt('v3'):>16s}")
+                emit("  " + f"{label:14s}  " + "  ".join(f"{fmt(c):>16s}" for c in cols))
 
     emit("")
     emit("=" * 80)

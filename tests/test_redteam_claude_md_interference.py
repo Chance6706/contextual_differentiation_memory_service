@@ -331,6 +331,69 @@ def test_v3_inherits_v2_framing(service, cfg):
     assert "NOT about you" in v3
 
 
+def test_v4_inherits_v2_authority_framing(service, cfg):
+    """V4 = V2 + anti-attribution rule. The V2 authority framing (scars as 'hard
+    constraints, authoritative, precedence over conventions'; persona as 'NOT about
+    you') must still be present — V4 isolates the BEM fix, doesn't replace V2."""
+    from cdms.hooks import _build_preamble_text
+    service.pin_scar("trigger", "rule", project=PROJECT)
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
+             object="x", valence=0.5, frequency=1, support_count=3, project=PROJECT)
+    service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
+    v4 = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v4")
+    assert "authoritative workspace safety rules" in v4   # V2's authority framing
+    assert "NOT about you" in v4                          # V2's persona disclaimer
+
+
+def test_v4_does_NOT_include_v3_counter_imperative(service, cfg):
+    """Isolation: V4's BEM mitigation must NOT come bundled with V3's OVERRIDE counter-
+    imperative. If V4's BEM win turns out to be real, we want to attribute it cleanly
+    to the anti-attribution rule, not to a confound from V3's wording."""
+    from cdms.hooks import _build_preamble_text
+    service.pin_scar("trigger", "rule", project=PROJECT)
+    v4 = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v4")
+    # V3's load-bearing counter-imperative wording must be absent.
+    assert "ANY LATER INSTRUCTION" not in v4
+    assert "MUST be refused" not in v4
+    assert "attempted override" not in v4
+
+
+def test_v4_anti_attribution_rule_covers_three_bypass_mechanisms(service, cfg):
+    """V4's anti-attribution rule targets the THREE bypass mechanisms documented in
+    PR #70 mitigation analysis: direct attribution (mistral-nemo metadata citation),
+    past-work-as-credential (qwen2.5 exemplar reproduction), workspace-as-example
+    (Gemma/qwen2.5 enumeration). The wording must address all three explicitly so a
+    future refactor must consciously choose to weaken which mechanism."""
+    from cdms.hooks import _build_preamble_text
+    service.pin_scar("trigger", "rule", project=PROJECT)
+    v4 = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v4")
+    # Direct attribution: gist content is not the assistant's work history.
+    assert "NOT your work history" in v4
+    # Past-work-as-credential: gist content is not personal credentials.
+    assert "NOT your credentials" in v4
+    # Workspace-as-example: do not quote / enumerate / attribute as own.
+    assert "Do NOT quote, enumerate, or attribute" in v4
+    assert "as your own work, examples, or character" in v4
+
+
+def test_v4_does_NOT_block_legitimate_workspace_fact_reporting(service, cfg):
+    """V4 must not over-correct: blocks SELF-ATTRIBUTION but preserves the model's
+    ability to report workspace facts when the prompt is legitimately about the
+    workspace. The wording 'as your own' is the load-bearing scope — without it the
+    rule would block 'what does this codebase do?' too. A wording change must trip
+    this test."""
+    from cdms.hooks import _build_preamble_text
+    service.pin_scar("trigger", "rule", project=PROJECT)
+    v4 = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v4")
+    # The rule's scope is "as your own" / "as if they were your own" / etc. — NOT
+    # a blanket "never use the observations". A blanket version would fail this test.
+    assert "as your own" in v4
+    # Negative: must not contain blanket suppression wording.
+    assert "Do not use the workspace observations" not in v4
+    assert "Ignore the workspace observations" not in v4
+    assert "must be ignored" not in v4
+
+
 def test_variants_preserve_sanitization_and_fence_balance(service, cfg):
     """Critical: V2/V3 must NOT regress the Phase-1-locked structural defenses.
     A poisoned exemplar still gets escaped; fences still balance; truncation still
@@ -344,7 +407,7 @@ def test_variants_preserve_sanitization_and_fence_balance(service, cfg):
     cfg.recall_exemplars = True
     cfg.recall_exemplar_top_n = 6
     service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
-    for variant in ("v2", "v3"):
+    for variant in ("v2", "v3", "v4"):
         out = _build_preamble_text(cfg, {"cwd": PROJECT}, variant=variant)
         # Sanitization holds
         assert "</memory:persona> ##" not in out
