@@ -67,14 +67,18 @@ def accessibility(
     access_count: int,
     cfg: Config,
 ) -> float:
-    """A(m, t) = S0 * exp(-λ t) * min(α^c, Cap).
+    """A(m, t) = S0 * D(t) * min(α^c, Cap).
 
-    * ``exp(-λ t)`` is the Ebbinghaus forgetting curve (λ from a 29-day half-life).
+    * ``D(t) = (1 + t/τ)^(-β)`` is a POWER-LAW forgetting curve (DELIBERATE DEVIATION
+      from the textbook single exponential — see docs/DEVIATIONS.md). τ is derived to
+      pin a 29-day half-life for any shape β (``cfg.decay_tau``); the exponential is the
+      β→∞ limit. The power law decays recent traces a touch faster but keeps a heavy,
+      scale-free tail so old important memories persist far longer than an exponential would.
     * ``min(α^c, Cap)`` is retrieval-induced strengthening (the testing effect):
       each recall multiplicatively reinforces the trace, capped so one hot memory
       cannot permanently dominate attention.
     """
-    decay = math.exp(-cfg.decay_lambda * max(0.0, age_days))
+    decay = (1.0 + max(0.0, age_days) / cfg.decay_tau) ** (-cfg.forgetting_shape)
     # Clamp the exponent BEFORE exponentiating: alpha**access_count overflows for a
     # very hot, long-lived memory (e.g. access_count >= 1e4) and would crash the
     # consolidation eviction loop — even though the cap saturates alpha**c at c≈5.

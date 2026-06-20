@@ -21,3 +21,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 9. Do not restrict yourself to a single point of view. If it cannot be stress-tested then it cannot be properly implemented.
 
 10. Auto-merge PRs. For this repository, merge a pull request you open once it is mergeable (no conflicts, any required checks green) without waiting for explicit approval. Still do not *open* a PR unless asked. If a PR is not mergeable, or a review has requested changes, surface that instead of force-merging.
+
+11. Flag deliberate deviations. Whenever the project departs from a "pure" mathematical derivation, or uses a borrowed term against its typical denotation/connotation/association, flag it explicitly at the point of use (a short `DELIBERATE DEVIATION` note) and register it in `docs/DEVIATIONS.md` (standard form/meaning → what we do → why → what we disclaim). Don't diverge silently. Companion discipline for constants: classify free vs derived vs coincidence in `docs/PARAMETER_BASIS.md`.

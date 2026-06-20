@@ -51,8 +51,19 @@ class Config:
     # totally zeroing-out memories when goal signal is merely absent (vs. negative).
     goal_gate_floor: float = 0.25
 
-    # ---- Ebbinghaus decay   A(m,t) = S0 * e^(-λt) * min(α^c, Cap) -----------
-    decay_halflife_days: float = 29.0   # λ derived from this; keeps active issues alive ~weeks
+    # ---- Decay   A(m,t) = S0 * D(t) * min(α^c, Cap) -------------------------
+    # D(t) is a POWER-LAW forgetting curve, NOT the textbook single exponential —
+    # a DELIBERATE DEVIATION (see docs/DEVIATIONS.md): human forgetting fits a
+    # power law better than an exponential (Wixted & Ebbesen 1991), and a power
+    # law is scale-free (self-similar across timescales), so old important memories
+    # persist on a heavy tail while recent clutter still fades fast. The 29-day
+    # half-life is preserved exactly for every shape (D(halflife)=0.5), and the
+    # exponential is recovered in the β→∞ limit, so this generalizes — never
+    # contradicts — the prior model.
+    decay_halflife_days: float = 29.0   # half-life anchor; τ and λ both derive from this
+    forgetting_shape: float = 2.0       # β: power-law exponent. Smaller = heavier scale-free tail;
+                                        # β→∞ recovers the pure exponential. τ is derived to pin the
+                                        # half-life at decay_halflife_days for ANY β (see decay_tau).
     reinforce_alpha: float = 1.15       # retrieval-induced strengthening base (testing effect)
     reinforce_cap: float = 2.0          # attentional ceiling on a single hot memory
     retention_floor: float = 0.10       # s_floor: below this accessibility, an episode is evictable
@@ -182,8 +193,26 @@ class Config:
         return self.home / self.db_filename
 
     @property
+    def decay_tau(self) -> float:
+        """Power-law time constant τ, DERIVED to pin the half-life for any shape β.
+
+        The forgetting curve is ``D(t) = (1 + t/τ)^(-β)``. Requiring ``D(halflife) = 0.5``
+        gives ``τ = halflife / (2^(1/β) - 1)``. This keeps ``D(0)=1`` and ``D(halflife)=0.5``
+        invariant across every β, so changing ``forgetting_shape`` reshapes the tail without
+        moving the anchor. Derived from ``decay_halflife_days`` and ``forgetting_shape``;
+        with defaults (halflife=29, β=2) ``τ ≈ 70.01`` days.
+        """
+        return self.decay_halflife_days / (2.0 ** (1.0 / self.forgetting_shape) - 1.0)
+
+    @property
     def decay_lambda(self) -> float:
-        """λ such that e^(-λ * halflife) = 0.5."""
+        """Limiting exponential rate λ such that e^(-λ·halflife) = 0.5.
+
+        This is the β→∞ limit of the power-law family: ``(1 + λt/β)^(-β) → e^(-λt)``,
+        and the initial decay slope ``-D'(0)`` converges to λ as β grows. The live
+        forgetting curve uses ``decay_tau`` + ``forgetting_shape``, not λ directly; λ is
+        retained as the documented exponential-limit reference and half-life check.
+        """
         return math.log(2.0) / self.decay_halflife_days
 
     # -- derived genotype constants ------------------------------------------
@@ -325,6 +354,10 @@ def _validate(cfg: "Config") -> None:
         ("reinforce_alpha", lambda v: _num(v) and 1.0 < v <= 1e3),
         ("reinforce_cap", lambda v: _num(v) and 1.0 <= v <= 1e6),
         ("decay_halflife_days", lambda v: _num(v) and 0 < v <= 1e6),
+        # forgetting_shape (β) must be > 0 and finite. Upper-bounded so 2^(1/β)-1 stays
+        # comfortably above floating-point underflow (the decay_tau denominator); β >= ~1e3
+        # is already indistinguishable from the exponential limit, so the cap costs nothing.
+        ("forgetting_shape", lambda v: _num(v) and 0 < v <= 1e6),
         ("max_field_chars", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("embed_max_chars", lambda v: isinstance(v, int) and 1 <= v <= 1_000_000),
         ("spool_max_bytes", lambda v: isinstance(v, int) and 1_000 <= v <= 10_000_000_000),

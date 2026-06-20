@@ -129,10 +129,10 @@ Goal-relevance is a **multiplicative veto**, not an additive term: a loud-but-ir
 ✅ **Built** — Episodes are never hard-deleted on read; they become progressively harder to reach. `accessibility` (`salience.py`) implements:
 
 ```
-A(m,t) = S0 · e^(−λt) · min(α^c, Cap)
+A(m,t) = S0 · D(t) · min(α^c, Cap),   D(t) = (1 + t/τ)^(−β)
 ```
 
-- `e^(−λt)` is the Ebbinghaus forgetting curve. `λ = ln(2)/decay_halflife_days` is derived from a **29-day half-life** (`config.py: decay_lambda`); `t` is age in days from the record timestamp (`age_days`). Per the activity-vs-wall-clock decision, **raw L1 uses wall-clock decay** (old logs *should* fade) — only the consolidated L2 identity is preserved across absences.
+- `D(t)` is a **power-law forgetting curve** — a *deliberate deviation* from the textbook single exponential (see `docs/DEVIATIONS.md` M1 and `docs/validation/forgetting_curve/`). Human forgetting fits a power law better than an exponential and a power law is **scale-free**, so old important traces persist on a heavy tail while recent clutter fades fast. The shape `β = forgetting_shape` (default 2) is free; `τ = decay_tau = halflife/(2^(1/β)−1)` is **derived** to pin the **29-day half-life** (`D(0)=1`, `D(29)=0.5`) for any β, and the exponential is recovered as β→∞ (`λ = decay_lambda = ln(2)/halflife` is retained as that limit rate). `t` is age in days from the record timestamp (`age_days`). Per the activity-vs-wall-clock decision, **raw L1 uses wall-clock decay** (old logs *should* fade) — only the consolidated L2 identity is preserved across absences.
 - `min(α^c, Cap)` is retrieval-induced strengthening (the testing effect), where `c = access_count`. Each successful recall increments `access_count` (`db.touch_episodic`, written back on the read path in `store.py: retrieve`), multiplicatively reinforcing the trace.
 - The **reinforcement cap** saturates that boost: `reinforce_alpha = 1.15`, `reinforce_cap = 2.0`. This corrects the design doc's unbounded geometric `α^c` (which contradicts diminishing-returns data, per `VALIDATION.md`): one hot memory cannot exceed a 2× attentional ceiling and permanently dominate retrieval.
 

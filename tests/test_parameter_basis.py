@@ -40,6 +40,26 @@ def test_decay_lambda_is_derived_from_halflife():
     assert math.isclose(math.exp(-cfg.decay_lambda * cfg.decay_halflife_days), 0.5, rel_tol=1e-12)
 
 
+def test_decay_tau_is_derived_from_halflife_and_shape():
+    # Supposition: tau is a CONSEQUENCE of the half-life and the power-law shape, pinned so
+    # D(halflife)=0.5 for any beta. tau = halflife / (2^(1/beta) - 1).
+    cfg = Config()
+    expected = cfg.decay_halflife_days / (2.0 ** (1.0 / cfg.forgetting_shape) - 1.0)
+    assert math.isclose(cfg.decay_tau, expected, rel_tol=1e-12)
+    assert math.isclose(cfg.decay_tau, 70.0122, rel_tol=1e-4)  # halflife 29, beta 2
+
+
+def test_decay_lambda_is_the_exponential_limit_not_the_live_rate():
+    # decay_lambda is retained as the beta->inf limit / half-life reference, NOT the curve
+    # the live code uses (that is decay_tau + forgetting_shape). Both still satisfy the anchor.
+    cfg = Config()
+    assert math.isclose(math.exp(-cfg.decay_lambda * cfg.decay_halflife_days), 0.5, rel_tol=1e-12)
+    big = Config(forgetting_shape=1e6)  # near the exponential limit
+    assert math.isclose(
+        (1.0 + cfg.decay_halflife_days / big.decay_tau) ** (-big.forgetting_shape), 0.5, rel_tol=1e-4
+    )
+
+
 def test_reinforce_saturation_clamp_default_and_formula():
     # Supposition: the clamp is ceil(ln(cap)/ln(alpha)) + 1 (saturation count c*, plus a
     # one-step overflow-safety margin), not a hand-set integer.
@@ -76,6 +96,14 @@ def test_decay_lambda_tracks_halflife():
     base = Config()
     fast = Config(decay_halflife_days=base.decay_halflife_days / 2)
     assert math.isclose(fast.decay_lambda, 2 * base.decay_lambda, rel_tol=1e-12)
+
+
+def test_decay_tau_tracks_halflife_and_shape():
+    base = Config()  # beta=2
+    # tau scales linearly with the half-life at fixed shape.
+    assert math.isclose(Config(decay_halflife_days=58.0).decay_tau, 2 * base.decay_tau, rel_tol=1e-12)
+    # a heavier tail (smaller beta) at fixed half-life uses a smaller tau.
+    assert Config(forgetting_shape=1.0).decay_tau < base.decay_tau < Config(forgetting_shape=8.0).decay_tau
 
 
 def test_saturation_clamp_tracks_alpha_and_cap():
