@@ -31,6 +31,7 @@ os.environ.setdefault("CDMS_EMBED_BACKEND", "hash")
 from cdms.config import Config                       # noqa: E402
 from cdms.embeddings import get_embedder             # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
+from cdms.stats import bootstrap_ci, mean_se          # noqa: E402
 from individuation_experiment import PERSONAS, build_psyche  # noqa: E402
 from steering_experiment import CHEF_SPEC, SUBJECTS, ollama  # noqa: E402
 
@@ -159,7 +160,10 @@ def main():
 
     def _majority(votes):
         votes = [v for v in votes if v in ("A", "B", "N")]
-        return max(set(votes), key=votes.count) if votes else "N"
+        # sorted() before max() makes ties DETERMINISTIC. Bare max(set(...)) returns the first
+        # tie-winner in set-iteration order, which is PYTHONHASHSEED-randomized -> the panel coupling
+        # number wobbled run-to-run on identical cached data. Ties now resolve alphabetically (A>B>N).
+        return max(sorted(set(votes)), key=votes.count) if votes else "N"
 
     n = len(PROMPTS)
     reg, cho = {}, {}
@@ -213,6 +217,18 @@ def main():
     print(f"       judge-independent contraction-gap (cole-tessa) = {mean(panel['contr_gap']):+.1f}/1k (corroborates the judge voice-shift?)")
     print(f"       WITHIN-MODEL coupling (voice-gap diverged-minus-agreed) = {mean(panel['couple_diff']):+.1f} "
           f"(>0 = voice & choice move on the SAME prompts -> coupled beyond model-level steerability)")
+    # Error bars on the panel coupling (Thread-3 measurement precision): the per-subject diffs.
+    # n=5 is tiny, so DON'T issue a single binary verdict -- the percentile bootstrap is
+    # anti-conservative at this n (it can exclude 0 while a t-interval includes it). Report BOTH the
+    # bootstrap CI and mean +/- SE and let the reader see they disagree; the doc carries the call.
+    # The docstring's design intent (per-PROMPT bootstrap, n=20) is the higher-power follow-up.
+    cd = panel["couple_diff"]
+    cp, clo, chi = bootstrap_ci(cd)
+    m, se = mean_se(cd)
+    print(f"       coupling panel (n={len(cd)} subjects): point {cp:+.2f}  "
+          f"bootstrap 95% CI [{clo:+.2f}, {chi:+.2f}]  (mean {m:+.2f} +/- {se:.2f} SE)")
+    print(f"       NOTE: n={len(cd)} is tiny -- the percentile bootstrap is anti-conservative here, so "
+          f"treat +{cp:.2f} as SUGGESTIVE, not established. Higher-power test = per-prompt bootstrap (n=20).")
     return 0
 
 
