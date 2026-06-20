@@ -18,8 +18,8 @@ away — it's the very thing that makes two instances *different*.
 It runs **entirely on your own machine** (nothing leaves the computer) and uses
 **zero GPU memory**, so it stays out of the way of anything else you're running.
 
-**What we've actually observed so far:** seeded with ~8,600 real coding-session
-turns drawn from four different projects, CDMS grew four distinct, *recognizable*
+**What we've actually observed so far:** seeded with ~10k real coding-session
+turns drawn from three different projects, CDMS grew three distinct, *recognizable*
 personalities — with **zero overlap** in their defining traits. Importantly, that
 character comes from *what the system remembers*, not from a hidden temperament
 someone installs into it — a boundary we've now tested fairly hard (see
@@ -164,9 +164,11 @@ CDMS is a research project as much as a tool, so the central claims are measured
 not just asserted. The headline results to date (full method + caveats in
 [`docs/`](docs)):
 
-- **Differentiation is real and recognizable.** Seeding ~8.6k real Claude Code turns
-  across **4 projects** produced four distinct per-project psyches with **trait
-  overlap ≈ 0.00** — they share none of their defining traits, and a domain query
+- **Differentiation is real and recognizable.** Seeding ~10k real Claude Code turns
+  across **3 projects** produced three distinct per-project psyches with **trait
+  overlap ≈ 0.00** (stable across all 6 consolidation windows; see
+  [`docs/validation/cycle9_experiments/`](docs/validation/cycle9_experiments)) —
+  they share none of their defining traits, and a domain query
   reliably surfaces the *right* project's self. That near-zero overlap is *meaningfully
   below chance*, not a vocabulary artifact: against a pooled-resampling null (each psyche
   drawing traits independently from the shared vocabulary) the observed overlap sits

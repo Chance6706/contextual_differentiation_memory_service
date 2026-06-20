@@ -79,6 +79,15 @@ def _avg(xs):
     return sum(xs) / len(xs) if xs else float("nan")
 
 
+def _mid(v, midpoint=5.0):
+    """Register fallback: fill a MISSING reading (NaN from _avg of zero judge scores, or None) with the
+    scale midpoint, but PRESERVE a legitimate 0.0 — the judges' 'maximally formal' end (judge_register
+    rates 0=formal..10=casual). `v or 5` was wrong both ways: it mapped a real 0 -> 5 (collapsing the
+    most-formal readings to neutral), and since NaN is truthy it never filled the NaN it was meant to
+    catch (one unparsed register then poisoned the subject's whole couple_diff)."""
+    return midpoint if (v is None or v != v) else v
+
+
 def echo_tokens(spec):
     words = " ".join(spec.get("good_verbs", []) + spec.get("bad_verbs", []) + spec.get("rules", [])).lower()
     return {w for w in re.findall(r"[a-z]{4,}", words)
@@ -182,7 +191,7 @@ def main():
         c_shift = sum(c_div) / np_                                     # cole-vs-tessa choice divergence
         neut_c = sum(1 for i in range(np_) if cn[i] != co[i]) / np_    # placebo choice move
         # WITHIN-MODEL COUPLING: is the per-prompt voice gap larger on prompts where choice diverged?
-        vgap = [abs((rc[i] or 5) - (rt[i] or 5)) for i in range(np_)]
+        vgap = [abs(_mid(rc[i]) - _mid(rt[i])) for i in range(np_)]
         div_v = mean([vgap[i] for i in range(np_) if c_div[i]])
         agr_v = mean([vgap[i] for i in range(np_) if not c_div[i]])
         couple = (div_v - agr_v) if (div_v == div_v and agr_v == agr_v) else float("nan")

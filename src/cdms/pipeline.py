@@ -266,6 +266,7 @@ def _ingest_claim(claimed: Path, service: MemoryService) -> int:
     unlinked in `finally` so a reconstruction error never STRANDS it (the orphan
     reclaim handles the process-death case instead)."""
     ingested = 0
+    affect_null = 0
     try:
         for t in iter_turns(_stream_spool(claimed)):
             try:
@@ -273,10 +274,25 @@ def _ingest_claim(claimed: Path, service: MemoryService) -> int:
             except Exception:  # never let one bad turn abort the drain
                 continue
             ingested += 1
+            if t.success is None:   # no success/failure valence read for this turn
+                affect_null += 1
     finally:
         try:
             claimed.unlink()
         except OSError:
+            pass
+    # A1 instrumentation: how often an ingested turn reaches consolidation with NO affective
+    # signal (success is None — neither the hook nor _infer_success could read valence). Cumulative
+    # meta counters, surfaced as affect_null_rate by `cdms stats`. Mirrors the drains_skipped
+    # pattern (best-effort; a meta-write failure must never break a drain). Under the drain lock,
+    # so this read-modify-write is serialized against other drains.
+    if ingested:
+        try:
+            prev_null = int(service.db.get_meta("affect_null", "0") or "0")
+            prev_total = int(service.db.get_meta("affect_total", "0") or "0")
+            service.db.set_meta("affect_null", prev_null + affect_null)
+            service.db.set_meta("affect_total", prev_total + ingested)
+        except Exception:
             pass
     return ingested
 
