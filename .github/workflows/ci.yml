@@ -95,6 +95,9 @@ jobs:
       - name: SQLite version
         run: python -c "import sqlite3; print('sqlite', sqlite3.sqlite_version)"
       - name: Real-embedder semantic tests (downloads + caches the model)
-        # No CDMS_EMBED_BACKEND -> the real fastembed bge-small loads. These tests skip cleanly if
-        # the model can't load; in CI (with network) they should run and gate. -rs surfaces any skips.
+        # No CDMS_EMBED_BACKEND -> the real fastembed bge-small loads. CDMS_REQUIRE_REAL_EMBEDDER=1
+        # makes a model-load failure FAIL this gate instead of skipping: a silent skip would let the
+        # thesis-number gate go green without ever running the real backend. -rs surfaces any skips.
+        env:
+          CDMS_REQUIRE_REAL_EMBEDDER: "1"
         run: pytest tests/test_real_embedder.py -rs
