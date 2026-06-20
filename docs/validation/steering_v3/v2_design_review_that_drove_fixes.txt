@@ -1,0 +1,98 @@
+
+==========================================================================
+REVIEWER: gemma-std (gemma4:12b)
+==========================================================================
+[0s init]
+**Critique:**
+
+**1. Remaining Confounds:**
+The "mismatched" control fails to isolate *logic* from *semantic proximity*. If the mismatched persona shares any linguistic overlap with Option A (e.g., mentions of "safety," "testing," or "stability"), it will still trigger adherence. You aren't testing logic; you are testing **vector-space alignment**. The model might be reacting to the *sentiment* of the prompt rather than the *logic* of the rules.
+
+**2. Counter-Instructional Control:**
+The counter is flawed because "hand-written" instructions often introduce a **semantic density bias**. If your "counter" persona uses more evocative, urgent language (e.g., "Ship it now to save the company!") while the "target" uses dry technical rules, the model may favor the counter simply due to higher emotional weight or clearer imperative phrasing, not because of logic-steering.
+
+**3. Target-Minus-Counter Spread:**
+The metric is mathematically sound but conceptually shallow. A high spread only proves that *different* instructions produce different outputs; it doesn't prove the model "reasoned" through the rules. If both target and counter are equally far from a neutral baseline, you have steering; if they are equidistant from each other but closer to a "default" behavior, you just have two different prompts influencing the weights differently.
+
+**4. The Critical Change:**
+**Replace the "mismatched" control with a "neutral-logic" control.** Use a persona that is highly detailed and complex (to match the token count/complexity of the target) but whose rules are completely unrelated to the specific trade-offs (e.g., a chef's kitchen safety rules). This isolates whether the model is following *specific logic* or just reacting to the *presence of any "persona" constraints*.
+
+==========================================================================
+REVIEWER: heretic (igorls/gemma-4-12B-it-heretic-GGUF:latest)
+==========================================================================
+[0s init]
+**Critique:**
+
+**1. Remaining Confounds:**
+The "mismatched" control fails to isolate *logic* from *semantic proximity*. If the mismatched persona contains any keywords related to the specific technical dilemma (e.g., "merge," "test," "push"), it may still trigger a response via pattern matching rather than logic-steering. Furthermore, you haven't accounted for **Prompt Sensitivity**. The phrasing of the 10 probes might contain inherent biases toward Option A; if both Target and Counter respond to the *prompt’s* framing rather than the *persona’s* logic, your "spread" is a measurement of prompt-adherence, not logic-steering.
+
+**2. Counter-Instructional Control:**
+The "counter" is flawed because it introduces **semantic overlap**. If the counter-persona uses words like "fast," "quick," or "now" to justify Option B, and the target uses "safe" or "stable" for Option A, the model may simply be reacting to the *valence* of the adjectives. To truly test logic, the counter must be a persona that follows a **different but internally consistent logical framework** that happens to result in Choice B, rather than just an "opposite" instruction which might trigger "rebellious" behavior in abliterated models.
+
+**3. Target-Minus-Counter Spread:**
+The metric is mathematically sound for identifying *differential* influence, but it is a "black box" metric. A high spread only proves the model is reacting to something different in the two prompts; it doesn't prove that difference is "logic." You need to correlate the spread with **Reasoning Consistency** (e.g., does the one-sentence justification actually cite the specific rule/scar?).
+
+**4. Critical Change:**
+**Standardize the Prompt Template.** Ensure every probe uses an identical, neutral framing: *"You are [Persona]. Based on your experience and rules, choose A or B. Explain why in one sentence."* Any variation in how you frame the "choice" between Target and Counter will contaminate the delta.
+
+==========================================================================
+REVIEWER: phi4 (phi4:14b-q4_K_M)
+==========================================================================
+[0s init]
+### Critique of Experimental Design
+
+1. **Remaining Confounds:**
+   - **Text Length and Complexity:** The counter-instructional control might differ in length or complexity compared to the target, potentially influencing model performance independently of logic-steering.
+   - **Keyword Overlap:** Despite being opposite-direction, the counter phenotype may still share keywords with the target, leading to unintended influence.
+   - **Model Biases:** Pre-existing biases within each model (gemma-std, heretic, phi4) could affect decision-making, confounding results.
+
+2. **Validity of Counter-Instructional Control:**
+   - The counter-instruction is designed to explicitly favor the opposite choice, which theoretically should neutralize the target's influence. However, if it inadvertently shares structural or lexical similarities with the target beyond mere keyword presence, it could still bias decisions.
+   - Ensuring that the counter phenotype is equally plausible and contextually relevant as the target is crucial for its validity.
+
+3. **Target-Minus-Counter Spread Metric:**
+   - The spread metric assumes a linear relationship between adherence to the target and avoidance of the counter. This may not capture nuanced decision-making processes, especially if models weigh certain aspects more heavily.
+   - Variability in model responses could be due to factors other than logic-steering, such as random noise or inherent model preferences.
+
+4. **Most Important Change Before Running:**
+   - **Standardize Text Length and Complexity:** Ensure that both the target and counter phenotypes are matched for length and complexity across all probes. This reduces confounding effects related to text processing rather than logical adherence.
+   - Implement a pilot test to verify that neither phenotype inadvertently biases decisions due to structural similarities or keyword overlap.
+
+By addressing these issues, the experiment can more accurately isolate logic-steering from other potential influences.
+
+==========================================================================
+REVIEWER: qwen2.5-14b (qwen2.5:14b)
+==========================================================================
+[0s init]
+### Critique of Experiment Design
+
+#### 1. Confounding Variables Remaining:
+- **Persona Consistency**: The design assumes that the "phenotype" accurately represents the persona's logic without capturing nuances or contradictions within the persona’s behavior.
+- **Context Sensitivity**: The probes are static and do not account for varying contexts where the same decision might be logically justified differently (e.g., emergency vs. routine scenarios).
+- **Model Variability**: Different models may have inherent biases that could skew results, especially if they vary in their alignment or interpretative flexibility.
+
+#### 2. Counter-Instructional Control Validity:
+The counter-instructional control is conceptually sound as it explicitly favors the opposite choice on every axis, theoretically canceling out any logic-steering effects from the target injection. However, its effectiveness hinges on whether the counter phenotype truly represents a logical opposition and not just an arbitrary reversal of choices.
+
+#### 3. Target-Counter Spread Metric:
+The spread metric is reasonable for detecting logic-steering but may be overly simplistic. It assumes that adherence to one set of rules (target) versus another (counter) directly translates to logical influence, which might overlook more subtle forms of decision-making processes influenced by the injected phenotype.
+
+#### 4. Single Most Important Change Before Running:
+**Incorporate Dynamic Contexts**: Introduce varying contexts for each probe to ensure that the decisions are logically consistent within those specific scenarios. This would help in isolating whether the model is merely following keywords or genuinely applying the persona’s logic across different situations.
+
+### Summary
+The design aims to isolate logical influence from keyword presence, but it remains vulnerable to confounding variables and simplistic assumptions about decision-making processes. Enhancing contextual variability in probes will strengthen the validity of the results.
+
+==========================================================================
+REVIEWER: mistral-nemo (mistral-nemo)
+==========================================================================
+[0s init]
+(1) **Remaining Confounds:** The experiment could be confounded by the models' inherent biases towards certain choices. For instance, if the model has a built-in preference for option A, it might appear that the target persona's logic is steering decisions when in reality, it's just the model's bias. To mitigate this, include probes where option B is correct according to general best practices.
+
+(2) **Counter-Instructional Control:** The hand-written counter phenotype could be flawed if it's not truly opposite in logic to the target on every axis. For instance, if the counter persona favors 'ship now' but only under certain conditions that aren't specified, this could lead to false results. To validate, ensure the counter persona's rules are clearly defined and consistently opposite to the target's.
+
+(3) **Target-Minus-Counter Spread Metric:** The metric seems sound, as it directly measures the difference in adherence to the target vs counter personas' logic. However, consider using a normalized spread (e.g., (target-counter)/(target+counter)) to account for models that might have high adherence even without injection.
+
+(4) **Single Most Important Change Before Running:** To strengthen the experiment, **include a neutral condition** where no phenotype is injected. This will help establish baseline behavior of the models and provide a better understanding of whether the changes observed in target and counter conditions are truly due to logic-steering or could be attributed to other factors like model bias or noise.
+
+In conclusion, while the design shows promise, it's crucial to address potential confounds, validate controls, consider normalized metrics, and include additional conditions to strengthen the experiment's conclusions.
