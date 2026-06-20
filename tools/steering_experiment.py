@@ -39,6 +39,7 @@ os.environ.setdefault("CDMS_EMBED_BACKEND", "hash")
 from cdms.config import Config                       # noqa: E402
 from cdms.embeddings import get_embedder             # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
+from cdms.stats import wilson_interval               # noqa: E402
 from individuation_experiment import PERSONAS, build_psyche  # noqa: E402
 
 OLLAMA = os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434")
@@ -308,6 +309,7 @@ def main():
     for label in models:
         tag = all_subjects().get(label, label)
         rates = {"none": [], "dex": [], "uma": []}
+        pool = {"none": [0, 0], "dex": [0, 0], "uma": [0, 0]}  # [careful, seen] pooled over probes x k
         fails = total = 0
         for pr in DISPOSITION_PROBES:
             for cond, ph in (("none", ""), ("dex", phen[a]), ("uma", phen[b])):
@@ -322,8 +324,16 @@ def main():
                     careful += int(ch_ == pr["adh"])
                 if seen:
                     rates[cond].append(careful / seen)
+                pool[cond][0] += careful
+                pool[cond][1] += seen
         pn, pd, pu = _m(rates["none"]), _m(rates["dex"]), _m(rates["uma"])
         print(f"  {label:12}{pn:>7.2f}{pd:>7.2f}{pu:>7.2f}{pu - pd:>+9.2f}{f'{fails}/{total}':>12}")
+        # Wilson 95% CI on the POOLED per-condition rate (measurement precision, Thread 3): a
+        # greedy n=10 x k=1 read is underpowered — overlapping dex/uma CIs mean no disposition
+        # shift is *detectable* at this n, not that none exists. Widen n (probes x k) to tighten.
+        wd, wu = wilson_interval(*pool["dex"]), wilson_interval(*pool["uma"])  # (careful, seen)
+        print(f"  {'':12}  dex P_careful 95% CI [{wd[1]:.2f}, {wd[2]:.2f}] (n={pool['dex'][1]})   "
+              f"uma 95% CI [{wu[1]:.2f}, {wu[2]:.2f}] (n={pool['uma'][1]})")
     print("\n  uma-dex ~= 0 => disposition does NOT install (boundary holds); |uma-dex| large => it does.")
     print("  Pre-registration (SCALE_LADDER.md): read the shift against the none-baseline headroom; a high")
     print("  parse-fail rate at scale invalidates the cell (bigger models refusing the forced binary).")

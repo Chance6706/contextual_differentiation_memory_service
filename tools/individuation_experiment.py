@@ -40,6 +40,7 @@ from cdms.config import Config                       # noqa: E402
 from cdms.consolidate import Consolidator            # noqa: E402
 from cdms.embeddings import cosine, get_embedder     # noqa: E402
 from cdms.hooks import _session_start_context        # noqa: E402
+from cdms.stats import overlap_significance          # noqa: E402
 from cdms.store import MemoryService, TurnEvent      # noqa: E402
 
 NOW = datetime(2026, 6, 16, tzinfo=timezone.utc)     # fixed clock for reproducibility
@@ -220,6 +221,21 @@ def main() -> int:
     hard = jaccard(psyches["dex_unity_struggler"]["rel_obj"], psyches["uma_unity_careful"]["rel_obj"])
     print(f"\nsame-domain pair (Unity struggler vs careful) trait overlap = {hard:.3f} "
           f"-> distinct dispositions on shared entities")
+
+    # Measurement precision: is the observed overlap meaningfully LOW, or just what chance
+    # would give? Compare to a pooled-resampling null — each psyche draws its traits
+    # independently from the shared vocabulary (the union of all observed (relation,object)
+    # tuples). observed << null_mean (z <= -2) => genuine differentiation, not an artifact.
+    trait_sets = [psyches[n]["rel_obj"] for n in names]
+    pairs = [(i, j) for i in range(len(names)) for j in range(i + 1, len(names))]
+    observed = sum(jaccard(trait_sets[i], trait_sets[j]) for i, j in pairs) / len(pairs)
+    vocab = set().union(*trait_sets)
+    sig = overlap_significance(observed, [len(s) for s in trait_sets], len(vocab), n_trials=10000, seed=0)
+    print(f"\nmean pairwise trait overlap = {observed:.3f}  "
+          f"[shuffle null {sig['null_mean']:.3f} ± {sig['null_sd']:.3f}; "
+          f"z = {sig['z']:+.2f}; percentile = {sig['percentile']:.3f}] -> {sig['verdict'].upper()}")
+    print(f"  (vocabulary = {len(vocab)} distinct traits across {len(names)} psyches; "
+          f"sizes = {[len(s) for s in trait_sets]})")
 
     # ----- 2. CONTINUITY (Ship of Theseus) ----------------------------------
     banner("2. CONTINUITY  (a second consolidation 'night' — do signature gists persist?)")

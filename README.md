@@ -166,8 +166,12 @@ not just asserted. The headline results to date (full method + caveats in
 
 - **Differentiation is real and recognizable.** Seeding ~8.6k real Claude Code turns
   across **4 projects** produced four distinct per-project psyches with **trait
-  overlap 0.00** — they share none of their defining traits, and a domain query
-  reliably surfaces the *right* project's self. The phenotype-drift harness
+  overlap ≈ 0.00** — they share none of their defining traits, and a domain query
+  reliably surfaces the *right* project's self. That near-zero overlap is *meaningfully
+  below chance*, not a vocabulary artifact: against a pooled-resampling null (each psyche
+  drawing traits independently from the shared vocabulary) the observed overlap sits
+  **~3 SD below** the chance baseline (`z = −3.33` on the offline run; see
+  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)). The phenotype-drift harness
   (`tools/drift_trajectory.py`) confirms the §5.3 invariant: identity stays stable
   and distinct over time, and **absence never ages it** (decay is
   activity-based — a project you don't touch doesn't lose its personality).
@@ -191,7 +195,10 @@ not just asserted. The headline results to date (full method + caveats in
   Turning these on raised behavioral adherence (panel-mean target−counter spread
   1.67 → **3.67**) and rule-citation **9×** (1/30 → 9/30), for a bounded +37–63%
   preamble cost — and the disposition boundary *still held*. The thin phenotype,
-  not model robustness, was the bottleneck.
+  not model robustness, was the bottleneck. _(These panel means are point estimates;
+  the harnesses now emit Wilson 95% CIs per rate — `src/cdms/stats.py` — so a small-n
+  read like "dex == uma" reads as "not detectable at this n", not a confirmed null. See
+  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision).)_
 
 - **Voice shifts too — but it's persona-specific, not generic.** A data-framed
   memory (not an instruction) moves a model's *voice* ~58% as much as an explicit
