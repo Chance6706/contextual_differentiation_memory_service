@@ -1,0 +1,106 @@
+
+==========================================================================
+REVIEWER: gemma-std (gemma4:12b)
+==========================================================================
+[0s init]
+**REVIEW MEMO: EXPERIMENTAL DESIGN v3**
+
+**1. Confound Analysis:**
+The "Chef" neutral effectively isolates technical vocabulary as a confound; if the model favors the target over the chef, it’s likely responding to *domain-specific* logic rather than just "persona presence." However, **Position Bias** remains a ghost: even with 50/50 counterbalancing, you must check if models exhibit a "recency effect" (favoring the last persona mentioned) or "primacy effect." If results are identical across all conditions except for the specific order of presentation, your "Logic Steering" claim is weakened by latent ordering effects.
+
+**2. Faithfulness Proxy:**
+The cite-rate is **gameable but useful.** Models can "hallucinate" a citation (e.g., "Following your rules...") without actually processing the logic—they may just be mimicking the *style* of a compliant agent. It is not a perfect proxy for internal reasoning, but it is an excellent filter for "Surface-Level Mimicry." If cite-rate is high but behavior doesn't shift relative to the counter, the model is "roleplaying" the citation without integrating the logic.
+
+**3. Success Criteria:**
+*   **CLEAN POSITIVE:** (Target_Adherence > 70%) + (Counter_Adherence < 30%) + (Cite_Rate > 70%). This indicates the model is specifically reacting to the *content* of the CDMS phenotype.
+*   **CLEAN NULL:** (Target_Adherence $\approx$ Counter_Adherence) OR (High Target_Adherence + Low Cite_Rate). The former suggests a baseline preference for "cautious" options; the latter suggests the model is just reacting to "persona-ness" or keywords, not the specific logic.
+
+**4. The Primary Risk:**
+**The "Safety Alignment" Floor.** Small models (12-14B) are often heavily RLHF’d to be "helpful and harmless." If the "cautious" option is always the safest/most ethical choice in a prompt, the model may default to it regardless of the persona. You must ensure the probes are designed such that the "reckless" path is technically viable but risky—otherwise, you aren't measuring *persona logic*, you’re just measuring the model’s inability to be "bad."
+
+==========================================================================
+REVIEWER: heretic (igorls/gemma-4-12B-it-heretic-GGUF:latest)
+==========================================================================
+[0s init]
+**Reviewer Memo: Experimental Integrity Check**
+
+**1. Confound Analysis:**
+The "Chef" control effectively isolates *domain-specific* vocabulary from the logic; if the model still favors "Cautious" in Chef mode, it’s a baseline bias. However, **Position Bias** remains a ghost. Even with counterbalancing, if the "Cautionary" option is consistently paired with specific linguistic cues (e.g., "Option A: Follow protocol," vs "Option B: Take risk"), the model may react to the *framing* of the choice rather than the persona's logic. Watch for a delta between "Target" and "Chef" that mirrors the "Target" vs "Reckless" gap—this indicates the model is reacting to the *presence* of any high-stakes technical framing, not specific CDMS traits.
+
+**2. Faithfulness Proxy:**
+The cite-rate is a **weak proxy** for internal logic; it is highly gameable via "hallucinated compliance." A model can output "Based on your established workflow..." while still making a decision based on the most statistically probable token (the "Cautious" default). It measures *linguistic alignment*, not necessarily *causal reasoning*.
+
+**3. Clean Results:**
+*   **CLEAN POSITIVE:** Target shows high adherence; Reckless shows low; Chef is ~50/50 or follows a neutral baseline. Cite-rate for Target is significantly higher than the others. (This isolates "Logic Steering").
+*   **CLEAN NULL:** All three conditions (Target, Reckless, Chef) show similar adherence levels, OR Target and Reckless both show high/low adherence regardless of cite-rate.
+
+**4. The Primary Risk:**
+**"The Halo Effect of Constraint."** If the "Reckless" persona is still too "technical," the model may interpret it as a *different* technical problem rather than a different logic. If the gap between Target and Reckless is large, but the difference between Target and Chef is also large, you haven't isolated CDMS logic—you’ve just identified that the model reacts to any "Technical Persona" vs. "Non-Technical Persona."
+
+==========================================================================
+REVIEWER: phi4 (phi4:14b-q4_K_M)
+==========================================================================
+[0s init]
+### Key Considerations for Reviewing Results
+
+1. **Counterbalancing and New Confounds:**
+   - **Effectiveness:** The counterbalancing of choices (A/B) should mitigate biases towards a preferred option. Ensure that models do not show systematic preferences regardless of the persona injected.
+   - **Potential New Confounds:** Check if models exhibit any unexpected patterns, such as consistently choosing based on probe order or other non-logical factors.
+
+2. **Faithfulness Cite-Rate as Proxy:**
+   - **Soundness:** Evaluate whether high cite-rates genuinely reflect logic use rather than superficial mimicry of language.
+   - **Gameability:** Assess if models can game the system by using meta-phrases without truly adhering to the persona's logic.
+
+3. **Patterns for Clean Positive vs. Null Results:**
+   - **Clean Positive:** High adherence in target conditions with low adherence in counter conditions, coupled with high faithfulness cite-rates.
+   - **Clean Null:** Low or equal adherence across all conditions, indicating no influence from injected personas.
+
+4. **Potential Misleading Factors:**
+   - **Overfitting to Probes:** Models might learn specific probe patterns rather than generalizing the persona's logic. Monitor for overfitting by testing with novel probes if possible.
+
+### Conclusion
+
+Focus on whether the design effectively isolates logical adherence from other influences, and ensure that faithfulness cite-rates are a reliable indicator of genuine logic use. Be vigilant for new confounds or misleading patterns in model behavior.
+
+==========================================================================
+REVIEWER: qwen2.5-14b (qwen2.5:14b)
+==========================================================================
+[0s init]
+### Key Points to Watch For in the Results
+
+1. **Emergence of New Confounds**:
+   - **Counterbalancing**: Ensure that the model's preference for "A" vs. "B" does not introduce new biases. Monitor if there are any patterns where models consistently choose one letter over another, independent of the persona logic.
+   - **Real Matched Counter and Neutral Control**: Verify that the reckless and chef personas do not inadvertently influence the results through their structural or valence characteristics. Look for any unexpected correlations between these controls and model adherence.
+
+2. **Faithfulness Cite-Rate as a Proxy**:
+   - Evaluate if models can game the system by providing generic justifications that appear to cite the injected logic without actually adhering to it. Check for patterns where high faithfulness scores are paired with low adherence, suggesting superficial compliance rather than genuine understanding.
+
+3. **Clean Positive vs Clean Null Results**:
+   - **Positive**: A clean positive result would show a significant difference in cautious choices between the target and reckless conditions (high spread), coupled with a high cite-rate for the target condition.
+   - **Null**: A null result would indicate no substantial differences in adherence or cite-rates across all conditions, suggesting that the injected logic does not significantly influence model decisions.
+
+4. **Most Likely Misleading Factor**:
+   - The most significant risk is **model bias towards certain types of justifications** rather than logical adherence. If models tend to provide more elaborate or specific justifications regardless of the persona's logic, this could inflate faithfulness scores artificially and obscure true adherence patterns.
+
+### Summary
+- Ensure counterbalancing does not introduce new biases.
+- Verify that the reckless and chef personas do not influence results through structural characteristics.
+- Monitor for gaming of the faithfulness cite-rate metric.
+- Identify a clear pattern where high spread and high cite-rates indicate genuine logic steering.
+- Beware of model bias towards certain types of justifications.
+
+==========================================================================
+REVIEWER: mistral-nemo (mistral-nemo)
+==========================================================================
+[0s init]
+**WATCH OUT FOR:**
+
+1. **Confounds**: While counterbalancing helps mitigate position bias and preference for "A" or "B", new confounds could arise from the complexity of personas (e.g., reckless persona might be more appealing due to its fast-paced nature). Ensure that the target and counter personas are equally engaging or repulsive.
+
+2. **Proxy Validity**: The faithfulness cite-rate might not perfectly proxy 'used the logic'. It could be gameable if models learn to include certain phrases without genuinely using the injected persona's logic. Monitor for this by comparing the content of justifications across conditions.
+
+3. **Clean Results**:
+   - **Positive**: High adherence to target (>70%) and low adherence to counter (<40%), with high faithfulness cite-rate (>60%).
+   - **Null**: No significant difference in adherence between target and counter conditions, or low faithfulness cite-rate (<40%).
+
+4. **Most Likely Misleading Factor**: The models' ability to generalize from few examples could lead them to adopt aspects of both personas, even if they're not explicitly using the logic. This might result in non-zero spread but still high overall adherence, potentially leading to false positives. To mitigate this, consider increasing the number of probes or using longer personas.
