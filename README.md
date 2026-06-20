@@ -402,9 +402,24 @@ line ✅ Built vs 📐 Designed):
 This is a working reference implementation (Python). Per the spec's
 production-hardening directive, a future pass could rewrite the daemon in Rust/Go
 for a single ~27 MB dependency-free binary and `<40 MB` RAM footprint; the
-algorithms and schema port directly. AES-256-GCM at-rest encryption and a
-loopback HTTP/REST surface are also on the roadmap. The current build binds no
-network sockets (MCP is stdio; data is a local SQLite file).
+algorithms and schema port directly. A loopback HTTP/REST surface and **opt-in
+at-rest encryption** are on the roadmap (AES-256 — note that SQLCipher, the likely
+vehicle, defaults to CBC+HMAC, not GCM). The current build binds no network sockets
+(MCP is stdio; data is a local SQLite file).
+
+**Data at rest (current posture, deliberate).** The SQLite store is **plaintext**,
+protected by capture-time secret redaction, `0600` file permissions, and
+`secure_delete`. At-rest confidentiality relies on **OS full-disk encryption**
+(BitLocker / FileVault / LUKS) — the precedented best practice for a single-user
+local daemon (browsers, Obsidian, and shell history do the same; OWASP's at-rest
+mandate scopes to *regulated* data, and a non-interactive daemon has no passphrase,
+so an app-layer key would have to be auto-retrievable — and thus reachable by the
+same malware it would purport to stop). This protects a lost/stolen **powered-off**
+device and casual access by other local users; it does **not** protect against
+malware or any process running as your user, a local administrator, or the DB file
+being copied off-box by cloud backup/sync. **Enable full-disk encryption, and keep
+the CDMS data directory out of cloud-synced folders.** Opt-in SQLCipher whole-DB
+encryption (for the backup/exfil threat) is the roadmap item above.
 
 ---
 
