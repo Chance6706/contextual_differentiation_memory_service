@@ -80,8 +80,9 @@ def accessibility(
     # consolidation eviction loop — even though the cap saturates alpha**c at c≈5.
     c = max(0, access_count)
     if cfg.reinforce_alpha > 1.0 and cfg.reinforce_cap > 0.0:
-        c_max = math.ceil(math.log(cfg.reinforce_cap) / math.log(cfg.reinforce_alpha)) + 1
-        c = min(c, c_max)
+        # Single source of truth for the saturation clamp (ceil(ln(cap)/ln(alpha))+1);
+        # see Config.reinforce_saturation_clamp and docs/PARAMETER_BASIS.md.
+        c = min(c, cfg.reinforce_saturation_clamp)
     reinforcement = min(cfg.reinforce_alpha ** c, cfg.reinforce_cap)
     return s0 * decay * reinforcement
 
