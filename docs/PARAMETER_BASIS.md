@@ -33,7 +33,8 @@ among them (§3) are not couplings.
 
 | Constant | Default | Role |
 |---|---|---|
-| `decay_halflife_days` | 29.0 | Ebbinghaus half-life; sets the decay timescale |
+| `decay_halflife_days` | 29.0 | Forgetting half-life; sets the decay timescale (anchor) |
+| `forgetting_shape` | 2.0 | Power-law exponent β; heaviness of the scale-free tail (deviation M1) |
 | `reinforce_alpha` | 1.15 | Per-retrieval reinforcement base (testing effect) |
 | `reinforce_cap` | 2.0 | Attentional ceiling on one hot memory |
 | `retention_floor` | 0.10 | Accessibility below which an episode is evictable |
@@ -72,6 +73,7 @@ any of these would be a category error.
 
 | Derived property | Formula | Sources | Default |
 |---|---|---|---|
+| `decay_tau` | `halflife / (2^(1/β) − 1)` | `decay_halflife_days`, `forgetting_shape` | 70.01 d |
 | `decay_lambda` | `ln(2) / halflife` | `decay_halflife_days` | 0.023902 d⁻¹ |
 | `reinforce_saturation_clamp` | `ceil(ln(cap)/ln(alpha)) + 1` | `reinforce_alpha`, `reinforce_cap` | 6 |
 | `ema_floor_onset_support` | `(ema / ema_min)²` | `gist_valence_ema`, `gist_valence_ema_min` | 64 |
@@ -79,8 +81,11 @@ any of these would be a category error.
 
 Details:
 
-- **`decay_lambda`** — the only derived value that already existed; the template for the
-  rest. `e^(−λ·halflife) = 0.5` by construction.
+- **`decay_tau`** — the power-law time constant, derived to pin `D(halflife)=0.5` for any
+  shape β (forgetting deviation M1). The live curve `salience.accessibility` uses τ + β.
+- **`decay_lambda`** — `e^(−λ·halflife) = 0.5` by construction. Since the live curve became a
+  power law, λ is now the **β→∞ exponential-limit rate** (and the initial decay slope in that
+  limit), retained as a reference/anchor rather than the curve the code evaluates.
 - **`reinforce_saturation_clamp`** — reinforcement saturates once `alpha**c` first reaches
   the cap, at the saturation count `c* = ceil(ln(cap)/ln(alpha)) = 5` (α⁵ = 2.0114 > 2.0).
   `salience.accessibility` clamps `access_count` one step past that (`c*+1 = 6`) purely as
@@ -138,6 +143,8 @@ Genuine recalibration questions deferred to later threads / experiments:
 
 - The `0.78 / 0.90` similarity thresholds were never benchmarked for code-heavy content
   (see `docs/VALIDATION.md`, A10).
-- `decay_halflife_days = 29` is a chosen timescale, not a measured one. Whether forgetting
-  should be exponential at all — versus a scale-free power law — is **Thread 2**.
+- `decay_halflife_days = 29` is a chosen timescale, not a measured one. ✅ Whether forgetting
+  should be exponential at all — versus a scale-free power law — was **Thread 2**: resolved in
+  favor of the power law (deviation M1; `docs/validation/forgetting_curve/`). The half-life
+  itself remains a chosen, unmeasured anchor.
 - Whether the four S0 weights should remain equal is untested; equal is a simplicity choice.

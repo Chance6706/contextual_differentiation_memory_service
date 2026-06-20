@@ -152,8 +152,11 @@ def test_absence_does_not_age_identity(service, cfg):
     _consolidator(service, cfg).run(now=base + timedelta(days=365))
     assert _gist_for(service, "app") is not None, "absence (wall-clock) wrongly aged the gist"
 
-    # Contrast: an L1 episodic trace of the same age HAS faded heavily by wall-clock.
-    assert accessibility(1.0, 365, 0, cfg) < 0.001 * accessibility(1.0, 0, 0, cfg)
+    # Contrast: an L1 episodic trace of the same age HAS faded by wall-clock — below the
+    # eviction floor, so it would be evicted while the gist survives. (Intent-preserving:
+    # the absolute magnitude is curve-specific — the power-law tail keeps a 365-day trace at
+    # ~2.6% vs the old exponential's ~0.016% — but "faded below the floor" holds for both.)
+    assert accessibility(1.0, 365, 0, cfg) < cfg.retention_floor < accessibility(1.0, 0, 0, cfg)
 
 
 def test_dedup_supersession(service, cfg):
