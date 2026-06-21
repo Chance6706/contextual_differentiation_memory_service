@@ -576,6 +576,28 @@ The honest list of what's still uncovered, recorded so they're not silent gaps:
 7. **Cost regression for V2.** V2's preamble token count vs V1's is not part of this gate;
    if V2 wins on behavior but adds ~30% to preamble token cost, the cost-characterization
    backlog (`project-cdms-cost-characterization`) is where that's resolved.
+8. **Ablation length confound.** V2.a, V2.b, V2.d add preamble bytes that V1 does not have
+   (~50-150 chars each). A behavioral difference between an ablation and V1 could reflect
+   the specific mechanism OR just "more preamble carries more weight." A length-control
+   baseline (V1 + ~150 chars of neutral filler) would disentangle the two but is not in
+   scope for the current pre-reg matrix. If results suggest length-driven effects, that
+   baseline becomes the first pre-reg amendment. Pressure-test ablation finding ABL-R1/R6.
+9. **Ablation position confound.** V2.full places each of its four changes at specific
+   locations in its preamble. The ablations place the same wording at DIFFERENT locations
+   (e.g., V2.c puts authority in the guardrails HEADING; V2.full puts it in the HEADER
+   paragraph). If position effects matter, attribution will be imperfect — the ablation
+   tests "this wording at this location," not "this mechanism wherever V2 puts it."
+   Inherent to overlapping V2 components; cannot be fully eliminated without breaking the
+   isolation philosophy. Pressure-test ablation finding ABL-R3/4/5.
+10. **Ablation non-composition.** V2.a + V2.b + V2.c + V2.d does NOT reconstruct V2.full
+    byte-identically. By design — ablations isolate, not reconstruct. Readers of the
+    writeup should not assume mechanism contributions sum linearly.
+11. **V2.d inherited ghost-tag reference.** V2.full's header says "<memory:context-*>" but
+    the emitted tags are `<memory:persona>` and `<memory:recent>` — there is no
+    `<memory:context-*>` tag in the preamble. V2.d preserves this wording to stay faithful
+    to V2.full. Could be a feature (model treats abstract pattern as authoritative) or a
+    bug (model sees no such tag, confused). Either way the writeup must flag this.
+    Pressure-test ablation finding ABL-L1.
 
 These are **declared limitations**, not silent caps — every writeup based on this pre-reg
 should reproduce this list near its headline.
@@ -709,6 +731,22 @@ left as a documented limitation rather than fixed.
 | D3 | Ablation comparison (Step 3, ±5pp tie) uses different strictness than ship gate (Step 1, Bonferroni). | Deliberate; different questions deserve different gates. Within-V2-family ablation is about choosing simplest mechanism; not a ship promotion question. |
 | D4 | Five prerequisites must all land before any matrix cell runs. | This IS the pre-reg's purpose — heavy implementation gate prevents drift between "design" and "what we actually ran." |
 
+### V2.a-d ablation builders pressure-test (added 2026-06-20 PM, post-implementation)
+
+After the V2.a-d ablation builders landed (commit `b8118c8`), they were independently
+pressure-tested using the same red-team / legitimate-use discipline. Findings, prefixed
+`ABL-` to distinguish from the pre-reg design pressure test above:
+
+| # | Finding | Resolution |
+|---|---|---|
+| **ABL-R1** | V2.a, V2.b, V2.d add preamble bytes V1 doesn't have. Behavioral diff vs V1 could be the specific mechanism OR added preamble weight. | **DOCUMENTED** as §9 limitation #8. Length-control baseline (V1 + neutral filler) recommended as first pre-reg amendment IF results suggest length-driven effects. |
+| **ABL-R2** | V2.b was incomplete — captured only the persona HEADING swap; V2.full's third-person framing also lives in the HEADER paragraph (as part of TWO-kinds item 2). Without the HEADER instance, V2.b would underrepresent the mechanism and produce a likely false null on BEM. | **FIXED** (commit follow-up to `b8118c8`). V2.b now contains both the heading swap AND an added header-paragraph sentence ("The persona and recent observations are about the workspace and user — NOT about you (the assistant).") — paragraph form, NOT TWO-kinds list, to stay distinct from V2.a. Lock test updated. |
+| **ABL-R3/4/5** | Position confound — V2.full puts each change at a specific location; ablations place wording at DIFFERENT locations. | **DOCUMENTED** as §9 limitation #9. Inherent to overlapping V2 components; cannot fully eliminate without breaking isolation philosophy. |
+| **ABL-R6** | No length-control baseline; cannot disentangle "specific mechanism" from "incremental directive load." Inverse-of-V4 hypothesis (more directives = more weight) not testable. | **DOCUMENTED** (same as ABL-R1; length-control would close both). |
+| **ABL-L1** | V2.d uses "<memory:context-*>" tag reference, but actual emitted tags are `<memory:persona>` / `<memory:recent>`. Inherited from V2.full. | **DOCUMENTED** as §9 limitation #11. Preserved to stay faithful to V2.full; flag in writeup regardless of outcome. |
+| **ABL-L2** | V2.c's authority/precedence wording shoved parenthetically into the guardrails HEADING produces a 27-word heading. V2.full uses flowing paragraph form. Heading-stuffing might be visually de-prioritized by the model. | **DOCUMENTED**. Alternative (paragraph-form addition) would overlap V2.d's territory; isolation philosophy wins over reader experience. |
+| **ABL-L3** | V2.a + V2.b + V2.c + V2.d ≠ V2.full (by design). Can't sanity-check the ablation set by reconstructing V2. | **DOCUMENTED** as §9 limitation #10. Inherent to mechanism-isolation ablations. |
+
 ### Decided against (alternatives considered, rejected):
 
 | # | Alternative considered | Why rejected |
@@ -727,6 +765,7 @@ left as a documented limitation rather than fixed.
 | 2026-06-20 | Initial pre-registration draft (commit `0a32629`). |
 | 2026-06-20 | Pressure-test pass — applied R1, R2, R4, R5, R6, L1-L5 fixes; added §7 mode classification, §7 acknowledged-bias paragraph, §7 Step 0 halt exit, §11 sanctioned exploration + halt-restate, §13 pressure-test record. R3 + D1-D4 + A1-A4 documented as deliberate / decided-against. |
 | 2026-06-20 | Budget + rate-limit amendments — Josh authorized $75 unified API cap (was $50 T3-only); rate-limit protocol amended to 10-min × 2-retry → defer → cycle-back (was: drop after 10% rate-limit). §4 cost stops + §5 T4 discipline + §13 L3/L4 rows updated. |
+| 2026-06-20 | V2.a-d ablation pressure-test pass — ABL-R2 fix (V2.b now captures both header + heading instances of third-person framing, not just heading; lock test updated). ABL-R1/R3-R6/L1-L3 documented as inherent ablation limitations in §9 (added items 8-11) + §13 ablation pressure-test subsection. Builder docstrings in hooks.py expanded with the inherent-limits notice. |
 
 _Any change after this row must be a new row with a new commit. The pre-reg's whole purpose
 is the lock — silent edits defeat it._
