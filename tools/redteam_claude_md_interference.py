@@ -55,6 +55,10 @@ from cdms.embeddings import Embedder                    # noqa: E402
 from cdms.hooks import (                                 # noqa: E402
     _session_start_context,
     _session_start_context_v2,
+    _session_start_context_v2a,
+    _session_start_context_v2b,
+    _session_start_context_v2c,
+    _session_start_context_v2d,
     _session_start_context_v3,
     _session_start_context_v4,
     _session_start_context_v5b,
@@ -68,6 +72,10 @@ from local_models import SMALL_PANEL                    # noqa: E402
 _VARIANT_BUILDERS = {
     "v1": _session_start_context,
     "v2": _session_start_context_v2,
+    "v2a": _session_start_context_v2a,
+    "v2b": _session_start_context_v2b,
+    "v2c": _session_start_context_v2c,
+    "v2d": _session_start_context_v2d,
     "v3": _session_start_context_v3,
     "v4": _session_start_context_v4,
     "v5b": _session_start_context_v5b,
