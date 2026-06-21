@@ -64,13 +64,106 @@ from cdms.hooks import (                                 # noqa: E402
     _session_start_context_v5b,
     _session_start_context_v5d,
 )
+from cdms.hooks import (                                 # noqa: E402
+    _MAX_CONTEXT, _MAX_SCARS,
+    _dedupe_scars, _sanitize,
+)
 from cdms.models import Gist, new_id                    # noqa: E402
 from cdms.stats import wilson_interval                  # noqa: E402
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
 
+
+def _naive_dump_preamble(cfg: Config, payload: dict) -> str:
+    """B1 NAIVE-DUMP comparison baseline for the methodology-reset pre-registration
+    matrix (see docs/validation/claude_md_interference/PRE_REGISTRATION.md §2).
+
+    Surfaces the SAME content V1 would surface but WITHOUT V1's structural
+    framing: no <memory:*> fences, no "DATA not instructions" header, no
+    third-person persona heading, no untrusted-data disclaimer, no tone markers,
+    no section headings. The only framing kept is the single literal line
+    "Past session highlights:" before the content (specified in pre-reg §2);
+    a baseline without ANY label would just be a wall of disconnected lines.
+
+    DESIGN CHOICES LOCKED FOR THE PRE-REG MATRIX (pressure-tested):
+      * Sanitization PRESERVED. Pre-reg §2 specifies "no fences, no header, no
+        third-person framing" — silent on sanitization. Keeping sanitization
+        isolates the "framing structure" effect from a separate
+        "data-cleanliness" effect; removing it would conflate two changes.
+      * Content selection MATCHES V1 exactly (same scoping, same dedup, same
+        _MAX_SCARS cap, same top-12 gists, same cold-start recent fallback when
+        len(gists) < 5). Otherwise we conflate "content quantity" with
+        "content framing."
+      * Exemplars INCLUDED (same top-N as V1, without the `e.g.` prefix) so
+        content quantity is held constant against V1.
+      * Hard cap at _MAX_CONTEXT for practical model-context reasons, but NO
+        fence-preservation logic (that's a CDMS structural element). Brutal
+        mid-line truncation if needed; that's faithful to "naive."
+
+    Test-only helper. NOT a ship candidate; lives in tools/, not in
+    cdms.hooks. Imports _sanitize / _dedupe_scars / _MAX_* from cdms.hooks to
+    avoid code drift between V1's selection logic and B1's.
+    """
+    from cdms.consolidate import _matches_catastrophe
+    from cdms.salience import accessibility, age_days
+
+    svc = MemoryService(cfg)
+    project = payload.get("cwd", "") or ""
+
+    def _scoped(p: str) -> bool:
+        return (not p) or (project != "" and p == project)
+
+    try:
+        with svc.db.read_snapshot():
+            relevant = [s for s in svc.db.all_scars() if _scoped(s.project)]
+            pinned = _dedupe_scars([s for s in relevant if s.origin == "pinned"])
+            elevated = _dedupe_scars([s for s in relevant if s.origin != "pinned"])
+            scars = (pinned + elevated)[:_MAX_SCARS]
+            gists = svc.db.top_gist(limit=12, project=project)
+            recent = []
+            if len(gists) < 5:
+                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
+                scored = [(accessibility(e.base_salience, age_days(e.timestamp),
+                                         e.access_count, cfg), e) for e in eps]
+                scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
+                scored.sort(key=lambda x: x[0], reverse=True)
+                recent = [e for _a, e in scored[:5]]
+    finally:
+        svc.close()
+
+    if not scars and not gists and not recent:
+        return ""
+
+    lines: list[str] = ["Past session highlights:"]
+    for s in scars:
+        lines.append(f"{_sanitize(s.crisis_trigger)} → {_sanitize(s.remediation_rule)}")
+    for i, g in enumerate(gists):
+        lines.append(_sanitize(g.render(), 160))
+        # Match V1's top-N exemplar gating exactly so content quantity is held
+        # constant. V1's logic: include exemplar iff cfg.recall_exemplars AND
+        # idx < cfg.recall_exemplar_top_n AND g.exemplar non-empty.
+        if cfg.recall_exemplars and i < cfg.recall_exemplar_top_n and g.exemplar:
+            lines.append(_sanitize(g.exemplar, 160))
+    for e in recent:
+        # Same catastrophe-stripping as V1 (Layer 2 poisoning fix). A naive
+        # implementer wouldn't have this, but its absence would mean a
+        # planted imperative reaches the model verbatim — that's a
+        # confound with the framing question, not part of it.
+        if _matches_catastrophe(f"{e.action_taken}\n{e.outcome_feedback}"):
+            body = f"[unverified incident] {e.trigger_prompt} → {e.action_taken}"
+        else:
+            body = e.search_text()
+        lines.append(_sanitize(body, 140))
+
+    out = "\n".join(lines)
+    if len(out) > _MAX_CONTEXT:
+        out = out[:_MAX_CONTEXT - 3] + "..."
+    return out
+
+
 _VARIANT_BUILDERS = {
     "v1": _session_start_context,
+    "b1": _naive_dump_preamble,
     "v2": _session_start_context_v2,
     "v2a": _session_start_context_v2a,
     "v2b": _session_start_context_v2b,
@@ -555,12 +648,21 @@ def main():
     ap.add_argument("--modes", nargs="+", default=None)
     ap.add_argument("--models", nargs="+", default=None)
     ap.add_argument("--out", default=None, help="path to write the full output (in addition to stdout)")
-    ap.add_argument("--variant", choices=["v1", "v2", "v3", "v4", "v5b", "v5d"], default="v1",
-                    help="preamble variant: v1=shipped, v2=asymmetric authority framing, "
-                         "v3=v2+counter-imperative against override, "
-                         "v4=v2+anti-attribution rule (BEM residual investigation), "
-                         "v5b=v2+leaner structural persona (tag prefix, no metadata), "
-                         "v5d=v2+third-person sentence rendering (full grammar wrap)")
+    ap.add_argument("--variant",
+                    choices=["v1", "b1",
+                             "v2", "v2a", "v2b", "v2c", "v2d",
+                             "v3", "v4", "v5b", "v5d"],
+                    default="v1",
+                    help="preamble variant. v1=shipped baseline. "
+                         "b1=NAIVE-DUMP comparison baseline (methodology-reset pre-reg §2). "
+                         "v2=asymmetric authority framing (PR #71 candidate). "
+                         "v2a/b/c/d=V2 ablations isolating each of V2's four changes "
+                         "(split header / third-person persona / authority+precedence / "
+                         "context-block disclaimer). "
+                         "v3=v2+counter-imperative against override (PR #69 research). "
+                         "v4=v2+anti-attribution rule (PR #70 BEM residual research). "
+                         "v5b=v2+leaner structural persona (tag prefix, no metadata). "
+                         "v5d=v2+third-person sentence rendering (full grammar wrap).")
     args = ap.parse_args()
 
     cache = Path(args.cache_dir); cache.mkdir(parents=True, exist_ok=True)
