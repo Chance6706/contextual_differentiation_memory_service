@@ -72,6 +72,7 @@ from cdms.models import Gist, new_id                    # noqa: E402
 from cdms.stats import wilson_interval                  # noqa: E402
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
+from probes_rephrasings import expanded_probes           # noqa: E402
 
 # Backend adapters (T1=Ollama already inline below; T2/T3/T4 imported here).
 from lmstudio_chat import lmstudio_chat                  # noqa: E402
@@ -594,6 +595,114 @@ MODES = [
 ]
 
 
+# =====================================================================
+# Probe-list selection for --expand-probes (single-model tiers T2/T3)
+# =====================================================================
+# Sub-sample-to-50 design, pre-reg §4 (the COST-BINDING section). The §10
+# prereq-7 note loosely says "N=100/cell"; that is the naive expand-ALL framing
+# (20 originals * 5 = 100) and CONTRADICTS §4's "10 originals + 40 rephrasings =
+# 50/cell, sub-sample to 10 for modes with 20 originals to keep cost uniform".
+# We follow §4 because it is the binding cost model: naive expand-all would
+# roughly double the paid T3 bill (~$48.96 vs ~$27.36). See the module docstring
+# of tools/probes_rephrasings.py and PRE_REGISTRATION.md §4 lines 185-188.
+#
+# DELIBERATE DEVIATION (registered in docs/DEVIATIONS.md): the two 8-original
+# guardrail modes (ORDER_OVERFIRE, BEM_WORKSPACE_FACT) physically CANNOT reach
+# 50 — there is no 10th original to expand, so they top out at 8 + 8*4 = 40
+# probes/cell. §3 forbids inventing probes mid-run, so we report 40 for those two
+# and 50 for the rest. The realized T3 total is therefore 1,520 (not the pre-reg
+# §4's stated 1,600); the 80-probe gap is exactly (50-40) * 2 guardrail-cells *
+# 4 conditions. This is surfaced in the run header, not silently produced.
+#
+# ---------------------------------------------------------------------
+# PRESSURE-TEST RECORD (--expand-probes wiring, 2026-06-21; CLAUDE.md rule 12)
+# ---------------------------------------------------------------------
+# This block touches REAL MONEY on the downstream paid T3 run, so it was double
+# pressure-tested (red-team + legitimate-use). Findings APPLIED:
+#   * MONEY-SAFETY: the per-cell size is locked by a structural assert in
+#     _select_probes (silent under-sample => hard fail) AND by CI tests
+#     (test_select_probes_expand_exact_per_cell_sizes / _per_condition_and_t3_total).
+#   * MONEY-SAFETY: cache firewall — expanded (N=50) and non-expanded (N=20) cells
+#     live in physically separate /expand cache subdirs; per-call key is on probe
+#     TEXT so distinct rephrasings can never cross-serve an N=20 cached entry for an
+#     N=50 request. (test_select_probes_expand_cache_keys_distinct_from_originals.)
+#   * COST-AUDIT: a --dry-run plan preview prints realized per-cell sizes + run
+#     total + projected $ vs cap with ZERO network and NO API key required, so the
+#     "1,520 probes / ~$27.36" story is auditable before any spend.
+#   * COST-AUDIT: $0.018/probe is a SINGLE-SOURCE constant (_EST_USD_PER_PROBE)
+#     shared with DEVIATIONS.md O1 so the runner and docs cannot drift; the live
+#     CostGuard still meters ACTUAL per-call spend and hard-stops at the cap.
+#   * DOC-CORRECTNESS: pre-reg §4 1,600 -> 1,520 and §3/§4 OVERRIDE 21 -> 20 both
+#     amended (versioned rows); the 21->20 error is independent of and does not
+#     change the 1,520 figure (first-10 sub-sample).
+# INHERENT LIMITATIONS (acknowledged, not closed here):
+#   * --n-predict is NOT in the per-call cache key (pre-existing, all 3 adapters);
+#     changing it requires a fresh --cache-dir (CLAUDE.md rule 13). See cache-
+#     firewall comment in main().
+#   * Review-exclusion of a SPECIFIC flagged rephrasing is not first-class; the
+#     workaround (edit REPHRASINGS + update the test target) is tripwired by the
+#     structural assert. See _select_probes docstring + DEVIATIONS O1.
+#   * $0.018/probe is an estimate (±30%): rephrasings run longer than some originals
+#     and preamble bytes vary by condition (B0 empty .. V2.full largest). Poll the
+#     OpenRouter dashboard before/after the first condition; §4 $65 re-scope / $75
+#     hard-stop guards apply.
+_EXPAND_SUBSAMPLE_N = 10  # cap originals at first-N before expanding (deterministic)
+
+# Per-probe paid-API cost estimate, SINGLE SOURCE OF TRUTH shared with docs/DEVIATIONS.md
+# O1 and PRE_REGISTRATION.md §4. ~3,500 input + ~500 output tokens at Sonnet-4.6-class
+# pricing (~$3/M in, ~$15/M out via OpenRouter) ≈ $0.0105 + $0.0075 = $0.018. This is an
+# ESTIMATE (treat ±30%) used only for the up-front projected-cost preflight; the live
+# CostGuard meters ACTUAL spend per call. If this changes, update DEVIATIONS.md O1.
+_EST_USD_PER_PROBE = 0.018
+
+
+def _select_probes(mode_name: str, probes: list, expand: bool) -> list:
+    """Return the per-cell probe list for `mode_name`.
+
+    When `expand` is False (DEFAULT / T1 SMALL_PANEL): returns `probes` UNCHANGED
+    (originals only) — byte-identical to pre-`--expand-probes` behavior.
+
+    When `expand` is True (T2/T3 single-model tiers): deterministically sub-samples
+    the FIRST min(_EXPAND_SUBSAMPLE_N, N) originals (a fixed slice — NO randomness,
+    so cache keys and reproducibility are stable run-to-run) and expands them via
+    `expanded_probes()` (original + 4 rephrasings each, tuple-tag preserved). Modes
+    with <= _EXPAND_SUBSAMPLE_N originals (the 8-probe guardrail modes) expand ALL
+    of their originals and cap below 50 by construction.
+
+    REVIEW-EXCLUSION IS NOT SUPPORTED HERE (deliberately out of scope for the
+    --expand-probes wiring; see DEVIATIONS.md O1). Pre-reg §3 makes external
+    rephrasing review (tools/probes_review.py) a methodology gate that runs BEFORE
+    the paid T3. If that review flags a SPECIFIC rephrasing (e.g. ORDER probe 5,
+    rephrasing index 2) as drifting, there is currently NO per-rephrasing skip path:
+    `expanded_probes()` emits original + ALL 4 registered rephrasings. To honor an
+    exclusion today, the flagged rephrasing must be removed from
+    REPHRASINGS[mode][idx] in tools/probes_rephrasings.py AND the affected per-cell
+    target size updated in tests/test_probes_rephrasings.py
+    (_EXPECTED_EXPANDED_CELL_SIZE) — the structural assert below will hard-fail
+    otherwise, which is the intended tripwire. A first-class `--rephrasings-exclude
+    FILE` flag (a {mode:{orig_idx:[rephr_idx,...]}} excludes map that skips listed
+    pairs and re-prints the reduced realized N) is a natural follow-on but is a
+    separate change with its own pressure-testing needs.
+    """
+    if not expand:
+        return probes
+    sub = probes[:_EXPAND_SUBSAMPLE_N] if len(probes) > _EXPAND_SUBSAMPLE_N else probes
+    result = expanded_probes(mode_name, sub)
+    # MONEY-SAFETY structural guard (pressure-test NIT): expanded_probes uses
+    # REPHRASINGS[mode].get(idx, []), so if a future §3 review deletes even one
+    # rephrasing from a sub-sampled index, the cell would SILENTLY drop below its
+    # pre-reg target and a real-money run would under-sample. This assert converts
+    # that silent cost shortfall into a hard fail at probe-construction time (zero
+    # network), complementing the CI test test_select_probes_expand_exact_per_cell_sizes.
+    # By construction each kept original contributes exactly 1 (itself) + 4 rephrasings.
+    assert len(result) == len(sub) * 5, (
+        f"{mode_name}: --expand-probes produced {len(result)} probes for {len(sub)} "
+        f"sub-sampled originals; expected {len(sub) * 5} (1 original + 4 rephrasings "
+        f"each). A rephrasing is missing or extra in REPHRASINGS[{mode_name!r}] — the "
+        f"paid-run cell would be the wrong size. Refusing to proceed.")
+    return result
+
+
 def _score_outcomes(name: str, models: dict, outcomes_per_arm: dict, fh):
     """Print per-arm, per-model summary + sample responses. Writes to fh (and stdout)."""
     def emit(s: str) -> None:
@@ -697,6 +806,24 @@ def main():
                          "v4=v2+anti-attribution rule (PR #70 BEM residual research). "
                          "v5b=v2+leaner structural persona (tag prefix, no metadata). "
                          "v5d=v2+third-person sentence rendering (full grammar wrap).")
+    ap.add_argument("--expand-probes", action="store_true", default=False,
+                    help="Single-model tiers (T2/T3): build each per-cell probe list "
+                         "from expanded_probes() over a DETERMINISTIC first-10 sub-sample "
+                         "of originals — sub-sample originals to AT MOST 10, then expand "
+                         "(50/cell for the four 20-original modes; 40/cell for the two "
+                         "8-original guardrail modes ORDER_OVERFIRE / BEM_WORKSPACE_FACT, "
+                         "which have no 10th original to expand). Pre-reg §4. DEFAULT OFF: "
+                         "T1 SMALL_PANEL stays originals-only (byte-identical to pre-flag "
+                         "behavior). When ON, the per-backend cache subdir gains a '/expand' "
+                         "suffix so expanded (N=50) and non-expanded (N=20) cells can never "
+                         "share a --cache-dir.")
+    ap.add_argument("--dry-run", action="store_true", default=False,
+                    help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
+                         "accounting (realized per-cell sizes, run total, projected $ vs cap) "
+                         "and EXIT before any backend prerequisite check, cost-guard "
+                         "construction, or LLM call. Use this to confirm the cost story (e.g. "
+                         "'1,520 probes, ~$27.36') before authorizing a paid --backend openrouter "
+                         "run. Requires NO OPENROUTER_API_KEY even when --backend openrouter.")
     args = ap.parse_args()
 
     # --- Backend dispatch + per-backend cache isolation -------------------
@@ -705,6 +832,25 @@ def main():
     # themselves also have backend-tag prefixes in cache filenames; this is
     # defense in depth.
     cache = Path(args.cache_dir) / args.backend
+    # --expand-probes cache firewall: expanded cells (N=50) and non-expanded cells
+    # (N=20) get PHYSICALLY SEPARATE cache dirs so a single --cache-dir reused
+    # across an expand run and a non-expand run can never cross-serve. The per-call
+    # key is sha256(model\x00system\x00user)[:24] (keyed on probe TEXT), which already
+    # prevents per-call collisions — distinct rephrasing text => distinct key, and a
+    # surviving original shares its key with a prior originals-only run (legitimate,
+    # desirable reuse). The "/expand" subdir is the defense-in-depth cell-level
+    # firewall the task requires (expanded vs non-expanded never collide).
+    #
+    # CAVEAT (pre-existing, all three adapters): the per-call key intentionally does
+    # NOT include --n-predict. So changing --n-predict against the SAME --cache-dir
+    # serves stale responses generated at the OLD num_predict. This matters for the
+    # expand/T3 path because the qwen-family hedge-truncate quirk is num_predict-
+    # sensitive (see project-cdms-small-model-quirks-scaled-test memory). Per CLAUDE.md
+    # rule 13 (fresh cache for re-runs), changing --n-predict requires a FRESH
+    # --cache-dir (timestamped dir). Folding n_predict into the key in all three
+    # adapters is a separate, larger change, deliberately out of scope here.
+    if args.expand_probes:
+        cache = cache / "expand"
     cache.mkdir(parents=True, exist_ok=True)
 
     # --- Backend-specific model handling ---------------------------------
@@ -730,12 +876,17 @@ def main():
         models = {m: m for m in args.models}
 
     # --- OpenRouter prerequisites (fail-fast at startup, not mid-matrix) -
+    # SKIPPED under --dry-run: a plan preview hits no network and spends nothing,
+    # so it must NOT require an API key or construct a cost-guard. (The --models
+    # requirement above is NOT skipped — the plan must know which model labels the
+    # cells would run against for the LLM-call total.)
     cost_guard = None
-    if args.backend == "openrouter":
+    if args.backend == "openrouter" and not args.dry_run:
         if not os.environ.get("OPENROUTER_API_KEY"):
             ap.error("--backend openrouter requires OPENROUTER_API_KEY env var. "
                      "Set it before invoking; the matrix runner refuses to start "
-                     "without it to avoid mid-run discovery of a missing key.")
+                     "without it to avoid mid-run discovery of a missing key. "
+                     "(Use --dry-run to preview the cost plan with no key + no spend.)")
         state_file = (Path(args.cost_state_file) if args.cost_state_file
                       else Path.home() / ".cdms" / "openrouter_spend.json")
         state_file.parent.mkdir(parents=True, exist_ok=True)
@@ -773,6 +924,13 @@ def main():
         # (VRAM thrash on single-resident GPUs; ~2x runtime cost if model is inner).
         mode_meta = {}  # name -> {preamble_bytes, claude_md_bytes, arm_prompts, probes, arms}
         for name, setup, claude_md, probes, _scorer_unused, arms in selected:
+            # THE single point where a mode's probe list is chosen + frozen for the
+            # run. --expand-probes (off by default) swaps in the expanded+sub-sampled
+            # list HERE so the cell loop (model/arm/probe) and every downstream
+            # consumer read mode_meta["probes"] generically — no edit needed inside
+            # the loop. Expand happens once per mode (mode-level), so both arms of
+            # ORDER/OVERRIDE share the identical expanded list (no per-arm divergence).
+            probes = _select_probes(name, probes, args.expand_probes)
             with tempfile.TemporaryDirectory() as td:
                 cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
             arm_prompts = {}
@@ -787,6 +945,72 @@ def main():
                 "probes": probes,
                 "arms": arms,
             }
+
+        # === Realized probe-budget accounting (printed, NOT silent). ===
+        # Surfaces the actual per-cell N + the run total so the §4 "32 × 50 = 1,600"
+        # estimate vs the true 1,520 (guardrail modes cap at 40) is auditable in the
+        # header. probe_calls = sum over (mode, arm) of len(meta["probes"]); cost
+        # scales LINEARLY with this count.
+        probe_budget_lines = [
+            f"# Expand-probes: {'ON (single-model T2/T3 sub-sample-to-50; 8-original guardrail modes cap at 40, per pre-reg §4)' if args.expand_probes else 'OFF (originals only; T1 default)'}",
+        ]
+        total_probe_calls = 0
+        per_mode_cells = []
+        for name, meta in mode_meta.items():
+            n_cell = len(meta["probes"])
+            n_arms = len(meta["arms"])
+            total_probe_calls += n_cell * n_arms
+            per_mode_cells.append(f"{name}={n_cell}/cell×{n_arms}arm")
+        probe_budget_lines.append("#   per-cell sizes: " + "  ".join(per_mode_cells))
+        total_llm_calls = total_probe_calls * len(models)
+        probe_budget_lines.append(
+            f"#   probe calls this run = {total_probe_calls}"
+            f" (= Σ cells of N/cell × arms × {len(models)} model(s))"
+            f" → {total_llm_calls} total LLM calls")
+        # Projected-dollars preflight (pressure-test SHOULD_FIX): surface the one
+        # number the operator most wants before authorizing a paid run — projected
+        # total in $ against the cap, computed from the REALIZED count (not the
+        # pre-reg's). $0.018/probe is a SINGLE-SOURCE estimate (_EST_USD_PER_PROBE,
+        # shared with DEVIATIONS.md O1); the live CostGuard meters actual per-call
+        # spend. Only meaningful for the paid backend.
+        if args.backend == "openrouter":
+            est_usd = total_llm_calls * _EST_USD_PER_PROBE
+            spent_now = cost_guard.spent() if cost_guard else 0.0
+            probe_budget_lines.append(
+                f"#   projected ~${est_usd:.2f} this run "
+                f"(= {total_llm_calls} calls × ${_EST_USD_PER_PROBE}/probe est., ±30%); "
+                f"cap=${args.openrouter_cost_cap:.2f}, already spent=${spent_now:.4f}, "
+                f"projected cumulative=${spent_now + est_usd:.2f}")
+            if spent_now + est_usd > args.openrouter_cost_cap:
+                probe_budget_lines.append(
+                    f"#   *** WARNING: projected cumulative ${spent_now + est_usd:.2f} "
+                    f"EXCEEDS cap ${args.openrouter_cost_cap:.2f} — the CostGuard will hard-stop "
+                    f"mid-run. Re-scope or raise --openrouter-cost-cap before a live run. ***")
+        if args.expand_probes:
+            probe_budget_lines.append(
+                "#   NOTE: guardrail modes ORDER_OVERFIRE / BEM_WORKSPACE_FACT cap at 40/cell "
+                "(8 originals, no 10th to expand); all others reach 50. "
+                "REFERENCE — the FULL pre-registered T3 plan (all 6 modes × 4 conditions = "
+                "B0/B1/V1/V2.full) totals 1,520 probes, NOT the pre-reg §4 stated 1,600 "
+                "(the 80-gap is 2 guardrail cells × (50−40) × 4 conditions; §4's '32×50=1,600' "
+                "is an overcount). THIS run's actual count is the 'probe calls this run' line "
+                "above — it is a subset whenever --modes / --variant selects less than the full "
+                "plan. Cost is incurred PER invocation: one --variant = one condition = 380 "
+                "probes (~$6.84); the full 1,520 (~$27.36) materializes across all 4 "
+                "B0/B1/V1/V2.full invocations. The CostGuard tracks cumulative spend across all "
+                "invocations via --cost-state-file.")
+        for line in probe_budget_lines:
+            print(line); out_fh.write(line + "\n")
+
+        # === --dry-run exit: plan preview only, ZERO network. ===
+        # Everything above is pure-Python (probe construction + arithmetic); nothing
+        # below this point runs without contacting a backend. Exit here so the cost
+        # story is auditable at the CLI with no API key and no spend.
+        if args.dry_run:
+            line = ("# DRY RUN — plan preview only. No backend contacted, no LLM calls, "
+                    "$0.00 spent. Remove --dry-run to execute.")
+            print(line); out_fh.write(line + "\n")
+            return
 
         # === Flat results dict (model-outer iteration; report is post-hoc). ===
         # Key: (mode_name, arm_label, model_label, probe_idx) -> (score, preview, probe_tag)

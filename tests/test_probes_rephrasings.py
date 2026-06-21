@@ -40,6 +40,7 @@ from redteam_claude_md_interference import (  # noqa: E402
     PROBES_ORDER, PROBES_ORDER_OVERFIRE,
     PROBES_BEM, PROBES_BEM_WORKSPACE_FACT,
     PROBES_INSTR, PROBES_OVERRIDE,
+    _select_probes, _EXPAND_SUBSAMPLE_N, _EST_USD_PER_PROBE,
 )
 
 
@@ -385,3 +386,266 @@ def test_total_expanded_count_meets_n50_floor():
         originals = _MODE_ORIGINALS[mode_name]
         expanded = expanded_probes(mode_name, originals)
         assert len(expanded) == 5 * len(originals)
+
+
+# =====================================================================
+# `_select_probes` — the --expand-probes wiring (cost-correctness lock)
+# =====================================================================
+# These tests assert EXACT per-cell sizes (real money depends on them), tuple-tag
+# preservation, deterministic sub-sampling, and that the DEFAULT (no flag) path is
+# byte-identical to the raw PROBES_* lists. See pre-reg §4 (sub-sample-to-50) and
+# PROBE-COUNT CONTRACT (1,520 total, NOT 1,600).
+
+# Pre-registered §4 per-CELL target sizes (one arm of one mode, one condition).
+# Guardrail modes ORDER_OVERFIRE / BEM_WORKSPACE_FACT cap at 40 (8 originals, no
+# 10th to expand); all others reach 50 (10 originals + 40 rephrasings).
+_EXPECTED_EXPANDED_CELL_SIZE = {
+    "ORDER": 50,
+    "ORDER_OVERFIRE": 40,
+    "BEM": 50,
+    "BEM_WORKSPACE_FACT": 40,
+    "INSTR": 50,
+    "OVERRIDE": 50,
+}
+
+# Arms per mode (from the MODES registry) — used to verify the per-condition total.
+_ARMS_PER_MODE = {
+    "ORDER": 2,
+    "ORDER_OVERFIRE": 1,
+    "BEM": 1,
+    "BEM_WORKSPACE_FACT": 1,
+    "INSTR": 1,
+    "OVERRIDE": 2,
+}
+
+
+def test_select_probes_default_off_is_byte_identical():
+    """DEFAULT (expand=False): _select_probes returns the originals UNCHANGED.
+
+    This is the load-bearing T1-SMALL_PANEL guarantee — no flag => no behavior
+    change. We assert object identity (same list) AND value equality, so neither a
+    copy nor a transform can sneak in.
+    """
+    for mode_name, originals in _MODE_ORIGINALS.items():
+        sel = _select_probes(mode_name, originals, False)
+        assert sel is originals, (
+            f"{mode_name}: default _select_probes returned a NEW object; "
+            f"T1 must pass the originals through untouched")
+        assert sel == originals
+        assert len(sel) == len(originals)
+
+
+def test_select_probes_expand_exact_per_cell_sizes():
+    """EXPAND=True: exact per-cell N matches the pre-reg §4 / contract target.
+
+    Cost-correctness lock: a naive expand-ALL would yield 100/cell for 20-original
+    modes (~2x the paid bill). The first-10 sub-sample must yield 50 (or 40 for the
+    8-original guardrail modes) — and EXACTLY that, no more, no fewer.
+    """
+    for mode_name, originals in _MODE_ORIGINALS.items():
+        sel = _select_probes(mode_name, originals, True)
+        assert len(sel) == _EXPECTED_EXPANDED_CELL_SIZE[mode_name], (
+            f"{mode_name}: expanded cell size {len(sel)} != "
+            f"{_EXPECTED_EXPANDED_CELL_SIZE[mode_name]} (cost-correctness violation)")
+
+
+def test_select_probes_expand_does_not_use_naive_expand_all():
+    """Guard against the regression where someone calls expanded_probes() on ALL
+    originals (20 -> 100). The 20-original modes MUST be 50, never 100.
+    """
+    for mode_name in ("ORDER", "BEM", "INSTR", "OVERRIDE"):
+        originals = _MODE_ORIGINALS[mode_name]
+        assert len(originals) == 20
+        sel = _select_probes(mode_name, originals, True)
+        naive = expanded_probes(mode_name, originals)
+        assert len(naive) == 100, "sanity: naive expand-all of a 20-mode is 100"
+        assert len(sel) == 50, (
+            f"{mode_name}: sub-sample must be 50, not the naive {len(naive)}")
+        assert len(sel) != len(naive)
+
+
+def test_select_probes_per_condition_and_t3_total():
+    """The realized T3 totals (per-condition arm-cell sum + ×4 conditions) must
+    equal the PROBE-COUNT CONTRACT figures: 380/condition, 1,520 total — NOT the
+    pre-reg §4 stated 1,600.
+    """
+    per_condition = sum(
+        _select_probes(m, _MODE_ORIGINALS[m], True).__len__() * _ARMS_PER_MODE[m]
+        for m in _MODE_ORIGINALS
+    )
+    assert per_condition == 380, (
+        f"per-condition arm-cell total {per_condition} != 380")
+    assert per_condition * 4 == 1520, (
+        f"T3 total {per_condition * 4} != contract 1,520")
+    # And confirm it is NOT the (incorrect) pre-reg 1,600.
+    assert per_condition * 4 != 1600
+
+
+def test_select_probes_expand_preserves_tuple_tags():
+    """Tuple-tag shape (scar_letter / format_tag at tuple[0]) survives expansion
+    for ORDER / ORDER_OVERFIRE / INSTR; string modes stay strings.
+    """
+    for mode_name in ("ORDER", "ORDER_OVERFIRE", "INSTR"):
+        sel = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True)
+        for i, entry in enumerate(sel):
+            assert isinstance(entry, tuple) and len(entry) == 2, (
+                f"{mode_name} expanded[{i}] lost tuple shape: {entry!r}")
+            tag = entry[0]
+            if mode_name in ("ORDER", "ORDER_OVERFIRE"):
+                assert tag in ("A", "B")
+            else:
+                assert tag in ("terse", "open")
+    for mode_name in ("BEM", "BEM_WORKSPACE_FACT", "OVERRIDE"):
+        sel = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True)
+        for i, entry in enumerate(sel):
+            assert isinstance(entry, str) and entry.strip(), (
+                f"{mode_name} expanded[{i}] is not a non-empty str: {entry!r}")
+
+
+def test_select_probes_expand_is_deterministic_first_n_slice():
+    """Sub-sampling must be the deterministic FIRST-min(N,10) slice — no randomness.
+
+    Run twice: byte-identical. And the surviving originals must be the FIRST
+    _EXPAND_SUBSAMPLE_N originals (at positions 0, 5, 10, ... of the expanded
+    layout), so cache keys (keyed on probe text) are stable run-to-run.
+    """
+    for mode_name, originals in _MODE_ORIGINALS.items():
+        a = _select_probes(mode_name, originals, True)
+        b = _select_probes(mode_name, originals, True)
+        assert a == b, f"{mode_name}: expansion is non-deterministic"
+        n_kept = min(_EXPAND_SUBSAMPLE_N, len(originals))
+        for k in range(n_kept):
+            assert a[k * 5] == originals[k], (
+                f"{mode_name}: expanded[{k * 5}] is not original {k}; "
+                f"sub-sample is not the deterministic first-{n_kept} slice")
+
+
+def test_select_probes_expand_arms_share_identical_list():
+    """ORDER / OVERRIDE have 2 arms that iterate the SAME mode-level probe list.
+    Expansion happens once per mode, so calling _select_probes again for the same
+    mode yields an equal list (no per-arm independent sub-sampling / divergence).
+    """
+    for mode_name in ("ORDER", "OVERRIDE"):
+        arm1 = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True)
+        arm2 = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True)
+        assert arm1 == arm2
+        assert len(arm1) == _EXPECTED_EXPANDED_CELL_SIZE[mode_name]
+
+
+def test_select_probes_expand_cache_keys_distinct_from_originals():
+    """Cache-collision firewall (per-call level): the cache key is
+    sha256(model\\x00system\\x00user)[:24], keyed on probe TEXT. Every rephrasing
+    is a DISTINCT user string => DISTINCT key, so an expanded (N=50) cell's extra
+    entries can NEVER be served for / collide with a non-expanded (N=20) request.
+    Surviving originals share text => share keys (legitimate, desirable reuse).
+
+    Replicates the adapters' key construction to assert: the set of keys for the
+    expanded list is a strict SUPERSET of the non-expanded list's keys (the 10
+    surviving originals overlap; the 40 rephrasings are all new + unique).
+    """
+    import hashlib
+
+    # DELIBERATE STAND-IN: this replicates (does not import) the three adapters'
+    # identical key scheme — sha256(f"{model}\x00{system}\x00{user}")[:24] at
+    # redteam_claude_md_interference.py ollama_chat, openrouter_chat.py, and
+    # lmstudio_chat.py. No shared helper exists today, so it is hand-rolled here.
+    # The PROPERTY under test (distinct probe text => distinct key; surviving
+    # originals share keys) is robust to the model/system prefix, so the test is
+    # meaningful regardless. But because it replicates rather than imports the
+    # keying, a future adapter key change (e.g. folding in n_predict) would NOT
+    # break this test — keep this in sync with the adapters if their key changes.
+    def key(text):
+        return hashlib.sha256(
+            f"model\x00sys\x00{text}".encode("utf-8")).hexdigest()[:24]
+
+    def texts(probes):
+        return [p[1] if isinstance(p, tuple) else p for p in probes]
+
+    for mode_name, originals in _MODE_ORIGINALS.items():
+        non_expanded = _select_probes(mode_name, originals, False)
+        expanded = _select_probes(mode_name, originals, True)
+        non_keys = {key(t) for t in texts(non_expanded)}
+        exp_keys_list = [key(t) for t in texts(expanded)]
+        exp_keys = set(exp_keys_list)
+        # No collision: each expanded probe text is unique (no two probes share a key).
+        assert len(exp_keys_list) == len(exp_keys), (
+            f"{mode_name}: two expanded probes collide on cache key (duplicate text)")
+        # The surviving first-N originals are shared with the non-expanded run.
+        n_kept = min(_EXPAND_SUBSAMPLE_N, len(originals))
+        kept_keys = {key(t) for t in texts(originals[:n_kept])}
+        assert kept_keys <= exp_keys, (
+            f"{mode_name}: surviving originals' keys not present in expanded keys")
+        # The 40 rephrasing keys are genuinely NEW (not in the originals-only set),
+        # so an N=20 cached entry can never satisfy an N=50 request.
+        new_keys = exp_keys - non_keys
+        assert len(new_keys) == 4 * n_kept, (
+            f"{mode_name}: expected {4 * n_kept} new rephrasing keys, got {len(new_keys)}")
+
+
+def test_select_probes_unknown_mode_under_expand_raises():
+    """Expanding an unregistered mode must surface a KeyError (no silent empty cell)."""
+    import pytest
+    with pytest.raises(KeyError):
+        _select_probes("BOGUS_MODE", [("A", "x")], True)
+    # But default-off on a bogus mode is a harmless pass-through (no rephrasings used).
+    assert _select_probes("BOGUS_MODE", ["x"], False) == ["x"]
+
+
+# =====================================================================
+# Cost preflight — projected-dollars reconciliation (money-safety)
+# =====================================================================
+# These lock the cost-correctness contract numbers the paid T3 run depends on:
+# the realized 1,520-probe total reconciles to the projected $27.36 at the
+# single-source per-probe estimate, and that figure is within the $75 cap.
+
+def test_per_probe_estimate_is_the_single_source_constant():
+    """_EST_USD_PER_PROBE must equal the pre-reg §4 / DEVIATIONS O1 figure ($0.018).
+    A drift here would silently desynchronize the runner's projected-cost line from
+    the documented cost model."""
+    assert _EST_USD_PER_PROBE == 0.018, (
+        f"_EST_USD_PER_PROBE={_EST_USD_PER_PROBE} != documented $0.018 "
+        f"(pre-reg §4 / DEVIATIONS O1); update both or neither")
+
+
+def test_projected_t3_cost_reconciles_to_2736_and_within_cap():
+    """1,520 probes × $0.018 ≈ $27.36, and that is well within the $75 cap.
+
+    This is the single-model T3 plan (1 model). Mirrors the runner's projected-cost
+    arithmetic: total_llm_calls = total_probe_calls × len(models); for the paid T3
+    transfer check len(models) == 1.
+    """
+    per_condition = sum(
+        len(_select_probes(m, _MODE_ORIGINALS[m], True)) * _ARMS_PER_MODE[m]
+        for m in _MODE_ORIGINALS
+    )
+    t3_total = per_condition * 4  # B0, B1, V1, V2.full
+    assert t3_total == 1520
+    projected = t3_total * _EST_USD_PER_PROBE
+    assert abs(projected - 27.36) < 0.01, (
+        f"projected ${projected:.2f} != contract $27.36")
+    assert projected < 75.0, "projected T3 cost must be within the $75 cap"
+    # Even a +30% overrun stays under the cap (headroom check).
+    assert projected * 1.30 < 75.0, (
+        f"projected +30% (${projected * 1.30:.2f}) must still be within $75 cap")
+
+
+def test_naive_expand_all_would_blow_past_rescope_trigger():
+    """Sanity tripwire documenting WHY the first-10 sub-sample is mandatory: the
+    naive expand-ALL (20 originals -> 100/cell for the four 20-original modes) would
+    roughly double the bill and approach the $65 (87%) re-scope trigger / $75 cap.
+    """
+    naive_per_condition = sum(
+        len(expanded_probes(m, _MODE_ORIGINALS[m])) * _ARMS_PER_MODE[m]
+        for m in _MODE_ORIGINALS
+    )
+    naive_total = naive_per_condition * 4
+    # 20-mode -> 100; 8-mode -> 40. per condition = (50/100 modes...) compute exact:
+    # ORDER 100*2 + ORDER_OVERFIRE 40 + BEM 100 + BEM_WF 40 + INSTR 100 + OVERRIDE 100*2
+    #     = 200 + 40 + 100 + 40 + 100 + 200 = 680/condition; *4 = 2720.
+    assert naive_per_condition == 680
+    assert naive_total == 2720
+    naive_cost = naive_total * _EST_USD_PER_PROBE
+    # ~$48.96 — substantially more than the sub-sampled $27.36, confirming the
+    # sub-sample is load-bearing for staying near the pre-reg estimate.
+    assert naive_cost > 48.0
+    assert naive_cost > 27.36 * 1.7
