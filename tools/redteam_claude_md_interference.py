@@ -170,8 +170,17 @@ def _naive_dump_preamble(cfg: Config, payload: dict) -> str:
     return out
 
 
+def _empty_preamble(cfg: Config, payload: dict) -> str:
+    """B0 NO-MEMORY baseline (pre-reg §2): empty CDMS preamble. The system prompt
+    will contain ONLY the per-mode CLAUDE.md fixture (or nothing for modes without
+    one). Tests "what would the model do without us?" — the zero-point of the
+    comparison set."""
+    return ""
+
+
 _VARIANT_BUILDERS = {
     "v1": _session_start_context,
+    "b0": _empty_preamble,
     "b1": _naive_dump_preamble,
     "v2": _session_start_context_v2,
     "v2a": _session_start_context_v2a,
@@ -673,11 +682,12 @@ def main():
                          "(created if missing). State persists across runs so partial matrix runs do not lose "
                          "cost tracking.")
     ap.add_argument("--variant",
-                    choices=["v1", "b1",
+                    choices=["v1", "b0", "b1",
                              "v2", "v2a", "v2b", "v2c", "v2d",
                              "v3", "v4", "v5b", "v5d"],
                     default="v1",
                     help="preamble variant. v1=shipped baseline. "
+                         "b0=NO-MEMORY zero-point (empty CDMS preamble; only CLAUDE.md). "
                          "b1=NAIVE-DUMP comparison baseline (methodology-reset pre-reg §2). "
                          "v2=asymmetric authority framing (PR #71 candidate). "
                          "v2a/b/c/d=V2 ablations isolating each of V2's four changes "
