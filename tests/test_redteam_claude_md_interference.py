@@ -516,6 +516,29 @@ def test_b1_naive_dump_respects_max_context(service, cfg):
     assert len(out) <= _MAX_CONTEXT
 
 
+def test_b0_no_memory_baseline_returns_empty_string(service, cfg):
+    """B0 NO-MEMORY baseline (pre-reg §2 zero-point) MUST return "" regardless of
+    store state. This is the only way the runner can produce a system prompt with
+    just CLAUDE.md and no CDMS preamble at all. Even with scars + gists + recent
+    seeded, b0 returns empty — the variant is the off-switch, not a degenerate
+    case of v1."""
+    naive = _import_naive_dump()  # imports from same tools module as b0
+    import sys
+    from pathlib import Path
+    tools_dir = Path(__file__).resolve().parent.parent / "tools"
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    from redteam_claude_md_interference import _empty_preamble  # noqa: E402
+    service.pin_scar(crisis_trigger="some scar text",
+                     remediation_rule="some rule", project=PROJECT)
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
+             object="billing module", valence=0.5, frequency=1, support_count=3,
+             project=PROJECT)
+    service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
+    out = _empty_preamble(cfg, {"cwd": PROJECT})
+    assert out == "", f"b0 must return empty string regardless of store; got {out[:80]!r}"
+
+
 def test_b1_naive_dump_returns_empty_on_empty_store(service, cfg):
     """An empty store yields an empty string — no 'Past session highlights:'
     label, no anything. Matches V1's empty-store behavior."""

@@ -1,0 +1,36 @@
+T1 START: Sat Jun 20 21:21:31 CDT 2026
+Cache dir: /c/Users/joshe/cdms_t1_cache_20260620_212131
+Branch: claude/matrix-t1-ollama
+Commit: 78d40bb
+
+=== b0 START: Sat Jun 20 21:21:31 CDT 2026 ===
+=== b0 END: Sat Jun 20 21:44:00 CDT 2026 (exit=0) ===
+
+=== b1 START: Sat Jun 20 21:44:00 CDT 2026 ===
+=== b1 END: Sat Jun 20 22:05:41 CDT 2026 (exit=0) ===
+
+=== v1 START: Sat Jun 20 22:05:41 CDT 2026 ===
+=== v1 END: Sat Jun 20 22:26:09 CDT 2026 (exit=0) ===
+
+=== v2 START: Sat Jun 20 22:26:09 CDT 2026 ===
+=== v2 END: Sat Jun 20 22:46:01 CDT 2026 (exit=0) ===
+
+=== v2a START: Sat Jun 20 22:46:01 CDT 2026 ===
+=== v2a END: Sat Jun 20 23:06:14 CDT 2026 (exit=0) ===
+
+=== v2b START: Sat Jun 20 23:06:14 CDT 2026 ===
+=== v2b END: Sat Jun 20 23:25:59 CDT 2026 (exit=0) ===
+
+=== v2c START: Sat Jun 20 23:25:59 CDT 2026 ===
+=== v2c END: Sat Jun 20 23:38:29 CDT 2026 (exit=0) ===
+
+=== v2d START: Sat Jun 20 23:38:29 CDT 2026 ===
+=== v2d END: Sat Jun 20 23:58:09 CDT 2026 (exit=0) ===
+
+=== v5b START: Sat Jun 20 23:58:10 CDT 2026 ===
+=== v5b END: Sun Jun 21 00:06:35 CDT 2026 (exit=0) ===
+
+=== v5d START: Sun Jun 21 00:06:35 CDT 2026 ===
+=== v5d END: Sun Jun 21 00:14:54 CDT 2026 (exit=0) ===
+
+T1 COMPLETE: Sun Jun 21 00:14:54 CDT 2026
