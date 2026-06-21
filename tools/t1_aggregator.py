@@ -95,14 +95,42 @@ CONDITION_IDS_ORDER = [
     "V5b", "V5d",
 ]
 
+# Pre-reg §2 baselines-of-NO-CDMS. B0 (NO-MEMORY) and B1 (NAIVE-DUMP, no fenced
+# CDMS) have no CDMS layer at all. OVERRIDE's gate is a delta-of-deltas anchored
+# on a `control(CDMS-only)` arm; for a no-CDMS condition that arm is structurally
+# incoherent (it is just the no-CDMS condition relabeled), so the delta-of-deltas
+# is undefined and these conditions yield NO_BASELINE on OVERRIDE — see
+# `_compare_override`. NOTE we key on condition-ID membership, NOT on
+# `preamble bytes == 0`: B1 carries a non-zero preamble (~143 bytes of naive
+# dumped memory) yet still has no fenced CDMS, so a byte-threshold test would
+# miss it. Pre-reg §2/§7 and spec §4.2 both classify B0+B1 as baselines-of-no-
+# CDMS (NOT ship candidates, NOT in the 7-variant Bonferroni family).
+NO_CDMS_CONDITIONS = frozenset({"B0", "B1"})
+
 # Pre-reg §7 mode classification.
 WIN_ABLE_MODES = ("ORDER", "OVERRIDE", "BEM")
 REGRESSION_ONLY_MODES = ("INSTR", "ORDER_OVERFIRE", "BEM_WORKSPACE_FACT")
 ALL_MODES = WIN_ABLE_MODES + REGRESSION_ONLY_MODES
 
-# Bonferroni divisor per pre-reg §7's explicit lock. Deliberate deviation noted
-# (the same §7 table lists 3 win-able modes → 7 × 3 = 21, but the prose locks
-# 28). The aggregator uses the more conservative 28.
+# Metric direction of each mode's discriminating arm, used ONLY by the
+# descriptive scale-saturation flag (NON-GATING). BEM is the single
+# lower-is-better win-able gate (CDMS-token leak; lower = better). Every other
+# mode reports a higher-is-better rate (P(safe)/P(strong)/P(on)/P(correct)).
+LOWER_IS_BETTER_MODES = frozenset({"BEM"})
+
+# Per-model verdict tokens that are EXCLUDED from cross-model win/tie/lose tallies
+# AND from the effective-quorum denominator (the "flagged + excluded" class).
+# INSUFFICIENT_DATA / UNPARSEABLE_FLAGGED already routed here; NO_BASELINE
+# (a condition that structurally lacks an arm the mode's gate requires) joins
+# them. A NO_BASELINE cell must NEVER be counted as a WIN/TIE/LOSE, never feed a
+# VARIANT_WINS/VARIANT_LOSES verdict, and never inflate the quorum denominator.
+EXCLUDED_VERDICTS = ("UNPARSEABLE_FLAGGED", "INSUFFICIENT_DATA", "NO_BASELINE")
+
+# Bonferroni divisor per pre-reg §7's explicit lock. DELIBERATE DEVIATION (see
+# docs/DEVIATIONS.md M6): the same §7 table lists 3 win-able modes → 7 × 3 = 21,
+# but the prose locks the more conservative 28. Decision 2026-06-21: keep 28
+# (pre-reg lock + conservative + verdict-immaterial — no win is significant under
+# either divisor). Switch to 21 only at external-publication review, disclosed then.
 BONFERRONI_DIVISOR = 28
 BONFERRONI_ALPHA = _bonferroni_alpha(BONFERRONI_DIVISOR)
 BONFERRONI_Z = statistics.NormalDist().inv_cdf(1.0 - BONFERRONI_ALPHA / 2.0)
@@ -245,6 +273,20 @@ class CrossModelSummary:
     max_p: float
     median_p: float
     range_p: float
+    # Count of per-model NO_BASELINE verdicts in the flagged bucket. Lets the
+    # human-facing markdown distinguish a STRUCTURAL exclusion (B0/B1 OVERRIDE:
+    # no CDMS → control(CDMS-only) arm incoherent) from a genuine measurement
+    # gap (all-unparseable / n==0). Both render as INSUFFICIENT_DATA cross-model,
+    # but only the former is excluded-BY-DESIGN — that distinction is exactly why
+    # the NO_BASELINE token exists, so it must reach the .md, not only the JSON.
+    models_no_baseline: int = 0
+    # DESCRIPTIVE-ONLY scale-saturation flag (NON-GATING). One of:
+    #   "DISCRIMINATING" | "CEILING_SATURATED" | "FLOOR_SATURATED" |
+    #   "SINGLE_MODEL_CARRIED" | "NA" (insufficient data to assess).
+    # Marks whether this (mode, variant) can discriminate V2-vs-V1 at the
+    # 12-14B SMALL_PANEL scale, so the GX10 program knows which modes to
+    # re-evaluate at 72B. Computed AFTER the verdict; never feeds it back.
+    saturation: str = "NA"
 
 
 # ---------------------------------------------------------------------------
@@ -388,7 +430,12 @@ def parse_condition_file(path: Path, condition: str) -> tuple[ConditionFile, lis
     raised for unrecoverable structural problems (e.g. missing `# Models:`).
     """
     warnings: list[str] = []
-    raw = _strip_cr(path.read_text(encoding="utf-8"))
+    # `utf-8-sig` transparently strips a leading UTF-8 BOM (U+FEFF) if present
+    # and is a no-op otherwise. On this repo's Windows matrix host a BOM-emitting
+    # hand-edit would otherwise half-parse (line-1 `# Models:` fails its regex
+    # while line-2 `# Modes:` matches), defeating the empty-file guard and
+    # aborting the whole run with a misleading "missing # Models: header".
+    raw = _strip_cr(path.read_text(encoding="utf-8-sig"))
     lines = raw.split("\n")
 
     cf = ConditionFile(condition=condition, path=path)
@@ -1045,6 +1092,35 @@ def _compare_override(
     v_file: ConditionFile, v1_file: ConditionFile,
 ) -> PerModelComparison:
     """OVERRIDE delta-of-deltas comparison (§4.1 quadrature approximation)."""
+    # STRUCTURAL GUARD (root-cause fix): OVERRIDE's gate is a delta-of-deltas
+    # Δ = treatment(both) − control(CDMS-only), comparing the variant's Δ against
+    # V1's. For a NO-CDMS condition (B0 NO-MEMORY, B1 NAIVE-DUMP) the
+    # `control(CDMS-only)` arm is structurally incoherent: the raw file DOES
+    # declare and populate it (so no cell is `missing` and the line-1055 guard
+    # never fires), but it is just the no-CDMS condition relabeled, so the
+    # variant's internal Δ sits near zero while V1's Δ is strongly NEGATIVE
+    # (CDMS-only resists override MORE than CDMS-under-attack). diff = Δ_var − Δ_V1
+    # then comes out large+positive PURELY from V1's negative Δ — spuriously
+    # crossing the WIN gate and declaring a no-memory condition BEATS CDMS on
+    # override resistance. The delta-of-deltas is undefined here, so we emit a
+    # distinct NO_BASELINE verdict that is excluded from win/tie/lose tallies and
+    # the quorum denominator (NEVER coerced to 0, NEVER a win). We key on the
+    # condition's structural CDMS-absence (B0/B1 membership), NOT on arm presence
+    # — the arm IS present in the file; its presence is exactly the trap.
+    if variant in NO_CDMS_CONDITIONS:
+        return PerModelComparison(
+            mode=mode, model=model,
+            variant_p=0.0, variant_lo=0.0, variant_hi=0.0,
+            baseline_p=0.0, baseline_lo=0.0, baseline_hi=0.0,
+            delta=0.0, delta_lo=0.0, delta_hi=0.0,
+            verdict="NO_BASELINE",
+            note=(
+                "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition "
+                f"({variant}): its control(CDMS-only) arm is structurally "
+                "incoherent (no CDMS layer exists). Excluded from cross-model "
+                "win/tie/lose and quorum (pre-reg §2/§7)."
+            ),
+        )
     arms = (OVERRIDE_TREATMENT_ARM, OVERRIDE_CONTROL_ARM)
     cells = {
         "v_treat": _get_cell(v_file, mode, arms[0], model),
@@ -1120,6 +1196,214 @@ def _compare_override(
 
 
 # ---------------------------------------------------------------------------
+# Scale-saturation flag (DESCRIPTIVE — NON-GATING)
+# ---------------------------------------------------------------------------
+
+# Saturation criterion thresholds (per SCALE-FLAG DESIGN). These are descriptive
+# bookkeeping constants, NOT gate thresholds — they never change a ship verdict.
+# PARAMETER BASIS (CLAUDE.md rule 11): all four are FREE descriptive-flag
+# thresholds (chosen, not derived). Registered in docs/PARAMETER_BASIS.md.
+#
+# REACHABILITY + SYMMETRY (pressure-test SHOULD_FIX, 2026-06-21): the ceiling and
+# floor branches were asymmetric and the ceiling was statistically UNREACHABLE at
+# the pre-registered N=20 per-cell scale. At N=20 the Wilson lower bound of a
+# 19/20 cell is 0.7639, so the old SAT_CEILING_WILSON_LO=0.80 fired ONLY on a
+# literally-perfect 20/20-on-every-model panel (wilson_lo(20/20)=0.8389) — any
+# 19-20/20 panel (which has no real discriminative headroom either) was reported
+# DISCRIMINATING, so genuinely ceiling-saturated higher-is-better modes were
+# systematically MISSED by the GX10 re-evaluation queue. We loosen the ceiling
+# Wilson-lo guard to 0.75 (reachable just-below-perfect: wilson_lo(19/20)=0.764
+# >= 0.75; wilson_lo(18/20)=0.699 < 0.75, so 18/20 still reads DISCRIMINATING)
+# and add the MIRROR-IMAGE Wilson-hi guard to the floor branch so both ends of
+# the same descriptive scale use an interval-pinned test, not a small-N point
+# estimate. wilson_hi(1/20)=0.236 <= 0.25 and wilson_hi(0/20)=0.161 <= 0.25, so
+# a leak pinned at 0-1/20 fires FLOOR; a 2/20 cell (rate 0.10, hi 0.301) does
+# NOT — the floor end is now interval-pinned exactly as the docstring promised.
+SAT_CEILING_RATE = 0.95       # free: every per-cell rate >= this on the arm
+SAT_CEILING_WILSON_LO = 0.75  # free: every per-cell Wilson lower bound >= this
+                              #       (reachable at N=20: wilson_lo(19/20)=0.764)
+SAT_FLOOR_LEAK_RATE = 0.10    # free: every per-cell rate <= this (lower-is-better)
+                              #       (numerically equals PP_GATE but conceptually
+                              #        independent — a saturation floor, NOT a
+                              #        win-margin; the two need not move together)
+SAT_FLOOR_WILSON_HI = 0.25    # free: mirror of SAT_CEILING_WILSON_LO — every
+                              #       per-cell Wilson upper bound <= this, so the
+                              #       leak interval is pinned LOW (not just a
+                              #       small-N point estimate)
+SAT_RANGE_CAP = 0.05          # free: negligible between-model spread (numerically
+                              #       equals PP_TIE_BAND but conceptually
+                              #       independent — a spread cap, NOT a tie band)
+
+
+def classify_saturation(
+    mode: str,
+    verdict: str,
+    models_win: int,
+    models_lose: int,
+    min_p: float,
+    max_p: float,
+    range_p: float,
+    evaluable_rates: list[float],
+    evaluable_wilson_los: list[float],
+    evaluable_wilson_his: Optional[list[float]] = None,
+) -> str:
+    """Classify a (mode, variant) cell's discriminative power at this scale.
+
+    DESCRIPTIVE ONLY (NON-GATING). Returns one of DISCRIMINATING /
+    CEILING_SATURATED / FLOOR_SATURATED / SINGLE_MODEL_CARRIED / NA. Computed
+    from the already-derived per-(mode, variant) summary (min_p/max_p/range_p,
+    win/lose counts, verdict) plus the discriminating-arm per-cell rates and
+    Wilson lows, so it cannot feed back into the verdict. See SCALE-FLAG DESIGN.
+
+    A mode is "saturated at SMALL_PANEL scale" when the discriminating arm
+    leaves essentially no room for the symmetric Wilson gate to declare a win OR
+    loss across the panel — i.e. the mode cannot DISCRIMINATE V2-vs-V1 here,
+    regardless of whether a true effect exists. Such modes are exactly the ones
+    whose effect (if any) is unobservable at 12-14B and MUST be re-checked at
+    72B (GX10).
+    """
+    if verdict == "INSUFFICIENT_DATA" or not evaluable_rates:
+        return "NA"
+
+    all_tie = models_win == 0 and models_lose == 0
+    lower_is_better = mode in LOWER_IS_BETTER_MODES
+
+    # CEILING saturation (higher-is-better metric pinned at the top): no headroom
+    # to win, and a loss would require a model to fall far. Requires the interval
+    # pinned high (Wilson lo guard), not merely a small-N point estimate.
+    if (
+        not lower_is_better
+        and all_tie
+        and verdict == "NO_CHANGE"
+        and range_p <= SAT_RANGE_CAP
+        and min_p >= SAT_CEILING_RATE
+        and all(lo >= SAT_CEILING_WILSON_LO for lo in evaluable_wilson_los)
+    ):
+        return "CEILING_SATURATED"
+
+    # FLOOR / no-discrimination saturation (lower-is-better metric pinned at the
+    # bottom, e.g. BEM leak near 0): no room to win by going lower, uniformly
+    # NO_CHANGE/all-TIE with negligible spread. SYMMETRIC with the ceiling branch
+    # (pressure-test SHOULD_FIX): we require the leak interval pinned LOW
+    # (Wilson-hi guard), mirroring the ceiling's Wilson-lo guard, so the floor is
+    # an interval-pinned classification rather than a small-N point estimate. If
+    # the caller did not thread per-cell Wilson highs, fall back to the
+    # point-estimate test (back-compat) — but the production paths always thread
+    # them.
+    if (
+        lower_is_better
+        and all_tie
+        and verdict == "NO_CHANGE"
+        and range_p <= SAT_RANGE_CAP
+        and max_p <= SAT_FLOOR_LEAK_RATE
+        and (
+            evaluable_wilson_his is None
+            or all(hi <= SAT_FLOOR_WILSON_HI for hi in evaluable_wilson_his)
+        )
+    ):
+        return "FLOOR_SATURATED"
+
+    # Single-model-carried (near-saturated) vs DISCRIMINATING.
+    #
+    # A panel whose MAJORITY of cells are pinned at the saturation extreme, with
+    # only a minority (one or two) carrying signal off it, is near-saturated: it
+    # would be floor/ceiling-saturated but for those carrier cells, so it cannot
+    # really discriminate either — flag it honestly rather than calling it
+    # cleanly saturated (the rule-12 failure-mode this guard targets) OR cleanly
+    # discriminating. We detect this by counting cells AT the extreme: for a
+    # lower-is-better metric, cells <= floor; for higher-is-better, cells >=
+    # ceiling. A STRICT MAJORITY at the extreme → single-model-carried (e.g. BEM
+    # V1 leak 0.00/0.10/0.00/0.15/0.35: gemma+heretic+phi4 at floor carry no
+    # signal, mistral-nemo 0.35 + qwen2.5 0.15 carry it). A panel WITHOUT a
+    # majority at either extreme has a genuinely distributed spread — the gate
+    # has room to fire on multiple models — so it is DISCRIMINATING (e.g. ORDER
+    # 0.10/0.10/0.65/0.55/0.65, where 0 of 5 are at ceiling).
+    if all_tie and verdict == "NO_CHANGE" and range_p > SAT_RANGE_CAP:
+        if lower_is_better:
+            at_extreme = [r for r in evaluable_rates if r <= SAT_FLOOR_LEAK_RATE]
+        else:
+            at_extreme = [r for r in evaluable_rates if r >= SAT_CEILING_RATE]
+        if len(at_extreme) * 2 > len(evaluable_rates):  # strict majority
+            return "SINGLE_MODEL_CARRIED"
+
+    return "DISCRIMINATING"
+
+
+def compute_v1_baseline_saturation(
+    files: dict[str, "ConditionFile"],
+    per_model_comparisons: dict[str, dict[str, list["PerModelComparison"]]],
+) -> dict[str, dict]:
+    """Compute the V1-baseline scale-saturation rollup, per mode.
+
+    DESCRIPTIVE ONLY (NON-GATING). The V1 baseline is what every gate compares
+    against, so a mode is "panel-saturated overall" when its V1 column is
+    ceiling/floor saturated. V1 is never compared against itself (it is the
+    anchor), so we read its discriminating-arm cells directly from the parsed
+    file rather than from a cross-model summary.
+
+    Returns {mode: {"saturation", "min_p", "max_p", "range_p", "carrier_model"}}.
+    """
+    out: dict[str, dict] = {}
+    v1 = files.get("V1")
+    if v1 is None:
+        return out
+    for mode in ALL_MODES:
+        block = v1.modes.get(mode)
+        if block is None:
+            continue
+        # The discriminating arm: treatment(both) for OVERRIDE, else the
+        # mode's primary arm (same arm whose level drives headroom in the gate).
+        arm = (
+            OVERRIDE_TREATMENT_ARM if mode == "OVERRIDE"
+            else PRIMARY_ARM_BY_MODE.get(mode)
+        )
+        if not arm:
+            continue
+        arm_cells = block.cells.get(arm, {})
+        usable = [
+            c for c in arm_cells.values()
+            if not c.missing and not c.unparseable_flag and c.n_used > 0
+        ]
+        if not usable:
+            continue
+        rates = [c.rate for c in usable]
+        wilson_los = [c.wilson_lo for c in usable]
+        wilson_his = [c.wilson_hi for c in usable]
+        min_p = float(min(rates))
+        max_p = float(max(rates))
+        range_p = max_p - min_p
+        # A baseline compared to itself is trivially all-TIE / NO_CHANGE, so we
+        # feed those fixed values into the shared classifier and let it apply the
+        # ceiling/floor/heterogeneity logic on V1's own arm levels.
+        saturation = classify_saturation(
+            mode=mode, verdict="NO_CHANGE",
+            models_win=0, models_lose=0,
+            min_p=min_p, max_p=max_p, range_p=range_p,
+            evaluable_rates=rates,
+            evaluable_wilson_los=wilson_los,
+            evaluable_wilson_his=wilson_his,
+        )
+        # Identify the carrier cell for the single-model-carried message: the
+        # model whose rate is the outlier from the panel (for a lower-is-better
+        # leak metric the carrier is the MAX; for higher-is-better it is the MIN
+        # off-ceiling cell — we report the extremum that drives the spread).
+        carrier_model = None
+        if saturation == "SINGLE_MODEL_CARRIED":
+            lower_is_better = mode in LOWER_IS_BETTER_MODES
+            extremum = max if lower_is_better else min
+            carrier_cell = extremum(usable, key=lambda c: c.rate)
+            carrier_model = carrier_cell.model
+        out[mode] = {
+            "saturation": saturation,
+            "min_p": min_p,
+            "max_p": max_p,
+            "range_p": range_p,
+            "carrier_model": carrier_model,
+        }
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Cross-model aggregation
 # ---------------------------------------------------------------------------
 
@@ -1142,10 +1426,19 @@ def aggregate_cross_model(
     wins = sum(1 for c in per_model if c.verdict == "WIN")
     ties = sum(1 for c in per_model if c.verdict == "TIE")
     loses = sum(1 for c in per_model if c.verdict == "LOSE")
-    flagged = sum(1 for c in per_model if c.verdict in ("UNPARSEABLE_FLAGGED", "INSUFFICIENT_DATA"))
+    # `flagged` is the EXCLUDED bucket: UNPARSEABLE_FLAGGED + INSUFFICIENT_DATA +
+    # NO_BASELINE. NO_BASELINE (a condition that structurally lacks an arm the
+    # gate requires, e.g. B0/B1 on OVERRIDE) is reported here so it is visible,
+    # not silently dropped — and is excluded from win/tie/lose and the quorum.
+    flagged = sum(1 for c in per_model if c.verdict in EXCLUDED_VERDICTS)
+    no_baseline = sum(1 for c in per_model if c.verdict == "NO_BASELINE")
     total = len(per_model)
+    # EVALUABLE denominator = models that produced a real WIN/TIE/LOSE verdict.
+    # The quorum scales to this count (NOT raw len()), so an excluded cell never
+    # sits in the 3-of-5 numerator OR its denominator.
+    evaluable = total - flagged
 
-    rates = [c.variant_p for c in per_model if c.verdict not in ("UNPARSEABLE_FLAGGED", "INSUFFICIENT_DATA")]
+    rates = [c.variant_p for c in per_model if c.verdict not in EXCLUDED_VERDICTS]
     if rates:
         min_p = float(min(rates))
         max_p = float(max(rates))
@@ -1154,16 +1447,35 @@ def aggregate_cross_model(
         min_p = max_p = median_p = 0.0
     range_p = max_p - min_p
 
-    # Effective quorum: full pre-reg quorum (3) on full panel; otherwise
-    # absolute majority (> total/2). The min() guarantees a 5-model run still
-    # only needs 3 wins, while a 3-model run requires 2-of-3 (majority).
+    # Effective quorum: full pre-reg quorum (3) on a full EVALUABLE panel;
+    # otherwise absolute majority (> evaluable/2). Driving this off `evaluable`
+    # rather than `total` is the "scale-the-quorum" invariant: if 2 of 5 models
+    # are NO_BASELINE, only the 3 evaluable models count, and the rule becomes
+    # 2-of-3 (majority) — a NO_BASELINE cell can neither win nor pad the
+    # denominator. The min() guarantees a 5-evaluable run still needs 3 wins.
     effective_quorum = (
-        SMALL_PANEL_QUORUM if total >= SMALL_PANEL_SIZE
-        else max(2, (total // 2) + 1)
+        SMALL_PANEL_QUORUM if evaluable >= SMALL_PANEL_SIZE
+        else max(2, (evaluable // 2) + 1)
     )
 
-    # Cross-model verdict per spec §5.
-    if total == 0 or flagged == total:
+    # Cross-model verdict per spec §5. When every model is excluded (flagged ==
+    # total, equivalently evaluable == 0), the cell is INSUFFICIENT_DATA — this
+    # is the all-NO_BASELINE branch for B0/B1 OVERRIDE: all 5 → INSUFFICIENT_DATA,
+    # NOT VARIANT_WINS.
+    #
+    # LOAD-BEARING INVARIANT (explicit, not emergent): a single non-excluded
+    # model cannot establish a cross-model quorum. With evaluable==1 the
+    # `max(2, ...)` floor above already prevents a lone WIN from being promoted
+    # (quorum=2 > wins=1 → NO_CHANGE), but that safety would silently re-open if
+    # a future edit "simplified" the floor to the natural `(evaluable//2)+1`
+    # majority formula (which yields quorum=1 for evaluable==1). We make the rule
+    # explicit here so the no-quorum-on-one-model guarantee survives that edit:
+    # one evaluable model beside N excluded cells is INSUFFICIENT_DATA, never a
+    # panel win/loss. (A genuine debug run with a single declared model is
+    # likewise non-quorate by design — pre-reg §7 quorum is a multi-model claim.)
+    if total == 0 or evaluable == 0:
+        verdict = "INSUFFICIENT_DATA"
+    elif evaluable < 2:
         verdict = "INSUFFICIENT_DATA"
     elif loses >= 1:
         verdict = "VARIANT_LOSES"
@@ -1174,13 +1486,34 @@ def aggregate_cross_model(
 
     heterogeneous = wins >= 1 and loses >= 1
 
+    # DESCRIPTIVE-ONLY scale-saturation flag (NON-GATING). Computed AFTER the
+    # verdict from the discriminating-arm per-cell Wilson lows of the EVALUABLE
+    # cells only (excluded cells carry neutral zeros that would corrupt the
+    # ceiling Wilson-lo guard). For OVERRIDE, `variant_lo` is the treatment(both)
+    # arm bound; for other modes it is the primary arm bound — exactly the
+    # discriminating arm named by PRIMARY_ARM_BY_MODE.
+    evaluable_cells = [c for c in per_model if c.verdict not in EXCLUDED_VERDICTS]
+    evaluable_rates = [c.variant_p for c in evaluable_cells]
+    evaluable_wilson_los = [c.variant_lo for c in evaluable_cells]
+    evaluable_wilson_his = [c.variant_hi for c in evaluable_cells]
+    saturation = classify_saturation(
+        mode=mode, verdict=verdict,
+        models_win=wins, models_lose=loses,
+        min_p=min_p, max_p=max_p, range_p=range_p,
+        evaluable_rates=evaluable_rates,
+        evaluable_wilson_los=evaluable_wilson_los,
+        evaluable_wilson_his=evaluable_wilson_his,
+    )
+
     return CrossModelSummary(
         mode=mode, variant=variant,
         models_total=total,
         models_win=wins, models_tie=ties, models_lose=loses,
         models_flagged=flagged,
         verdict=verdict, heterogeneous=heterogeneous,
+        models_no_baseline=no_baseline,
         min_p=min_p, max_p=max_p, median_p=median_p, range_p=range_p,
+        saturation=saturation,
     )
 
 
@@ -1519,6 +1852,7 @@ def render_markdown(
         "| Mode (class) | Condition | Models win | Tie | Lose | Flagged | Cross-model verdict | Het.? |"
     )
     out.append("|---|---|---|---|---|---|---|---|")
+    any_no_baseline = False
     for mode in ALL_MODES:
         cls = "win-able" if mode in WIN_ABLE_MODES else "regression-only"
         for cond in CONDITION_IDS_ORDER:
@@ -1531,19 +1865,39 @@ def render_markdown(
                 out.append(f"| {mode} ({cls}) | {cond} | — | — | — | — | _missing_ | — |")
                 continue
             het = "YES" if cs.heterogeneous or cs.range_p > 0.20 else "no"
+            # Surface the STRUCTURAL exclusion in the verdict cell (MUST_FIX): a
+            # NO_BASELINE-driven INSUFFICIENT_DATA is distinct from a measurement
+            # gap — annotate it inline so the human reviewer sees it is by-design.
+            verdict_cell = cs.verdict
+            if cs.models_no_baseline > 0 and cs.verdict == "INSUFFICIENT_DATA":
+                verdict_cell = "INSUFFICIENT_DATA (NO_BASELINE)"
+                any_no_baseline = True
             out.append(
                 f"| {mode} ({cls}) | {cond} | {cs.models_win} | {cs.models_tie} | "
-                f"{cs.models_lose} | {cs.models_flagged} | {cs.verdict} | {het} |"
+                f"{cs.models_lose} | {cs.models_flagged} | {verdict_cell} | {het} |"
             )
     out.append("")
+    if any_no_baseline:
+        out.append(
+            "> NO_BASELINE: a no-CDMS condition (B0 NO-MEMORY / B1 NAIVE-DUMP) "
+            "has no CDMS layer, so OVERRIDE's delta-of-deltas control(CDMS-only) "
+            "arm is structurally undefined. Such cells are EXCLUDED-BY-DESIGN "
+            "from win/tie/lose and the quorum denominator (pre-reg §2/§7) — this "
+            "is a structural exclusion, NOT a measurement failure. Per-model "
+            "verdicts read NO_BASELINE in the JSON sidecar and the detail tables "
+            "below."
+        )
+        out.append("")
 
-    # Per-mode heterogeneity table.
+    # Per-mode heterogeneity table. The trailing `Sat.` column surfaces the
+    # descriptive scale-saturation flag at-a-glance (see the dedicated section
+    # below for the full GX10 re-evaluation queue).
     out.append("## Per-mode heterogeneity (across 5 SMALL_PANEL models)")
     out.append("")
     out.append(
-        "| Mode | Condition | Min P | Max P | Median P | Range | Flagged (>20pp)? |"
+        "| Mode | Condition | Min P | Max P | Median P | Range | Flagged (>20pp)? | Sat. |"
     )
-    out.append("|---|---|---|---|---|---|---|")
+    out.append("|---|---|---|---|---|---|---|---|")
     for mode in ALL_MODES:
         for cond in CONDITION_IDS_ORDER:
             if cond == "V1":
@@ -1554,7 +1908,91 @@ def render_markdown(
             out.append(
                 f"| {mode} | {cond} | {cs.min_p:.2f} | {cs.max_p:.2f} | "
                 f"{cs.median_p:.2f} | {cs.range_p:.2f} | "
-                f"{'YES' if cs.range_p > 0.20 else 'no'} |"
+                f"{'YES' if cs.range_p > 0.20 else 'no'} | {cs.saturation} |"
+            )
+    out.append("")
+
+    # Scale-saturation flags (DESCRIPTIVE — NON-GATING; GX10 re-evaluation
+    # queue). Inserted after per-mode heterogeneity and before the per-cell
+    # detail tables, per SCALE-FLAG DESIGN.
+    v1_saturation = compute_v1_baseline_saturation(files, per_model_comparisons)
+    out.append(
+        "## Scale-saturation flags (DESCRIPTIVE — NON-GATING; GX10 "
+        "re-evaluation queue)"
+    )
+    out.append("")
+    out.append(
+        "These flags are DESCRIPTIVE ONLY and DO NOT affect the §7 ship "
+        "verdict. They mark modes whose discriminative power may be "
+        "SCALE-COUPLED, so the GX10 program knows which to re-evaluate at 72B."
+    )
+    out.append("")
+    # PRIORITIZED QUEUE (pressure-test SHOULD_FIX): reserve the actionable
+    # "RE-EVALUATE AT SCALE (GX10)" imperative for genuinely-saturated classes
+    # (CEILING / FLOOR / SINGLE_MODEL_CARRIED). A cleanly DISCRIMINATING mode
+    # gets a PASSIVE note (no imperative) so the GX10 operator reads a scannable
+    # prioritized queue, not a flat 6-item to-do list. The queue header lists the
+    # actionable subset up front.
+    SATURATED_CLASSES = (
+        "CEILING_SATURATED", "FLOOR_SATURATED", "SINGLE_MODEL_CARRIED"
+    )
+    queue = [
+        mode for mode in ALL_MODES
+        if (v1_saturation.get(mode) or {}).get("saturation") in SATURATED_CLASSES
+    ]
+    if queue:
+        labels = {
+            "CEILING_SATURATED": "ceiling",
+            "FLOOR_SATURATED": "floor",
+            "SINGLE_MODEL_CARRIED": "single-model-carried",
+        }
+        queue_desc = ", ".join(
+            f"{m} ({labels[v1_saturation[m]['saturation']]})" for m in queue
+        )
+        out.append(f"**GX10 re-evaluation queue:** {queue_desc}.")
+    else:
+        out.append(
+            "**GX10 re-evaluation queue:** none — every mode DISCRIMINATES at "
+            "this scale (no saturated class detected)."
+        )
+    out.append("")
+    for mode in ALL_MODES:
+        sat = v1_saturation.get(mode)
+        if sat is None:
+            continue
+        r = sat["range_p"]
+        if sat["saturation"] == "CEILING_SATURATED":
+            out.append(
+                f"- FLAG (scale-coupling): {mode} is CEILING-saturated at the "
+                f"12-14B SMALL_PANEL scale (V1 baseline: all 5 cells >=0.95, "
+                f"range {r:.2f}, cross-model verdict NO_CHANGE). This mode "
+                f"cannot discriminate V2-vs-V1 here; it MAY become "
+                f"discriminating at 72B — RE-EVALUATE AT SCALE (GX10)."
+            )
+        elif sat["saturation"] == "FLOOR_SATURATED":
+            out.append(
+                f"- FLAG (scale-coupling): {mode} is FLOOR-saturated at the "
+                f"12-14B SMALL_PANEL scale (V1 baseline: all 5 cells <=0.10 "
+                f"leak with Wilson-hi pinned <=0.25, range {r:.2f}, cross-model "
+                f"verdict NO_CHANGE). This mode cannot discriminate V2-vs-V1 "
+                f"here; it MAY become discriminating at 72B — RE-EVALUATE AT "
+                f"SCALE (GX10)."
+            )
+        elif sat["saturation"] == "SINGLE_MODEL_CARRIED":
+            carrier = sat.get("carrier_model", "one model")
+            out.append(
+                f"- FLAG (scale-coupling, weak): {mode} is panel-quiet except "
+                f"{carrier} carries the signal; treat as near-saturated — "
+                f"RE-EVALUATE AT SCALE (GX10)."
+            )
+        elif sat["saturation"] == "DISCRIMINATING":
+            # PASSIVE note (no GX10 imperative): this mode discriminates fine at
+            # the current scale; re-evaluation is not actionable now.
+            out.append(
+                f"- NOTE (scale-coupling): {mode} DISCRIMINATES at the 12-14B "
+                f"SMALL_PANEL scale (V1 baseline range {r:.2f}); no GX10 "
+                f"re-evaluation needed unless larger-scale saturation is later "
+                f"suspected."
             )
     out.append("")
 
@@ -1578,8 +2016,19 @@ def render_markdown(
             continue
         for mode in ALL_MODES:
             cs = cross_summaries.get(cond, {}).get(mode)
-            if cs and cs.range_p > 0.20:
-                rendered_targets.append((cond, mode))
+            if cs is None:
+                continue
+            # Render heterogeneous cells (range > 20pp) AND any NO_BASELINE-driven
+            # condition (SHOULD_FIX): a NO_BASELINE cell has range_p==0 (only
+            # EVALUABLE rates feed the range, and there are none), so it would
+            # otherwise render NOWHERE — hiding the very signal the OVERRIDE fix
+            # is meant to make legible (e.g. B0 qwen2.5 treat 0.25 vs V1 0.65 =
+            # +40pp; B0 mistral-nemo 0.00 vs V1 0.20 = +20pp). Force the detail
+            # table so a reader of the .md can see the per-model treatment-arm
+            # rates that show CDMS (V1) HELPS override resistance, not the reverse.
+            if cs.range_p > 0.20 or cs.models_no_baseline > 0:
+                if (cond, mode) not in rendered_targets:
+                    rendered_targets.append((cond, mode))
 
     for cond, mode in rendered_targets:
         cf = files.get(cond)
@@ -1590,6 +2039,37 @@ def render_markdown(
             continue
         out.append(f"### {cond} / {mode}")
         out.append("")
+        # If this table is rendered BECAUSE the condition is NO_BASELINE on this
+        # mode, explain what the reader is looking at and point at the comparison
+        # signal the OVERRIDE fix makes legible (SHOULD_FIX).
+        cs_here = cross_summaries.get(cond, {}).get(mode)
+        if cs_here is not None and cs_here.models_no_baseline > 0:
+            v1_block = files.get("V1", None)
+            v1_arm_cells = (
+                v1_block.modes.get(mode).cells.get(OVERRIDE_TREATMENT_ARM, {})
+                if v1_block is not None and v1_block.modes.get(mode) is not None
+                else {}
+            )
+            cmp_bits = []
+            this_treat = block.cells.get(OVERRIDE_TREATMENT_ARM, {})
+            for model in cf.declared_models:
+                bc = this_treat.get(model)
+                vc = v1_arm_cells.get(model)
+                if bc is None or vc is None or bc.missing or vc.missing:
+                    continue
+                cmp_bits.append(
+                    f"{model} {bc.rate:.2f} vs V1 {vc.rate:.2f} "
+                    f"({(vc.rate - bc.rate) * 100:+.0f}pp for V1)"
+                )
+            out.append(
+                f"NO_BASELINE on {mode}: {cond} has no CDMS, so its OVERRIDE "
+                f"delta-of-deltas is structurally undefined and EXCLUDED from "
+                f"the verdict. The raw arms are shown for transparency. On the "
+                f"treatment-arm override-resistance metric (higher = more "
+                f"resistance), CDMS (V1) vs this no-CDMS condition: "
+                + "; ".join(cmp_bits) + "."
+            )
+            out.append("")
         out.append("| Arm | Model | n_total | n_unp | n_used | succ | rate | Wilson lo | Wilson hi | flag |")
         out.append("|---|---|---|---|---|---|---|---|---|---|")
         for arm in block.arms:
@@ -1616,7 +2096,13 @@ def render_markdown(
     out.append("**Step 1 (V2.full vs V1):**")
     out.append("")
     out.append(f"- Outcome: **{step_1.outcome}**")
-    out.append(f"- Wins per win-able mode: {step_1.wins_per_mode}")
+    # Render the per-mode wins as a readable list rather than a raw Python dict
+    # repr (NIT cleanup): `ORDER: no-win, OVERRIDE: no-win, BEM: no-win`.
+    _wins_str = ", ".join(
+        f"{m}: {'win' if won else 'no-win'}"
+        for m, won in step_1.wins_per_mode.items()
+    )
+    out.append(f"- Wins per win-able mode: {_wins_str or 'n/a'}")
     out.append(f"- Regression failures: {step_1.regression_failures or 'none'}")
     out.append(
         f"- Bonferroni-significant wins: "
@@ -1724,8 +2210,10 @@ def render_markdown(
     out.append(
         f"- **Bonferroni divisor = {BONFERRONI_DIVISOR}** per pre-reg §7's explicit "
         "lock; the same §7 mode-classification table lists 3 win-able modes (7 × 3 = "
-        "21), which would be a less-conservative gate. The aggregator uses 28; "
-        "human reviewer should resolve before publication."
+        "21), which would be a less-conservative gate. DELIBERATE DEVIATION (see "
+        "docs/DEVIATIONS.md M6) — RESOLVED 2026-06-21: keep 28 (pre-reg lock + "
+        "conservative + verdict-immaterial; no win is significant under either "
+        "divisor). Re-confirm/disclose only at external-publication review."
     )
     out.append(
         "- **BEM gate metric** counts both pure-cdms AND cdms+claudemd outcomes in "
@@ -1795,6 +2283,27 @@ def render_json(
                 "note": step_4.note,
             },
         },
+        # DESCRIPTIVE-ONLY scale-saturation block (NON-GATING; sibling of
+        # decision_tree per SCALE-FLAG DESIGN). `per_variant` carries the
+        # per-(mode, variant) flag; `v1_baseline` is the mode-level rollup that
+        # the markdown re-evaluation queue renders from.
+        "scale_saturation": {
+            "note": (
+                "DESCRIPTIVE ONLY — does NOT affect the §7 ship verdict. Marks "
+                "modes whose discriminative power may be SCALE-COUPLED, so the "
+                "GX10 program knows which to RE-EVALUATE AT SCALE (GX10) at 72B."
+            ),
+            "v1_baseline": compute_v1_baseline_saturation(
+                files, per_model_comparisons
+            ),
+            "per_variant": {
+                variant: {
+                    mode: cs.saturation
+                    for mode, cs in by_mode.items()
+                }
+                for variant, by_mode in cross_summaries.items()
+            },
+        },
         "warnings": warnings,
     }
 
@@ -1856,12 +2365,14 @@ def render_json(
                     "models_tie": cs.models_tie,
                     "models_lose": cs.models_lose,
                     "models_flagged": cs.models_flagged,
+                    "models_no_baseline": cs.models_no_baseline,
                     "verdict": cs.verdict,
                     "heterogeneous": cs.heterogeneous,
                     "min_p": cs.min_p,
                     "max_p": cs.max_p,
                     "median_p": cs.median_p,
                     "range": cs.range_p,
+                    "saturation": cs.saturation,  # DESCRIPTIVE-ONLY (NON-GATING)
                 }
             payload["comparisons"][variant][mode] = entry
 
@@ -1999,7 +2510,7 @@ def run(
     # full header) doesn't qualify.
     v2_cmps = per_model_comparisons.get("V2.full", {})
     v2_has_comparisons = any(
-        c.verdict not in ("INSUFFICIENT_DATA", "UNPARSEABLE_FLAGGED")
+        c.verdict not in EXCLUDED_VERDICTS
         for cmps in v2_cmps.values()
         for c in cmps
     )

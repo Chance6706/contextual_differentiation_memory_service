@@ -123,6 +123,27 @@ it here rather than reflexively symmetrize._
   Two residual edge cases are unmeasured on real shared data (project×session double-squeeze; a
   degenerate equal-split at very low cap × many projects); see `docs/redteam/CYCLE9_*`.
 
+### M6. T1 Bonferroni divisor locked at 28, not the 21 implied by the win-able family size
+
+- **Pure form:** a family-wise Bonferroni correction divides α by the number of simultaneous
+  hypotheses tested. The pre-reg §7 win-able family is 3 modes × 7 compared conditions = **21**,
+  so the exact-family-size divisor is 21.
+- **What we do:** the T1 aggregator uses **28** (`BONFERRONI_DIVISOR = 28`,
+  `tools/t1_aggregator.py`) — the deliberately conservative over-count that pre-reg §7's prose
+  explicitly locked. α = 0.05/28 ≈ 0.00179, z_crit ≈ 3.124.
+- **Why:** (1) 28 is the **pre-registered** value, and changing a pre-registered analysis
+  parameter *after* seeing the data is exactly what pre-registration exists to prevent — the
+  discipline is itself the reason, even though 21 looks more "principled." (2) 28 is **more
+  conservative**, consistent with the gate's deliberate incumbent (V1-favoring) bias. (3) It is
+  **verdict-immaterial**: no T1 comparison is Bonferroni-significant under *either* divisor, so the
+  choice changes no conclusion.
+- **Decision (Josh, 2026-06-21):** keep 28. Reviewed when the T1 aggregator + results landed;
+  retained deliberately rather than re-derived to 21. Revisit only if an external publication's
+  reviewer requires the exact-family-size derivation — at which point switching to 21 is disclosed
+  *then* as a deviation-from-pre-reg, not a silent swap.
+- **Disclaimed:** that 28 is the exact family-size derivation. It is a conservative, pre-registered
+  choice; the natural-derivation number is 21.
+
 ---
 
 ## Part 2 — Lexicon deviations

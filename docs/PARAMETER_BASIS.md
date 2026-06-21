@@ -141,6 +141,37 @@ the same test file:
 Thread 1 changed **no values** — it only made existing structure explicit and locked it.
 Genuine recalibration questions deferred to later threads / experiments:
 
+## 6. T1 aggregator scale-saturation thresholds (descriptive-flag constants)
+
+Scope note: these live in `tools/t1_aggregator.py`, not in `Config`. They drive a
+**DESCRIPTIVE, NON-GATING** classification (the GX10 re-evaluation queue) and never
+feed the §7 ship verdict. All four are **FREE** (chosen, not derived). Registered here
+per CLAUDE.md rule 11.
+
+| Constant | Default | Role |
+|---|---|---|
+| `SAT_CEILING_RATE` | 0.95 | A higher-is-better arm is at ceiling when every per-cell rate ≥ this |
+| `SAT_CEILING_WILSON_LO` | 0.75 | …AND every per-cell Wilson lower bound ≥ this (interval-pinned high; reachable at N=20: `wilson_lo(19/20)=0.764`) |
+| `SAT_FLOOR_LEAK_RATE` | 0.10 | A lower-is-better (BEM leak) arm is at floor when every per-cell rate ≤ this |
+| `SAT_FLOOR_WILSON_HI` | 0.25 | …AND every per-cell Wilson upper bound ≤ this (interval-pinned low; the mirror of `SAT_CEILING_WILSON_LO`) |
+| `SAT_RANGE_CAP` | 0.05 | Between-model spread below which the panel is "negligibly spread" |
+
+**COINCIDENCE (NOT coupling):**
+
+- **`SAT_FLOOR_LEAK_RATE` (0.10) numerically equals `PP_GATE` (0.10)** — but one is a
+  saturation floor on a leak rate, the other is the win-margin threshold of the symmetric
+  gate. Conceptually independent; they need not move together.
+- **`SAT_RANGE_CAP` (0.05) numerically equals `PP_TIE_BAND` (0.05)** — but one is a
+  between-model spread cap (descriptive), the other is the per-comparison tie band (gating).
+  Conceptually independent.
+
+The ceiling/floor branches were made **symmetric and statistically reachable** in the
+2026-06-21 pressure test: the old `SAT_CEILING_WILSON_LO=0.80` fired only on a perfect
+20/20 panel at N=20, and the floor branch had no Wilson guard at all. See
+`tools/t1_aggregator_spec.md` §15.
+
+### (deferred) Genuine recalibration questions:
+
 - The `0.78 / 0.90` similarity thresholds were never benchmarked for code-heavy content
   (see `docs/VALIDATION.md`, A10).
 - `decay_halflife_days = 29` is a chosen timescale, not a measured one. ✅ Whether forgetting

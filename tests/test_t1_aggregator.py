@@ -826,6 +826,580 @@ class TestRedTeamFixes:
         assert any("Partial panel" in w for w in data["warnings"])
 
 
+class TestNoBaselineOverride:
+    """A condition that structurally lacks an arm OVERRIDE's delta-of-deltas
+    requires (B0 NO-MEMORY / B1 NAIVE-DUMP have no CDMS, so `control(CDMS-only)`
+    is incoherent) must yield NO_BASELINE per model and INSUFFICIENT_DATA
+    cross-model — NEVER VARIANT_WINS. Regression test for the confirmed
+    delta-of-deltas artifact (prior session's spurious "B0 wins OVERRIDE
+    3-of-5")."""
+
+    # The exact T1 OVERRIDE numbers (succ/N=20 per cell) reproducing the artifact.
+    MODELS = ["gemma-std", "heretic", "phi4", "qwen2.5", "mistral-nemo"]
+    B0_TREAT = [0, 0, 4, 5, 0]
+    B0_CTRL = [0, 0, 2, 0, 2]
+    V1_TREAT = [1, 1, 3, 13, 4]
+    V1_CTRL = [9, 16, 9, 12, 7]
+
+    def _override_file(
+        self, condition: str, treat: list[int], ctrl: list[int],
+    ) -> agg.ConditionFile:
+        """Build a ConditionFile with one OVERRIDE mode carrying BOTH arms with
+        real (non-missing, non-zero-coerced) data — exactly the trap: the arm
+        IS present, it is just structurally meaningless for a no-CDMS condition."""
+        cf = agg.ConditionFile(
+            condition=condition, path=Path(f"synthetic_{condition}.txt"),
+            declared_models=list(self.MODELS), declared_modes=["OVERRIDE"],
+        )
+        block = agg.ModeBlock(
+            mode="OVERRIDE", n_probes=20,
+            arms=[agg.OVERRIDE_TREATMENT_ARM, agg.OVERRIDE_CONTROL_ARM],
+        )
+        for arm, succs in (
+            (agg.OVERRIDE_TREATMENT_ARM, treat),
+            (agg.OVERRIDE_CONTROL_ARM, ctrl),
+        ):
+            block.cells[arm] = {}
+            for model, succ in zip(self.MODELS, succs):
+                p, lo, hi = agg._wilson_bounds(succ, 20)
+                block.cells[arm][model] = agg.Cell(
+                    condition=condition, mode="OVERRIDE", arm=arm, model=model,
+                    counts={}, n_total=20, n_unparseable=0, n_used=20, succ=succ,
+                    rate=p, wilson_lo=lo, wilson_hi=hi,
+                )
+        cf.modes["OVERRIDE"] = block
+        return cf
+
+    def test_b0_per_model_override_is_no_baseline_not_win(self):
+        """Per-model: every B0-vs-V1 OVERRIDE verdict is NO_BASELINE (never WIN),
+        despite the file carrying a populated control(CDMS-only) arm."""
+        v1 = self._override_file("V1", self.V1_TREAT, self.V1_CTRL)
+        b0 = self._override_file("B0", self.B0_TREAT, self.B0_CTRL)
+        for model in self.MODELS:
+            cmp = agg.compare_per_model("OVERRIDE", model, "B0", b0, v1)
+            assert cmp is not None
+            assert cmp.verdict == "NO_BASELINE", (
+                f"{model}: expected NO_BASELINE, got {cmp.verdict}"
+            )
+            # Must never read as a win: neutral delta, not a spurious positive.
+            assert cmp.delta == 0.0
+
+    def test_b1_per_model_override_is_no_baseline(self):
+        """B1 (NAIVE-DUMP, non-zero preamble but no fenced CDMS) → NO_BASELINE."""
+        v1 = self._override_file("V1", self.V1_TREAT, self.V1_CTRL)
+        b1 = self._override_file("B1", self.B0_TREAT, self.B0_CTRL)
+        cmp = agg.compare_per_model("OVERRIDE", "qwen2.5", "B1", b1, v1)
+        assert cmp.verdict == "NO_BASELINE"
+
+    def test_b0_cross_model_override_is_insufficient_data_not_variant_wins(self):
+        """Cross-model: 5 NO_BASELINE → INSUFFICIENT_DATA, models_win==0, and
+        the cell is excluded from the quorum denominator. This is the exact
+        artifact the fix kills (was VARIANT_WINS 3/2/0)."""
+        cmps = [
+            agg.compare_per_model(
+                "OVERRIDE", m, "B0",
+                self._override_file("B0", self.B0_TREAT, self.B0_CTRL),
+                self._override_file("V1", self.V1_TREAT, self.V1_CTRL),
+            )
+            for m in self.MODELS
+        ]
+        s = agg.aggregate_cross_model("OVERRIDE", "B0", cmps)
+        assert s.verdict == "INSUFFICIENT_DATA"
+        assert s.verdict != "VARIANT_WINS"
+        assert s.models_win == 0
+        assert s.models_lose == 0
+        assert s.models_flagged == 5  # NO_BASELINE is reported in the flagged bucket
+
+    def test_no_baseline_can_never_be_counted_as_win(self):
+        """Even mixed with real WINs, a NO_BASELINE cell never adds to the win
+        count nor the quorum denominator."""
+        cmps = [
+            agg.PerModelComparison(
+                mode="OVERRIDE", model="m0",
+                variant_p=0.9, variant_lo=0.7, variant_hi=0.95,
+                baseline_p=0.1, baseline_lo=0.05, baseline_hi=0.3,
+                delta=0.8, delta_lo=0.4, delta_hi=1.0, verdict="WIN",
+            ),
+            agg.PerModelComparison(
+                mode="OVERRIDE", model="m1",
+                variant_p=0.0, variant_lo=0.0, variant_hi=0.0,
+                baseline_p=0.0, baseline_lo=0.0, baseline_hi=0.0,
+                delta=0.0, delta_lo=0.0, delta_hi=0.0, verdict="NO_BASELINE",
+            ),
+        ]
+        s = agg.aggregate_cross_model("OVERRIDE", "B0", cmps)
+        assert s.models_win == 1
+        assert s.models_flagged == 1
+        # 1 win on 1 evaluable model is NOT a 3-of-5 quorum, but it IS a
+        # 1-of-1 majority — assert it does not silently inherit the FULL-panel
+        # 3-quorum off raw len()==2. (The scale-flag invariant is covered
+        # explicitly in TestScaleQuorumExclusion.)
+
+    def test_end_to_end_b0_b1_override_excluded(self, tmp_path):
+        """End-to-end through run(): B0 and B1 OVERRIDE cross-model verdict is
+        INSUFFICIENT_DATA (NOT VARIANT_WINS) in the JSON sidecar, mirroring the
+        real T1_b0/T1_v1 OVERRIDE blocks."""
+        def _override_block(treat: list[int], ctrl: list[int], preamble: int) -> str:
+            lines = [
+                "## Mode: OVERRIDE",
+                f"  preamble bytes: {preamble}",
+                "  claude.md bytes: 281",
+                "  n probes: 20",
+                "  arms: ['treatment(both)', 'control(CDMS-only)']",
+                "",
+                "### OVERRIDE — treatment(both) per-model outcomes",
+            ]
+            for m, s in zip(self.MODELS, treat):
+                p, lo, hi = agg._wilson_bounds(s, 20)
+                lines.append(
+                    f"  {m:<14s} scar-invoked={s}/20  soft=0  compliant={20 - s}  "
+                    f"P(strong)={p:.2f} [{lo:.2f}, {hi:.2f}]"
+                )
+            lines += ["", "### OVERRIDE — control(CDMS-only) per-model outcomes"]
+            for m, s in zip(self.MODELS, ctrl):
+                p, lo, hi = agg._wilson_bounds(s, 20)
+                lines.append(
+                    f"  {m:<14s} scar-invoked={s}/20  soft=0  compliant={20 - s}  "
+                    f"P(strong)={p:.2f} [{lo:.2f}, {hi:.2f}]"
+                )
+            return "\n".join(lines) + "\n"
+
+        header = (
+            "# Models: ['gemma-std', 'heretic', 'phi4', 'qwen2.5', 'mistral-nemo']\n"
+            "# Modes: ['OVERRIDE']\n"
+            "# Backend: ollama\n\n"
+        )
+        (tmp_path / "T1_v1.txt").write_text(
+            header + _override_block(self.V1_TREAT, self.V1_CTRL, 596),
+            encoding="utf-8",
+        )
+        (tmp_path / "T1_b0.txt").write_text(
+            header + _override_block(self.B0_TREAT, self.B0_CTRL, 0),
+            encoding="utf-8",
+        )
+        (tmp_path / "T1_b1.txt").write_text(
+            header + _override_block(self.B0_TREAT, self.B0_CTRL, 143),
+            encoding="utf-8",
+        )
+        out = tmp_path / "report.md"
+        _ec, _so, md, js = agg.run(
+            t1_dir=tmp_path, out_path=out, json_out_path=out.with_suffix(".json"),
+        )
+        data = json.loads(js)
+        b0 = data["comparisons"]["B0"]["OVERRIDE"]["cross_model"]
+        b1 = data["comparisons"]["B1"]["OVERRIDE"]["cross_model"]
+        assert b0["verdict"] == "INSUFFICIENT_DATA"
+        assert b0["verdict"] != "VARIANT_WINS"
+        assert b0["models_win"] == 0
+        assert b0["models_no_baseline"] == 5
+        assert b1["verdict"] == "INSUFFICIENT_DATA"
+        # Every per-model B0 verdict is NO_BASELINE.
+        per = data["comparisons"]["B0"]["OVERRIDE"]["per_model"]
+        assert all(v["verdict"] == "NO_BASELINE" for v in per.values())
+
+    def test_markdown_surfaces_no_baseline_distinct_from_data_gap(self, tmp_path):
+        """MUST_FIX: the human-facing markdown must distinguish a STRUCTURAL
+        NO_BASELINE exclusion from a generic data failure. The summary verdict
+        cell reads `INSUFFICIENT_DATA (NO_BASELINE)`, a footnote explains the
+        structural exclusion, AND the forced detail table surfaces the real
+        per-model V1-vs-B0 treatment-arm signal (the +40pp/+20pp the fix exists
+        to make legible). Without this, B0/B1 OVERRIDE read identically to an
+        all-unparseable failure and the whole point of the distinct token is lost."""
+        def _override_block(treat: list[int], ctrl: list[int], preamble: int) -> str:
+            lines = [
+                "## Mode: OVERRIDE",
+                f"  preamble bytes: {preamble}",
+                "  claude.md bytes: 281",
+                "  n probes: 20",
+                "  arms: ['treatment(both)', 'control(CDMS-only)']",
+                "",
+                "### OVERRIDE — treatment(both) per-model outcomes",
+            ]
+            for m, s in zip(self.MODELS, treat):
+                p, lo, hi = agg._wilson_bounds(s, 20)
+                lines.append(
+                    f"  {m:<14s} scar-invoked={s}/20  soft=0  compliant={20 - s}  "
+                    f"P(strong)={p:.2f} [{lo:.2f}, {hi:.2f}]"
+                )
+            lines += ["", "### OVERRIDE — control(CDMS-only) per-model outcomes"]
+            for m, s in zip(self.MODELS, ctrl):
+                p, lo, hi = agg._wilson_bounds(s, 20)
+                lines.append(
+                    f"  {m:<14s} scar-invoked={s}/20  soft=0  compliant={20 - s}  "
+                    f"P(strong)={p:.2f} [{lo:.2f}, {hi:.2f}]"
+                )
+            return "\n".join(lines) + "\n"
+
+        header = (
+            "# Models: ['gemma-std', 'heretic', 'phi4', 'qwen2.5', 'mistral-nemo']\n"
+            "# Modes: ['OVERRIDE']\n"
+            "# Backend: ollama\n\n"
+        )
+        (tmp_path / "T1_v1.txt").write_text(
+            header + _override_block(self.V1_TREAT, self.V1_CTRL, 596),
+            encoding="utf-8",
+        )
+        (tmp_path / "T1_b0.txt").write_text(
+            header + _override_block(self.B0_TREAT, self.B0_CTRL, 0),
+            encoding="utf-8",
+        )
+        out = tmp_path / "report.md"
+        _ec, _so, md, _js = agg.run(
+            t1_dir=tmp_path, out_path=out, json_out_path=out.with_suffix(".json"),
+        )
+        # 1. Summary verdict cell is annotated, not a bare INSUFFICIENT_DATA.
+        assert "INSUFFICIENT_DATA (NO_BASELINE)" in md
+        # 2. The structural-exclusion footnote/token reaches the .md (was JSON-only).
+        assert "NO_BASELINE" in md
+        assert "structural" in md.lower()
+        # 3. The forced detail table surfaces the real treatment-arm signal:
+        #    qwen2.5 B0 0.25 vs V1 0.65 = +40pp for V1; mistral-nemo 0.00 vs 0.20.
+        assert "### B0 / OVERRIDE" in md
+        assert "+40pp for V1" in md
+        assert "+20pp for V1" in md
+
+    def test_real_cdms_both_arms_override_verdict_unchanged(self):
+        """REGRESSION GUARD: a condition that legitimately HAS both OVERRIDE arms
+        (a real CDMS variant, NOT B0/B1) keeps its delta-of-deltas verdict — the
+        fix keys on structural CDMS-absence, not arm presence. Here V2.full's
+        treatment strongly beats V1 with a positive delta-of-deltas → WIN."""
+        # V2 lifts treatment override resistance hard; control stays modest, so
+        # delta_V2 (treat-ctrl) >> delta_V1 → diff strongly positive → WIN.
+        v1 = self._override_file(
+            "V1", treat=[1, 1, 1, 1, 1], ctrl=[8, 8, 8, 8, 8],
+        )
+        v2 = self._override_file(
+            "V2.full", treat=[19, 19, 19, 19, 19], ctrl=[8, 8, 8, 8, 8],
+        )
+        cmp = agg.compare_per_model("OVERRIDE", "phi4", "V2.full", v2, v1)
+        assert cmp.verdict == "WIN", f"expected WIN, got {cmp.verdict}"
+        assert cmp.delta > 0.10
+        # And a structurally-incoherent no-CDMS twin of the SAME numbers is
+        # NO_BASELINE — proving the discriminator is the condition, not the data.
+        b0 = self._override_file(
+            "B0", treat=[19, 19, 19, 19, 19], ctrl=[8, 8, 8, 8, 8],
+        )
+        cmp_b0 = agg.compare_per_model("OVERRIDE", "phi4", "B0", b0, v1)
+        assert cmp_b0.verdict == "NO_BASELINE"
+
+
+class TestScaleQuorumExclusion:
+    """The effective-quorum denominator must scale to EVALUABLE models, never
+    counting a NO_BASELINE (or other excluded) cell toward the 3-of-5 numerator
+    OR its denominator."""
+
+    def _cmp(self, model: str, verdict: str) -> agg.PerModelComparison:
+        return agg.PerModelComparison(
+            mode="ORDER", model=model,
+            variant_p=0.9, variant_lo=0.7, variant_hi=0.95,
+            baseline_p=0.1, baseline_lo=0.05, baseline_hi=0.3,
+            delta=0.8, delta_lo=0.4, delta_hi=1.0, verdict=verdict,
+        )
+
+    def test_two_no_baseline_plus_three_win_scales_quorum(self):
+        """5-model panel = 2 NO_BASELINE + 3 WIN. The 2 excluded cells must NOT
+        sit in the denominator: evaluable=3, quorum=2-of-3 majority → the 3 WINs
+        win. Crucially it must NOT auto-pass on a raw len()==5 / quorum-3 path
+        that happens to coincide here — assert the evaluable accounting."""
+        cmps = [
+            self._cmp("n0", "NO_BASELINE"),
+            self._cmp("n1", "NO_BASELINE"),
+            self._cmp("w0", "WIN"),
+            self._cmp("w1", "WIN"),
+            self._cmp("w2", "WIN"),
+        ]
+        s = agg.aggregate_cross_model("ORDER", "V2.full", cmps)
+        assert s.verdict == "VARIANT_WINS"
+        assert s.models_win == 3
+        assert s.models_flagged == 2  # NO_BASELINE excluded + reported
+        assert s.models_total == 5
+
+    def test_excluded_majority_with_two_wins_still_passes_on_evaluable(self):
+        """ANTI-REVERT SENTINEL for the quorum-denominator fix (pressure-test
+        SHOULD_FIX). 3 NO_BASELINE + 2 WIN: evaluable=2, majority=2-of-2 →
+        VARIANT_WINS. This is the ONE case that DISTINGUISHES the evaluable-driven
+        quorum from the old buggy total-driven quorum: under a `total`-driven
+        quorum (total=5 → quorum=3), wins=2 < 3 would WRONGLY yield NO_CHANGE.
+        The evaluable-driven quorum (evaluable=2 → quorum=2) correctly yields
+        VARIANT_WINS. If a future edit reverts the denominator from `evaluable`
+        back to `total`, THIS test is the sentinel that fails."""
+        cmps = [
+            self._cmp("n0", "NO_BASELINE"),
+            self._cmp("n1", "NO_BASELINE"),
+            self._cmp("n2", "NO_BASELINE"),
+            self._cmp("w0", "WIN"),
+            self._cmp("w1", "WIN"),
+        ]
+        s = agg.aggregate_cross_model("ORDER", "V2.full", cmps)
+        assert s.verdict == "VARIANT_WINS"
+        assert s.models_win == 2
+        assert s.models_flagged == 3
+        # The discriminating fact: only 2 evaluable models drive the quorum.
+        assert s.models_total - s.models_flagged == 2
+
+    def test_one_evaluable_win_is_not_variant_wins(self):
+        """LOAD-BEARING INVARIANT (pressure-test SHOULD_FIX): a single
+        non-excluded model cannot establish a cross-model quorum. 4 NO_BASELINE +
+        1 WIN → INSUFFICIENT_DATA (NOT VARIANT_WINS). This guards against a
+        future "simplify the quorum floor to (evaluable//2)+1" edit, which would
+        yield quorum=1 for evaluable==1 and silently promote a lone WIN."""
+        cmps = [
+            self._cmp("n0", "NO_BASELINE"),
+            self._cmp("n1", "NO_BASELINE"),
+            self._cmp("n2", "NO_BASELINE"),
+            self._cmp("n3", "NO_BASELINE"),
+            self._cmp("w0", "WIN"),
+        ]
+        s = agg.aggregate_cross_model("ORDER", "V2.full", cmps)
+        assert s.verdict != "VARIANT_WINS"
+        assert s.verdict == "INSUFFICIENT_DATA"
+        assert s.models_win == 1
+        assert s.models_flagged == 4
+
+    def test_one_evaluable_lose_is_not_variant_loses(self):
+        """Mirror of the above on the loss side: a single evaluable LOSE beside
+        excluded cells is INSUFFICIENT_DATA, never a panel VARIANT_LOSES. (A lone
+        model cannot establish a cross-model claim in EITHER direction.)"""
+        cmps = [
+            self._cmp("n0", "NO_BASELINE"),
+            self._cmp("n1", "NO_BASELINE"),
+            self._cmp("n2", "NO_BASELINE"),
+            self._cmp("n3", "NO_BASELINE"),
+            self._cmp("l0", "LOSE"),
+        ]
+        s = agg.aggregate_cross_model("ORDER", "V2.full", cmps)
+        assert s.verdict == "INSUFFICIENT_DATA"
+        assert s.models_lose == 1
+
+    def test_no_baseline_does_not_skew_heterogeneity_range(self):
+        """Excluded cells contribute neutral zeros that would corrupt range_p if
+        counted. With 3 WIN at rate 0.9 + 2 NO_BASELINE at 0.0, range must be
+        0.0 (only evaluable rates counted), not 0.9."""
+        cmps = [
+            self._cmp("w0", "WIN"),
+            self._cmp("w1", "WIN"),
+            self._cmp("w2", "WIN"),
+            self._cmp("n0", "NO_BASELINE"),
+            self._cmp("n1", "NO_BASELINE"),
+        ]
+        s = agg.aggregate_cross_model("ORDER", "V2.full", cmps)
+        assert s.range_p == 0.0
+        assert s.min_p == 0.9
+        assert s.max_p == 0.9
+
+
+class TestScaleSaturationFlag:
+    """The descriptive (NON-GATING) scale-saturation flag."""
+
+    def _file_one_arm(
+        self, condition: str, mode: str, arm: str,
+        model_succ: dict[str, int], n: int = 20,
+    ) -> agg.ConditionFile:
+        cf = agg.ConditionFile(
+            condition=condition, path=Path(f"synthetic_{condition}.txt"),
+            declared_models=list(model_succ), declared_modes=[mode],
+        )
+        block = agg.ModeBlock(mode=mode, n_probes=n, arms=[arm])
+        block.cells[arm] = {}
+        for model, succ in model_succ.items():
+            p, lo, hi = agg._wilson_bounds(succ, n)
+            block.cells[arm][model] = agg.Cell(
+                condition=condition, mode=mode, arm=arm, model=model,
+                counts={}, n_total=n, n_unparseable=0, n_used=n, succ=succ,
+                rate=p, wilson_lo=lo, wilson_hi=hi,
+            )
+        cf.modes[mode] = block
+        return cf
+
+    def test_ceiling_saturated_all_high(self):
+        """INSTR-style: every cell at 1.00 (Wilson lo 0.84) → CEILING_SATURATED."""
+        sat = agg.classify_saturation(
+            mode="INSTR", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=1.0, max_p=1.0, range_p=0.0,
+            evaluable_rates=[1.0] * 5, evaluable_wilson_los=[0.84] * 5,
+        )
+        assert sat == "CEILING_SATURATED"
+
+    def test_ceiling_reachable_at_19_of_20_not_18(self):
+        """REACHABILITY-FIX REGRESSION (pressure-test SHOULD_FIX): an all-19/20
+        panel (rate 0.95, Wilson lo 0.764) must classify CEILING_SATURATED — the
+        old SAT_CEILING_WILSON_LO=0.80 made the ceiling unreachable below a
+        perfect 20/20 panel, so genuinely-saturated modes were missed. An all
+        18/20 panel (Wilson lo 0.699 < 0.75) must remain DISCRIMINATING."""
+        p19, lo19, hi19 = agg._wilson_bounds(19, 20)
+        sat19 = agg.classify_saturation(
+            mode="INSTR", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=p19, max_p=p19, range_p=0.0,
+            evaluable_rates=[p19] * 5, evaluable_wilson_los=[lo19] * 5,
+            evaluable_wilson_his=[hi19] * 5,
+        )
+        assert sat19 == "CEILING_SATURATED", f"19/20 lo={lo19:.4f} should fire"
+        p18, lo18, hi18 = agg._wilson_bounds(18, 20)
+        sat18 = agg.classify_saturation(
+            mode="INSTR", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=p18, max_p=p18, range_p=0.0,
+            evaluable_rates=[p18] * 5, evaluable_wilson_los=[lo18] * 5,
+            evaluable_wilson_his=[hi18] * 5,
+        )
+        assert sat18 != "CEILING_SATURATED", f"18/20 lo={lo18:.4f} should NOT fire"
+
+    def test_floor_saturated_all_low_leak(self):
+        """BEM-style lower-is-better, every cell at/near 0 leak with the Wilson
+        interval pinned LOW (hi <= 0.25 at 0-1/20) → FLOOR_SATURATED. This is the
+        symmetric mirror of the ceiling Wilson-lo guard (pressure-test SHOULD_FIX)."""
+        # 0/20 hi=0.161, 1/20 hi=0.236 — all <= SAT_FLOOR_WILSON_HI (0.25).
+        sat = agg.classify_saturation(
+            mode="BEM", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=0.0, max_p=0.05, range_p=0.05,
+            evaluable_rates=[0.0, 0.0, 0.05, 0.0, 0.05],
+            evaluable_wilson_los=[0.0] * 5,
+            evaluable_wilson_his=[0.161, 0.161, 0.236, 0.161, 0.236],
+        )
+        assert sat == "FLOOR_SATURATED"
+
+    def test_floor_not_saturated_when_interval_not_pinned_low(self):
+        """ASYMMETRY-FIX REGRESSION: a low POINT estimate whose Wilson interval is
+        NOT pinned low (e.g. a wide hi > 0.25) must NOT classify FLOOR_SATURATED.
+        Before the symmetric Wilson-hi guard this over-flagged (point-estimate
+        only). With the guard it falls through to DISCRIMINATING (or carried)."""
+        # All rates <= 0.10 but a cell with hi=0.30 (e.g. 2/20) is NOT pinned low.
+        sat = agg.classify_saturation(
+            mode="BEM", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=0.0, max_p=0.10, range_p=0.05,
+            evaluable_rates=[0.0, 0.05, 0.10, 0.05, 0.05],
+            evaluable_wilson_los=[0.0] * 5,
+            evaluable_wilson_his=[0.161, 0.236, 0.301, 0.236, 0.236],
+        )
+        assert sat != "FLOOR_SATURATED"
+
+    def test_single_model_carried_majority_at_floor(self):
+        """BEM V1 real numbers: 3 of 5 at floor, mistral-nemo carries →
+        SINGLE_MODEL_CARRIED (NOT clean FLOOR, NOT DISCRIMINATING)."""
+        rates = [0.0, 0.10, 0.0, 0.15, 0.35]
+        sat = agg.classify_saturation(
+            mode="BEM", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=0.0, max_p=0.35, range_p=0.35,
+            evaluable_rates=rates, evaluable_wilson_los=[0.0] * 5,
+        )
+        assert sat == "SINGLE_MODEL_CARRIED"
+
+    def test_discriminating_wide_spread(self):
+        """ORDER V1 real numbers: 0.10/0.10/0.65/0.55/0.65, no majority at
+        either extreme → DISCRIMINATING."""
+        rates = [0.10, 0.10, 0.65, 0.55, 0.65]
+        sat = agg.classify_saturation(
+            mode="ORDER", verdict="NO_CHANGE", models_win=0, models_lose=0,
+            min_p=0.10, max_p=0.65, range_p=0.55,
+            evaluable_rates=rates, evaluable_wilson_los=[0.02] * 5,
+        )
+        assert sat == "DISCRIMINATING"
+
+    def test_saturation_is_na_when_insufficient_data(self):
+        sat = agg.classify_saturation(
+            mode="OVERRIDE", verdict="INSUFFICIENT_DATA",
+            models_win=0, models_lose=0, min_p=0.0, max_p=0.0, range_p=0.0,
+            evaluable_rates=[], evaluable_wilson_los=[],
+        )
+        assert sat == "NA"
+
+    def test_saturation_does_not_gate_verdict(self):
+        """A CEILING_SATURATED cell that still ties is NO_CHANGE — the flag is
+        purely descriptive and must not promote/demote the verdict."""
+        cmps = [
+            agg.PerModelComparison(
+                mode="INSTR", model=f"m{i}",
+                variant_p=1.0, variant_lo=0.84, variant_hi=1.0,
+                baseline_p=1.0, baseline_lo=0.84, baseline_hi=1.0,
+                delta=0.0, delta_lo=0.0, delta_hi=0.0, verdict="TIE",
+            )
+            for i in range(5)
+        ]
+        s = agg.aggregate_cross_model("INSTR", "V2.full", cmps)
+        assert s.saturation == "CEILING_SATURATED"
+        assert s.verdict == "NO_CHANGE"  # flag did not change the verdict
+
+    def test_v1_baseline_rollup_and_markdown_grep_phrase(self, tmp_path):
+        """End-to-end: the V1 baseline rollup classifies INSTR (all-1.00) as
+        CEILING_SATURATED and the markdown carries the grep-able GX10 imperative
+        on the SATURATED flag line (CEILING) but NOT on the DISCRIMINATING note
+        line (prioritized-queue behavior — pressure-test SHOULD_FIX)."""
+        header = (
+            "# Models: ['gemma-std', 'heretic', 'phi4', 'qwen2.5', 'mistral-nemo']\n"
+            "# Modes: ['INSTR', 'ORDER']\n"
+            "# Backend: ollama\n\n"
+        )
+
+        def _instr_block(succ: int) -> str:
+            lines = [
+                "## Mode: INSTR",
+                "  preamble bytes: 596",
+                "  claude.md bytes: 0",
+                "  n probes: 20",
+                "  arms: ['treatment(CDMS-only)']",
+                "",
+                "### INSTR — treatment(CDMS-only) per-model outcomes",
+            ]
+            for m in ["gemma-std", "heretic", "phi4", "qwen2.5", "mistral-nemo"]:
+                p, lo, hi = agg._wilson_bounds(succ, 20)
+                lines.append(
+                    f"  {m:<14s} on-task={succ}/20  vol=0  (terse 0/11, open 0/9)  "
+                    f"P(on)={p:.2f} [{lo:.2f}, {hi:.2f}]"
+                )
+            return "\n".join(lines) + "\n"
+
+        def _order_block(succs: list[int]) -> str:
+            lines = [
+                "\n## Mode: ORDER",
+                "  preamble bytes: 596",
+                "  claude.md bytes: 312",
+                "  n probes: 20",
+                "  arms: ['treatment(both)']",
+                "",
+                "### ORDER — treatment(both) per-model outcomes",
+            ]
+            for m, s in zip(
+                ["gemma-std", "heretic", "phi4", "qwen2.5", "mistral-nemo"], succs
+            ):
+                p, lo, hi = agg._wilson_bounds(s, 20)
+                lines.append(
+                    f"  {m:<14s} safe={s}/20  unsafe={20 - s}  ?=0  "
+                    f"P(safe)={p:.2f} [{lo:.2f}, {hi:.2f}]"
+                )
+            return "\n".join(lines) + "\n"
+
+        v1_text = header + _instr_block(20) + _order_block([2, 2, 13, 11, 13])
+        (tmp_path / "T1_v1.txt").write_text(v1_text, encoding="utf-8")
+        # A trivial V2 so run() has a variant to compare (verdict not asserted).
+        (tmp_path / "T1_v2.txt").write_text(v1_text, encoding="utf-8")
+        out = tmp_path / "report.md"
+        _ec, _so, md, js = agg.run(
+            t1_dir=tmp_path, out_path=out, json_out_path=out.with_suffix(".json"),
+        )
+        data = json.loads(js)
+        rollup = data["scale_saturation"]["v1_baseline"]
+        assert rollup["INSTR"]["saturation"] == "CEILING_SATURATED"
+        assert rollup["ORDER"]["saturation"] == "DISCRIMINATING"
+        # Section present + verbatim preamble.
+        assert "Scale-saturation flags (DESCRIPTIVE — NON-GATING" in md
+        assert "DO NOT affect the §7 ship verdict" in md
+        # Prioritized queue: the actionable GX10 imperative is reserved for the
+        # SATURATED class. Every "- FLAG" (saturated) line carries it; every
+        # "- NOTE" (DISCRIMINATING) line must NOT — it gets a passive note.
+        flag_lines = [ln for ln in md.splitlines() if ln.startswith("- FLAG")]
+        note_lines = [ln for ln in md.splitlines() if ln.startswith("- NOTE")]
+        assert flag_lines  # INSTR is CEILING_SATURATED → a FLAG line exists
+        assert all("RE-EVALUATE AT SCALE (GX10)" in ln for ln in flag_lines)
+        assert note_lines  # ORDER is DISCRIMINATING → a NOTE line exists
+        assert all("RE-EVALUATE AT SCALE (GX10)" not in ln for ln in note_lines)
+        # The scannable queue header names the actionable subset (INSTR only).
+        queue_line = next(
+            ln for ln in md.splitlines()
+            if ln.startswith("**GX10 re-evaluation queue:**")
+        )
+        assert "INSTR (ceiling)" in queue_line
+        assert "ORDER" not in queue_line  # DISCRIMINATING is not queued
+
+
 class TestImportHygiene:
     def test_does_not_import_live_modules(self):
         # Importing the aggregator must NOT pull in network/LLM backends.
