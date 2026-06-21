@@ -121,14 +121,22 @@ probe expansion to reach N=100 per cell. The pre-reg locks:
 Two passes before any single-model-tier cell runs:
 1. **Josh spot-check.** Sample 10% of probe-rephrasings; reject any where the rephrase changes
    the question.
-2. **API model review.** Each rephrasing run through a content-safety / instruction-following
-   judge (Nemotron content-safety preferred — guardrail-specialized) with a fixed prompt:
-   "Does this rephrasing preserve the original probe's intent without introducing
-   ambiguity? Reply only YES or NO." Reject NOs. This catches the "ambiguous over-fire probe"
-   class of issues we'd otherwise find post-hoc.
+2. **API model review** — now shipped as `tools/probes_review.py`. Each rephrasing runs
+   through Nemotron content-safety (guardrail-specialized; preferred) with Owl-alpha
+   fallback, using the fixed prompt: "Does this rephrasing preserve the original
+   probe's intent without introducing ambiguity? Reply only YES or NO." Reject NOs.
+   Invocation: `uv run python tools/probes_review.py`. Reads `OPENROUTER_API_KEY` from
+   env; caches verdicts on disk so re-runs are cheap. Counts toward the $75 OpenRouter
+   cap (typically <$0.50 across all 384 rephrasings on the free tier).
 
 External review is a **methodology gate**, not a quality polish — failure to do it means the
 single-model-tier results are tagged "probes not externally reviewed" in any writeup.
+
+**Structural gate as first line of defense.** `tests/test_probes_rephrasings.py`'s 19
+lock tests catch egregious constraint violations BEFORE any external API call — they
+caught + fixed 6 violations during assembly (BEM drift into workspace-fact territory,
+INSTR format-tag drift, byte-identical-to-original cases). The Nemotron pass is the
+second line, catching subtler scope-ambiguity issues the structural tests can't.
 
 ### Probe set additions are out of scope for this run
 
@@ -622,8 +630,31 @@ independently reviewable:
    `ollama`; alternatives `lmstudio`, `openrouter-free`, `openrouter-paid`.
 6. **Cost guard in matrix runner.** Polls OpenRouter spend dashboard before each T3 cell;
    refuses to issue new calls if projected total > $50. Hard stop, not warning.
-7. **Probe rephrasings** (`probes_rephrasings.py`), reviewed by Josh + external API model
-   per §3.
+7. **Probe rephrasings** — ✅ ENGINEERING LANDED 2026-06-20 PM (multi-agent workflow).
+   - `tools/probes_rephrasings.py` — 384 rephrasings (4 per probe × 96 probes across 6
+     modes), structured as `{mode: {original_idx: [rephr_1, ..., rephr_4]}}`. Helper
+     `expanded_probes(mode_name, probes)` returns interleaved layout
+     `[orig_0, rephr_0a, rephr_0b, rephr_0c, rephr_0d, orig_1, ...]` preserving tuple
+     shape for tag-bearing modes (ORDER/ORDER_OVERFIRE: scar_letter A/B; INSTR:
+     terse/open format tag).
+   - `tools/probes_review.py` — operator-triggered Nemotron content-safety judge
+     runner (`nvidia/nemotron-3.5-content-safety:free` with `openrouter/owl-alpha`
+     fallback). Reads `OPENROUTER_API_KEY` from env; fails fast if missing. Caches
+     verdicts. CLI: `uv run python tools/probes_review.py [--cache-dir DIR] [--model MODEL]`.
+     Run BEFORE any single-model tier (T3/T4) cell to satisfy §3 external-review gate.
+   - `tests/test_probes_rephrasings.py` — 19 structural lock tests catching constraint
+     violations at the file boundary (scar_letter preservation, format-tag preservation,
+     destructive-intent preservation for OVERRIDE, self-description framing for BEM
+     vs workspace-fact framing for BEM_WORKSPACE_FACT, no-byte-identical-to-original).
+   - The structural gate already caught + fixed 6 constraint violations during
+     assemble (BEM drift into workspace-fact territory, INSTR format-tag drift,
+     byte-identical-to-original cases). The gate IS the first line of pressure-test
+     defense for the rephrasings; the Nemotron review is the second line.
+   - **NOT YET WIRED into the matrix runner.** A `--expand-probes` flag for single-
+     model tiers (T2/T3) is a separate follow-on so the runner can use
+     `expanded_probes()` to reach N=100/cell on those tiers. Default for T1 SMALL_PANEL
+     remains the originals only (cross-model panel reaches N=100 by 5 models × 20 probes
+     without expansion).
 
 These prerequisites are themselves not part of the pre-reg — they are engineering work
 that the pre-reg requires done before execution. Each lands in a normal PR.
@@ -766,6 +797,7 @@ pressure-tested using the same red-team / legitimate-use discipline. Findings, p
 | 2026-06-20 | Pressure-test pass — applied R1, R2, R4, R5, R6, L1-L5 fixes; added §7 mode classification, §7 acknowledged-bias paragraph, §7 Step 0 halt exit, §11 sanctioned exploration + halt-restate, §13 pressure-test record. R3 + D1-D4 + A1-A4 documented as deliberate / decided-against. |
 | 2026-06-20 | Budget + rate-limit amendments — Josh authorized $75 unified API cap (was $50 T3-only); rate-limit protocol amended to 10-min × 2-retry → defer → cycle-back (was: drop after 10% rate-limit). §4 cost stops + §5 T4 discipline + §13 L3/L4 rows updated. |
 | 2026-06-20 | V2.a-d ablation pressure-test pass — ABL-R2 fix (V2.b now captures both header + heading instances of third-person framing, not just heading; lock test updated). ABL-R1/R3-R6/L1-L3 documented as inherent ablation limitations in §9 (added items 8-11) + §13 ablation pressure-test subsection. Builder docstrings in hooks.py expanded with the inherent-limits notice. |
+| 2026-06-20 | Prereqs 2-6 engineering-complete across multiple commits — b1 NAIVE-DUMP baseline; lmstudio/openrouter/cost-guard adapters with pressure-test fixes (caught NaN-bypass in cost guard, path traversal + header smuggling + cost-record-ordering in openrouter_chat, cross-backend cache collision in lmstudio_chat); --backend flag wired through matrix runner with fail-fast guards; 384 probe rephrasings (4 per probe × 96 probes × 6 modes) + Nemotron review runner + 19 structural lock tests catching 6 constraint violations at assemble-time. Two multi-agent workflows used (7 agents each, ~880k subagent tokens). §3 + §10 updated with shipped artifacts; matrix ready for operator-triggered execution. 119 tests green across 6 test files. |
 
 _Any change after this row must be a new row with a new commit. The pre-reg's whole purpose
 is the lock — silent edits defeat it._
