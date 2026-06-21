@@ -243,6 +243,56 @@ external review, 2026-06.)
 
 ---
 
+### O1. `--expand-probes` guardrail modes cap at 40/cell, not the pre-reg §4 "50"
+
+- **Stated form:** `PRE_REGISTRATION.md` §4 specifies a uniform "50 probes/cell" for the T3
+  paid sub-selection and computes the run total as "32 cells × 50 = **1,600** probes" (≈$28.80).
+- **What we do:** `tools/redteam_claude_md_interference.py::_select_probes` (gated on
+  `--expand-probes`) deterministically sub-samples the **first 10** originals per mode and
+  expands them via `expanded_probes()` to 10 + 40 rephrasings = **50/cell** — *except* the two
+  8-original guardrail modes (`ORDER_OVERFIRE`, `BEM_WORKSPACE_FACT`), which physically top out
+  at 8 + 32 = **40/cell** because no 10th original exists and §3 forbids inventing probes
+  mid-run. The realized T3 total is therefore **1,520** (= 6 arm-cells × 50 + 2 arm-cells × 40,
+  per condition = 380; × 4 conditions), 80 fewer than the pre-reg's 1,600. Projected paid cost
+  ≈ **$27.36** (at the pre-reg's own $0.018/probe estimate, treat as ±30%).
+- **Why:** sub-sampling to the first 10 (not naive expand-all of 20 → 100/cell) keeps the bill
+  near the pre-reg estimate — naive expand-all would be ~$48.96. The 80-probe shortfall is an
+  arithmetic consequence of the guardrail modes only having 8 originals; padding them by
+  re-asking originals or fabricating a 10th probe would corrupt the directional-asymmetry check.
+- **Disclaimed / open:** the pre-reg §4 figure "1,600" is an overcount and should get a
+  versioned amendment row ("6 cells × 50 + 2 cells × 40 per condition = 380; × 4 = 1,520")
+  before the paid run. There is also a target-N contradiction inside the pre-reg: §10 prereq-7
+  says the flag should reach "N=100/cell" (naive expand-all framing) while §4 says 50/cell — we
+  follow §4 because it is the cost-binding section. (`$0.018/probe` is itself an estimate, not
+  measured.) The runner prints the realized per-cell sizes + run total in its header so this is
+  auditable, never silent.
+- **Second, independent doc error (OVERRIDE 21 → 20):** the pre-reg §3 mode table (line 101),
+  §4 arm-count derivation (line 183), and §7 (line 401) all state OVERRIDE has **21** originals,
+  but the actual `PROBES_OVERRIDE` constant has exactly **20** entries (7 original + 13
+  expansion) and `REPHRASINGS["OVERRIDE"]` covers idx 0–19 with 4 each. This 21-vs-20 mismatch
+  is **independent** of the 1,600→1,520 guardrail gap above and does **not** affect the
+  expand-mode realized total: `--expand-probes` sub-samples the **first 10** originals, every idx
+  0–9 has its 4 rephrasings, so the OVERRIDE cell still hits exactly 50 and the 1,520 total is
+  unaffected. It DOES affect (a) the pre-reg's own intended 1,600 arithmetic (which silently
+  inherits the +1), and (b) the **default T1 OVERRIDE cell denominator** — that cell is 20, not
+  21. A future maintainer who "fixes" the pre-reg by adding a 21st OVERRIDE probe would silently
+  change the T1 OVERRIDE cell from 20 to 21 (no expand-side effect). The pre-reg §3/§7 "OVERRIDE
+  21" rows should get a versioned amendment reconciling to 20; **no code change is needed — the
+  wiring is already correct against the real `PROBES_OVERRIDE` (20) constant.** (Both pre-reg
+  amendment rows landed 2026-06-21.)
+- **Review-exclusion not yet supported (acknowledged, out of scope for this PR):** pre-reg §3
+  makes external rephrasing review (`tools/probes_review.py`) a methodology gate before the paid
+  T3. `--expand-probes` currently cannot honor a review-flagged exclusion of a *specific*
+  rephrasing — `expanded_probes()` emits the original + ALL 4 registered rephrasings, and
+  `_select_probes` only chooses how many ORIGINALS to feed it. To exclude a flagged rephrasing
+  today, remove it from `REPHRASINGS[mode][idx]` in `tools/probes_rephrasings.py` AND update the
+  affected per-cell target in `tests/test_probes_rephrasings.py` (`_EXPECTED_EXPANDED_CELL_SIZE`);
+  the structural assert in `_select_probes` will hard-fail if the realized cell size diverges from
+  `len(sub) * 5`, so a silent under-sample on the paid run is impossible. A first-class
+  `--rephrasings-exclude FILE` flag is a natural follow-on but is a separate change.
+
+---
+
 ## How to add an entry
 
 1. Put a one-line `DELIBERATE DEVIATION (see docs/DEVIATIONS.md)` note at the point of use.

@@ -98,7 +98,14 @@ existing probe text is locked as-is for cache continuity.
 | BEM | 20 | treatment(both) | `score_bem` |
 | BEM_WORKSPACE_FACT | 8 | cdms-only | `score_bem_workspace_fact` (3-way) |
 | INSTR | 20 (mixed terse/open formats) | treatment(CDMS-only) | `score_instr` |
-| OVERRIDE | 21 | treatment(both), control(CDMS-only) | `score_override` (3-tier) |
+| OVERRIDE | 20 (see amendment below) | treatment(both), control(CDMS-only) | `score_override` (3-tier) |
+
+> **AMENDMENT (2026-06-21):** this table (and §4 line 183, §7 line ~401) originally stated
+> OVERRIDE = **21** originals. The actual `PROBES_OVERRIDE` constant has exactly **20** entries
+> (7 original + 13 expansion). Reconciled to 20 here. This affects the default T1 OVERRIDE cell
+> denominator (20, not 21) but NOT the `--expand-probes` realized total (first-10 sub-sample, so
+> the OVERRIDE cell is 50 either way). No 21st probe is to be added — §3 forbids new probes
+> mid-run. See `docs/DEVIATIONS.md` O1.
 
 ### Rephrasing strategy (single-model tiers only)
 
@@ -186,6 +193,18 @@ on T3 with reserve budget). NOT V5b/V5d on T3 unless reserve budget remains.
 originals, sub-sample 10 + 40 rephrasings = 50 to keep cost uniform across modes).
 
 **Total T3 probe count:** 32 × 50 = 1,600 probes.
+
+> **AMENDMENT (2026-06-21, `--expand-probes` wiring):** the "32 × 50 = 1,600" figure is an
+> **overcount**. The two 8-original guardrail modes (ORDER_OVERFIRE, BEM_WORKSPACE_FACT) cannot
+> reach 50 — there is no 10th original to expand, and §3 forbids inventing probes mid-run — so
+> they cap at 8 + 32 = **40/cell**. The realized per-condition total is therefore
+> **6 arm-cells × 50 + 2 arm-cells × 40 = 380**, and the full T3 total is **380 × 4 conditions =
+> 1,520 probes** (≈ **$27.36** at the $0.018/probe estimate, ±30%), 80 fewer than 1,600.
+> Separately, this table's source (§3) lists OVERRIDE as 21 originals; the actual
+> `PROBES_OVERRIDE` constant has **20** — see the OVERRIDE 21→20 amendment under §3 and
+> `docs/DEVIATIONS.md` O1. The 21→20 error does NOT change the 1,520 figure because
+> `--expand-probes` sub-samples the first 10 originals. The runner prints the realized per-cell
+> sizes + run total in its header so this is auditable, not silent.
 
 **Cost estimate (Sonnet 4.6 @ ~$3/M input, ~$15/M output, via OpenRouter):**
 - Per probe: ~3,500 tokens input + ~500 tokens output ≈ $0.0105 + $0.0075 = **$0.018**
@@ -798,6 +817,7 @@ pressure-tested using the same red-team / legitimate-use discipline. Findings, p
 | 2026-06-20 | Budget + rate-limit amendments — Josh authorized $75 unified API cap (was $50 T3-only); rate-limit protocol amended to 10-min × 2-retry → defer → cycle-back (was: drop after 10% rate-limit). §4 cost stops + §5 T4 discipline + §13 L3/L4 rows updated. |
 | 2026-06-20 | V2.a-d ablation pressure-test pass — ABL-R2 fix (V2.b now captures both header + heading instances of third-person framing, not just heading; lock test updated). ABL-R1/R3-R6/L1-L3 documented as inherent ablation limitations in §9 (added items 8-11) + §13 ablation pressure-test subsection. Builder docstrings in hooks.py expanded with the inherent-limits notice. |
 | 2026-06-20 | Prereqs 2-6 engineering-complete across multiple commits — b1 NAIVE-DUMP baseline; lmstudio/openrouter/cost-guard adapters with pressure-test fixes (caught NaN-bypass in cost guard, path traversal + header smuggling + cost-record-ordering in openrouter_chat, cross-backend cache collision in lmstudio_chat); --backend flag wired through matrix runner with fail-fast guards; 384 probe rephrasings (4 per probe × 96 probes × 6 modes) + Nemotron review runner + 19 structural lock tests catching 6 constraint violations at assemble-time. Two multi-agent workflows used (7 agents each, ~880k subagent tokens). §3 + §10 updated with shipped artifacts; matrix ready for operator-triggered execution. 119 tests green across 6 test files. |
+| 2026-06-21 | Prereq 7 (`--expand-probes`) wired into the matrix runner + consolidate/verify pass. §4 T3 total amended 1,600 → **1,520** (two 8-original guardrail modes cap at 40/cell; 80-probe gap is arithmetic, not a defect). §3/§4/§7 OVERRIDE count amended **21 → 20** (the actual `PROBES_OVERRIDE` constant; independent of the 1,520 figure). Projected paid cost ≈ **$27.36** (was $28.80). Both amendments are doc-only — the wiring was already correct against the real constants. Added `--dry-run` plan-preview (zero-network cost preflight) + projected-dollars-vs-cap line + per-cell structural assert in `_select_probes`. See `docs/DEVIATIONS.md` O1. |
 
 _Any change after this row must be a new row with a new commit. The pre-reg's whole purpose
 is the lock — silent edits defeat it._
