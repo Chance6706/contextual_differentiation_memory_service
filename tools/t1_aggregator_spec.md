@@ -312,6 +312,26 @@ mode and each model:
    Per-(mode, model) verdict tokens: `WIN`, `TIE`, `LOSE`, `NO_BASELINE`,
    `INSUFFICIENT_DATA`, `UNPARSEABLE_FLAGGED`.
 
+   **NO_BASELINE — structural exclusion (B0/B1 on OVERRIDE).** B0 (NO-MEMORY)
+   and B1 (NAIVE-DUMP) are no-CDMS conditions (pre-reg §2). OVERRIDE's gate is a
+   delta-of-deltas anchored on a `control(CDMS-only)` arm; for a condition with
+   no CDMS that arm is **structurally incoherent** — it is just the no-CDMS
+   condition relabeled. **The arm IS present and populated in the raw file;
+   presence is the trap, NOT the discriminator.** Keying on arm presence (or on
+   `preamble bytes`) re-introduces the artifact: B0's internal Δ sits near zero
+   while V1's Δ is strongly negative (CDMS-only resists override far MORE than
+   CDMS-under-attack), so `diff_of_deltas = Δ_B0 − Δ_V1` comes out large+positive
+   PURELY from V1's negative Δ and spuriously crosses the WIN gate — declaring a
+   no-memory condition "beats" CDMS on override resistance. Therefore: for
+   OVERRIDE, any condition in the no-CDMS set (B0, B1 — key on **condition-ID
+   membership**, NOT arm presence or preamble bytes) yields per-model
+   `NO_BASELINE`. NO_BASELINE is EXCLUDED from cross-model win/tie/lose AND from
+   the effective-quorum denominator (never coerced to 0, never a win), exactly
+   like `INSUFFICIENT_DATA`/`UNPARSEABLE_FLAGGED`. A condition whose 5 models are
+   all NO_BASELINE rolls up to cross-model `INSUFFICIENT_DATA` (NOT VARIANT_WINS).
+   All real-CDMS conditions (V2.x, V5x) keep their full delta-of-deltas verdict
+   unchanged — the carve-out keys on structural CDMS-absence only.
+
 ### 4.1 OVERRIDE delta-difference Wilson handling
 
 The OVERRIDE gate is `Δ P(scar_invoked) treatment - control`, then comparing
@@ -993,6 +1013,103 @@ implement them:
   per pre-reg decided-against A2, Bonferroni is locked.
 - Plot / chart generation — out of scope; the markdown table is the
   publication format.
+
+---
+
+## 15. Pressure-test record (CLAUDE.md rule 12)
+
+Double pressure test of the NO_BASELINE OVERRIDE fix + the descriptive
+scale-saturation flag, 2026-06-21 (red-team + legitimate-use lenses). Findings
+applied to `tools/t1_aggregator.py` / `tests/test_t1_aggregator.py` / this spec.
+
+### Root cause corrected
+
+The prior session's mechanistic note ("aggregator silently treats B0's missing
+CDMS-only control arm as 0") was **imprecise**. B0/B1 OVERRIDE files DECLARE and
+POPULATE both arms; nothing is missing and nothing is zeroed. The real defect is
+**semantic**: OVERRIDE's delta-of-deltas (`Δ_treat−Δ_ctrl` vs V1's) is
+structurally undefined for a no-CDMS condition, because its `control(CDMS-only)`
+arm is just the no-CDMS condition relabeled. V1's Δ is strongly negative, so
+`diff = Δ_B0 − Δ_V1` came out large+positive purely from V1's negative Δ —
+spuriously declaring "B0 wins OVERRIDE 3-of-5". The fix keys on **condition-ID
+membership** (B0/B1 in `NO_CDMS_CONDITIONS`), NOT on arm presence or preamble
+bytes (presence is the trap; B1 even carries a non-zero preamble).
+
+### MUST_FIX / SHOULD_FIX applied
+
+- **NO_BASELINE per-model verdict** for B0/B1 on OVERRIDE; joins the excluded
+  class (`EXCLUDED_VERDICTS`), never a WIN/TIE/LOSE, never in the quorum.
+- **Effective-quorum denominator scales to EVALUABLE models** (`total − flagged`),
+  never raw `len()`. All-NO_BASELINE → cross-model `INSUFFICIENT_DATA`.
+- **Explicit `evaluable < 2` guard** in `aggregate_cross_model`: a single
+  non-excluded model cannot establish a cross-model quorum. Previously this was
+  only an *emergent* consequence of the `max(2, …)` floor; now it is load-bearing
+  and regression-locked (`test_one_evaluable_*`), so a future "simplify the floor
+  to `(evaluable//2)+1`" edit cannot silently re-open a 1-evaluable spurious win.
+- **NO_BASELINE surfaced in the human-facing markdown**: the per-(mode,condition)
+  summary verdict cell reads `INSUFFICIENT_DATA (NO_BASELINE)` with a footnote
+  explaining the structural exclusion; the per-cell detail table is FORCE-RENDERED
+  for NO_BASELINE conditions (they have `range_p==0` and would otherwise render
+  nowhere) with an inline V1-vs-condition treatment-arm comparison line, so the
+  "CDMS (V1) HELPS override resistance" signal (qwen2.5 +40pp, mistral-nemo +20pp)
+  is legible from the `.md`, not only the JSON.
+- **CEILING_SATURATED reachability + FLOOR/CEILING symmetry**: the ceiling
+  Wilson-lo guard was statistically UNREACHABLE at N=20 (fired only on a perfect
+  20/20 panel; `wilson_lo(19/20)=0.764 < 0.80`), so genuinely ceiling-saturated
+  modes were missed by the GX10 queue. Loosened `SAT_CEILING_WILSON_LO` 0.80→0.75
+  (fires at 19/20, not 18/20) and added the **mirror-image** `SAT_FLOOR_WILSON_HI=
+  0.25` guard so the floor branch is interval-pinned (not a small-N point estimate),
+  matching the ceiling. Both ends now use a Wilson-interval test.
+- **Scale-saturation section is now a PRIORITIZED queue**: the actionable
+  "RE-EVALUATE AT SCALE (GX10)" imperative is reserved for genuinely-saturated
+  classes (CEILING / FLOOR / SINGLE_MODEL_CARRIED). A cleanly DISCRIMINATING mode
+  gets a PASSIVE note (no imperative). A `GX10 re-evaluation queue:` header lists
+  the actionable subset up front.
+- **Stale committed artifacts regenerated**: `T1_ANALYSIS.md` + `.json`
+  regenerated from the fixed aggregator so the published surface no longer shows
+  the killed `B0 OVERRIDE = VARIANT_WINS` artifact.
+- **Saturation constants classified** (CLAUDE.md rule 11): `SAT_*` are FREE
+  descriptive-flag thresholds; the 0.10/0.05 coincidences with `PP_GATE`/
+  `PP_TIE_BAND` are documented as numerical-only (NOT shared semantics) and
+  registered in `docs/PARAMETER_BASIS.md`.
+- **NIT cleanups applied**: `utf-8-sig` read (BOM insurance on the Windows matrix
+  host); decision-tree Step-1 wins rendered as a readable list, not a `dict`
+  repr; `models_no_baseline` added to the JSON sidecar.
+
+### Deliberately NOT applied (with reason)
+
+- **BONFERRONI single-arm z on OVERRIDE** (NIT): the `bonferroni_significant`
+  annotation tests the treatment-arm two-prop z, not the delta-of-deltas the
+  verdict gates on. Left as a documented single-arm proxy (the code comment at
+  the z computation already names it "headline arm"; the Wilson-disjoint gate is
+  primary). Reworking it to a 4-cell pooled contrast is a §14 out-of-scope
+  follow-on and changes no current verdict.
+- **Step-3 ablation OVERRIDE metric** (NIT): Step 3 scores OVERRIDE on the
+  treatment-arm median, not the delta-of-deltas. Out of scope for the NO_BASELINE
+  fix (ablations are all CDMS conditions, never NO_BASELINE) and changes no
+  current verdict (V2.full OVERRIDE is NO_CHANGE). Left as a pre-existing,
+  documented simplification.
+- **`_md_escape_cell` idempotency** (NIT): the function is single-call in the
+  render path; the docstring overclaim is harmless. Not worth the churn under the
+  NO_BASELINE scope; flagged here for the record.
+- **NO_CDMS guard ordering before the missing/n==0 checks** (NIT): a genuinely
+  empty B0/B1 OVERRIDE block is labeled NO_BASELINE rather than INSUFFICIENT_DATA.
+  Both are in `EXCLUDED_VERDICTS`, so the cross-model verdict is identical; the
+  structural-incoherence label is defensible and dominates regardless of data
+  presence. Left as-is by design.
+
+### Inherent limitations
+
+- The OVERRIDE delta-of-deltas Wilson CI is an independent-sample quadrature
+  approximation (§4.1), slightly conservative on the win side; a closed-form
+  4-cell derivation remains a §14 follow-on.
+- The scale-saturation flag is DESCRIPTIVE and tuned to the N=20 SMALL_PANEL
+  regime; its thresholds are free choices, not derived, and the GX10 program is
+  the authoritative re-evaluation surface. The flag never feeds the ship verdict.
+- NO_BASELINE keys on a hardcoded condition set (`NO_CDMS_CONDITIONS = {B0, B1}`).
+  A future no-CDMS condition (e.g. a "B2") would need to be added to that set;
+  there is no auto-detection of structural CDMS-absence from file content (by
+  design — content presence is the trap that broke the prior heuristic).
 
 ---
 

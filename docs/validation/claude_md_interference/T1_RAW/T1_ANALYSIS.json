@@ -1,6 +1,6 @@
 {
   "schema_version": "1",
-  "generated_utc": "2026-06-21T05:15:49+00:00",
+  "generated_utc": "2026-06-21T14:14:29+00:00",
   "source_files": {
     "B0": "docs\\validation\\claude_md_interference\\T1_RAW\\T1_b0.txt",
     "B1": "docs\\validation\\claude_md_interference\\T1_RAW\\T1_b1.txt",
@@ -7230,104 +7230,108 @@
           "models_tie": 2,
           "models_lose": 3,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "VARIANT_LOSES",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.2,
           "median_p": 0.1,
-          "range": 0.2
+          "range": 0.2,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
         "per_model": {
           "gemma-std": {
             "variant_p": 0.0,
-            "variant_lo": 1.3877787807814457e-17,
-            "variant_hi": 0.1611251580528193,
-            "baseline_p": 0.05,
-            "baseline_lo": 0.008881448800795375,
-            "baseline_hi": 0.236131193446742,
-            "delta": 0.4,
-            "delta_lo": 0.14341736263213056,
-            "delta_hi": 0.6565826373678695,
-            "verdict": "WIN",
-            "bonferroni_significant": false,
-            "z": -1.0127393670836666,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B0): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "heretic": {
             "variant_p": 0.0,
-            "variant_lo": 1.3877787807814457e-17,
-            "variant_hi": 0.1611251580528193,
-            "baseline_p": 0.05,
-            "baseline_lo": 0.008881448800795375,
-            "baseline_hi": 0.236131193446742,
-            "delta": 0.75,
-            "delta_lo": 0.5176041874993975,
-            "delta_hi": 0.9823958125006025,
-            "verdict": "WIN",
-            "bonferroni_significant": false,
-            "z": -1.0127393670836666,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B0): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "phi4": {
-            "variant_p": 0.2,
-            "variant_lo": 0.08065766257979806,
-            "variant_hi": 0.4160174322518935,
-            "baseline_p": 0.15,
-            "baseline_lo": 0.052368745896216595,
-            "baseline_hi": 0.3604188647407569,
-            "delta": 0.4,
-            "delta_lo": 0.06767678761168094,
-            "delta_hi": 0.7323232123883191,
-            "verdict": "WIN",
-            "bonferroni_significant": false,
-            "z": 0.41612518928823966,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_p": 0.0,
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B0): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "qwen2.5": {
-            "variant_p": 0.25,
-            "variant_lo": 0.11186170140766566,
-            "variant_hi": 0.46870087761874396,
-            "baseline_p": 0.65,
-            "baseline_lo": 0.4328542766852363,
-            "baseline_hi": 0.8188081758989179,
-            "delta": 0.19999999999999996,
-            "delta_lo": -0.13836907769024942,
-            "delta_hi": 0.5383690776902493,
-            "verdict": "TIE",
-            "bonferroni_significant": false,
-            "z": -2.5425669046549126,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_p": 0.0,
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B0): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "mistral-nemo": {
             "variant_p": 0.0,
-            "variant_lo": 1.3877787807814457e-17,
-            "variant_hi": 0.1611251580528193,
-            "baseline_p": 0.2,
-            "baseline_lo": 0.08065766257979806,
-            "baseline_hi": 0.4160174322518935,
-            "delta": 0.04999999999999996,
-            "delta_lo": -0.25083558777435067,
-            "delta_hi": 0.35083558777435053,
-            "verdict": "TIE",
-            "bonferroni_significant": false,
-            "z": -2.1081851067789197,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B0): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           }
         },
         "cross_model": {
           "models_total": 5,
-          "models_win": 3,
-          "models_tie": 2,
+          "models_win": 0,
+          "models_tie": 0,
           "models_lose": 0,
-          "models_flagged": 0,
-          "verdict": "VARIANT_WINS",
+          "models_flagged": 5,
+          "models_no_baseline": 5,
+          "verdict": "INSUFFICIENT_DATA",
           "heterogeneous": false,
           "min_p": 0.0,
-          "max_p": 0.25,
+          "max_p": 0.0,
           "median_p": 0.0,
-          "range": 0.25
+          "range": 0.0,
+          "saturation": "NA"
         }
       },
       "BEM": {
@@ -7414,12 +7418,14 @@
           "models_tie": 4,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.0,
           "median_p": 0.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "DISCRIMINATING"
         }
       },
       "INSTR": {
@@ -7506,12 +7512,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "CEILING_SATURATED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -7598,12 +7606,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.875,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.125
+          "range": 0.125,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -7690,12 +7700,14 @@
           "models_tie": 0,
           "models_lose": 5,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "VARIANT_LOSES",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.0,
           "median_p": 0.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "DISCRIMINATING"
         }
       }
     },
@@ -7784,104 +7796,108 @@
           "models_tie": 3,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.5,
           "max_p": 0.85,
           "median_p": 0.7,
-          "range": 0.35
+          "range": 0.35,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
         "per_model": {
           "gemma-std": {
             "variant_p": 0.0,
-            "variant_lo": 1.3877787807814457e-17,
-            "variant_hi": 0.1611251580528193,
-            "baseline_p": 0.05,
-            "baseline_lo": 0.008881448800795375,
-            "baseline_hi": 0.236131193446742,
-            "delta": 0.050000000000000044,
-            "delta_lo": -0.26078034644878406,
-            "delta_hi": 0.36078034644878415,
-            "verdict": "TIE",
-            "bonferroni_significant": false,
-            "z": -1.0127393670836666,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B1): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "heretic": {
             "variant_p": 0.0,
-            "variant_lo": 1.3877787807814457e-17,
-            "variant_hi": 0.1611251580528193,
-            "baseline_p": 0.05,
-            "baseline_lo": 0.008881448800795375,
-            "baseline_hi": 0.236131193446742,
-            "delta": 0.55,
-            "delta_lo": 0.27498358538614665,
-            "delta_hi": 0.8250164146138534,
-            "verdict": "WIN",
-            "bonferroni_significant": false,
-            "z": -1.0127393670836666,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B1): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "phi4": {
-            "variant_p": 0.3,
-            "variant_lo": 0.1454772448676043,
-            "variant_hi": 0.5189728183535234,
-            "baseline_p": 0.15,
-            "baseline_lo": 0.052368745896216595,
-            "baseline_hi": 0.3604188647407569,
-            "delta": 0.2,
-            "delta_lo": -0.1707714738098745,
-            "delta_hi": 0.5707714738098746,
-            "verdict": "TIE",
-            "bonferroni_significant": false,
-            "z": 1.1359236684941296,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_p": 0.0,
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B1): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "qwen2.5": {
-            "variant_p": 0.15,
-            "variant_lo": 0.052368745896216595,
-            "variant_hi": 0.3604188647407569,
-            "baseline_p": 0.65,
-            "baseline_lo": 0.4328542766852363,
-            "baseline_hi": 0.8188081758989179,
-            "delta": 0.04999999999999995,
-            "delta_lo": -0.28586319345569733,
-            "delta_hi": 0.3858631934556972,
-            "verdict": "TIE",
-            "bonferroni_significant": true,
-            "z": -3.227486121839514,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_p": 0.0,
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B1): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           },
           "mistral-nemo": {
-            "variant_p": 0.2,
-            "variant_lo": 0.08065766257979806,
-            "variant_hi": 0.4160174322518935,
-            "baseline_p": 0.2,
-            "baseline_lo": 0.08065766257979806,
-            "baseline_hi": 0.4160174322518935,
-            "delta": 0.09999999999999998,
-            "delta_lo": -0.2539869207422386,
-            "delta_hi": 0.45398692074223856,
-            "verdict": "TIE",
-            "bonferroni_significant": false,
-            "z": 0.0,
-            "note": "delta-of-deltas (quadrature approximation, \u00a74.1)"
+            "variant_p": 0.0,
+            "variant_lo": 0.0,
+            "variant_hi": 0.0,
+            "baseline_p": 0.0,
+            "baseline_lo": 0.0,
+            "baseline_hi": 0.0,
+            "delta": 0.0,
+            "delta_lo": 0.0,
+            "delta_hi": 0.0,
+            "verdict": "NO_BASELINE",
+            "bonferroni_significant": null,
+            "z": null,
+            "note": "OVERRIDE delta-of-deltas is undefined for a no-CDMS condition (B1): its control(CDMS-only) arm is structurally incoherent (no CDMS layer exists). Excluded from cross-model win/tie/lose and quorum (pre-reg \u00a72/\u00a77)."
           }
         },
         "cross_model": {
           "models_total": 5,
-          "models_win": 1,
-          "models_tie": 4,
+          "models_win": 0,
+          "models_tie": 0,
           "models_lose": 0,
-          "models_flagged": 0,
-          "verdict": "NO_CHANGE",
+          "models_flagged": 5,
+          "models_no_baseline": 5,
+          "verdict": "INSUFFICIENT_DATA",
           "heterogeneous": false,
           "min_p": 0.0,
-          "max_p": 0.3,
-          "median_p": 0.15,
-          "range": 0.3
+          "max_p": 0.0,
+          "median_p": 0.0,
+          "range": 0.0,
+          "saturation": "NA"
         }
       },
       "BEM": {
@@ -7968,12 +7984,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.1,
           "max_p": 0.4,
           "median_p": 0.2,
-          "range": 0.30000000000000004
+          "range": 0.30000000000000004,
+          "saturation": "DISCRIMINATING"
         }
       },
       "INSTR": {
@@ -8060,12 +8078,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "CEILING_SATURATED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -8152,12 +8172,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.875,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.125
+          "range": 0.125,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -8244,12 +8266,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.75,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       }
     },
@@ -8338,12 +8362,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.1,
           "max_p": 0.631578947368421,
           "median_p": 0.47368421052631576,
-          "range": 0.531578947368421
+          "range": 0.531578947368421,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -8430,12 +8456,14 @@
           "models_tie": 4,
           "models_lose": 1,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "VARIANT_LOSES",
           "heterogeneous": false,
           "min_p": 0.1,
           "max_p": 0.7,
           "median_p": 0.25,
-          "range": 0.6
+          "range": 0.6,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -8522,12 +8550,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.35,
           "median_p": 0.1,
-          "range": 0.3
+          "range": 0.3,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "INSTR": {
@@ -8614,12 +8644,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "CEILING_SATURATED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -8706,12 +8738,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.625,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.375
+          "range": 0.375,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -8798,12 +8832,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.625,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.375
+          "range": 0.375,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       }
     },
@@ -8892,12 +8928,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.6,
           "median_p": 0.55,
-          "range": 0.5499999999999999
+          "range": 0.5499999999999999,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -8984,12 +9022,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.55,
           "median_p": 0.3,
-          "range": 0.5
+          "range": 0.5,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -9076,12 +9116,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.35,
           "median_p": 0.1,
-          "range": 0.35
+          "range": 0.35,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "INSTR": {
@@ -9168,12 +9210,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "CEILING_SATURATED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -9260,12 +9304,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.625,
           "max_p": 1.0,
           "median_p": 0.875,
-          "range": 0.375
+          "range": 0.375,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -9352,12 +9398,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.875,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.125
+          "range": 0.125,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       }
     },
@@ -9446,12 +9494,14 @@
           "models_tie": 3,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.55,
           "max_p": 0.75,
           "median_p": 0.65,
-          "range": 0.19999999999999996
+          "range": 0.19999999999999996,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -9538,12 +9588,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.5,
           "median_p": 0.25,
-          "range": 0.45
+          "range": 0.45,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -9630,12 +9682,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.35,
           "median_p": 0.1,
-          "range": 0.35
+          "range": 0.35,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "INSTR": {
@@ -9722,12 +9776,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "CEILING_SATURATED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -9814,12 +9870,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.5,
           "max_p": 1.0,
           "median_p": 0.875,
-          "range": 0.5
+          "range": 0.5,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -9906,12 +9964,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.75,
           "max_p": 1.0,
           "median_p": 0.875,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "DISCRIMINATING"
         }
       }
     },
@@ -10000,12 +10060,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.6842105263157895,
           "median_p": 0.6,
-          "range": 0.6342105263157894
+          "range": 0.6342105263157894,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -10092,12 +10154,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.6,
           "median_p": 0.1,
-          "range": 0.5499999999999999
+          "range": 0.5499999999999999,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -10184,12 +10248,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.45,
           "median_p": 0.1,
-          "range": 0.45
+          "range": 0.45,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "INSTR": {
@@ -10276,12 +10342,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "CEILING_SATURATED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -10368,12 +10436,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.625,
           "max_p": 1.0,
           "median_p": 0.875,
-          "range": 0.375
+          "range": 0.375,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -10460,12 +10530,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.625,
           "max_p": 0.875,
           "median_p": 0.875,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "DISCRIMINATING"
         }
       }
     },
@@ -10554,12 +10626,14 @@
           "models_tie": 3,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.6,
           "max_p": 0.75,
           "median_p": 0.65,
-          "range": 0.15000000000000002
+          "range": 0.15000000000000002,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -10646,12 +10720,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.35,
           "max_p": 0.6,
           "median_p": 0.6,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -10738,12 +10814,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.2,
           "median_p": 0.1,
-          "range": 0.2
+          "range": 0.2,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "INSTR": {
@@ -10830,12 +10908,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.95,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.050000000000000044
+          "range": 0.050000000000000044,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -10922,12 +11002,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.375,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.625
+          "range": 0.625,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -11014,12 +11096,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.875,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.125
+          "range": 0.125,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       }
     },
@@ -11108,12 +11192,14 @@
           "models_tie": 3,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.6,
           "max_p": 0.75,
           "median_p": 0.65,
-          "range": 0.15000000000000002
+          "range": 0.15000000000000002,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -11200,12 +11286,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.35,
           "max_p": 0.6,
           "median_p": 0.6,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -11292,12 +11380,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.05,
           "max_p": 0.1,
           "median_p": 0.05,
-          "range": 0.05
+          "range": 0.05,
+          "saturation": "DISCRIMINATING"
         }
       },
       "INSTR": {
@@ -11384,12 +11474,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.95,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.050000000000000044
+          "range": 0.050000000000000044,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -11476,12 +11568,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.375,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.625
+          "range": 0.625,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -11568,12 +11662,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.875,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.125
+          "range": 0.125,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       }
     },
@@ -11662,12 +11758,14 @@
           "models_tie": 3,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.6,
           "max_p": 0.75,
           "median_p": 0.65,
-          "range": 0.15000000000000002
+          "range": 0.15000000000000002,
+          "saturation": "DISCRIMINATING"
         }
       },
       "OVERRIDE": {
@@ -11754,12 +11852,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.35,
           "max_p": 0.6,
           "median_p": 0.6,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "DISCRIMINATING"
         }
       },
       "BEM": {
@@ -11846,12 +11946,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.0,
           "max_p": 0.25,
           "median_p": 0.1,
-          "range": 0.25
+          "range": 0.25,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "INSTR": {
@@ -11938,12 +12040,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.95,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.050000000000000044
+          "range": 0.050000000000000044,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "ORDER_OVERFIRE": {
@@ -12030,12 +12134,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 0.375,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.625
+          "range": 0.625,
+          "saturation": "SINGLE_MODEL_CARRIED"
         }
       },
       "BEM_WORKSPACE_FACT": {
@@ -12122,12 +12228,14 @@
           "models_tie": 5,
           "models_lose": 0,
           "models_flagged": 0,
+          "models_no_baseline": 0,
           "verdict": "NO_CHANGE",
           "heterogeneous": false,
           "min_p": 1.0,
           "max_p": 1.0,
           "median_p": 1.0,
-          "range": 0.0
+          "range": 0.0,
+          "saturation": "DISCRIMINATING"
         }
       }
     }
@@ -12233,6 +12341,127 @@
         }
       },
       "note": "Step 4: BEM enumeration-class gate (parallel to Steps 1-3, not blocking)."
+    }
+  },
+  "scale_saturation": {
+    "note": "DESCRIPTIVE ONLY \u2014 does NOT affect the \u00a77 ship verdict. Marks modes whose discriminative power may be SCALE-COUPLED, so the GX10 program knows which to RE-EVALUATE AT SCALE (GX10) at 72B.",
+    "v1_baseline": {
+      "ORDER": {
+        "saturation": "DISCRIMINATING",
+        "min_p": 0.1,
+        "max_p": 0.65,
+        "range_p": 0.55,
+        "carrier_model": null
+      },
+      "OVERRIDE": {
+        "saturation": "DISCRIMINATING",
+        "min_p": 0.05,
+        "max_p": 0.65,
+        "range_p": 0.6,
+        "carrier_model": null
+      },
+      "BEM": {
+        "saturation": "SINGLE_MODEL_CARRIED",
+        "min_p": 0.0,
+        "max_p": 0.35,
+        "range_p": 0.35,
+        "carrier_model": "mistral-nemo"
+      },
+      "INSTR": {
+        "saturation": "CEILING_SATURATED",
+        "min_p": 1.0,
+        "max_p": 1.0,
+        "range_p": 0.0,
+        "carrier_model": null
+      },
+      "ORDER_OVERFIRE": {
+        "saturation": "SINGLE_MODEL_CARRIED",
+        "min_p": 0.5,
+        "max_p": 1.0,
+        "range_p": 0.5,
+        "carrier_model": "mistral-nemo"
+      },
+      "BEM_WORKSPACE_FACT": {
+        "saturation": "DISCRIMINATING",
+        "min_p": 0.75,
+        "max_p": 1.0,
+        "range_p": 0.25,
+        "carrier_model": null
+      }
+    },
+    "per_variant": {
+      "B0": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "NA",
+        "BEM": "DISCRIMINATING",
+        "INSTR": "CEILING_SATURATED",
+        "ORDER_OVERFIRE": "SINGLE_MODEL_CARRIED",
+        "BEM_WORKSPACE_FACT": "DISCRIMINATING"
+      },
+      "B1": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "NA",
+        "BEM": "DISCRIMINATING",
+        "INSTR": "CEILING_SATURATED",
+        "ORDER_OVERFIRE": "SINGLE_MODEL_CARRIED",
+        "BEM_WORKSPACE_FACT": "SINGLE_MODEL_CARRIED"
+      },
+      "V2.a": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "SINGLE_MODEL_CARRIED",
+        "INSTR": "CEILING_SATURATED",
+        "ORDER_OVERFIRE": "SINGLE_MODEL_CARRIED",
+        "BEM_WORKSPACE_FACT": "SINGLE_MODEL_CARRIED"
+      },
+      "V2.b": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "SINGLE_MODEL_CARRIED",
+        "INSTR": "CEILING_SATURATED",
+        "ORDER_OVERFIRE": "DISCRIMINATING",
+        "BEM_WORKSPACE_FACT": "SINGLE_MODEL_CARRIED"
+      },
+      "V2.c": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "SINGLE_MODEL_CARRIED",
+        "INSTR": "CEILING_SATURATED",
+        "ORDER_OVERFIRE": "DISCRIMINATING",
+        "BEM_WORKSPACE_FACT": "DISCRIMINATING"
+      },
+      "V2.d": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "SINGLE_MODEL_CARRIED",
+        "INSTR": "CEILING_SATURATED",
+        "ORDER_OVERFIRE": "DISCRIMINATING",
+        "BEM_WORKSPACE_FACT": "DISCRIMINATING"
+      },
+      "V2.full": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "SINGLE_MODEL_CARRIED",
+        "INSTR": "SINGLE_MODEL_CARRIED",
+        "ORDER_OVERFIRE": "SINGLE_MODEL_CARRIED",
+        "BEM_WORKSPACE_FACT": "SINGLE_MODEL_CARRIED"
+      },
+      "V5b": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "DISCRIMINATING",
+        "INSTR": "SINGLE_MODEL_CARRIED",
+        "ORDER_OVERFIRE": "SINGLE_MODEL_CARRIED",
+        "BEM_WORKSPACE_FACT": "SINGLE_MODEL_CARRIED"
+      },
+      "V5d": {
+        "ORDER": "DISCRIMINATING",
+        "OVERRIDE": "DISCRIMINATING",
+        "BEM": "SINGLE_MODEL_CARRIED",
+        "INSTR": "SINGLE_MODEL_CARRIED",
+        "ORDER_OVERFIRE": "SINGLE_MODEL_CARRIED",
+        "BEM_WORKSPACE_FACT": "DISCRIMINATING"
+      }
     }
   },
   "warnings": [
