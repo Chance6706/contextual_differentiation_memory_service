@@ -182,17 +182,22 @@ originals, sub-sample 10 + 40 rephrasings = 50 to keep cost uniform across modes
 **Cost estimate (Sonnet 4.6 @ ~$3/M input, ~$15/M output, via OpenRouter):**
 - Per probe: ~3,500 tokens input + ~500 tokens output ≈ $0.0105 + $0.0075 = **$0.018**
 - 1,600 probes × $0.018 = **$28.80**
-- $50 budget − $28.80 = **$21.20 headroom** for:
+- $75 budget − $28.80 = **$46.20 headroom** for:
   - Cell-level retries on unparseables
-  - Extending the 4 critical conditions to include V2.winning-ablation or V5b/V5d if T1 results justify it
-  - Rephrasing-validation API calls (judged externally — see §3)
+  - Extending the 4 critical conditions to include V2.winning-ablation or V5b/V5d if T1 results justify it (estimated +$5-15 per condition added to T3)
+  - Rephrasing-validation API calls (judged externally — see §3) — should run on free models; if a paid judge is needed, comes out of this cap
+  - Any OpenRouter per-request micro-fees on otherwise-free models
+  - Mid-run model migration if free-tier model becomes unavailable
 
-**Hard cost stops (T3 only — L3 fix):**
-- The **$50 cap is for T3 paid Claude only.** T4 free-tier and T1/T2 local incur zero
-  dollar cost and are not constrained by this cap. The cost guard tracks T3 spend only.
-- OpenRouter spend dashboard polled before and after each T3 cell.
-- If projected T3 total > $45 (90% of cap), STOP T3 execution and re-scope.
-- If projected T3 total > $50, the matrix runner refuses to issue new T3 calls (enforce in code).
+**Hard cost stops ($75 unified cap across ALL API spend — L3 amended):**
+- The **$75 cap covers all OpenRouter API spend** — T3 paid Claude, any paid judge calls
+  for rephrasing validation, any per-request fees on free-tier models, and any paid-model
+  fallback if a planned free model becomes unavailable or persistently rate-limited.
+  T1 Ollama + T2 LM Studio are local and incur zero API spend (separate from this cap).
+- OpenRouter spend dashboard polled before and after each API-cost-incurring batch.
+- If projected total > **$65 (87% of cap)**, STOP execution and re-scope.
+- If projected total > **$75**, the matrix runner refuses to issue new API calls
+  (enforce in code; hard stop, not warning).
 - **Partial T3 publishes as partial (L5 fix).** If the cap fires mid-T3, completed cells
   publish as "T3 partial coverage on cells X, Y, Z; remaining cells deferred to a future
   budget allocation." Partial data is NOT discarded; it's labeled per the §8 disclosure
@@ -292,14 +297,34 @@ only, but cheap.
 **Drop a model if** it returns >20% unparseable responses on the first 10 probes (likely
 format incompatibility); document the drop in the writeup.
 
-**Free-tier rate-limit discipline (L4 fix):**
+**Free-tier rate-limit discipline (L4 amended per Josh's protocol):**
 - T4 models run **sequentially**, not in parallel — one model finishes its full sub-matrix
   before the next starts. This avoids cross-model rate-limit interference.
-- If rate-limit responses (HTTP 429 or equivalent) exceed 10% of attempts within a model's
-  run, STOP that model's run and DROP the model. Document in the writeup. Do NOT retry
-  with backoff indefinitely — free-tier capacity is not the methodology's problem to solve.
-- A dropped model contributes the cells it completed before drop; partial T4 model coverage
-  is labeled per §8 disclosure ("T4 model X dropped at K of planned C cells").
+- **On a rate-limit response (HTTP 429 or equivalent):**
+  1. Wait 10 minutes.
+  2. Retry the same request (attempt 1).
+  3. If 429 again: wait another 10 minutes.
+  4. Retry the same request (attempt 2).
+  5. If 429 again on the 3rd attempt: **defer this model** — mark the request as pending,
+     log the deferral with a note, and move on to the next planned T4 model. Do NOT block
+     the rest of T4 on one throttled model.
+- **Coming back to a deferred model:** after all other planned T4 models complete (or
+  defer themselves), the runner returns to each deferred model in order and re-attempts
+  remaining cells using the same 10-min × 2-retry → defer protocol. The deferral list
+  cycles until either (a) all cells complete, or (b) two full passes over the deferral
+  list make no progress.
+- **Final drop criterion:** if after two full deferral-list cycles a model still has
+  uncompleted cells, those cells are marked "T4 model X cells K of C deferred — persistent
+  rate-limit; not retried further in this run" and the writeup discloses per §8.
+- The waiting and deferral logic must NOT block T1 / T2 / T3 — those tiers can run in
+  parallel with T4's wait periods if hardware allows. Pre-reg locks: T4 may pause; T1-T3
+  do not pause for T4.
+
+This protocol is more graceful than a hard 10%-rate-limit drop — it gives free-tier capacity
+time to clear (typical free-tier windows reset within tens of minutes) before declaring a
+model unavailable. Combined with the unified $75 cap, a persistently-throttled free model
+CAN be swapped for its paid-tier equivalent if the methodology benefit outweighs the dollar
+cost (e.g., Nemotron Ultra 550B is on a paid tier as well; falling back is in budget).
 
 ---
 
@@ -671,8 +696,8 @@ left as a documented limitation rather than fixed.
 |---|---|---|
 | **L1** | No sanctioned pre-pre-reg exploratory runs — devs will do them anyway and silently contaminate the matrix. | **FIXED.** §11 "Sanctioned pre-pre-reg exploratory runs" subsection explicitly allows single-cell exploration with cache-namespace separation. |
 | **L2** | No "halt and re-pre-register" exit if execution reveals a methodology flaw — only "V2 ships" or "V1 stays." Creates pressure to push through known flaws. | **FIXED.** §7 decision tree adds "Step 0 HALT exit" with concrete trigger conditions; §11 restates operationally. |
-| **L3** | $50 cap ambiguity — does it cover only T3 paid Claude, or also count free-tier T4? Cost guard could misfire. | **FIXED.** §4 cost stops section explicit: $50 = T3 only. T4 free-tier and T1/T2 local incur zero dollar cost. |
-| **L4** | T4 free-tier rate-limit thrash — 2,400 free-tier probes across 5 models with no rate-limit handling. | **FIXED.** §5 T4 section adds sequential-model discipline + drop-on-10%-rate-limit rule. |
+| **L3** | $50 cap ambiguity — does it cover only T3 paid Claude, or also count free-tier T4? Cost guard could misfire. | **FIXED** (and AMENDED 2026-06-20 PM). §4 cost stops section explicit. Josh subsequently authorized **$75 unified cap** covering all OpenRouter API spend — paid Claude, paid judge calls, per-request free-model fees, paid-tier fallback for persistently-throttled free models. T1/T2 local incur zero API spend (separate from this cap). |
+| **L4** | T4 free-tier rate-limit thrash — 2,400 free-tier probes across 5 models with no rate-limit handling. | **FIXED** (and AMENDED 2026-06-20 PM). §5 T4 section adds sequential-model discipline. Per Josh's protocol: on 429, wait 10 min + retry; if 429 again, wait 10 min + retry; on 3rd 429, **defer** the model and move to the next; cycle back through deferred models after the rest complete. Final drop only after two full deferral-list passes with no progress. |
 | **L5** | Partial T3 data handling — "no partial runs published" + cost cap mid-T3 is ambiguous. | **FIXED.** §4 cost stops section explicit: partial T3 publishes as labeled-partial; §11 names this as known acceptable case, not violation of "no partial runs." |
 
 ### Documented as deliberate (NOT fixed):
@@ -701,6 +726,7 @@ left as a documented limitation rather than fixed.
 |---|---|
 | 2026-06-20 | Initial pre-registration draft (commit `0a32629`). |
 | 2026-06-20 | Pressure-test pass — applied R1, R2, R4, R5, R6, L1-L5 fixes; added §7 mode classification, §7 acknowledged-bias paragraph, §7 Step 0 halt exit, §11 sanctioned exploration + halt-restate, §13 pressure-test record. R3 + D1-D4 + A1-A4 documented as deliberate / decided-against. |
+| 2026-06-20 | Budget + rate-limit amendments — Josh authorized $75 unified API cap (was $50 T3-only); rate-limit protocol amended to 10-min × 2-retry → defer → cycle-back (was: drop after 10% rate-limit). §4 cost stops + §5 T4 discipline + §13 L3/L4 rows updated. |
 
 _Any change after this row must be a new row with a new commit. The pre-reg's whole purpose
 is the lock — silent edits defeat it._
