@@ -73,6 +73,15 @@ from cdms.stats import wilson_interval                  # noqa: E402
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
 
+# Backend adapters (T1=Ollama already inline below; T2/T3/T4 imported here).
+from lmstudio_chat import lmstudio_chat                  # noqa: E402
+from openrouter_chat import (                            # noqa: E402
+    openrouter_chat, OpenRouterAPIError, RateLimitDeferred,
+)
+from openrouter_cost_guard import (                      # noqa: E402
+    BudgetExceededError, CostGuard,
+)
+
 
 def _naive_dump_preamble(cfg: Config, payload: dict) -> str:
     """B1 NAIVE-DUMP comparison baseline for the methodology-reset pre-registration
@@ -648,6 +657,21 @@ def main():
     ap.add_argument("--modes", nargs="+", default=None)
     ap.add_argument("--models", nargs="+", default=None)
     ap.add_argument("--out", default=None, help="path to write the full output (in addition to stdout)")
+    ap.add_argument("--backend",
+                    choices=["ollama", "lmstudio", "openrouter"],
+                    default="ollama",
+                    help="Inference backend. ollama=T1 local (SMALL_PANEL by default); "
+                         "lmstudio=T2 backend-replication (requires --models with LM Studio model IDs); "
+                         "openrouter=T3 paid Claude or T4 free-tier breadth (requires --models with OpenRouter IDs "
+                         "like 'anthropic/claude-sonnet-4-6' or 'nvidia/nemotron-3-ultra-550b-a55b:free', "
+                         "and OPENROUTER_API_KEY env var; cost-guard enforces --openrouter-cost-cap).")
+    ap.add_argument("--openrouter-cost-cap", type=float, default=75.0,
+                    help="OpenRouter spend cap in USD (pre-reg §4 default $75 unified across all API tiers). "
+                         "Persists across runs via --cost-state-file. Hard stop: refuses calls if projected > cap.")
+    ap.add_argument("--cost-state-file", default=None,
+                    help="Path to OpenRouter cost-guard state JSON. Defaults to ~/.cdms/openrouter_spend.json "
+                         "(created if missing). State persists across runs so partial matrix runs do not lose "
+                         "cost tracking.")
     ap.add_argument("--variant",
                     choices=["v1", "b1",
                              "v2", "v2a", "v2b", "v2c", "v2d",
@@ -665,12 +689,50 @@ def main():
                          "v5d=v2+third-person sentence rendering (full grammar wrap).")
     args = ap.parse_args()
 
-    cache = Path(args.cache_dir); cache.mkdir(parents=True, exist_ok=True)
-    if args.models:
-        models = {label: tag for label, tag in SMALL_PANEL.items()
-                  if tag in args.models or label in args.models}
+    # --- Backend dispatch + per-backend cache isolation -------------------
+    # Per-backend cache subdir prevents F2-class cross-backend collisions even
+    # if the operator points two runs at the same --cache-dir. The adapters
+    # themselves also have backend-tag prefixes in cache filenames; this is
+    # defense in depth.
+    cache = Path(args.cache_dir) / args.backend
+    cache.mkdir(parents=True, exist_ok=True)
+
+    # --- Backend-specific model handling ---------------------------------
+    # SMALL_PANEL contains Ollama model tags (e.g. "gemma3:12b"). Sending
+    # those to lmstudio or openrouter would 404. Pressure-test R4: require
+    # explicit --models for non-ollama backends; this prevents a silent
+    # mis-routing of probes to a backend that can't serve them.
+    if args.backend == "ollama":
+        if args.models:
+            models = {label: tag for label, tag in SMALL_PANEL.items()
+                      if tag in args.models or label in args.models}
+        else:
+            models = dict(SMALL_PANEL)
     else:
-        models = dict(SMALL_PANEL)
+        # lmstudio/openrouter: models must be passed explicitly as
+        # backend-native IDs (LM Studio identifier or OpenRouter slug like
+        # "anthropic/claude-sonnet-4-6"). Use the model string both as label
+        # and as tag so downstream code is unchanged.
+        if not args.models:
+            ap.error(f"--backend {args.backend} requires --models with backend-native "
+                     f"model IDs (e.g. for openrouter: 'anthropic/claude-sonnet-4-6' "
+                     f"or 'nvidia/nemotron-3-ultra-550b-a55b:free').")
+        models = {m: m for m in args.models}
+
+    # --- OpenRouter prerequisites (fail-fast at startup, not mid-matrix) -
+    cost_guard = None
+    if args.backend == "openrouter":
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            ap.error("--backend openrouter requires OPENROUTER_API_KEY env var. "
+                     "Set it before invoking; the matrix runner refuses to start "
+                     "without it to avoid mid-run discovery of a missing key.")
+        state_file = (Path(args.cost_state_file) if args.cost_state_file
+                      else Path.home() / ".cdms" / "openrouter_spend.json")
+        state_file.parent.mkdir(parents=True, exist_ok=True)
+        cost_guard = CostGuard(cap_usd=args.openrouter_cost_cap, state_file=state_file)
+        print(f"# OpenRouter cost guard: cap=${args.openrouter_cost_cap:.2f}, "
+              f"spent=${cost_guard.spent():.4f}, state={state_file}")
+
     selected = [m for m in MODES if (args.modes is None or m[0] in args.modes)]
 
     out_path = Path(args.out) if args.out else None
@@ -679,6 +741,9 @@ def main():
     try:
         header = [
             "# CLAUDE.md/SOUL.md vs CDMS injection — Phase 2 behavioral matrix",
+            f"# Backend: {args.backend}"
+            + (f"  (cost-cap=${args.openrouter_cost_cap:.2f}, spent=${cost_guard.spent():.4f})"
+               if cost_guard else ""),
             f"# Models: {list(models)}",
             f"# Modes: {[m[0] for m in selected]}",
             f"# Cache: {cache}",
@@ -716,6 +781,14 @@ def main():
         # === Flat results dict (model-outer iteration; report is post-hoc). ===
         # Key: (mode_name, arm_label, model_label, probe_idx) -> (score, preview, probe_tag)
         results: dict[tuple, tuple] = {}
+        # Backends with the openrouter signature accept a cost_guard kwarg; ollama and
+        # lmstudio do not. Integration-review finding F3: conditional kwarg dispatch.
+        chat_fn = {"ollama": ollama_chat, "lmstudio": lmstudio_chat,
+                   "openrouter": openrouter_chat}[args.backend]
+        # Deferred-cell tracking for RateLimitDeferred (full cycle-back per pre-reg §5
+        # is a follow-on; the minimal first-pass records the cell so an operator-
+        # re-run resumes it from cache after a wait).
+        deferred_cells: list[tuple] = []
         for model_label, tag in models.items():
             for name, meta in mode_meta.items():
                 for arm_label, _inc_md, _inc_cdms in meta["arms"]:
@@ -725,8 +798,36 @@ def main():
                             probe_tag, probe_text = probe_entry
                         else:
                             probe_tag, probe_text = None, probe_entry
-                        resp = ollama_chat(tag, system_prompt, probe_text, cache,
-                                           n_predict=args.n_predict)
+                        kwargs = {"n_predict": args.n_predict}
+                        if args.backend == "openrouter":
+                            kwargs["cost_guard"] = cost_guard
+                        try:
+                            resp = chat_fn(tag, system_prompt, probe_text, cache, **kwargs)
+                        except RateLimitDeferred:
+                            # Pre-reg §5 minimal: log + skip cell. Cached cells skip on re-run.
+                            cell = (name, arm_label, model_label, i)
+                            deferred_cells.append(cell)
+                            print(f"# DEFERRED (rate-limited 3x): {cell}", file=sys.stderr)
+                            continue
+                        except BudgetExceededError as e:
+                            # Pre-reg §4 hard stop. Log state-file location so the operator
+                            # can resume manually after budget extension.
+                            state_loc = (Path(args.cost_state_file) if args.cost_state_file
+                                         else Path.home() / ".cdms" / "openrouter_spend.json")
+                            print(f"\n# BUDGET EXCEEDED — aborting matrix run.\n"
+                                  f"#   spent=${getattr(e, 'spent', '?'):.4f}  "
+                                  f"projected=${getattr(e, 'projected', '?'):.4f}  "
+                                  f"cap=${getattr(e, 'cap_usd', args.openrouter_cost_cap):.2f}\n"
+                                  f"#   state file: {state_loc}\n"
+                                  f"#   Re-run after extending the cap (--openrouter-cost-cap N) to resume.",
+                                  file=sys.stderr)
+                            raise
+                        except OpenRouterAPIError as e:
+                            # Non-recoverable; surface and skip the cell. Cached cells
+                            # skip on re-run; the operator can debug separately.
+                            print(f"# API ERROR ({name}/{arm_label}/{model_label}/probe-{i}): {e}",
+                                  file=sys.stderr)
+                            continue
                         if name == "ORDER" or name == "ORDER_OVERFIRE":
                             score = score_order_safe(probe_tag, resp)
                         elif name == "BEM":
@@ -766,6 +867,21 @@ def main():
                     for label in models
                 }
             _score_outcomes(name, models, outcomes_per_arm, out_fh)
+
+        # Deferred-cell summary (RateLimitDeferred or skipped API errors).
+        # Pre-reg §5 minimal protocol: an operator re-run resumes the deferred
+        # cells from cache after waiting for capacity to clear. Full
+        # defer-and-cycle-back protocol is a follow-on engineering item.
+        if deferred_cells:
+            tally = f"\n# {len(deferred_cells)} cells DEFERRED (rate-limited 3x); re-run after waiting to resume from cache."
+            print(tally); out_fh.write(tally + "\n")
+            for cell in deferred_cells:
+                print(f"#   {cell}"); out_fh.write(f"#   {cell}\n")
+
+        # Final cost report for openrouter runs.
+        if cost_guard is not None:
+            line = f"\n# OpenRouter spend after run: ${cost_guard.spent():.4f} of ${args.openrouter_cost_cap:.2f} cap (remaining ${cost_guard.remaining():.4f})"
+            print(line); out_fh.write(line + "\n")
     finally:
         out_fh.close()
 
