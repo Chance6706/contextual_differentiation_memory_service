@@ -808,6 +808,70 @@ pressure-tested using the same red-team / legitimate-use discipline. Findings, p
 
 ---
 
+## A1 — V5-render amendment (2026-06-24): recall-utility ship path for v5b / corrected-v5d
+
+**Status: PROPOSED — requires Josh's sign-off before any default flip (it overrides a pre-registered
+gate). Thresholds below are pre-stated BEFORE reading the validation results.**
+
+**Why.** §7 Step 4 gates v5b/v5d on *BEM improvement*; T1 returned `IMPROVE_BEM=False` and archived
+both. But (a) BEM is `SINGLE_MODEL_CARRIED`/saturated at the 12–14B SMALL_PANEL — a measurement limit,
+not a settled negative (§5 scale-saturation); and (b) T3 surfaced a *different, live, measurable* harm
+the tree gives no ship-credit: shipped V1 **suppresses legitimate workspace-fact recall** on Claude
+(`BEM_WORKSPACE_FACT` correct-use 0.275 < naive-dump 0.525) via self-attribution — the same mechanism
+as the enumeration leak. The tree classifies `BEM_WORKSPACE_FACT` as **regression-only**, so a variant
+that *fixes* the suppression earns no ship path. This amendment adds one.
+
+**Disclosed render fix.** The v5d render was corrected after a double pressure-test (M1 subject-drop —
+the old v5d dropped the gist subject from the predicate; MF-1 raw-`relation` fence hole; MF-2 silent
+coverage loss). The validated/shipped v5d is the **corrected** render (faithful S-R-O tuple in a
+third-person observation sentence), so **T1's v5d numbers are superseded for the recall question**; this
+amendment validates the corrected render directly. v5b is unchanged.
+
+**New ship path (Step 5 — overrides Step 4 archival for the recall question).** A variant
+V ∈ {v5b, corrected-v5d} ships as the default SessionStart render iff, on the paired V1-vs-V cloud
+validation (fresh cache, rule 13):
+1. **Recall lift (win):** on `BEM_WORKSPACE_FACT` correct-use, on **Claude Sonnet 4.6** (the rung where
+   V1=0.275), V's Wilson-95% **lower** bound > V1's Wilson-95% **upper** bound (disjoint-CI, per §7's
+   convention). This reclassifies `BEM_WORKSPACE_FACT` as win-able **for this amendment only**.
+2. **No regression (safety):** on every OTHER mode (ORDER, OVERRIDE, BEM, INSTR, ORDER_OVERFIRE), no
+   rung shows V1 beating V at the §7 per-mode failure threshold (Wilson-bound, unadjusted α=0.05 per
+   §7 Step-2's single-paid-tier convention).
+3. **Anti-gaming (mandatory).** The scorer keys on a 100-char first-person-proximity heuristic that V's
+   surface change could move without improving *usable* recall. So the win additionally requires: (i)
+   the full 3-way split (`correct_use`/`no_mention`/`self_attribution`) is reported and V **drains
+   `self_attribution`** specifically (not merely relocates the token); (ii) a human review of ≥8 of V's
+   `correct_use` responses confirms the fact is **used in service of the answer**. A win that fails the
+   qualitative gate is void.
+
+**Tie-break + null.**
+- If BOTH clear the gate, ship **v5b** (Josh, 2026-06-24): v1-equivalent length, preserves the SRO, no
+  coverage loss. corrected-v5d must beat v5b's recall by the disjoint-CI margin to justify its cost.
+- If NEITHER clears the disjoint-CI gate on Sonnet → **no flip**; the point-estimate leader (if any)
+  ships **opt-in only** (`session_preamble_variant`, default stays `v1`).
+
+**Honest scope.** This does NOT close the BEM enumeration class on Step-4 terms (BEM improvement) — that
+gate stays open but is now being *measured*, not merely deferred: the GX10 31B/72B interference matrix
+(2026-06-24) runs the same v1/v5b/v5d on BEM at scales where BEM discriminates; the enumeration verdict
+is read from THAT, separately. This amendment ships on the recall harm alone. It does NOT re-open the
+V2-as-default decision (Step 1 FAILED → V1 remains incumbent); V inherits V2's framing but ships on
+recall-utility + no-regression, NOT a win-able-mode win over V1.
+
+**Pressure-test record (rule 12).**
+- *Red-team — "gate-shopping a failed candidate":* mitigated — versioned, thresholds pre-stated before
+  results, override named explicitly, the new win restricted to ONE mode whose harm is independently
+  documented (T3 §6) and mechanistically the same self-attribution failure as the original target; the
+  original BEM gate is not relaxed, it is measured at scale.
+- *Red-team — "scorer is gameable":* mitigated by the anti-gaming gate (drain `self_attribution` + human
+  review).
+- *Legit-use — "T1 v5d evidence is stale":* disclosed; corrected render validated directly; T1 v5d
+  superseded for recall.
+- *Inherent limit:* single deployment rung (Sonnet) is the gate; Haiku/Opus reported as breadth, not
+  gates (cost-bounded, per §7 Step-2's single-rung convention).
+
+**Sign-off (Josh):** ☐ approved as written ☐ approved with changes: __________ ☐ rejected.
+
+---
+
 ## Document history
 
 | Date | Change |
@@ -818,6 +882,8 @@ pressure-tested using the same red-team / legitimate-use discipline. Findings, p
 | 2026-06-20 | V2.a-d ablation pressure-test pass — ABL-R2 fix (V2.b now captures both header + heading instances of third-person framing, not just heading; lock test updated). ABL-R1/R3-R6/L1-L3 documented as inherent ablation limitations in §9 (added items 8-11) + §13 ablation pressure-test subsection. Builder docstrings in hooks.py expanded with the inherent-limits notice. |
 | 2026-06-20 | Prereqs 2-6 engineering-complete across multiple commits — b1 NAIVE-DUMP baseline; lmstudio/openrouter/cost-guard adapters with pressure-test fixes (caught NaN-bypass in cost guard, path traversal + header smuggling + cost-record-ordering in openrouter_chat, cross-backend cache collision in lmstudio_chat); --backend flag wired through matrix runner with fail-fast guards; 384 probe rephrasings (4 per probe × 96 probes × 6 modes) + Nemotron review runner + 19 structural lock tests catching 6 constraint violations at assemble-time. Two multi-agent workflows used (7 agents each, ~880k subagent tokens). §3 + §10 updated with shipped artifacts; matrix ready for operator-triggered execution. 119 tests green across 6 test files. |
 | 2026-06-21 | Prereq 7 (`--expand-probes`) wired into the matrix runner + consolidate/verify pass. §4 T3 total amended 1,600 → **1,520** (two 8-original guardrail modes cap at 40/cell; 80-probe gap is arithmetic, not a defect). §3/§4/§7 OVERRIDE count amended **21 → 20** (the actual `PROBES_OVERRIDE` constant; independent of the 1,520 figure). Projected paid cost ≈ **$27.36** (was $28.80). Both amendments are doc-only — the wiring was already correct against the real constants. Added `--dry-run` plan-preview (zero-network cost preflight) + projected-dollars-vs-cap line + per-cell structural assert in `_select_probes`. See `docs/DEVIATIONS.md` O1. |
+
+| 2026-06-24 | **A1 amendment (PROPOSED, awaiting Josh sign-off)** — adds a recall-utility ship path (Step 5) for v5b / corrected-v5d, overriding the Step-4 BEM-improvement archival for the recall question; pre-states disjoint-CI recall gate on Sonnet + no-regression + anti-gaming (3-way split / qualitative) gate; v5b tie-break; discloses the corrected v5d render (supersedes T1 v5d for recall); enumeration verdict moved from "deferred" to "measured at scale" via the GX10 31B/72B matrix. |
 
 _Any change after this row must be a new row with a new commit. The pre-reg's whole purpose
 is the lock — silent edits defeat it._

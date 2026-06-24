@@ -862,6 +862,14 @@ def main():
         if args.models:
             models = {label: tag for label, tag in SMALL_PANEL.items()
                       if tag in args.models or label in args.models}
+            # Allow arbitrary Ollama tags NOT in SMALL_PANEL (e.g. larger-scale models
+            # like "qwen2.5:72b" pulled for GX10 scale re-evaluation). Any --models value
+            # that didn't match a SMALL_PANEL label/tag is treated as a raw tag (label==tag),
+            # so scale runs are not silently dropped to an empty model set.
+            matched = set(models.keys()) | set(models.values())
+            for m in args.models:
+                if m not in matched:
+                    models[m] = m
         else:
             models = dict(SMALL_PANEL)
     else:

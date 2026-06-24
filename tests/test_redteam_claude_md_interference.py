@@ -728,24 +728,22 @@ def test_v5b_strips_metadata_and_adds_workspace_observation_prefix(service, cfg)
 
 
 def test_v5d_wraps_each_gist_as_third_person_sentence(service, cfg):
-    """V5d — strongest render-time defense. Each gist must appear as a complete
-    third-person sentence with explicit project subject. The sentence template is
-    load-bearing: it's what forces semantic violence to recontextualize as a personal
-    attribute. A wording change must trip this test."""
+    """V5d — strongest render-time defense. Each gist appears as a complete third-person
+    workspace-observation sentence that PRESERVES the faithful subject-relation-object tuple
+    (corrected render: subject stays IN the predicate, not dropped to a redundant 'project
+    workspace P' prefix — pressure-test M1). The template is load-bearing; a wording change
+    must trip this test."""
     from cdms.hooks import _build_preamble_text
     g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
              object="billing module", valence=0.5, frequency=7, support_count=4,
              project=PROJECT)
     service.db.insert_gist(g, service.embedder.embed_one(g.search_text()))
     v5d = _build_preamble_text(cfg, {"cwd": PROJECT}, variant="v5d")
-    # Sentence template — explicit project subject, observed-pattern framing.
-    assert "In project workspace" in v5d
-    assert "the pattern" in v5d
-    assert "was observed across" in v5d
-    assert "sessions" in v5d
-    # Specific gist content rendered inside the template.
-    assert "billing module" in v5d
-    assert "handles well" in v5d   # underscore-replaced relation
+    # Third-person workspace-observation framing.
+    assert "Observed in this workspace across" in v5d
+    assert "session(s)" in v5d
+    # The faithful S-R-O tuple is rendered intact (subject preserved in the predicate).
+    assert "P handles well billing module" in v5d
     # V2 framing for the rest is preserved.
     assert "authoritative workspace safety rules" in v5d
 

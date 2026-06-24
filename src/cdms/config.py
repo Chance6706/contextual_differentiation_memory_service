@@ -211,6 +211,16 @@ class Config:
     render_model: str = "llama-3.2-3b-instruct"
     render_api_key: str = "sk-no-key-required"
 
+    # ---- SessionStart preamble render variant (which builder formats the injected memory) ----
+    # "v1" = shipped baseline (terse persona lines). "v5d" = third-person grammatical wrapping
+    # that drains the self-attribution failure (models reading workspace facts as about THEMSELVES),
+    # which both suppresses legitimate workspace-fact recall and leaks workspace content as
+    # self-description in list-mode enumeration. Only ship-vetted variants are accepted here; the
+    # research variants (v2/v3/v4/v5b) stay confined to tools/redteam_claude_md_interference.py.
+    # Validated in _validate() against the ship-vetted set (unknown → repair to "v1" + warn).
+    # Env: CDMS_SESSION_PREAMBLE_VARIANT.
+    session_preamble_variant: str = "v1"
+
     # ---- Networking / security (loopback only; directive #2) ---------------
     http_host: str = "127.0.0.1"
     http_port: int = 8765
@@ -559,6 +569,16 @@ def _validate(cfg: "Config") -> None:
             cfg.archetype_default = d.archetype_default
     except Exception:
         pass
+
+    # SessionStart preamble variant must be a ship-vetted render. A typo would otherwise either
+    # KeyError in the hook dispatch (swallowed by its broad except → NO preamble injected at all,
+    # a silent total-memory outage) or silently ship an unintended render. Repair to the v1
+    # baseline and warn (same posture as archetype_default). The set MUST match
+    # hooks._SESSION_BUILDERS; the dispatch also falls back to v1 as defense-in-depth.
+    if cfg.session_preamble_variant not in {"v1", "v5b", "v5d"}:
+        print(f"cdms config: invalid session_preamble_variant={cfg.session_preamble_variant!r}; "
+              f"using default {d.session_preamble_variant!r}", file=_sys.stderr)
+        cfg.session_preamble_variant = d.session_preamble_variant
 
 
 def load_config() -> Config:

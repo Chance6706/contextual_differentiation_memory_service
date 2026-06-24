@@ -199,6 +199,18 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
                 break
             kept.append(b)
             running += len(b) + 1
+        omitted = len(bullets) - len(kept)
+        if kept and omitted:
+            # Make coverage loss legible rather than silently dropping bullets when a block
+            # is truncated (pressure-test MF-2). Drop one kept bullet to make room if the
+            # marker itself would overflow; skip it only in the pathological tiny-budget case.
+            marker = f"- …({omitted} more trimmed for space)"
+            if running + len(marker) + 1 > budget and len(kept) > 1:
+                running -= len(kept.pop()) + 1
+                omitted += 1
+                marker = f"- …({omitted} more trimmed for space)"
+            if running + len(marker) + 1 <= budget:
+                kept.append(marker)
         if kept:
             out.extend([head, open_tag, *kept, close_tag])
         break  # budget exhausted; no further blocks
@@ -589,19 +601,18 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
             # recontextualize. Higher token cost; risk of amplifying qwen2.5
             # hedge-truncate.
             if variant == "v5d":
-                # Build a grammatical sentence framing the relation as a pattern observed
-                # in the workspace — NOT as a personal action by the assistant. The
-                # "Workspace P — observed: pattern" structure is awkward enough on the
-                # subject-side that the model has to do explicit semantic work to
-                # recontextualize as a self-attribute.
-                relation_phrase = g.relation.replace('_', ' ')
-                subj = _sanitize(g.subject, 60)
-                obj = _sanitize(g.object, 80)
-                base = (f"- In project workspace '{subj}', the pattern "
-                        f"'{relation_phrase} {obj}' was observed across "
-                        f"{g.support_count} sessions ({g.frequency} occurrences).")
+                # Structural anti-self-attribution render: frame the FAITHFUL SRO tuple
+                # (g.render(), so the subject stays IN the predicate — not dropped to a
+                # redundant 'project workspace P' prefix) as a third-person workspace
+                # observation, never a personal attribute. One sanitize pass over the whole
+                # tuple closes the relation-raw fence hole; ints are coerced so a corrupted
+                # count cannot smuggle text; kept compact to limit coverage loss under the
+                # _MAX_CONTEXT packer. (pressure-test MF-1 / M1 / MF-2 / SF-2 / SF-3.)
+                tuple_text = _sanitize(g.render(), 160)
+                base = (f"- Observed in this workspace across {int(g.support_count)} "
+                        f"session(s) ({int(g.frequency)}x): {tuple_text}.")
                 if cfg.recall_exemplars and idx < cfg.recall_exemplar_top_n and g.exemplar:
-                    base += f'\n    Example evidence from logs: "{_sanitize(g.exemplar, 160)}"'
+                    base += f"\n    Example from logs: {_sanitize(g.exemplar, 160)}"
                 return base
             # v1/v2/v3/v4 default render.
             base = f"- {_sanitize(g.render(), 160)}  (support {g.support_count}, seen {g.frequency}x)"
@@ -640,6 +651,18 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
                 break
             kept.append(b)
             running += len(b) + 1
+        omitted = len(bullets) - len(kept)
+        if kept and omitted:
+            # Make coverage loss legible rather than silently dropping bullets when a block
+            # is truncated (pressure-test MF-2). Drop one kept bullet to make room if the
+            # marker itself would overflow; skip it only in the pathological tiny-budget case.
+            marker = f"- …({omitted} more trimmed for space)"
+            if running + len(marker) + 1 > budget and len(kept) > 1:
+                running -= len(kept.pop()) + 1
+                omitted += 1
+                marker = f"- …({omitted} more trimmed for space)"
+            if running + len(marker) + 1 <= budget:
+                kept.append(marker)
         if kept:
             out.extend([head, open_tag, *kept, close_tag])
         break
@@ -684,6 +707,28 @@ def _drain_and_consolidate(cfg: Config) -> dict:
         svc.close()
 
 
+# Production-selectable SessionStart preamble builders. Only ship-vetted render variants are
+# exposed here; the research-only variants (v2/v2a-d/v3/v4/v5b) stay confined to
+# tools/redteam_claude_md_interference.py. Keys MUST match the validated set in config._validate.
+_SESSION_BUILDERS = {
+    "v1": _session_start_context,
+    "v5b": _session_start_context_v5b,
+    "v5d": _session_start_context_v5d,
+}
+
+
+def _select_session_builder(cfg: Config):
+    """Return the SessionStart preamble builder for ``cfg.session_preamble_variant``, falling back
+    to the v1 shipped baseline on any unknown value (and on a config that predates the field).
+
+    Falls back rather than raising: a KeyError here would be swallowed by ``dispatch``'s broad
+    ``except`` and silently emit NO preamble at all — a total memory-injection outage from one
+    bad config value. Config validation already repairs unknown values to v1; this is defense in
+    depth so the hook degrades to the baseline render, never to nothing."""
+    return _SESSION_BUILDERS.get(getattr(cfg, "session_preamble_variant", "v1"),
+                                 _session_start_context)
+
+
 def dispatch(event_name: str, payload: dict, cfg: Config | None = None) -> dict:
     """Handle one hook event. Returns the JSON object to print on stdout (or {})."""
     cfg = cfg or load_config()
@@ -694,7 +739,7 @@ def dispatch(event_name: str, payload: dict, cfg: Config | None = None) -> dict:
 
     if event_name == "SessionStart":
         try:
-            ctx = _session_start_context(cfg, payload)
+            ctx = _select_session_builder(cfg)(cfg, payload)
         except Exception as exc:  # never break the session over memory
             _log(cfg, f"SessionStart context failed: {exc}")
             return {}

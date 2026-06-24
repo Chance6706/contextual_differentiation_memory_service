@@ -169,7 +169,9 @@ def render_scars(conn) -> str:
 
 def render_preamble(cfg: Config, conn, project=None) -> str:
     """The faithful 'what the model sees' at SessionStart for a project — via the SAME
-    _session_start_context the hook uses. Dials are structurally absent from this output."""
+    builder the hook uses (cfg.session_preamble_variant, default v1). Routing through the
+    selector keeps this preview honest after a default flip (else it would render v1 while the
+    model receives v5d). Dials are structurally absent from this output."""
     projects = sorted({(r["project"] or "") for r in
                        _rows(conn, "SELECT DISTINCT project FROM mem_episodic "
                                    "UNION SELECT DISTINCT project FROM mem_gist "
@@ -177,10 +179,11 @@ def render_preamble(cfg: Config, conn, project=None) -> str:
     links = " · ".join(f'<a href="/preamble?project={E(p)}">{E(p or "(global)")}</a>' for p in projects)
     body = [f"<p class=dim>project: {links}</p>"]
     if project is not None:
-        from .hooks import _session_start_context
-        ctx = _session_start_context(cfg, {"cwd": project}) or "(empty — nothing recalled for this project)"
+        from .hooks import _select_session_builder
+        ctx = _select_session_builder(cfg)(cfg, {"cwd": project}) or "(empty — nothing recalled for this project)"
         body.append(f"<p class=dim>Exactly what the model is given at SessionStart for "
-                    f"<code>{E(project)}</code>. The temperament dials are NOT here (Bem firewall):</p>")
+                    f"<code>{E(project)}</code> (variant <code>{E(cfg.session_preamble_variant)}</code>). "
+                    f"The temperament dials are NOT here (Bem firewall):</p>")
         body.append(f"<pre>{E(ctx)}</pre>")
     else:
         body.append("<p class=dim>Pick a project above to preview its SessionStart injection.</p>")
