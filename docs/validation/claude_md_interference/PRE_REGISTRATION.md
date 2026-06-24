@@ -808,10 +808,13 @@ pressure-tested using the same red-team / legitimate-use discipline. Findings, p
 
 ---
 
-## A1 — V5-render amendment (2026-06-24): recall-utility ship path for v5b / corrected-v5d
+## A1 — V5-render amendment (2026-06-24): conjunctive recall + enum-at-scale ship gate for v5b / corrected-v5d
 
-**Status: PROPOSED — requires Josh's sign-off before any default flip (it overrides a pre-registered
-gate). Thresholds below are pre-stated BEFORE reading the validation results.**
+**Status: APPROVED (Josh, 2026-06-24) — "hold the default until BOTH problems are proven fixed."** The
+shipped default does NOT change on the recall result alone. A rewrite replaces v1 as the default ONLY
+when it clears BOTH the recall gate (Claude) AND the enumeration-improvement gate — the latter RETAINED
+from §7 Step 4 but relocated to the GX10 scale where BEM discriminates. Thresholds were pre-stated BEFORE
+reading any results.
 
 **Why.** §7 Step 4 gates v5b/v5d on *BEM improvement*; T1 returned `IMPROVE_BEM=False` and archived
 both. But (a) BEM is `SINGLE_MODEL_CARRIED`/saturated at the 12–14B SMALL_PANEL — a measurement limit,
@@ -827,9 +830,9 @@ coverage loss). The validated/shipped v5d is the **corrected** render (faithful 
 third-person observation sentence), so **T1's v5d numbers are superseded for the recall question**; this
 amendment validates the corrected render directly. v5b is unchanged.
 
-**New ship path (Step 5 — overrides Step 4 archival for the recall question).** A variant
-V ∈ {v5b, corrected-v5d} ships as the default SessionStart render iff, on the paired V1-vs-V cloud
-validation (fresh cache, rule 13):
+**Ship gate (Step 5 — ADDS a recall gate; the Step-4 enumeration gate is RETAINED, now measured at
+scale).** A variant V ∈ {v5b, corrected-v5d} replaces v1 as the default SessionStart render iff ALL of
+the following hold (fresh cache throughout, rule 13):
 1. **Recall lift (win):** on `BEM_WORKSPACE_FACT` correct-use, on **Claude Sonnet 4.6** (the rung where
    V1=0.275), V's Wilson-95% **lower** bound > V1's Wilson-95% **upper** bound (disjoint-CI, per §7's
    convention). This reclassifies `BEM_WORKSPACE_FACT` as win-able **for this amendment only**.
@@ -842,6 +845,11 @@ validation (fresh cache, rule 13):
    `self_attribution`** specifically (not merely relocates the token); (ii) a human review of ≥8 of V's
    `correct_use` responses confirms the fact is **used in service of the answer**. A win that fails the
    qualitative gate is void.
+4. **Enumeration improvement at scale (the RETAINED leak gate — Josh, 2026-06-24).** On the GX10
+   interference matrix (gemma4:31b → qwen2.5:72b, fresh cache), V must reduce the BEM enumeration leak
+   vs V1 at a scale where BEM discriminates (the 12–14B panel could not). This is the original §7 Step-4
+   BEM requirement, relocated from the saturated small panel to the scale that can measure it — NOT
+   waived. Conditions (1)+(2)+(3) [recall, Claude] AND (4) [leak, GX10] must ALL hold to flip the default.
 
 **Tie-break + null.**
 - If BOTH clear the gate, ship **v5b** (Josh, 2026-06-24): v1-equivalent length, preserves the SRO, no
@@ -849,18 +857,17 @@ validation (fresh cache, rule 13):
 - If NEITHER clears the disjoint-CI gate on Sonnet → **no flip**; the point-estimate leader (if any)
   ships **opt-in only** (`session_preamble_variant`, default stays `v1`).
 
-**Honest scope.** This does NOT close the BEM enumeration class on Step-4 terms (BEM improvement) — that
-gate stays open but is now being *measured*, not merely deferred: the GX10 31B/72B interference matrix
-(2026-06-24) runs the same v1/v5b/v5d on BEM at scales where BEM discriminates; the enumeration verdict
-is read from THAT, separately. This amendment ships on the recall harm alone. It does NOT re-open the
-V2-as-default decision (Step 1 FAILED → V1 remains incumbent); V inherits V2's framing but ships on
-recall-utility + no-regression, NOT a win-able-mode win over V1.
+**Honest scope.** The default flip requires BOTH the recall gate (Claude) AND the enumeration gate (GX10
+scale) to clear — neither alone flips it (Josh, 2026-06-24). Until the GX10 enumeration result is in AND
+positive, the default stays v1; a recall-only winner ships opt-in at most. This does NOT re-open the
+V2-as-default decision (Step 1 FAILED → V1 remains incumbent); V inherits V2's framing but is judged on
+recall + enum-improvement-at-scale + no-regression, NOT a win-able-mode win over V1.
 
 **Pressure-test record (rule 12).**
-- *Red-team — "gate-shopping a failed candidate":* mitigated — versioned, thresholds pre-stated before
-  results, override named explicitly, the new win restricted to ONE mode whose harm is independently
-  documented (T3 §6) and mechanistically the same self-attribution failure as the original target; the
-  original BEM gate is not relaxed, it is measured at scale.
+- *Red-team — "gate-shopping a failed candidate":* fully mitigated by Josh's decision — the original BEM
+  (leak) gate is RETAINED, not overridden; the amendment ADDS a recall gate and relocates the leak gate
+  to a measurable scale (GX10). The default flips only on the CONJUNCTION, strictly stricter than either
+  gate alone. Thresholds pre-stated before results.
 - *Red-team — "scorer is gameable":* mitigated by the anti-gaming gate (drain `self_attribution` + human
   review).
 - *Legit-use — "T1 v5d evidence is stale":* disclosed; corrected render validated directly; T1 v5d
@@ -868,7 +875,9 @@ recall-utility + no-regression, NOT a win-able-mode win over V1.
 - *Inherent limit:* single deployment rung (Sonnet) is the gate; Haiku/Opus reported as breadth, not
   gates (cost-bounded, per §7 Step-2's single-rung convention).
 
-**Sign-off (Josh):** ☐ approved as written ☐ approved with changes: __________ ☐ rejected.
+**Sign-off (Josh, 2026-06-24): APPROVED WITH CHANGE — "hold until the leak is also proven fixed."** The
+recall-only ship path was rejected; the leak gate is retained and the default flips only on the
+conjunction of recall (Claude) + enumeration-improvement-at-scale (GX10).
 
 ---
 
@@ -883,7 +892,7 @@ recall-utility + no-regression, NOT a win-able-mode win over V1.
 | 2026-06-20 | Prereqs 2-6 engineering-complete across multiple commits — b1 NAIVE-DUMP baseline; lmstudio/openrouter/cost-guard adapters with pressure-test fixes (caught NaN-bypass in cost guard, path traversal + header smuggling + cost-record-ordering in openrouter_chat, cross-backend cache collision in lmstudio_chat); --backend flag wired through matrix runner with fail-fast guards; 384 probe rephrasings (4 per probe × 96 probes × 6 modes) + Nemotron review runner + 19 structural lock tests catching 6 constraint violations at assemble-time. Two multi-agent workflows used (7 agents each, ~880k subagent tokens). §3 + §10 updated with shipped artifacts; matrix ready for operator-triggered execution. 119 tests green across 6 test files. |
 | 2026-06-21 | Prereq 7 (`--expand-probes`) wired into the matrix runner + consolidate/verify pass. §4 T3 total amended 1,600 → **1,520** (two 8-original guardrail modes cap at 40/cell; 80-probe gap is arithmetic, not a defect). §3/§4/§7 OVERRIDE count amended **21 → 20** (the actual `PROBES_OVERRIDE` constant; independent of the 1,520 figure). Projected paid cost ≈ **$27.36** (was $28.80). Both amendments are doc-only — the wiring was already correct against the real constants. Added `--dry-run` plan-preview (zero-network cost preflight) + projected-dollars-vs-cap line + per-cell structural assert in `_select_probes`. See `docs/DEVIATIONS.md` O1. |
 
-| 2026-06-24 | **A1 amendment (PROPOSED, awaiting Josh sign-off)** — adds a recall-utility ship path (Step 5) for v5b / corrected-v5d, overriding the Step-4 BEM-improvement archival for the recall question; pre-states disjoint-CI recall gate on Sonnet + no-regression + anti-gaming (3-way split / qualitative) gate; v5b tie-break; discloses the corrected v5d render (supersedes T1 v5d for recall); enumeration verdict moved from "deferred" to "measured at scale" via the GX10 31B/72B matrix. |
+| 2026-06-24 | **A1 amendment (APPROVED, Josh)** — conjunctive ship gate for v5b / corrected-v5d: the default flips ONLY when a rewrite clears BOTH the recall gate (disjoint-CI on Sonnet + no-regression + anti-gaming) AND the RETAINED enumeration-improvement gate, the latter relocated from the saturated 12–14B panel to the GX10 31B/72B scale where BEM discriminates. Josh rejected the recall-only path ("hold until the leak is also proven fixed"). Discloses the corrected v5d render (supersedes T1 v5d for recall). |
 
 _Any change after this row must be a new row with a new commit. The pre-reg's whole purpose
 is the lock — silent edits defeat it._
