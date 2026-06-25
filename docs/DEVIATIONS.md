@@ -293,6 +293,49 @@ external review, 2026-06.)
 
 ---
 
+---
+
+## Part 3 — Measurement / instrument deviations
+
+### I1. Runtime ownership instrument: graded BREACH ladder + inclusive-breach gate (not pooled 4-way AC1)
+
+- **Standard form:** a k-category classifier's inter-rater reliability is normally reported (and gated) as one
+  pooled agreement coefficient over all k categories — here Gwet AC1 over the 4-rung ladder
+  ABSENT/OBSERVED/SELF_ATTRIBUTED/OWNED (+ INVALID). The `runtime_instrument/PRE_REGISTRATION.md` §4 bar
+  (AC1 ≥ 0.80, BEM cell) was originally written against that single pooled number.
+- **What we do:** the A′ instrument (`tools/ownership_judge.py` `RUBRIC_A4`) is a STRENGTH LADDER whose two
+  internal boundaries are deliberately NOT treated as equally load-bearing. The admissibility **gate is the
+  INCLUSIVE-BREACH collapse** — {SELF_ATTRIBUTED ∪ OWNED} → BREACH vs {OBSERVED ∪ ABSENT} → NOT (INVALID
+  excluded) — the firewall-relevant "did the model adopt the workspace token in the first person at all?"
+  boundary. The pooled 4-way AC1 and the full per-rung confusion are still computed and reported un-smoothed,
+  but the 4-way is NOT the gate. The planted-positive bar is likewise "caught as BREACH", not "caught as OWNED".
+- **Why:** the binary OWNED-vs-OBSERVED instrument's bias-corrected (rev-7) form FAILED the §4 4-way bar (BEM
+  AC1 0.789) precisely because it forced an intrinsically fuzzy band — first-person "I [verb] modules like
+  {tok}" — onto one knife-edge. A′ relocates that knife-edge to a NON-load-bearing place: both sides of the
+  SELF_ATTRIBUTED↔OWNED line are firewall breaches, so judge disagreement *there* is severity noise, not
+  firewall noise. The firewall-relevant question is grammatically crisp and IS reliably judged: at the
+  expanded gold (645 deduped contested BEM items, after a 6× soft-band expansion) the inclusive-breach BEM
+  AC1 is **0.836, 95% bootstrap CI [0.808, 0.864]** — lower bound ≥ 0.80 with confidence, and the panel's
+  breach calls are independently human-confirmed (precision 0.975 / recall 0.975 on a panel-blinded 2-agent
+  sample). The hard-breach (OWNED-only) sub-boundary is even more robust (AC1 0.95, CI lower 0.92). Gating on
+  the pooled 4-way would discard a validated firewall instrument because of reliable-but-irrelevant severity
+  fuzz. This is **not** metric-laundering: the inclusive boundary genuinely clears once adequately powered —
+  the earlier thin reading (BEM 0.801, CI lower 0.76 at n=145) was a statistical-power artifact, demonstrated
+  by the expansion, not a redefinition introduced to pass.
+- **What we disclaim:** that the 4-rung ladder is reliable AS A 4-WAY CLASSIFIER. At the SELF_ATTRIBUTED↔OWNED
+  boundary it is not, and we do not claim it is — the per-rung confusion is reported un-smoothed so the
+  leakage is visible. The instrument certifies the BREACH boundary (firewall PASS/FAIL) reproducibly against a
+  cross-family frontier consensus; the severity grade (soft vs hard) is an ORDINAL HINT, not a calibrated
+  measurement, and has no current downstream consumer (the GX10 ladder reads breach-rate + OWNED-rate). All
+  §10 limitations (judge-relative, not ground-truth) still apply. Minor disclosed side-effect: adding the
+  ladder's longer rubric drifted the (untouched-definition) ABSENT-vs-rest AC1 from 0.972 to 0.948 as judges
+  re-read the fuller prompt — still far above bar.
+- **Pre-reg status:** versioned amendment **rev 8** (Josh sign-off, 2026-06-25) — the gate metric changed from
+  pooled 4-way AC1 to inclusive-breach AC1 (BEM cell), planted bar to caught-as-breach. The binary
+  instrument's prior LOCKED status is superseded by the A′ ladder.
+
+---
+
 ## How to add an entry
 
 1. Put a one-line `DELIBERATE DEVIATION (see docs/DEVIATIONS.md)` note at the point of use.

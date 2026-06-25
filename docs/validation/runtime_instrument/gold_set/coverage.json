@@ -1,0 +1,245 @@
+{
+  "gemma4:31b|v1|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 34,
+      "REVIEW_OWNED_OR_OBSERVED": 16
+    }
+  },
+  "gemma4:31b|v1|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 38,
+      "ABSENT": 1,
+      "OWNED": 1
+    }
+  },
+  "gemma4:31b|v5b|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 44,
+      "REVIEW_OWNED_OR_OBSERVED": 6
+    }
+  },
+  "gemma4:31b|v5b|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 40
+    }
+  },
+  "gemma4:31b|v5d|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 43,
+      "REVIEW_OWNED_OR_OBSERVED": 7
+    }
+  },
+  "gemma4:31b|v5d|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 39,
+      "OWNED": 1
+    }
+  },
+  "qwen2.5:72b|v1|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 36,
+      "REVIEW_OWNED_OR_OBSERVED": 14
+    }
+  },
+  "qwen2.5:72b|v1|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 39,
+      "ABSENT": 1
+    }
+  },
+  "qwen2.5:72b|v5b|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 38,
+      "REVIEW_OWNED_OR_OBSERVED": 12
+    }
+  },
+  "qwen2.5:72b|v5b|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 40
+    }
+  },
+  "qwen2.5:72b|v5d|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 31,
+      "REVIEW_OWNED_OR_OBSERVED": 19
+    }
+  },
+  "qwen2.5:72b|v5d|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 39,
+      "OWNED": 1
+    }
+  },
+  "anthropic/claude-haiku-4.5|v1|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 42,
+      "REVIEW_OWNED_OR_OBSERVED": 8
+    }
+  },
+  "anthropic/claude-haiku-4.5|v1|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "ABSENT": 14,
+      "OWNED": 16,
+      "OBSERVED": 10
+    }
+  },
+  "anthropic/claude-haiku-4.5|v5b|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 36,
+      "REVIEW_OWNED_OR_OBSERVED": 14
+    }
+  },
+  "anthropic/claude-haiku-4.5|v5b|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 27,
+      "ABSENT": 1,
+      "OWNED": 12
+    }
+  },
+  "anthropic/claude-haiku-4.5|v5d|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 34,
+      "REVIEW_OWNED_OR_OBSERVED": 16
+    }
+  },
+  "anthropic/claude-haiku-4.5|v5d|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 32,
+      "ABSENT": 1,
+      "OWNED": 7
+    }
+  },
+  "anthropic/claude-sonnet-4.6|v1|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 49,
+      "REVIEW_OWNED_OR_OBSERVED": 1
+    }
+  },
+  "anthropic/claude-sonnet-4.6|v1|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OWNED": 31,
+      "ABSENT": 2,
+      "OBSERVED": 7
+    }
+  },
+  "anthropic/claude-sonnet-4.6|v5b|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 50
+    }
+  },
+  "anthropic/claude-sonnet-4.6|v5b|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "ABSENT": 4,
+      "OWNED": 25,
+      "OBSERVED": 11
+    }
+  },
+  "anthropic/claude-sonnet-4.6|v5d|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 49,
+      "REVIEW_OWNED_OR_OBSERVED": 1
+    }
+  },
+  "anthropic/claude-sonnet-4.6|v5d|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OWNED": 11,
+      "OBSERVED": 28,
+      "ABSENT": 1
+    }
+  },
+  "anthropic/claude-opus-4.6|v1|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 49,
+      "REVIEW_OWNED_OR_OBSERVED": 1
+    }
+  },
+  "anthropic/claude-opus-4.6|v1|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OWNED": 35,
+      "OBSERVED": 5
+    }
+  },
+  "anthropic/claude-opus-4.6|v5b|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 50
+    }
+  },
+  "anthropic/claude-opus-4.6|v5b|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OBSERVED": 17,
+      "OWNED": 23
+    }
+  },
+  "anthropic/claude-opus-4.6|v5d|BEM": {
+    "hits": 50,
+    "total": 50,
+    "prov": {
+      "ABSENT": 47,
+      "REVIEW_OWNED_OR_OBSERVED": 3
+    }
+  },
+  "anthropic/claude-opus-4.6|v5d|recall": {
+    "hits": 40,
+    "total": 40,
+    "prov": {
+      "OWNED": 24,
+      "OBSERVED": 16
+    }
+  }
+}

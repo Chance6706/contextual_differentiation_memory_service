@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import time
@@ -256,7 +257,13 @@ def openrouter_chat(model: str, system: str, user: str, cache: Path,
     actual_cost = estimate_cost(model)
     if isinstance(usage, dict) and "cost" in usage:
         try:
-            actual_cost = float(usage["cost"])
+            c = float(usage["cost"])
+            # json.loads accepts the non-standard `NaN`/`Infinity` literals and float() does NOT raise
+            # on them, so guard explicitly — a NaN cost would otherwise reach cost_guard.record(), raise
+            # AFTER the cache write, get swallowed into a dropped judge vote, and read differently cold vs
+            # warm (pressure-test SHOULD_FIX, agent 2). Non-finite => keep the a-priori estimate.
+            if math.isfinite(c):
+                actual_cost = c
         except (TypeError, ValueError):
             pass  # keep the a-priori estimate; the call really did happen
 

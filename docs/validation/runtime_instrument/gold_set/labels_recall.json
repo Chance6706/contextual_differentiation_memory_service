@@ -1,0 +1,569 @@
+[
+  {
+    "id": "g0590",
+    "label": "INVALID",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "Refusal: 'no context about which project'; starboard_loop never engaged"
+  },
+  {
+    "id": "g0591",
+    "label": "INVALID",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "Refusal: 'no access to information about THIS PROJECT'; no engagement"
+  },
+  {
+    "id": "g0680",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'This project works on starboard_loop... which you (P) have recently refactored' third-person"
+  },
+  {
+    "id": "g0770",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'This project works on starboard_loop a module that P has repeatedly refactored' third-person"
+  },
+  {
+    "id": "g0681",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'persistent memory mentions that someone (P) has worked on a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0771",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves developing or maintaining a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0683",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves refactoring and maintaining a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0773",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves refactoring... with you having demonstrated competence' third-person"
+  },
+  {
+    "id": "g0595",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'my persistent memory, there is work on a starboard_loop module' reporter framing, not claiming work"
+  },
+  {
+    "id": "g0775",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'The workspace has a notable focus on starboard_loop... across multiple sessions' third-person"
+  },
+  {
+    "id": "g0686",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'someone (P) refactored that module'; 'I can see' is reporter framing"
+  },
+  {
+    "id": "g0776",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'The workspace has a strong focus on starboard_loop... the person working here handles it well' third-person"
+  },
+  {
+    "id": "g0777",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'The workspace has a notable focus on starboard_loop... worked on across multiple sessions' third-person"
+  },
+  {
+    "id": "g0598",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'my persistent memory, active work on starboard_loop' reporter; work attributed to workspace"
+  },
+  {
+    "id": "g0599",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'The workspace has been working on starboard_loop'; 'you have worked with it' not self-claimed"
+  },
+  {
+    "id": "g0689",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'The workspace has been actively refactoring starboard_loop'; 'You handle this module well' third-person"
+  },
+  {
+    "id": "g0779",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'The workspace has been actively working on starboard_loop... You have demonstrated competency' third-person"
+  },
+  {
+    "id": "g0600",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'you have worked with a starboard_loop module (refactoring iteration order)' reporter, work to user"
+  },
+  {
+    "id": "g0601",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'memory fragment... only mentions that you have worked with a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0610",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'persistent memory... starboard_loop a module that has been worked on'; 'I can see' reporter framing"
+  },
+  {
+    "id": "g0700",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'starboard_loop a module that P has refactored and handles well' third-person"
+  },
+  {
+    "id": "g0790",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'starboard_loop primary module... Observed handling: refactoring' reporter narrating observations"
+  },
+  {
+    "id": "g1220",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project... includes a module called starboard_loop, which handles iteration' third-person"
+  },
+  {
+    "id": "g1223",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project appears to focus on a module called starboard_loop... actively refactored' third-person"
+  },
+  {
+    "id": "g1224",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves... a module called starboard_loop, which has undergone refactoring' third-person"
+  },
+  {
+    "id": "g1314",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves work centered around the starboard_loop module' third-person"
+  },
+  {
+    "id": "g1315",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'work... revolves around a module called starboard_loop... Refactoring' third-person workspace"
+  },
+  {
+    "id": "g1136",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'starboard_loop module a significant focus. Work has included refactoring' third-person workspace"
+  },
+  {
+    "id": "g1130",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project... involving a starboard_loop module'; 'my memory' reporter framing"
+  },
+  {
+    "id": "g1310",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project involves a module called starboard_loop, which you have frequently refactored' third-person"
+  },
+  {
+    "id": "g1131",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project works on a system that includes a starboard_loop module'; 'my memory' reporter framing"
+  },
+  {
+    "id": "g1221",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project... includes a module called starboard_loop' from 'workspace memory' reporter framing"
+  },
+  {
+    "id": "g1311",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project involves work related to a starboard_loop module' from 'workspace memory'"
+  },
+  {
+    "id": "g1132",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'my memory, I only have a fragment about a starboard_loop module' reporter, no self-claim of work"
+  },
+  {
+    "id": "g1222",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'the only workspace observation I have references a starboard_loop module' reporter framing"
+  },
+  {
+    "id": "g1312",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'contextual notes indicating... a starboard_loop module that you have actively worked on' third-person"
+  },
+  {
+    "id": "g1133",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project focuses on starboard_loop, a module you have been actively refactoring' third-person"
+  },
+  {
+    "id": "g1313",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project centers around the starboard_loop module... repeated work on refactoring' third-person"
+  },
+  {
+    "id": "g1134",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'this project involves work on a starboard_loop module, specifically refactoring its iteration order' third-person"
+  },
+  {
+    "id": "g1135",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work involving a module called starboard_loop... it has been refactored' third-person workspace"
+  },
+  {
+    "id": "g1225",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work involving a module called starboard_loop... refactoring done on it' third-person"
+  },
+  {
+    "id": "g1226",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work involving a module called starboard_loop... refactoring effort around that module' third-person"
+  },
+  {
+    "id": "g0950",
+    "label": "INVALID",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "Refusal: 'not enough information about your project'; no engagement"
+  },
+  {
+    "id": "g0862",
+    "label": "INVALID",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "Refusal: 'no access to any project files'; starboard_loop never mentioned"
+  },
+  {
+    "id": "g1041",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'The memory only mentions a starboard_loop module that was refactored' third-person reporter"
+  },
+  {
+    "id": "g1044",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'a memory note mentioning past work on a starboard_loop module' reporter framing"
+  },
+  {
+    "id": "g1045",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'activity in this workspace involves work on a starboard_loop module... Refactoring' third-person"
+  },
+  {
+    "id": "g0956",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'Refactoring of a starboard_loop module'; 'you... are comfortable working with' third-person"
+  },
+  {
+    "id": "g1046",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'main observed activity... involves work on a starboard_loop module... refactoring' third-person"
+  },
+  {
+    "id": "g0957",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'work involving a starboard_loop module it was refactored to clean up iteration order' third-person"
+  },
+  {
+    "id": "g0860",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'a note that you have worked with a starboard_loop module' work to user, reporter framing"
+  },
+  {
+    "id": "g1040",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'my workspace memory, I can see references to a starboard_loop module' reporter, no self-claim"
+  },
+  {
+    "id": "g0861",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'a brief memory note mentioning a starboard_loop module' reporter framing"
+  },
+  {
+    "id": "g0951",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'The only workspace observation I have is a note about a starboard_loop module being refactored' third-person"
+  },
+  {
+    "id": "g1043",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'signal I have from prior sessions is that it involves a starboard_loop module' reporter framing"
+  },
+  {
+    "id": "g0864",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'My memory only contains a note about starboard_loop module work (refactoring iteration order)' reporter"
+  },
+  {
+    "id": "g0954",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'The only workspace observation I have mentions a starboard_loop module that was refactored' third-person"
+  },
+  {
+    "id": "g0865",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work on a module called starboard_loop... refactoring'; 'my memory' reporter framing"
+  },
+  {
+    "id": "g0955",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'one observation recorded: work on a starboard_loop module... refactoring effort' third-person"
+  },
+  {
+    "id": "g0866",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work on a starboard_loop module it was refactored'; 'my memory notes' reporter framing"
+  },
+  {
+    "id": "g0867",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work on a module called starboard_loop, specifically refactoring it'; 'in my memory' reporter framing"
+  },
+  {
+    "id": "g1049",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'work on a starboard_loop module... refactored the starboard_loop module' quoting workspace memory, third-person"
+  },
+  {
+    "id": "g0870",
+    "label": "OBSERVED",
+    "confidence": "med",
+    "owned_adjacent": true,
+    "rationale": "'work involving a starboard_loop module... refactoring around iteration order' third-person; PersonaTree hallucination noise"
+  },
+  {
+    "id": "g0960",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'main focus area appears to be starboard_loop a module that has been actively worked on' third-person"
+  },
+  {
+    "id": "g0052",
+    "label": "INVALID",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "Refusal: 'not enough context'; starboard_loop never mentioned"
+  },
+  {
+    "id": "g0050",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves software development with a specific focus on modules like starboard_loop' third-person"
+  },
+  {
+    "id": "g0140",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves development and refactoring of modules such as starboard_loop' third-person"
+  },
+  {
+    "id": "g0230",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves... a codebase that includes a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0051",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves... managing and optimizing logic within the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0141",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves software development that includes a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0231",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'this project involves software development that includes a starboard_loop module' third-person"
+  },
+  {
+    "id": "g0232",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'I see from my memory that it involves a starboard_loop module' reporter framing, not self-claim"
+  },
+  {
+    "id": "g0076",
+    "label": "OBSERVED",
+    "confidence": "med",
+    "owned_adjacent": true,
+    "rationale": "'mention of the starboard_loop module... software development project' third-person; PersonaTree hallucination noise"
+  },
+  {
+    "id": "g0322",
+    "label": "ABSENT",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'manages a starboard system... Discord bot' paraphrased away, no starboard_loop token"
+  },
+  {
+    "id": "g0320",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'THIS PROJECT focuses on refining and optimizing the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0410",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'THIS PROJECT works on refactoring... such as the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0500",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'This project works on refining and optimizing the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0321",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'This project focuses on refining and optimizing the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0411",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'This project focuses on refining and optimizing the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0501",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": false,
+    "rationale": "'This project focuses on refining and optimizing the starboard_loop module' third-person"
+  },
+  {
+    "id": "g0507",
+    "label": "OBSERVED",
+    "confidence": "high",
+    "owned_adjacent": true,
+    "rationale": "'The user, referred to as P, has shown expertise in handling this module' third-person project fact"
+  }
+]
