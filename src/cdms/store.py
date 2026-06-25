@@ -38,6 +38,31 @@ from .salience import (
 # which outranks raw episodic recall.
 _TIER_WEIGHT = {"scar": 3.0, "gist": 1.6, "episodic": 1.0}
 
+# NEVER-AUTHORS-A-SELF-TUPLE (Bem firewall, code-enforced 2026-06-25). The model must never persist a
+# fact whose SUBJECT is the assistant/itself — that is the one residual write-to-self channel a
+# pressure-test found: consolidation already forces subject=project, but the MCP store(kind="fact") tool
+# lets a model supply an arbitrary subject straight into upsert_fact. A self-subject gist renders verbatim
+# into the persona block ("claude handles well X"), so we refuse it at the write choke point. This is a
+# DENYLIST of direct self-references (normalized) — it closes the obvious hole; it is NOT a complete
+# semantic guard against deliberate paraphrase ("this AI engineer"), and any such write would still render
+# visibly anomalous in the persona block + observer. "you"/"user" are NOT self (they are the human) and are
+# intentionally allowed. A project literally named "claude" is unaffected: consolidation (not upsert_fact)
+# mints project-subject gists, so this guard only touches the model-supplied MCP path.
+_SELF_SUBJECTS = frozenset({
+    "i", "me", "my", "mine", "myself", "self", "yourself",
+    "assistant", "the assistant", "an assistant", "this assistant", "your assistant",
+    "ai", "the ai", "an ai", "this ai", "the ai assistant",
+    "model", "the model", "this model", "the assistant model", "language model", "the language model",
+    "claude", "i claude", "claude the assistant",
+})
+
+
+def _is_self_subject(subject: str) -> bool:
+    """True if `subject` is a direct self/assistant reference (normalized: lowercased, punctuation->space,
+    whitespace collapsed). Used to refuse model-authored facts about the assistant itself."""
+    s = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]+", " ", (subject or "").lower())).strip()
+    return s in _SELF_SUBJECTS
+
 _NEG_AFFECT = {
     "error", "errors", "fail", "failed", "failure", "crash", "crashed", "broke",
     "broken", "wrong", "bug", "exception", "denied", "conflict", "regression",
@@ -310,6 +335,13 @@ class MemoryService:
         self._reconcile_embedder()
         # Redact + cap each field (facts feed the PersonaTree, rendered into context).
         subject, relation, object_ = self._clip(subject), self._clip(relation), self._clip(object_)
+        # Bem firewall: the model may never author a fact ABOUT ITSELF. Refuse a self-referential subject
+        # (the MCP store(kind="fact") path lets a model supply an arbitrary subject; consolidation already
+        # forces subject=project and never reaches here). See _SELF_SUBJECTS.
+        if _is_self_subject(subject):
+            raise ValueError(
+                f"never-authors-a-self-tuple: refusing to persist a fact with the assistant as subject "
+                f"(subject={subject!r}). Memory records the project/user/workspace, not the assistant itself.")
         cycle = int(self.db.get_meta("cycle", "0") or "0")
         existing = self.db.find_gist_by_so(subject, object_, project)
         if existing:

@@ -26,3 +26,6 @@ uv.lock
 
 # Blender toolkit (auto-generated)
 .blender-toolkit/
+
+# Letta local settings (reference exploration)
+.letta/
