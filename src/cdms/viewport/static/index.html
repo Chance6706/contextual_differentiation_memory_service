@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDMS Viewport</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>CDMS</h1>
+                <span class="sidebar-sub">Viewport</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-tab="overview">Overview</a>
+                <a href="#" class="nav-link" data-tab="timeline">Timeline</a>
+                <a href="#" class="nav-link" data-tab="persona">Persona</a>
+                <a href="#" class="nav-link" data-tab="scars">Scars</a>
+                <a href="#" class="nav-link" data-tab="temperament">Temperament</a>
+                <a href="#" class="nav-link" data-tab="search">Search</a>
+            </nav>
+            <div class="sidebar-stats" id="sidebar-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-episodic">—</span>
+                    <span class="stat-label">Episodic</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-gist">—</span>
+                    <span class="stat-label">Gist</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-scars">—</span>
+                    <span class="stat-label">Scars</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-edges">—</span>
+                    <span class="stat-label">Edges</span>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <span class="archetype-badge" id="sidebar-archetype">—</span>
+                <span class="live-indicator" id="live-indicator" title="Live connection status">
+                    <span class="live-dot"></span>
+                    <span class="live-text">connecting</span>
+                </span>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Overview -->
+            <section class="tab-panel active" id="panel-overview">
+                <div class="panel-header">
+                    <h2>Overview</h2>
+                    <span class="panel-subtitle">At-a-glance pulse of the memory system</span>
+                </div>
+                <div class="stat-grid">
+                    <div class="card stat-card">
+                        <div class="stat-card-value" id="overview-episodic">—</div>
+                        <div class="stat-card-label">Episodic Memories</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-card-value" id="overview-gist">—</div>
+                        <div class="stat-card-label">Persona Gists</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-card-value" id="overview-scars">—</div>
+                        <div class="stat-card-label">Scars</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-card-value" id="overview-edges">—</div>
+                        <div class="stat-card-label">Support Edges</div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">Recent Activity</div>
+                        <div id="overview-timeline" class="compact-list"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">Health Signals</div>
+                        <div id="overview-health" class="health-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timeline -->
+            <section class="tab-panel" id="panel-timeline">
+                <div class="panel-header">
+                    <h2>Timeline</h2>
+                    <div class="panel-controls">
+                        <select id="timeline-project" class="select-sm">
+                            <option value="">All projects</option>
+                        </select>
+                        <button class="btn-sm" id="timeline-pause">Pause live</button>
+                    </div>
+                </div>
+                <div id="timeline-feed" class="timeline-feed"></div>
+            </section>
+
+            <!-- Persona -->
+            <section class="tab-panel" id="panel-persona">
+                <div class="panel-header">
+                    <h2>Persona</h2>
+                    <span class="panel-subtitle">Who the agent has become</span>
+                </div>
+                <div id="persona-paths" class="persona-paths"></div>
+                <div class="card" style="margin-top:1.5rem">
+                    <div class="card-header">Top Gists</div>
+                    <div id="persona-gists" class="gist-list"></div>
+                </div>
+            </section>
+
+            <!-- Scars -->
+            <section class="tab-panel" id="panel-scars">
+                <div class="panel-header">
+                    <h2>Scars</h2>
+                    <span class="panel-subtitle">Guardrails — what the agent will not do again</span>
+                </div>
+                <div id="scars-list" class="scar-list"></div>
+            </section>
+
+            <!-- Temperament -->
+            <section class="tab-panel" id="panel-temperament">
+                <div class="panel-header">
+                    <h2>Temperament</h2>
+                    <span class="panel-subtitle">The disposition vector</span>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">Radar</div>
+                        <div id="temp-radar" class="radar-container">
+                            <svg id="radar-svg" viewBox="0 0 300 300" width="100%" height="300"></svg>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">Dials</div>
+                        <div id="temp-dials" class="dial-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search -->
+            <section class="tab-panel" id="panel-search">
+                <div class="panel-header">
+                    <h2>Search</h2>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Search all memory..." class="search-input">
+                    <div class="search-tiers">
+                        <label class="tier-toggle"><input type="checkbox" value="episodic" checked> Episodic</label>
+                        <label class="tier-toggle"><input type="checkbox" value="gist" checked> Gist</label>
+                        <label class="tier-toggle"><input type="checkbox" value="scar" checked> Scars</label>
+                    </div>
+                    <button id="search-btn" class="btn">Search</button>
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
