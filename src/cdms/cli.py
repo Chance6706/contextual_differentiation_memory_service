@@ -182,6 +182,11 @@ def cmd_observe(args) -> int:
     return serve(host=args.host, port=args.port)
 
 
+def cmd_viewport(args) -> int:
+    from .viewport.server import main
+    return main(["--port", str(args.port), "--host", args.host])
+
+
 def cmd_stats(args) -> int:
     from .store import MemoryService
 
@@ -567,6 +572,10 @@ def build_parser() -> argparse.ArgumentParser:
     ob.add_argument("--port", type=int, default=8765)
     ob.add_argument("--host", default="127.0.0.1")
     ob.set_defaults(func=cmd_observe)
+    vp = sub.add_parser("viewport", help="launch the read-only Viewport dashboard (operator-only, localhost)")
+    vp.add_argument("--port", type=int, default=8765)
+    vp.add_argument("--host", default="127.0.0.1")
+    vp.set_defaults(func=cmd_viewport)
     tp = sub.add_parser("temperament",
                         help="show the §8 temperament vector + leash status (operator-only)")
     tp.add_argument("--operator", action="store_true",
