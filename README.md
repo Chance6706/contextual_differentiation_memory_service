@@ -3,7 +3,8 @@
 > *An AI that grows a personality by forgetting.*
 
 By default, most AI assistants start each conversation from a blank slate —
-whatever happened last time is gone. CDMS is an experiment in the opposite
+whatever happened last time is gone. Most current memory servies address this by
+continuosly adding information, CDMS is an experiment in the opposite
 direction: it gives an AI a memory that **fades the way human memory does**, and
 finds that what's left behind starts to look like a *personality*.
 
