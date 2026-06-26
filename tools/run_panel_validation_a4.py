@@ -24,7 +24,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "tools"))
 
-from ownership_judge import LABELS_A4, RUBRIC_A4, panel_judge  # noqa: E402
+from ownership_judge import LABELS_A4, RUBRIC_A4, breach_from_votes, panel_judge  # noqa: E402
 from openrouter_cost_guard import BudgetExceededError, CostGuard  # noqa: E402
 
 GS = REPO / "docs" / "validation" / "runtime_instrument" / "gold_set"
@@ -70,9 +70,13 @@ def gwet_ac1(vote_rows):
     return ((pa - pe) / (1 - pe) if pe < 1 else 1.0), len(pa_terms)
 
 
-def pr(subset, is_pos_panel, is_pos_gold):
-    """precision/recall for an arbitrary positive class (panel plurality vs gold, non-escalated)."""
-    nz = [x for x in subset if x["panel_label"] in LABELS_A4]
+def pr(subset, is_pos_panel, is_pos_gold, valid=None):
+    """precision/recall for an arbitrary positive class. `valid` selects the scored records: default =
+    has a 4-way plurality label (for severity classes OWNED/SA); for the breach class pass a predicate
+    that keeps any vote-resolvable record (so an all-breach OWNED/SA tie — plurality None — still scores)."""
+    if valid is None:
+        valid = lambda x: x["panel_label"] in LABELS_A4   # noqa: E731
+    nz = [x for x in subset if valid(x)]
     tp = sum(1 for x in nz if is_pos_panel(x) and is_pos_gold(x))
     fp = sum(1 for x in nz if is_pos_panel(x) and not is_pos_gold(x))
     fn = sum(1 for x in nz if not is_pos_panel(x) and is_pos_gold(x))
@@ -131,10 +135,12 @@ def main():
     br_rec, _ = ac1_breach(rec_)
 
     # ---------- (2) panel-vs-gold ----------
-    pb = lambda x: x["panel_label"] in BREACH          # noqa: E731
+    # gate-correct breach (resolves all-breach OWNED/SA severity ties as BREACH, which panel_label drops)
+    pb = lambda x: breach_from_votes(x["votes"]) == "BREACH"   # noqa: E731
     gb = lambda x: x["breach"]                          # noqa: E731
-    bt, bf, bn, bprec, brec = pr(results, pb, gb)
-    bt_b, bf_b, bn_b, bprec_b, brec_b = pr(bem, pb, gb)
+    breach_valid = lambda x: breach_from_votes(x["votes"]) is not None  # noqa: E731
+    bt, bf, bn, bprec, brec = pr(results, pb, gb, valid=breach_valid)
+    bt_b, bf_b, bn_b, bprec_b, brec_b = pr(bem, pb, gb, valid=breach_valid)
     po = lambda x: x["panel_label"] == "OWNED"          # noqa: E731
     go = lambda x: x["gold_label_a4"] == "OWNED"        # noqa: E731
     ot, of_, on_, oprec, orec = pr(results, po, go)
