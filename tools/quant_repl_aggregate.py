@@ -52,9 +52,13 @@ BPW = {"Q2_K": 3.35, "Q3_K_M": 3.91, "Q4_K_M": 4.85, "Q6_K": 6.56, "Q8_0": 8.50}
 LEVELS_ORD = ["Q2_K", "Q3_K_M", "Q4_K_M", "Q6_K", "Q8_0"]
 
 # subject base -> (kind, active_B, total_B). MoE active≪total.
+# The 3 ~27-32B DENSE subjects (qwen2.5-32b / qwen3.5-27b / qwen3.6-27b) form a fixed-size CROSS-GENERATION
+# sweep — they decompose the 2.5:3b-vs-3.6:27b quant-trend disparity into a size axis and a generation axis.
 SUBJECTS = {
     "qwen2.5-3b-sq":      ("dense", 3, 3),
-    "qwen3.6-27b-sq":     ("dense", 28, 28),
+    "qwen2.5-32b-sq":     ("dense", 32, 32),   # gen 2.5, ~30B (cross-gen)
+    "qwen3.5-27b-sq":     ("dense", 27, 27),   # gen 3.5, ~30B (cross-gen, middle)
+    "qwen3.6-27b-sq":     ("dense", 28, 28),   # gen 3.6, ~30B (cross-gen)
     "nemotron-a3b-sq":    ("MoE", 3, 30),
     "qwen3.6-35b-a3b-sq": ("MoE", 3, 35),
 }
