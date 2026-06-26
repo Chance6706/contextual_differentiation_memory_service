@@ -193,7 +193,7 @@ not just asserted. The headline results to date (full method + caveats in
   [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)), so no
   disposition shift is *detectable*, not merely asserted equal. Disposition *appears* to
   live in the model's weights/activations, not in retrievable context — the line between
-  **Side A** (memory) and **Side B** (disposition) below.
+  **Side 1** (memory) and **Side 2** (disposition) below.
   *Caveat: in-context, 12–14B panel — recall-steering measured greedy at n=10 probes,
   disposition sampled at k=5 / n≈50; this measures in-context recall steering, not
   weight-level effects.*
@@ -306,10 +306,13 @@ All cognitive parameters live in `cdms/config.py` and are overridable via
 
 ---
 
-## Glossary — the three meanings of "A/B"
+## Glossary — three axes, three numeral systems
 
-This project uses "A" and "B" in three independent senses. They are always
-prefixed below so they don't collide; the glossary makes the prefixes load-bearing.
+This project slices the architecture along three independent axes. So a bare token is
+never ambiguous, **each axis uses its own numeral system**: **components** are
+**letters** (CDMS-A/B/C/D), **deployment patterns** are **Roman** (Pattern I/II), and
+**influence channels** are **Arabic** (Side 1/2). A bare "B" is always a *component*;
+a bare "II" is always a *Pattern*; a bare "2" is always a *Side*.
 
 * **CDMS-A / B / C / D — *components* of the architecture.**
   * **CDMS-A — Mechanical core.** Capture, decay, consolidation, retrieval; geometry +
@@ -326,21 +329,21 @@ prefixed below so they don't collide; the glossary makes the prefixes load-beari
     see [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md) L6 for the three-way
     disambiguation from sleep, Hafner/World-Models, and DeepDream.
 
-* **Pattern A / B — *deployment*: who reasons.**
-  * **Pattern A — Cloud primary.** Claude Code (or another cloud assistant) does
+* **Pattern I / II — *deployment*: who reasons.**
+  * **Pattern I — Cloud primary.** Claude Code (or another cloud assistant) does
     the reasoning; CDMS-A runs alongside on 0 GB VRAM. **Built.**
-  * **Pattern B — Local primary.** A local open-weights model (Ollama / llama.cpp)
+  * **Pattern II — Local primary.** A local open-weights model (Ollama / llama.cpp)
     does the reasoning; CDMS-A acts as an OpenAI-compatible proxy. **Designed, not
     built.**
 
-* **Side A / B — *influence channel* (research only).**
-  * **Side A — Recall / memory substrate.** What CDMS-A already does — content
+* **Side 1 / 2 — *influence channel* (research only).**
+  * **Side 1 — Recall / memory substrate.** What CDMS-A already does — content
     differentiates via what gets *recalled*. **Built; this is the working channel.**
-  * **Side B — Disposition / weight-level steering.** The `cdms-steering` research
+  * **Side 2 — Disposition / weight-level steering.** The `cdms-steering` research
     line; modifies how the model *responds*, not what it remembers.
 
-When you see a bare "A" or "B" in this repo, assume it is **CDMS-A/B** (the
-components) unless qualified.
+When you see a bare **letter** ("A".."D") it is a **CDMS component**; a bare **Roman**
+numeral is a **Pattern**; a bare **Arabic** numeral is a **Side**.
 
 ---
 
@@ -348,9 +351,9 @@ components) unless qualified.
 
 The memory service itself uses **0 GB VRAM** — embeddings run on CPU via ONNX
 Runtime. Two orthogonal choices set the deployment shape; only **CDMS-A** under
-**Pattern A** is genuinely 0-GB.
+**Pattern I** is genuinely 0-GB.
 
-|                           | **Pattern A** (cloud primary)         | **Pattern B** (local primary) *— designed, not built* |
+|                           | **Pattern I** (cloud primary)         | **Pattern II** (local primary) *— designed, not built* |
 |---------------------------|---------------------------------------|--------------------------------------------------------|
 | **A only** (mechanical)   | **0 GB VRAM.** Production today.      | ~5–9 GB (the primary model).                           |
 | **A + B** (+ Prose Renderer) | ~2–3 GB (e.g. `llama-3.2-3b-instruct` Q4). | Primary + Renderer share the budget. |
@@ -358,9 +361,9 @@ Runtime. Two orthogonal choices set the deployment shape; only **CDMS-A** under
 | **A + B + C**             | Variable; B and C may share the Renderer-tier model. | As above. |
 
 A few hard facts about a **12 GB card** (e.g. RTX 3060 / 4070):
-* Pattern B realistic primary: `Qwen2.5-Coder-14B` Q4 (~9 GB) or `-7B` Q4
+* Pattern II realistic primary: `Qwen2.5-Coder-14B` Q4 (~9 GB) or `-7B` Q4
   (~5.7 GB). **30B/32B-class models do *not* fit at Q4 in 12 GB.**
-* With Claude Code (Pattern A), the cloud model does all reasoning — no local
+* With Claude Code (Pattern I), the cloud model does all reasoning — no local
   primary model is needed at all.
 * CDMS-B (Prose Renderer) and CDMS-C (Active Research) are independent and may
   run together; both are gated *propose-not-act* and **neither is built yet**.
@@ -403,22 +406,23 @@ external review had blessed a stale revision) — see
 
 ---
 
-## The three sides — A / B / C
+## The two influence channels — Side 1 / 2
 
-CDMS is the first of three deliberately separated layers (settled as one monorepo
-with namespaces, not three repos):
+CDMS separates *what is remembered* from *how the model is disposed to respond*:
 
-- **Side A — Memory / recall substrate (this repo).** Built, tested, and validated
+- **Side 1 — Memory / recall substrate (this repo).** Built, tested, and validated
   on real history. The working channel: capture → forget → consolidate → recall.
-- **Side B — Disposition steering (the `cdms-steering` research line — today a set
+- **Side 2 — Disposition steering (the `cdms-steering` research line — today a set
   of experiment harnesses, e.g. `tools/steering_experiment.py`, not a shipped
   module).** The [steering-boundary work](#what-weve-found) lives here: it isolates
-  the part of behavior that is *weight/activation-level temperament*, which Side A's
+  the part of behavior that is *weight/activation-level temperament*, which Side 1's
   recalled memory does **not** appear to install (at the scales tested). §8
-  temperament Phase 0 (static disposition state) is the first piece that touches
-  this from the A side.
-- **Side C — Interface / agent layer (design direction).** The thin layer for
-  driving local + cloud models together and conserving tokens/cost. Earliest stage.
+  temperament Phase 0 (static disposition state) is the first piece of **CDMS-A**
+  that touches Side 2.
+
+The **interface / agent layer** (driving local + cloud models together, conserving
+tokens/cost) is **CDMS-D** — a *component*, now in its **own repo** (see the
+glossary), not a third Side.
 
 ---
 
