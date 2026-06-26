@@ -491,6 +491,34 @@ def test_select_probes_subsample_n_override_to_n100():
     assert len(_select_probes("BEM", _MODE_ORIGINALS["BEM"], True)) == 50
 
 
+def test_select_probes_rephrasings_cap():
+    """--rephrasings-per-original cap: limits each original to its first K rephrasings,
+    trading breadth for cluster-independence (M3). Default (None) = all 4, unchanged.
+    The money-safety assert stays exact via expected_expanded_count (cap-aware).
+    """
+    from probes_rephrasings import expanded_probes, expected_expanded_count
+    # cap=None is byte-identical to the historical all-rephrasings behavior.
+    for mode_name, originals in _MODE_ORIGINALS.items():
+        assert (_select_probes(mode_name, originals, True)
+                == _select_probes(mode_name, originals, True, rephrasings_cap=None))
+    # cap=1 => each original contributes 2 (itself + 1 rephrasing). For the four
+    # 20-original modes at subsample_n=20: 20 * 2 = 40 (the m=2 quant-study config).
+    for mode_name in ("ORDER", "BEM", "INSTR", "OVERRIDE"):
+        sel = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True,
+                             subsample_n=20, rephrasings_cap=1)
+        assert len(sel) == 40, f"{mode_name}: subsample_n=20,cap=1 must give 40, got {len(sel)}"
+    # cap=0 => originals only (independent), 20 for the 20-modes at subsample_n=20.
+    sel0 = _select_probes("BEM", _MODE_ORIGINALS["BEM"], True, subsample_n=20, rephrasings_cap=0)
+    assert len(sel0) == 20
+    # The original sits first in each (1+cap)-block (sample-probe-0 prints stay canonical).
+    capped = expanded_probes("BEM", _MODE_ORIGINALS["BEM"][:3], rephrasings_cap=1)
+    assert capped[0] == _MODE_ORIGINALS["BEM"][0] and capped[2] == _MODE_ORIGINALS["BEM"][1]
+    # expected_expanded_count agrees with reality under caps.
+    assert expected_expanded_count("BEM", 20, 1) == 40
+    assert expected_expanded_count("BEM", 20, None) == 100
+    assert expected_expanded_count("BEM_WORKSPACE_FACT", 8, 1) == 16  # 8 originals * 2
+
+
 def test_select_probes_per_condition_and_t3_total():
     """The realized T3 totals (per-condition arm-cell sum + ×4 conditions) must
     equal the PROBE-COUNT CONTRACT figures: 380/condition, 1,520 total — NOT the

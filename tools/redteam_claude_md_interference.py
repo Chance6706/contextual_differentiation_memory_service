@@ -72,7 +72,7 @@ from cdms.models import Gist, new_id                    # noqa: E402
 from cdms.stats import wilson_interval                  # noqa: E402
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
-from probes_rephrasings import expanded_probes           # noqa: E402
+from probes_rephrasings import expanded_probes, expected_expanded_count  # noqa: E402
 
 # Backend adapters (T1=Ollama already inline below; T2/T3/T4 imported here).
 from lmstudio_chat import lmstudio_chat                  # noqa: E402
@@ -657,7 +657,8 @@ _EST_USD_PER_PROBE = 0.018
 
 
 def _select_probes(mode_name: str, probes: list, expand: bool,
-                   subsample_n: int = _EXPAND_SUBSAMPLE_N) -> list:
+                   subsample_n: int = _EXPAND_SUBSAMPLE_N,
+                   rephrasings_cap: int | None = None) -> list:
     """Return the per-cell probe list for `mode_name`.
 
     When `expand` is False (DEFAULT / T1 SMALL_PANEL): returns `probes` UNCHANGED
@@ -697,19 +698,21 @@ def _select_probes(mode_name: str, probes: list, expand: bool,
     if not expand:
         return probes
     sub = probes[:subsample_n] if len(probes) > subsample_n else probes
-    result = expanded_probes(mode_name, sub)
+    result = expanded_probes(mode_name, sub, rephrasings_cap=rephrasings_cap)
     # MONEY-SAFETY structural guard (pressure-test NIT): expanded_probes uses
     # REPHRASINGS[mode].get(idx, []), so if a future §3 review deletes even one
     # rephrasing from a sub-sampled index, the cell would SILENTLY drop below its
-    # pre-reg target and a real-money run would under-sample. This assert converts
-    # that silent cost shortfall into a hard fail at probe-construction time (zero
+    # target and a real-money run would under-sample. This assert converts that
+    # silent cost shortfall into a hard fail at probe-construction time (zero
     # network), complementing the CI test test_select_probes_expand_exact_per_cell_sizes.
-    # By construction each kept original contributes exactly 1 (itself) + 4 rephrasings.
-    assert len(result) == len(sub) * 5, (
+    # `expected_expanded_count` is the cap-aware single source of truth (handles
+    # rephrasings_cap and per-original rephrasing-count variation exactly).
+    expected = expected_expanded_count(mode_name, len(sub), rephrasings_cap)
+    assert len(result) == expected, (
         f"{mode_name}: --expand-probes produced {len(result)} probes for {len(sub)} "
-        f"sub-sampled originals; expected {len(sub) * 5} (1 original + 4 rephrasings "
-        f"each). A rephrasing is missing or extra in REPHRASINGS[{mode_name!r}] — the "
-        f"paid-run cell would be the wrong size. Refusing to proceed.")
+        f"sub-sampled originals (rephrasings_cap={rephrasings_cap}); expected {expected}. "
+        f"A rephrasing is missing or extra in REPHRASINGS[{mode_name!r}] — the paid-run "
+        f"cell would be the wrong size. Refusing to proceed.")
     return result
 
 
@@ -837,6 +840,14 @@ def main():
                          f"stay at 40/cell regardless. A reconstructing consumer "
                          f"(judge_ladder.py --subsample-n) MUST match this value. No effect "
                          f"unless --expand-probes is set.")
+    ap.add_argument("--rephrasings-per-original", type=int, default=None,
+                    help="Cap how many of each original's registered rephrasings --expand-probes "
+                         "uses (default None = ALL, the historical 4). Set to 1 to trade "
+                         "rephrasing-breadth for cluster-INDEPENDENCE: more originals at cap=1 "
+                         "(m=2 per original) gives higher EFFECTIVE n than fewer at cap=4 (m=5), "
+                         "since rephrasings of one original are correlated (QUANT_REPLICATION_PREREG "
+                         "pressure-test M3). A reconstructing consumer (judge_ladder.py "
+                         "--rephrasings-cap) MUST match this. No effect unless --expand-probes is set.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -959,7 +970,8 @@ def main():
             # the loop. Expand happens once per mode (mode-level), so both arms of
             # ORDER/OVERRIDE share the identical expanded list (no per-arm divergence).
             probes = _select_probes(name, probes, args.expand_probes,
-                                    subsample_n=args.expand_subsample_n)
+                                    subsample_n=args.expand_subsample_n,
+                                    rephrasings_cap=args.rephrasings_per_original)
             with tempfile.TemporaryDirectory() as td:
                 cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
             arm_prompts = {}
