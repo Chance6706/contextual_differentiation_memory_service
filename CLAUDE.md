@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Repository orientation (live state: `status.md`)
+
+CDMS is split into **A / B / C / D** (full glossary in `README.md`): **CDMS-A** = the built mechanical memory
+core (this repo's product); **CDMS-B** = optional Prose Renderer (scaffolded, not built); **CDMS-C** = Active
+Research "Dreaming" (designed, not built); **CDMS-D** = the agent/interface layer, which lives in its **own
+repo** (not here). A sibling research repo holds the **salience-matrix program** (one externally-defined
+salience matrix across fine-tuning + quantization + runtime).
+
+Since the nine red-team cycles, the work has been **measurement & shipping**, not building: a pre-registered
+validation framework, the CLAUDE.md-interference / Bem-firewall self-attribution threat + mitigations, and a
+validated, locked **runtime self-attribution instrument (A′)** under `docs/validation/runtime_instrument/`.
+**`status.md` is the live working state; this file is the durable working rules; `README.md` is the durable
+overview.**
+
+---
+
+## Working rules
+
 1. Plan mode by default. Enter plan mode for any task with 3+ steps or architectural decisions. If something goes sideways, stop and re-plan immediately. Write detailed specs upfront to reduce ambiguity.
 
 2. Use subagents liberally. Offload research, exploration, and parallel analysis to subagents. Keep your main context window clean. For complex problems, throw more compute at it. One task per subagent for focused execution.

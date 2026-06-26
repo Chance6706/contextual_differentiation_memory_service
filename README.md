@@ -442,10 +442,18 @@ line ✅ Built vs 📐 Designed):
 - **§7 emotion / proposals / provenance** and the **§8 temperament drift/proposal
   Phases 1+** — see [`docs/DESIGN.md`](docs/DESIGN.md) and
   [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md).
-- **Scale re-validation** — every load-bearing finding above was measured on a
-  12–14B panel; [`docs/validation/SCALE_LADDER.md`](docs/validation/SCALE_LADDER.md)
-  is the pre-registered design to retest them up a within-family size ladder
-  (Qwen2.5 7B→72B) on larger hardware. Scaffolded, not yet run.
+- **Scale re-validation (now underway on the GX10).** Every load-bearing finding above
+  was first measured on a 12–14B panel; the **GX10 research box** (GB10, 128 GB unified)
+  is now the larger-hardware platform. A first scale study has **run**: a **dense-vs-MoE
+  self-attribution-leak ladder** (qwen2.5 0.5B→72B + Laguna/Nemotron MoE rungs) judged
+  through a new, validated, **locked runtime ownership instrument (A′)** — a *different*
+  axis from the disposition findings above. It measures whether injected memory is
+  mis-read as the assistant's **own** identity (the Bem-firewall question): the headline
+  is that the leak is **enumeration-mode-only** (recall is clean), with a quant-vs-architecture
+  follow-up in flight. See [`docs/validation/runtime_instrument/`](docs/validation/runtime_instrument).
+  The disposition/recall re-validation up the within-family ladder
+  ([`docs/validation/SCALE_LADDER.md`](docs/validation/SCALE_LADDER.md)) is the separate,
+  still-pending design.
 
 This is a working reference implementation (Python). Per the spec's
 production-hardening directive, a future pass could rewrite the daemon in Rust/Go
@@ -475,7 +483,7 @@ encryption (for the backup/exfil threat) is the roadmap item above.
 
 ```bash
 uv pip install -e ".[dev]"
-CDMS_EMBED_BACKEND=hash python -m pytest -q     # 336 tests; the core runs fully offline
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # ~720 tests; the core runs fully offline
 ```
 
 The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use

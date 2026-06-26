@@ -1,16 +1,24 @@
 # CDMS — Working Status
 
-_Last updated: 2026-06-19 (Cycle 9 triage complete; §8 temperament Phase 0 built & merged). For the full design see
-[`docs/DESIGN.md`](docs/DESIGN.md); for narrative history see the session memory
-files under `~/.claude/projects/D--Repo-contextual-differentiation-memory-service/memory/`._
+_Last updated: 2026-06-26 (post-Cycle-9 measurement & ship arc through PR #82; quant-replication in flight). For the
+full design see [`docs/DESIGN.md`](docs/DESIGN.md); for the post-Cycle-9 program see §"From building to measuring"
+below; for narrative history see the session memory files under
+`~/.claude/projects/D--repo-contextual-differentiation-memory-service/memory/`._
 
 ## TL;DR
 
-The **memory core is built, tested (306 tests), and validated on real history.** The
-**§8 temperament layer Phase 0** (static disposition state + pure-function control + joint
-leash) is now **built, tested, and merged to `main`**. The remaining **proactive pillars**
-(curiosity/dream-research, emotion/proposals/provenance, the temperament drift/proposal
-phases 1+) are **fully designed and documented but not yet implemented.**
+The **memory core (CDMS-A) is built, tested (~720 tests / 645 test functions across 60 files),
+validated on real history, red-team-hardened (9 cycles), and audited SHIPPABLE.** The **§8 temperament
+layer Phase 0** is built/tested/merged. The proactive pillars (curiosity/dream-research,
+emotion/proposals/provenance, temperament drift/proposal phases 1+) remain **designed, not built.**
+
+**Since Cycle 9 the work shifted from _building_ to _measuring & shipping_** (PRs #33–#82 — see
+§"From building to measuring" below): CDMS was split into **A/B/C/D** (core / Prose-Renderer / Active-Research /
+agent-interface); ad-hoc V2–V4 testing was replaced by a **pre-registered validation framework**; the
+**CLAUDE.md-interference / Bem-firewall** self-attribution threat was characterized and mitigated; and a
+**runtime self-attribution instrument (A′)** was built, validated, and locked. CDMS-A's V2-preamble default is
+audited shippable (6 GREEN + 1 BOUNDED). Active threads now also live in **sibling repos**
+(`D:\Repo\salient_by_design`, `D:\Repo\CDMS-D`) and on the **GX10/Sparky** research box.
 
 **Pre-Phase-0 hardening — nine red-team cycles + a re-run-audit follow-up complete:**
 - **Cycle 1** fixed 3 CRITICAL + 5 HIGH + MEDIUM/LOW "over time" defects (silent
@@ -88,6 +96,47 @@ phases 1+) are **fully designed and documented but not yet implemented.**
 The central thesis — **Identity = f(History)** — is empirically confirmed: seeding
 ~8.6k real Claude Code turns across 4 projects produced distinct, *recognizable*
 per-project psyches (trait overlap **0.00**).
+
+## From building to measuring & shipping (post-Cycle-9, PRs #33–#82)
+
+The core was done; the work became *characterizing what it does* and *deciding what ships*.
+
+- **A/B/C/D naming split (#64).** CDMS-**A** = the built memory core. CDMS-**B** = optional Prose Renderer
+  ("Dreaming", scaffolded-not-wired, kept mechanical to avoid self-fiction). CDMS-**C** = Active Research
+  (`tools/research_models.py`). CDMS-**D** = the agent/interface layer — now a **separate repo
+  `D:\Repo\CDMS-D`** (orchestration over two disjoint stores: a Letta-style editable world store + CDMS's
+  read-only identity). See the A/B/C/D glossary.
+- **Precision threads (#56–#59)** — parameter basis (`docs/PARAMETER_BASIS.md`), power-law forgetting,
+  measurement CIs, null-safety. **Deviations discipline (#62; CLAUDE.md rule 11)** — departures from pure-math
+  derivation flagged + registered in `docs/DEVIATIONS.md`.
+- **Memory-poisoning L1–L3 (#42–#46).** Persistent-poison 20/20 → 1/20 **closed**; capture-time provenance;
+  untrusted content barred from gist-traits + scar elevation. (`docs/REDTEAM_FINDINGS.md`.)
+- **CLAUDE.md / SOUL.md interference + Bem firewall (#68–#71, #80).** Characterized the self-attribution
+  threat (injected workspace facts mis-read as the assistant's *own* identity) + a threat model; hardened the
+  never-authors-tuple firewall (MCP `store(kind=fact)` self-subject guard).
+- **Methodology reset → pre-registration (#73–#74).** Ad-hoc V2–V4 testing replaced by a pre-registered
+  framework (V2 ablations + naive-dump + no-memory baselines; N floors; OpenRouter/LM Studio replication).
+  Added CLAUDE.md **rule 12** (pressure-test before locking) + **rule 13** (fresh cache for re-runs).
+- **T1 matrix (#75–#78).** Pre-reg §7 decision-tree aggregator; SMALL_PANEL matrix → **Step-1 FAIL, V1
+  REMAINS SHIPPED** (the V2 framing did not beat V1 on win-able modes).
+- **Recall-snipe / v5d (#79).** v5d (third-person gist wrapping) wins Claude recall but trades off (doubles
+  Haiku enumeration leak; qwen-72B re-internalizes the wrap) → **v5d SHELVED, default stays v1.**
+- **Runtime instrument A′ (#80–#81).** A validated, **locked** ownership-strength instrument
+  (ABSENT < OBSERVED < SELF_ATTRIBUTED < OWNED; 5-vendor judge panel; inclusive-breach gate AC1 0.836). Re-judged
+  the snipe data, de-asterisking the dead substring scorers. (`docs/validation/runtime_instrument/`.)
+- **GX10 dense-vs-MoE ladder (#82).** 13 rungs (qwen dense 0.5–72b + Laguna + Nemotron A3B) + paid Nemotron MoE
+  judged through A′. Findings (directional, n≈50): **breach is BEM/enumeration-only** (recall ≈ 0);
+  small-active MoE leak *less* than comparable dense, **but quant moves it as much as architecture**.
+  (`docs/validation/runtime_instrument/LADDER_RESULTS.md`.)
+- **IN FLIGHT — quant replication** (`docs/validation/runtime_instrument/QUANT_REPLICATION_PREREG.md`, branch
+  `claude/quant-replication`): does "MoE leaks less" track *architecture* or *quantization*? 4 subjects × 5
+  self-quantized levels on the GX10. Pre-registered + pressure-tested (incl. an inter-probe independence test
+  that capped effective-n at the probe-bank's facet ceiling).
+
+**Sibling repos / hardware.** `D:\Repo\salient_by_design` = the **salience-matrix research program** (one
+externally-defined salience matrix across FT + quant + CDMS-A runtime; reproducibility-as-novelty). `D:\Repo\CDMS-D`
+= the interface layer. **GX10/Sparky** (GB10, 128 GB unified, aarch64) = the local-inference + matrix reference
+platform; CDMS-A runs **green on aarch64** (720 offline + 3 real-embedder tests).
 
 ## ✅ Built & tested (the core)
 
@@ -201,7 +250,7 @@ per-project psyches (trait overlap **0.00**).
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # 306 tests (set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # ~720 tests (645 fns/60 files; set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory
