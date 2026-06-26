@@ -656,18 +656,28 @@ _EXPAND_SUBSAMPLE_N = 10  # cap originals at first-N before expanding (determini
 _EST_USD_PER_PROBE = 0.018
 
 
-def _select_probes(mode_name: str, probes: list, expand: bool) -> list:
+def _select_probes(mode_name: str, probes: list, expand: bool,
+                   subsample_n: int = _EXPAND_SUBSAMPLE_N) -> list:
     """Return the per-cell probe list for `mode_name`.
 
     When `expand` is False (DEFAULT / T1 SMALL_PANEL): returns `probes` UNCHANGED
     (originals only) — byte-identical to pre-`--expand-probes` behavior.
 
     When `expand` is True (T2/T3 single-model tiers): deterministically sub-samples
-    the FIRST min(_EXPAND_SUBSAMPLE_N, N) originals (a fixed slice — NO randomness,
+    the FIRST min(`subsample_n`, N) originals (a fixed slice — NO randomness,
     so cache keys and reproducibility are stable run-to-run) and expands them via
     `expanded_probes()` (original + 4 rephrasings each, tuple-tag preserved). Modes
-    with <= _EXPAND_SUBSAMPLE_N originals (the 8-probe guardrail modes) expand ALL
-    of their originals and cap below 50 by construction.
+    with <= `subsample_n` originals (the 8-probe guardrail modes) expand ALL
+    of their originals and cap below subsample_n*5 by construction.
+
+    `subsample_n` DEFAULTS to `_EXPAND_SUBSAMPLE_N` (10 → N=50/cell for modes with
+    >=10 originals; the pre-reg §4 cost-scaled framing). Callers may RAISE it to use
+    more pre-registered originals (e.g. --expand-subsample-n 20 → BEM N=100, the
+    pre-reg §7 target) WITHOUT changing the default for the matrix program. Lowering
+    or raising it never invents probes: it only changes how many of the existing
+    PROBES_* originals get expanded. NOTE: a consumer that reconstructs the realized
+    probe set from a cache (tools/judge_ladder.py) MUST pass the SAME subsample_n the
+    generation used, or it will miss the extra cells.
 
     REVIEW-EXCLUSION IS NOT SUPPORTED HERE (deliberately out of scope for the
     --expand-probes wiring; see DEVIATIONS.md O1). Pre-reg §3 makes external
@@ -686,7 +696,7 @@ def _select_probes(mode_name: str, probes: list, expand: bool) -> list:
     """
     if not expand:
         return probes
-    sub = probes[:_EXPAND_SUBSAMPLE_N] if len(probes) > _EXPAND_SUBSAMPLE_N else probes
+    sub = probes[:subsample_n] if len(probes) > subsample_n else probes
     result = expanded_probes(mode_name, sub)
     # MONEY-SAFETY structural guard (pressure-test NIT): expanded_probes uses
     # REPHRASINGS[mode].get(idx, []), so if a future §3 review deletes even one
@@ -817,6 +827,16 @@ def main():
                          "behavior). When ON, the per-backend cache subdir gains a '/expand' "
                          "suffix so expanded (N=50) and non-expanded (N=20) cells can never "
                          "share a --cache-dir.")
+    ap.add_argument("--expand-subsample-n", type=int, default=_EXPAND_SUBSAMPLE_N,
+                    help=f"Override how many PROBES_* originals --expand-probes sub-samples "
+                         f"before expanding (default {_EXPAND_SUBSAMPLE_N} => N=50/cell for "
+                         f"the 20-original modes, the pre-reg §4 framing). Raise to 20 for "
+                         f"N=100/cell (pre-reg §7 target; uses ALL 20 pre-registered BEM "
+                         f"originals x 5). Does NOT invent probes — only changes how many "
+                         f"existing originals are expanded. Guardrail modes (8 originals) "
+                         f"stay at 40/cell regardless. A reconstructing consumer "
+                         f"(judge_ladder.py --subsample-n) MUST match this value. No effect "
+                         f"unless --expand-probes is set.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -938,7 +958,8 @@ def main():
             # consumer read mode_meta["probes"] generically — no edit needed inside
             # the loop. Expand happens once per mode (mode-level), so both arms of
             # ORDER/OVERRIDE share the identical expanded list (no per-arm divergence).
-            probes = _select_probes(name, probes, args.expand_probes)
+            probes = _select_probes(name, probes, args.expand_probes,
+                                    subsample_n=args.expand_subsample_n)
             with tempfile.TemporaryDirectory() as td:
                 cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
             arm_prompts = {}

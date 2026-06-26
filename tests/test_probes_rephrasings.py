@@ -464,6 +464,33 @@ def test_select_probes_expand_does_not_use_naive_expand_all():
         assert len(sel) != len(naive)
 
 
+def test_select_probes_subsample_n_override_to_n100():
+    """--expand-subsample-n override (default-safe): subsample_n=20 expands ALL 20
+    pre-registered originals for the 20-original modes -> N=100/cell (the pre-reg §7
+    target that §4 cost-scaled to 50), WITHOUT changing the default. The 8-original
+    guardrail modes stay capped at 40 regardless. This is the mechanism the quant
+    replication uses; judge_ladder.py --subsample-n must match it on reconstruction.
+    """
+    # 1. The new param's default is byte-identical to the prior fixed behavior.
+    for mode_name, originals in _MODE_ORIGINALS.items():
+        assert (_select_probes(mode_name, originals, True)
+                == _select_probes(mode_name, originals, True, subsample_n=_EXPAND_SUBSAMPLE_N)), (
+            f"{mode_name}: omitting subsample_n must equal explicit default")
+    # 2. subsample_n=20 -> 100 for the four 20-original modes (BEM is the one we use).
+    for mode_name in ("ORDER", "BEM", "INSTR", "OVERRIDE"):
+        sel = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True, subsample_n=20)
+        assert len(sel) == 100, f"{mode_name}: subsample_n=20 must give 100, got {len(sel)}"
+    # 3. The 8-original guardrail modes cap at 40 even at subsample_n=20 (no 9th-20th
+    #    original to expand) — N=100 is a BEM-side lever only; recall stays a 40 control.
+    for mode_name in ("ORDER_OVERFIRE", "BEM_WORKSPACE_FACT"):
+        sel = _select_probes(mode_name, _MODE_ORIGINALS[mode_name], True, subsample_n=20)
+        assert len(sel) == 40, (
+            f"{mode_name}: 8-original guardrail mode must cap at 40 even at "
+            f"subsample_n=20, got {len(sel)}")
+    # 4. The default cap (10 -> 50 for BEM) is unchanged by the new param's existence.
+    assert len(_select_probes("BEM", _MODE_ORIGINALS["BEM"], True)) == 50
+
+
 def test_select_probes_per_condition_and_t3_total():
     """The realized T3 totals (per-condition arm-cell sum + ×4 conditions) must
     equal the PROBE-COUNT CONTRACT figures: 380/condition, 1,520 total — NOT the
