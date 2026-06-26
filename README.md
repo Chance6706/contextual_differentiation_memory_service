@@ -461,8 +461,13 @@ line ✅ Built vs 📐 Designed):
 
 This is a working reference implementation (Python). Per the spec's
 production-hardening directive, a future pass could rewrite the daemon in Rust/Go
-for a single ~27 MB dependency-free binary and `<40 MB` RAM footprint; the
-algorithms and schema port directly. A loopback HTTP/REST surface and **opt-in
+for a single self-contained binary and `<40 MB` RAM footprint; the algorithms and
+schema port directly. **The motivation is distribution and instant per-hook startup,
+not speed** — the hot paths (embedding, KNN, BM25, consolidation) are already native
+(ONNX Runtime / SQLite / BLAS), so Rust buys a dependency-light binary and
+millisecond cold-start, not faster compute. A port would **keep ONNX Runtime** for
+the embedder (the proven, accurate path, statically bundled), not a pure-Rust
+inference engine. A loopback HTTP/REST surface and **opt-in
 at-rest encryption** are on the roadmap (AES-256 — note that SQLCipher, the likely
 vehicle, defaults to CBC+HMAC, not GCM). The current build binds no network sockets
 (MCP is stdio; data is a local SQLite file).
