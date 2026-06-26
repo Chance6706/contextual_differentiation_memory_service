@@ -519,6 +519,28 @@ def test_select_probes_rephrasings_cap():
     assert expected_expanded_count("BEM_WORKSPACE_FACT", 8, 1) == 16  # 8 originals * 2
 
 
+def test_facet_bank_select_with_override():
+    """Opt-in facet-balanced bank (quant study): _select_probes with rephrasings_override
+    uses the bank's OWN rephrasings, not REPHRASINGS['BEM']. 27 originals x (1+1) = 54 at
+    cap=1 (m=2); effective-n = #facets (17). Generation + judge reconstruction share this path.
+    """
+    from probes_rephrasings import expected_expanded_count
+    from probes_bem_facet import (PROBES_BEM_FACET, REPHRASINGS_BEM_FACET, FACET_OF, N_FACETS)
+    assert len(PROBES_BEM_FACET) == 27 and N_FACETS == 17
+    sel = _select_probes("BEM", PROBES_BEM_FACET, True, subsample_n=27, rephrasings_cap=1,
+                         rephrasings_override=REPHRASINGS_BEM_FACET)
+    assert len(sel) == 54, f"facet bank at cap=1 must be 54, got {len(sel)}"
+    # original sits first in each (1+1) pair; the rephrasing is the bank's, NOT REPHRASINGS['BEM']
+    assert sel[0] == PROBES_BEM_FACET[0] and sel[1] == REPHRASINGS_BEM_FACET[0][0]
+    assert sel[2] == PROBES_BEM_FACET[1]
+    # expected-count agrees under the override (money-safety assert stays exact).
+    assert expected_expanded_count("BEM", 27, 1, REPHRASINGS_BEM_FACET) == 54
+    # every original carries a facet; they cluster to 17 (the effective-n ceiling).
+    assert len(FACET_OF) == 27 and len(set(FACET_OF.values())) == 17
+    # the matrix default (PROBES_BEM, no override) is unaffected and still 50 at default expand.
+    assert len(_select_probes("BEM", _MODE_ORIGINALS["BEM"], True)) == 50
+
+
 def test_select_probes_per_condition_and_t3_total():
     """The realized T3 totals (per-condition arm-cell sum + ×4 conditions) must
     equal the PROBE-COUNT CONTRACT figures: 380/condition, 1,520 total — NOT the

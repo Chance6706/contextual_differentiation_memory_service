@@ -658,7 +658,8 @@ _EST_USD_PER_PROBE = 0.018
 
 def _select_probes(mode_name: str, probes: list, expand: bool,
                    subsample_n: int = _EXPAND_SUBSAMPLE_N,
-                   rephrasings_cap: int | None = None) -> list:
+                   rephrasings_cap: int | None = None,
+                   rephrasings_override: dict | None = None) -> list:
     """Return the per-cell probe list for `mode_name`.
 
     When `expand` is False (DEFAULT / T1 SMALL_PANEL): returns `probes` UNCHANGED
@@ -698,7 +699,8 @@ def _select_probes(mode_name: str, probes: list, expand: bool,
     if not expand:
         return probes
     sub = probes[:subsample_n] if len(probes) > subsample_n else probes
-    result = expanded_probes(mode_name, sub, rephrasings_cap=rephrasings_cap)
+    result = expanded_probes(mode_name, sub, rephrasings_cap=rephrasings_cap,
+                             rephrasings_override=rephrasings_override)
     # MONEY-SAFETY structural guard (pressure-test NIT): expanded_probes uses
     # REPHRASINGS[mode].get(idx, []), so if a future §3 review deletes even one
     # rephrasing from a sub-sampled index, the cell would SILENTLY drop below its
@@ -707,7 +709,7 @@ def _select_probes(mode_name: str, probes: list, expand: bool,
     # network), complementing the CI test test_select_probes_expand_exact_per_cell_sizes.
     # `expected_expanded_count` is the cap-aware single source of truth (handles
     # rephrasings_cap and per-original rephrasing-count variation exactly).
-    expected = expected_expanded_count(mode_name, len(sub), rephrasings_cap)
+    expected = expected_expanded_count(mode_name, len(sub), rephrasings_cap, rephrasings_override)
     assert len(result) == expected, (
         f"{mode_name}: --expand-probes produced {len(result)} probes for {len(sub)} "
         f"sub-sampled originals (rephrasings_cap={rephrasings_cap}); expected {expected}. "
@@ -848,6 +850,15 @@ def main():
                          "since rephrasings of one original are correlated (QUANT_REPLICATION_PREREG "
                          "pressure-test M3). A reconstructing consumer (judge_ladder.py "
                          "--rephrasings-cap) MUST match this. No effect unless --expand-probes is set.")
+    ap.add_argument("--bem-facet-bank", action="store_true", default=False,
+                    help="Swap the BEM probe list to the opt-in FACET-BALANCED bank "
+                         "(tools/probes_bem_facet.py: 27 originals across ~17 independent "
+                         "elicitation-facets, with their OWN rephrasings) instead of the default "
+                         "20-probe PROBES_BEM. For the quant-replication study (effective-n ~17, "
+                         "cluster-robust by facet — QUANT_REPLICATION_PREREG M4). Matrix default is "
+                         "untouched when off. judge_ladder.py --bem-facet-bank MUST match. Only "
+                         "affects the BEM mode; pair with --expand-probes --rephrasings-per-original 1 "
+                         "--expand-subsample-n 27.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -969,9 +980,17 @@ def main():
             # consumer read mode_meta["probes"] generically — no edit needed inside
             # the loop. Expand happens once per mode (mode-level), so both arms of
             # ORDER/OVERRIDE share the identical expanded list (no per-arm divergence).
+            # Opt-in facet-balanced BEM bank (quant study): swap probe list + its own
+            # rephrasings for the BEM mode only. Default OFF => matrix untouched.
+            _override = None
+            if name == "BEM" and args.bem_facet_bank:
+                from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET
+                probes = PROBES_BEM_FACET
+                _override = REPHRASINGS_BEM_FACET
             probes = _select_probes(name, probes, args.expand_probes,
                                     subsample_n=args.expand_subsample_n,
-                                    rephrasings_cap=args.rephrasings_per_original)
+                                    rephrasings_cap=args.rephrasings_per_original,
+                                    rephrasings_override=_override)
             with tempfile.TemporaryDirectory() as td:
                 cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
             arm_prompts = {}
