@@ -59,24 +59,29 @@ question, not bit-width.
 `docs/validation/runtime_instrument/QUANT_REPLICATION_PREREG.md`,
 `docs/validation/runtime_instrument/QUANT_REPLICATION_RESULTS.md`.)
 
-## 4. Generation-isolation sweep — in flight (preliminary)
+## 4. Generation-isolation sweep — #88 (judged + 2-agent pressure-tested)
 **Motivated by:** §3 — separate generation from size/tokenizer.
-**Did:** held family + size + tokenizer fixed and varied *only* generation — IBM Granite 3.0→3.3 × {8B, 2B} (a
-clean 4-gen × 2-size factorial) + Mistral-7B-Instruct v0.1→v0.3 (clean-tokenizer triple). Q8_0 fixed (since #3
-settled that quant only moves coherence). Template delivery verified per-model as a hard gate.
-**Found (preliminary, pre-pressure-test):** conditioned on token-presence, **no detectable within-family
-incremental-generation trend** in adoption-given-coherence; the `breach_ALL` "trend" is the same coherence
-confound (token-surfacing rate varies by generation, adoption-given-surfacing doesn't). Recall control clean.
-> **Methodology turns that emerged here:** the **two-arms reframe** — *mechanistic isolation* (clean,
-> small-delta point releases; internally valid, ecologically minor) is a different falsifiable question from the
-> *ecological / major-version upgrade* (the comparison users actually make; cause-bundled but deployment-real).
-> Neither is "the confounded version" of the other. And the **"exhaustively-tested, falsifiable assertion"** bar:
-> a null only becomes strong through exhaustion ("across N families, no effect"), and outliers are *findings*, so
-> we filter families on feasibility, never on "will it reproduce."
-**→ Therefore next:** (a) the clean-isolation null implies the §3 "generation effect" was the major-version
-*bundle* → look for it in the **ecological arm** (Phi-3→4, and the size-churn families that come *back* here). (b)
-Reproduce across many families (Granite/Mistral/Qwen/InternLM/OLMo · ecological Phi/Llama/Gemma/Falcon) so the
-claim is exhaustively tested.
+**Did:** held family + size + tokenizer fixed across generations — IBM Granite 3.0→3.3 × {8B, 2B} + Mistral-7B
+v0.1→v0.3 (the two *clean* point-release ladders), plus an expansion (qwen-7b, phi-mini, internlm2.5, gemma3,
+claude-distill flavor sweep). Q8_0, template-delivery gated. Judged with the A′ panel; aggregated as a **hurdle**
+(surfacing × adoption-given-surfacing) with a panel-deadlock fix; pressure-tested by a statistical + a methodological
+agent.
+**Found:** on the two clean ladders, newer generations move **token-surfacing** ~4.5–12× (granite-8b 15%→67%,
+mistral 6%→72%) but leave **adoption-given-surfacing flat** (~25–50%) — *what a new generation changes is whether the
+injected content **surfaces**, not whether it is **adopted as self** once surfaced.* The airtight result: BEM breach 39%
+vs recall control 1% (p≈1e-20) — the metric isn't a coherence artifact. The §3 "generation effect" was the surfacing
+channel.
+> **Methodology turns:** the **two-arms reframe** (mechanistic point-release isolation vs ecological major-version
+> upgrade — different falsifiable questions, neither the "confounded version" of the other); the
+> **hurdle/conditioning correction** — `breach|token-present` conditions on a post-treatment mediator (collider bias
+> that most plausibly *flattens* a true trend), so we assert the decomposition, **not** "generation has no effect"
+> (DELIBERATE DEVIATION, `docs/DEVIATIONS.md`); and that **qwen/phi are NOT clean mechanistic ladders** (arch/tokenizer
+> churn) → they belong to the ecological arm, so the mechanistic isolation rests only on granite + mistral.
+**→ Therefore next:** the clean isolation shows generation moves *surfacing*, not *adoption-given-surfacing* — so any
+real "newer = more adoption" effect must live in the **ecological / major-version arm** (Phi-3→4, Llama, size-churn
+families), or be masked by the conditioning (a powered total-effect design would settle it). Outliers (granite-3.3-2b
+81%, internlm2.5 91%) are real per-release/family excursions, not gradients. Distill + gemma disclaimed (RP-confound;
+delivery-island). (Doc: `docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md`.)
 
 ## 5. Claude-distillation flavor-sweep — in flight
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
