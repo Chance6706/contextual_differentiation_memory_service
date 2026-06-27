@@ -659,7 +659,8 @@ REPHRASINGS: dict[str, dict[int, list[str]]] = {
 _TUPLE_TAG_MODES = {"ORDER", "ORDER_OVERFIRE", "INSTR"}
 
 
-def expanded_probes(mode_name: str, probes: list) -> list:
+def expanded_probes(mode_name: str, probes: list, rephrasings_cap: int | None = None,
+                    rephrasings_override: dict | None = None) -> list:
     """Return originals + rephrasings interleaved, preserving probe tuple shape.
 
     For tuple-shaped modes (ORDER / ORDER_OVERFIRE / INSTR), each probe is
@@ -672,24 +673,54 @@ def expanded_probes(mode_name: str, probes: list) -> list:
 
     Layout: [original_0, rephr_0a, rephr_0b, rephr_0c, rephr_0d,
              original_1, rephr_1a, ...]. This keeps the original in
-    position 5*i so the runner's "sample probe 0" prints still pick a
+    position (1+k)*i so the runner's "sample probe 0" prints still pick a
     canonical original.
+
+    `rephrasings_cap` (default None = ALL registered rephrasings, the historical
+    behavior) limits each original to its FIRST `cap` rephrasings. Used to trade
+    rephrasing-breadth for cluster-INDEPENDENCE: more originals at cap=1 (m=2) gives
+    higher EFFECTIVE n than fewer originals at cap=4 (m=5), since rephrasings of one
+    original are correlated. See QUANT_REPLICATION_PREREG.md (pressure-test M3).
     """
-    if mode_name not in REPHRASINGS:
+    if rephrasings_override is not None:
+        mode_rephrasings = rephrasings_override   # opt-in alt bank (e.g. probes_bem_facet)
+    elif mode_name not in REPHRASINGS:
         raise KeyError(f"mode {mode_name!r} has no rephrasings registered; "
                        f"known: {sorted(REPHRASINGS)}")
-    mode_rephrasings = REPHRASINGS[mode_name]
+    else:
+        mode_rephrasings = REPHRASINGS[mode_name]
     is_tuple_mode = mode_name in _TUPLE_TAG_MODES
     out: list[Any] = []
     for idx, original in enumerate(probes):
         out.append(original)
-        for rephr_text in mode_rephrasings.get(idx, []):
+        reph = mode_rephrasings.get(idx, [])
+        if rephrasings_cap is not None:
+            reph = reph[:rephrasings_cap]
+        for rephr_text in reph:
             if is_tuple_mode:
                 tag = original[0]
                 out.append((tag, rephr_text))
             else:
                 out.append(rephr_text)
     return out
+
+
+def expected_expanded_count(mode_name: str, n_originals: int,
+                            rephrasings_cap: int | None = None,
+                            rephrasings_override: dict | None = None) -> int:
+    """Exact length expanded_probes() yields for the first `n_originals` of a mode,
+    cap-aware. Single source of truth for the money-safety structural assert in
+    _select_probes (so the assert stays exact when rephrasings vary per original or
+    a cap is applied). `rephrasings_override` mirrors expanded_probes()."""
+    mode_rephrasings = (rephrasings_override if rephrasings_override is not None
+                        else REPHRASINGS.get(mode_name, {}))
+    total = 0
+    for idx in range(n_originals):
+        r = len(mode_rephrasings.get(idx, []))
+        if rephrasings_cap is not None:
+            r = min(r, rephrasings_cap)
+        total += 1 + r
+    return total
 
 
 def rephrasing_count() -> dict[str, int]:

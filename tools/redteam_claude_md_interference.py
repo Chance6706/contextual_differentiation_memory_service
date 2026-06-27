@@ -72,7 +72,7 @@ from cdms.models import Gist, new_id                    # noqa: E402
 from cdms.stats import wilson_interval                  # noqa: E402
 from cdms.store import MemoryService                    # noqa: E402
 from local_models import SMALL_PANEL                    # noqa: E402
-from probes_rephrasings import expanded_probes           # noqa: E402
+from probes_rephrasings import expanded_probes, expected_expanded_count  # noqa: E402
 
 # Backend adapters (T1=Ollama already inline below; T2/T3/T4 imported here).
 from lmstudio_chat import lmstudio_chat                  # noqa: E402
@@ -656,18 +656,30 @@ _EXPAND_SUBSAMPLE_N = 10  # cap originals at first-N before expanding (determini
 _EST_USD_PER_PROBE = 0.018
 
 
-def _select_probes(mode_name: str, probes: list, expand: bool) -> list:
+def _select_probes(mode_name: str, probes: list, expand: bool,
+                   subsample_n: int = _EXPAND_SUBSAMPLE_N,
+                   rephrasings_cap: int | None = None,
+                   rephrasings_override: dict | None = None) -> list:
     """Return the per-cell probe list for `mode_name`.
 
     When `expand` is False (DEFAULT / T1 SMALL_PANEL): returns `probes` UNCHANGED
     (originals only) — byte-identical to pre-`--expand-probes` behavior.
 
     When `expand` is True (T2/T3 single-model tiers): deterministically sub-samples
-    the FIRST min(_EXPAND_SUBSAMPLE_N, N) originals (a fixed slice — NO randomness,
+    the FIRST min(`subsample_n`, N) originals (a fixed slice — NO randomness,
     so cache keys and reproducibility are stable run-to-run) and expands them via
     `expanded_probes()` (original + 4 rephrasings each, tuple-tag preserved). Modes
-    with <= _EXPAND_SUBSAMPLE_N originals (the 8-probe guardrail modes) expand ALL
-    of their originals and cap below 50 by construction.
+    with <= `subsample_n` originals (the 8-probe guardrail modes) expand ALL
+    of their originals and cap below subsample_n*5 by construction.
+
+    `subsample_n` DEFAULTS to `_EXPAND_SUBSAMPLE_N` (10 → N=50/cell for modes with
+    >=10 originals; the pre-reg §4 cost-scaled framing). Callers may RAISE it to use
+    more pre-registered originals (e.g. --expand-subsample-n 20 → BEM N=100, the
+    pre-reg §7 target) WITHOUT changing the default for the matrix program. Lowering
+    or raising it never invents probes: it only changes how many of the existing
+    PROBES_* originals get expanded. NOTE: a consumer that reconstructs the realized
+    probe set from a cache (tools/judge_ladder.py) MUST pass the SAME subsample_n the
+    generation used, or it will miss the extra cells.
 
     REVIEW-EXCLUSION IS NOT SUPPORTED HERE (deliberately out of scope for the
     --expand-probes wiring; see DEVIATIONS.md O1). Pre-reg §3 makes external
@@ -686,20 +698,23 @@ def _select_probes(mode_name: str, probes: list, expand: bool) -> list:
     """
     if not expand:
         return probes
-    sub = probes[:_EXPAND_SUBSAMPLE_N] if len(probes) > _EXPAND_SUBSAMPLE_N else probes
-    result = expanded_probes(mode_name, sub)
+    sub = probes[:subsample_n] if len(probes) > subsample_n else probes
+    result = expanded_probes(mode_name, sub, rephrasings_cap=rephrasings_cap,
+                             rephrasings_override=rephrasings_override)
     # MONEY-SAFETY structural guard (pressure-test NIT): expanded_probes uses
     # REPHRASINGS[mode].get(idx, []), so if a future §3 review deletes even one
     # rephrasing from a sub-sampled index, the cell would SILENTLY drop below its
-    # pre-reg target and a real-money run would under-sample. This assert converts
-    # that silent cost shortfall into a hard fail at probe-construction time (zero
+    # target and a real-money run would under-sample. This assert converts that
+    # silent cost shortfall into a hard fail at probe-construction time (zero
     # network), complementing the CI test test_select_probes_expand_exact_per_cell_sizes.
-    # By construction each kept original contributes exactly 1 (itself) + 4 rephrasings.
-    assert len(result) == len(sub) * 5, (
+    # `expected_expanded_count` is the cap-aware single source of truth (handles
+    # rephrasings_cap and per-original rephrasing-count variation exactly).
+    expected = expected_expanded_count(mode_name, len(sub), rephrasings_cap, rephrasings_override)
+    assert len(result) == expected, (
         f"{mode_name}: --expand-probes produced {len(result)} probes for {len(sub)} "
-        f"sub-sampled originals; expected {len(sub) * 5} (1 original + 4 rephrasings "
-        f"each). A rephrasing is missing or extra in REPHRASINGS[{mode_name!r}] — the "
-        f"paid-run cell would be the wrong size. Refusing to proceed.")
+        f"sub-sampled originals (rephrasings_cap={rephrasings_cap}); expected {expected}. "
+        f"A rephrasing is missing or extra in REPHRASINGS[{mode_name!r}] — the paid-run "
+        f"cell would be the wrong size. Refusing to proceed.")
     return result
 
 
@@ -817,6 +832,33 @@ def main():
                          "behavior). When ON, the per-backend cache subdir gains a '/expand' "
                          "suffix so expanded (N=50) and non-expanded (N=20) cells can never "
                          "share a --cache-dir.")
+    ap.add_argument("--expand-subsample-n", type=int, default=_EXPAND_SUBSAMPLE_N,
+                    help=f"Override how many PROBES_* originals --expand-probes sub-samples "
+                         f"before expanding (default {_EXPAND_SUBSAMPLE_N} => N=50/cell for "
+                         f"the 20-original modes, the pre-reg §4 framing). Raise to 20 for "
+                         f"N=100/cell (pre-reg §7 target; uses ALL 20 pre-registered BEM "
+                         f"originals x 5). Does NOT invent probes — only changes how many "
+                         f"existing originals are expanded. Guardrail modes (8 originals) "
+                         f"stay at 40/cell regardless. A reconstructing consumer "
+                         f"(judge_ladder.py --subsample-n) MUST match this value. No effect "
+                         f"unless --expand-probes is set.")
+    ap.add_argument("--rephrasings-per-original", type=int, default=None,
+                    help="Cap how many of each original's registered rephrasings --expand-probes "
+                         "uses (default None = ALL, the historical 4). Set to 1 to trade "
+                         "rephrasing-breadth for cluster-INDEPENDENCE: more originals at cap=1 "
+                         "(m=2 per original) gives higher EFFECTIVE n than fewer at cap=4 (m=5), "
+                         "since rephrasings of one original are correlated (QUANT_REPLICATION_PREREG "
+                         "pressure-test M3). A reconstructing consumer (judge_ladder.py "
+                         "--rephrasings-cap) MUST match this. No effect unless --expand-probes is set.")
+    ap.add_argument("--bem-facet-bank", action="store_true", default=False,
+                    help="Swap the BEM probe list to the opt-in FACET-BALANCED bank "
+                         "(tools/probes_bem_facet.py: 27 originals across ~17 independent "
+                         "elicitation-facets, with their OWN rephrasings) instead of the default "
+                         "20-probe PROBES_BEM. For the quant-replication study (effective-n ~17, "
+                         "cluster-robust by facet — QUANT_REPLICATION_PREREG M4). Matrix default is "
+                         "untouched when off. judge_ladder.py --bem-facet-bank MUST match. Only "
+                         "affects the BEM mode; pair with --expand-probes --rephrasings-per-original 1 "
+                         "--expand-subsample-n 27.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -938,7 +980,17 @@ def main():
             # consumer read mode_meta["probes"] generically — no edit needed inside
             # the loop. Expand happens once per mode (mode-level), so both arms of
             # ORDER/OVERRIDE share the identical expanded list (no per-arm divergence).
-            probes = _select_probes(name, probes, args.expand_probes)
+            # Opt-in facet-balanced BEM bank (quant study): swap probe list + its own
+            # rephrasings for the BEM mode only. Default OFF => matrix untouched.
+            _override = None
+            if name == "BEM" and args.bem_facet_bank:
+                from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET
+                probes = PROBES_BEM_FACET
+                _override = REPHRASINGS_BEM_FACET
+            probes = _select_probes(name, probes, args.expand_probes,
+                                    subsample_n=args.expand_subsample_n,
+                                    rephrasings_cap=args.rephrasings_per_original,
+                                    rephrasings_override=_override)
             with tempfile.TemporaryDirectory() as td:
                 cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
             arm_prompts = {}

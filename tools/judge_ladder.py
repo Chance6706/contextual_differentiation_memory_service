@@ -46,9 +46,10 @@ def key_for(model: str, system: str, user: str) -> str:
     return hashlib.sha256(f"{model}\x00{system}\x00{user}".encode("utf-8")).hexdigest()[:24]
 
 
-def reconstruct(sources, variant="v1"):
+def reconstruct(sources, variant="v1", subsample_n=10, rephrasings_cap=None, bem_facet_bank=False):
     """interference.py caches to <cache_dir>/<backend>/expand/<safe>__<key>.json (openrouter prefixes
-    'openrouter__'). Rebuild the v1 system+probes, key each, and pull the cached response."""
+    'openrouter__'). Rebuild the v1 system+probes, key each, and pull the cached response.
+    `bem_facet_bank` MUST match the generation's --bem-facet-bank or BEM cells won't reconstruct."""
     with tempfile.TemporaryDirectory() as td:
         preamble = R._real_preamble_for_mode(R.setup_bem, Path(td), variant=variant)
     recs, miss = [], []
@@ -59,7 +60,13 @@ def reconstruct(sources, variant="v1"):
         hits = 0
         for disp, claude_md, pkey, pconst in MODES:
             system = R._system_prompt(claude_md, preamble)
-            probes = R._select_probes(pkey, pconst, expand=True)
+            override = None
+            if pkey == "BEM" and bem_facet_bank:
+                from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET
+                pconst = PROBES_BEM_FACET
+                override = REPHRASINGS_BEM_FACET
+            probes = R._select_probes(pkey, pconst, expand=True, subsample_n=subsample_n,
+                                      rephrasings_cap=rephrasings_cap, rephrasings_override=override)
             for i, probe in enumerate(probes):
                 user = probe if isinstance(probe, str) else probe[1]
                 k = key_for(model, system, user)
@@ -103,10 +110,14 @@ def main():
     workers = int(args[args.index("--workers") + 1]) if "--workers" in args else 12
     cap = float(args[args.index("--cap") + 1]) if "--cap" in args else 10.0
     stamp = args[args.index("--stamp") + 1] if "--stamp" in args else "ladder"
+    subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 10
+    rephrasings_cap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else None
+    bem_facet_bank = "--bem-facet-bank" in args
     sources = json.loads(Path(sources_path).read_text(encoding="utf-8"))
 
     print(f"=== reconstruct ({len(sources)} sources) ===", flush=True)
-    recs, miss = reconstruct(sources)
+    recs, miss = reconstruct(sources, subsample_n=subsample_n, rephrasings_cap=rephrasings_cap,
+                             bem_facet_bank=bem_facet_bank)
     tokc = [r for r in recs if TOK.search(r["response"] or "")]
     print(f"total reconstructed {len(recs)}; token-containing {len(tokc)} (to judge); "
           f"ABSENT remainder {len(recs)-len(tokc)}", flush=True)
