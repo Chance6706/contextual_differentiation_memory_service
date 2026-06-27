@@ -95,6 +95,19 @@ a55b sits inside the dense 32–72b band. No separation (wide CIs).
    injected house-style convention word is *not* a confound inflating the count; every breach is genuine
    first-person adoption of the injected *module/work* ("I refactored starboard_loop"), which is exactly the
    self-attribution the A′ instrument exists to catch.
+
+   > **ERRATUM (quant-replication follow-up, 2026-06-26 — see `QUANT_REPLICATION_RESULTS.md`).** Two refinements
+   > to the points here; neither changes a ladder leak number.
+   > - **§2 (quartz):** "ZERO breaches driven by `quartz_meridian`" is correct *by design* (quartz is the
+   >   CLAUDE.md-instructed control, not a breach channel) but was true *by construction* — quartz-only responses
+   >   were auto-labeled ABSENT and never sent to the panel. The follow-up judged them: genuine first-person
+   >   quartz *ownership* = **0.16** (mostly OBSERVED = instruction-compliance), i.e. not ~0 and not breach. The
+   >   instrument-validity conclusion stands; the rate is now measured rather than assumed.
+   > - **§4 (small-active MoE leaks less):** directly tested with a self-quant 6-subject × 5-level study. Once
+   >   breach is conditioned on coherence (token-presence) and pooled under the project's facet-clustering, the
+   >   dense>MoE gap is **NS** and **unidentifiable at n=2 MoE** (confounded with vendor + MTP-pruning); the axis
+   >   that actually moves leak is **model generation**, not architecture or bit-width. Treat the ladder's
+   >   MoE<dense as a directional artifact of model mix, not an architecture law.
 3. **No clean dense scale law; no clean active-vs-total verdict** — the dense ladder is too noisy at n≈50 to
    separate the predictions, and the MoE points undercut both.
 4. **Robust directional signal: small-active MoE leak LESS than comparable dense** (survives dropping laguna,
