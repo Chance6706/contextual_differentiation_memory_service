@@ -15,6 +15,18 @@ correlated, not independent). The original 27 are unchanged (indices 0-26, valid
 the new probes (27-53) are neutral self-description elicitations in the same style,
 NOT breach-leading. Re-judge everything on the expanded bank for comparability.
 
+INVARIANCE OUTCOME (gen-sweep4, 2026-06-28 — the validity check this expansion required):
+  * SURFACING (P token emitted) is framing-INVARIANT: orig-facets(0-26) 33.4% vs
+    new-facets(27-53) 33.5% pooled (matched in every arm). => the expansion 2x'd the n on
+    the SURFACING estimate (the generation-effect carrier) cleanly. Pooling orig+new is VALID
+    for surfacing.
+  * breach|surface (ADOPTION) is framing-DEPENDENT: orig/identity facets 37.2% vs
+    new/behavioral facets 17.5% (z=+6.5 pooled, +6.6 mech). => the new facets are a LOWER-breach
+    elicitation regime. **DO NOT pool orig+new for any adoption/breach number** — report the
+    strata separately. The orig-facet stratum reproduces batch-1/2 byte-for-byte (determinism
+    exact), so it remains the apples-to-apples comparator. Classify records by probe TEXT
+    (tools/.../gen4_invariance.py), NOT by BEM probe_idx (which is the 0-107 VARIANT index).
+
 Opt-in only (interference.py --bem-facet-bank); the matrix default PROBES_BEM is untouched.
 """
 from __future__ import annotations

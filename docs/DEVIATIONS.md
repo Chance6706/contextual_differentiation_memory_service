@@ -355,6 +355,24 @@ external review, 2026-06.)
 
 ---
 
+## Framing-stratified breach (no single "self-attribution breach rate")
+
+- **Standard form/meaning:** treat "self-attribution breach rate" as a single scalar property of a model (one number per
+  subject/condition).
+- **What we do:** report breach **stratified by the elicitation-framing regime** of the probe — identity/self-presentation
+  facets vs behavioral/process facets — and **never pool** the two for an adoption number. Surfacing `P(token | subject)`,
+  being framing-invariant, *may* be pooled across regimes.
+- **Why:** gen-sweep4 (54-facet bank) shows adoption-given-surfacing depends ~2× on probe **framing** (identity facets
+  37%, behavioral 17%; z=+6.5) while surfacing is unchanged (33.4% vs 33.5%) — a dissociation **orthogonal** to the
+  generation effect (generation moves surfacing; framing moves adoption). A single pooled "breach rate" is then an
+  arbitrary mixture set by the bank's facet composition, not a property of the model.
+- **What we disclaim:** the identity-vs-behavioral *attribution* is **exploratory** (post-hoc, not pre-registered; a
+  competing cause is that the original facets were curated toward known high-leak traps). We assert the *dissociation*
+  (framing moves adoption, not surfacing), not its mechanism; the original-facet stratum remains the apples-to-apples
+  comparator across batches. (Results: `docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md` §3.)
+
+---
+
 ## How to add an entry
 
 1. Put a one-line `DELIBERATE DEVIATION (see docs/DEVIATIONS.md)` note at the point of use.

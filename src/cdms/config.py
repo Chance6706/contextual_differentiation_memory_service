@@ -209,7 +209,7 @@ class Config:
     render_enabled: bool = False
     render_base_url: str = "http://127.0.0.1:8081/v1"
     render_model: str = "llama-3.2-3b-instruct"
-    render_api_key: str = ""
+    render_api_key: str = "sk-no-key-required"
 
     # ---- SessionStart preamble render variant (which builder formats the injected memory) ----
     # "v1" = shipped baseline (terse persona lines). "v5d" = third-person grammatical wrapping
