@@ -171,7 +171,8 @@ def render_preamble(cfg: Config, conn, project=None) -> str:
     """The faithful 'what the model sees' at SessionStart for a project — via the SAME
     builder the hook uses (cfg.session_preamble_variant, default v1). Routing through the
     selector keeps this preview honest after a default flip (else it would render v1 while the
-    model receives v5d). Dials are structurally absent from this output."""
+    model receives v5d). Dials are structurally absent from this output (Bem firewall)."""
+    from .hooks import _build_preamble_from_conn
     projects = sorted({(r["project"] or "") for r in
                        _rows(conn, "SELECT DISTINCT project FROM mem_episodic "
                                    "UNION SELECT DISTINCT project FROM mem_gist "
@@ -179,8 +180,7 @@ def render_preamble(cfg: Config, conn, project=None) -> str:
     links = " · ".join(f'<a href="/preamble?project={E(p)}">{E(p or "(global)")}</a>' for p in projects)
     body = [f"<p class=dim>project: {links}</p>"]
     if project is not None:
-        from .hooks import _select_session_builder
-        ctx = _select_session_builder(cfg)(cfg, {"cwd": project}) or "(empty — nothing recalled for this project)"
+        ctx = _build_preamble_from_conn(cfg, conn, project) or "(empty — nothing recalled for this project)"
         body.append(f"<p class=dim>Exactly what the model is given at SessionStart for "
                     f"<code>{E(project)}</code> (variant <code>{E(cfg.session_preamble_variant)}</code>). "
                     f"The temperament dials are NOT here (Bem firewall):</p>")
@@ -245,7 +245,7 @@ def _handler(cfg: Config):
     return H
 
 
-def serve(cfg: Config | None = None, host: str = "127.0.0.1", port: int = 8765) -> int:
+def serve(cfg: Config | None = None, host: str = "127.0.0.1", port: int = 8766) -> int:
     cfg = cfg or load_config()
     if not cfg.db_path.exists():
         print(f"cdms observer: no store at {cfg.db_path}")
