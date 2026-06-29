@@ -1,8 +1,10 @@
 # CDMS — Working Status
 
-_Last updated: 2026-06-26 (post-Cycle-9 measurement & ship arc through PR #82; quant-replication in flight). For the
-full design see [`docs/DESIGN.md`](docs/DESIGN.md); for the post-Cycle-9 program see §"From building to measuring"
-below; for narrative history see the session memory files under
+_Last updated: 2026-06-29 (self-attribution measurement thread closing out: quant-replication, generation
+sweep, framing dissociation done; single-source + transparency landed #90; gen4 re-judge + identity-power in
+flight). For the full design see [`docs/DESIGN.md`](docs/DESIGN.md); for the measurement thread in causal order see
+[`RESEARCH_ARC.md`](RESEARCH_ARC.md); for the post-Cycle-9 program see §"From building to measuring" below; for
+narrative history see the session memory files under
 `~/.claude/projects/D--repo-contextual-differentiation-memory-service/memory/`._
 
 ## TL;DR
@@ -128,10 +130,19 @@ The core was done; the work became *characterizing what it does* and *deciding w
   judged through A′. Findings (directional, n≈50): **breach is BEM/enumeration-only** (recall ≈ 0);
   small-active MoE leak *less* than comparable dense, **but quant moves it as much as architecture**.
   (`docs/validation/runtime_instrument/LADDER_RESULTS.md`.)
-- **IN FLIGHT — quant replication** (`docs/validation/runtime_instrument/QUANT_REPLICATION_PREREG.md`, branch
-  `claude/quant-replication`): does "MoE leaks less" track *architecture* or *quantization*? 4 subjects × 5
-  self-quantized levels on the GX10. Pre-registered + pressure-tested (incl. an inter-probe independence test
-  that capped effective-n at the probe-bank's facet ceiling).
+- **Quant-replication — DONE (#86).** "MoE leaks less" is *unidentifiable* at n=2 MoE; quantization's only reliable
+  effect is on **coherence** (whether the token surfaces), not identity-adoption (`corr(ABSENT%, breach)=−0.54`,
+  collapses conditioned on token-presence). The real axis is **model generation** — but confounded with size/tokenizer.
+- **Generation-isolation sweep — DONE (#88).** Holding family/size/tokenizer fixed (granite, mistral point-releases):
+  newer generations move **surfacing** ~4.5–12×, leave **adoption-given-surfacing** flat — what a new generation
+  changes is whether injected content *surfaces*, not whether it's *adopted as self*. Airtight BEM 39% vs recall 1%
+  (p≈1e-20). **gen-sweep4** added the orthogonal **framing** lever: adoption-given-surfacing depends ~2× on probe
+  framing (identity vs behavioral), generation-flat — a clean 2×2 dissociation.
+- **Measurement-thread closeout — IN PROGRESS.** Single-sourced the breach rule + committed the previously-uncommitted
+  judged data + the framing stratifier (**#90**, closing a transparency gap: the gen-sweep4 judge output was never
+  persisted). **In flight:** re-judging the cached gen-sweep4 behavioral generations to recommit `gen4_JUDGE.jsonl`
+  (repo-reproducible behavioral stratum), and the **identity-power** experiment (Phase B: more identity facets +
+  GX10 re-run to power the under-powered identity-breach cells). Full thread: [`RESEARCH_ARC.md`](RESEARCH_ARC.md).
 
 **Sibling repos / hardware.** `D:\Repo\salient_by_design` = the **salience-matrix research program** (one
 externally-defined salience matrix across FT + quant + CDMS-A runtime; reproducibility-as-novelty). `D:\Repo\CDMS-D`

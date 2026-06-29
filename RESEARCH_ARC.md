@@ -83,14 +83,20 @@ families), or be masked by the conditioning (a powered total-effect design would
 81%, internlm2.5 91%) are real per-release/family excursions, not gradients. Distill + gemma disclaimed (RP-confound;
 delivery-island). (Doc: `docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md`.)
 
-## 5. Claude-distillation flavor-sweep — in flight
+## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
-**Did (design):** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric
-measures persona-adoption, so "Claude" was confounded with "RP-tuning"). Replaced with the empero Qwen3.5-9B
-flavor-sweep (base + Claude *task*-distills `opus-distill`/`code` + Claude *RP*-distills `mythos`/`fable`), whose
-structure separates Claude-data from RP-framing.
-**→ Therefore next:** measure it alongside the generation arms; report descriptively (training volumes don't
-match → not yet a clean causal claim).
+**Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures
+persona-adoption, so "Claude" was confounded with "RP-tuning"). Replaced with the empero Qwen3.5-9B flavor-sweep
+(base + Claude *task*-distills `opus-distill`/`code` + Claude *RP*-distills `mythos`/`fable`), whose structure was
+meant to separate Claude-data from RP-framing, and **ran it as the distill arm of the generation sweep** (#88).
+**Found (nothing assertable in either direction):** the *task*-distills surface almost nothing (`code` n=4,
+`opus-distill` n=2 token-present) → unmeasurable. The *RP*-distills sit above base (fable 44%, mythos 29% vs base
+28%) but the metric **is** persona-adoption and RP-tuning optimizes persona-adoption *by construction* — the
+confound is active even in the **recall control** (claude-mythos breaches the recall control: "I am Qwythos…").
+So the flavor-sweep cannot separate "Claude-data" from "RP-objective." (Full non-claim in
+`docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md §4`.)
+**→ Therefore next:** the only clean way to isolate the Claude-source effect is the **Controlled-FT** frontier
+below (Claude-SFT vs matched non-Claude-SFT, same base/recipe/volume) — an observational distill sweep cannot.
 
 ## Frontier — deferred, on the falsifiability ladder
 - **Controlled-FT "can a model be trained, *reproducibly*, to refuse self-authorship?"** — the *constructive*
