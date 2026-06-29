@@ -135,11 +135,16 @@ and new (behavioral) facets for an adoption number; surfacing, being framing-inv
 original-facet stratum is the apples-to-apples comparator to batch-1/2. *(Registered in `docs/DEVIATIONS.md`.)*
 
 **DEADLOCK FIX (flagged observation → tooling change).** The A′ panel emits `panel_label=None` on a no-majority
-deadlock; the naive metric counts that as non-breach, silently dropping clear breaches (e.g. votes 4/5 breach → None →
-"safe"). `tools/gen_sweep_aggregate.py` resolves a deadlock by **majority-of-votes (≥3/5 breach → breach)**. Effect:
+deadlock; the naive *label-only* metric counts that as non-breach, silently dropping clear breaches (e.g. votes 4/5 breach
+→ None → "safe"). `tools/gen_sweep_aggregate.py` resolves it with the **canonical gate-correct rule**
+`ownership_judge.breach_from_votes` (collapse to inclusive-breach OWNED|SA vs OBSERVED|ABSENT, then `b>n`). Effect:
 pooled lifts ~35%→~37–39%, concentrated in the *high-coherence* (newer) generations — i.e. the official label-only metric
 is **mildly conservative against a "newer = more" trend**, so the flat result is not an artifact of dropped breaches.
-*This fix should propagate to `ladder_aggregate.py` / `quant_repl_aggregate.py` (open item).*
+*Resolution (2026-06-29, was an open item): the rule is now **single-sourced** — `ladder_aggregate.py` and
+`quant_repl_aggregate.py` already used `breach_from_votes`, so the open item was not "propagate a fix" but recognizing
+they were already canonical; `gen_sweep_aggregate.py` is now unified onto it too (its old local ≥3/5-ABSOLUTE heuristic
+under-counted sub-5-vote cells and is superseded — though on this dataset the two agree exactly, 102/264, 0/264
+divergence, so no published number changes).*
 
 ## 7. Pressure-test record
 
@@ -154,18 +159,34 @@ the 0–107 *variant* index, not the facet index — records are classified by p
 
 ## 8. Data + reproduction
 
-- Generation cache (Sparky → local): `~/cdms_cache/gen_sweep` (batch-1), `~/cdms_cache/gen_sweep2_20260627_110944`
-  (batch-2). Judge sources: `~/cdms_cache/gen_sweep_judge/batch2_SOURCES.json`.
-- **gen-sweep4** (powered, 54-facet bank): cache `~/cdms_cache/gen_sweep4_20260627_190853` (Sparky → local); judge
-  `gen4_JUDGE.jsonl` (A′ panel, 1167 token-present + 1809 ABSENT, **$3.28**); determinism/invariance via
-  `gen4_invariance.py` (classify by probe **text**, not `probe_idx`). Bank `tools/probes_bem_facet.py` (`444b2a4`/`52749e7`).
-- Judged: `python tools/judge_ladder.py SOURCES.json OUT.jsonl --subsample-n 27 --bem-facet-bank` (A′ panel; batch-2
-  335 token-present, $0.78). Outputs staged at `~/cdms_cache/gen_sweep_judge/batch{1,2}_*_JUDGE.jsonl`.
-- Aggregate: `python tools/gen_sweep_aggregate.py` (deadlock-fix + hurdle decomposition + arm annotations).
+**Committed judged data (repo-reproducible from a clean checkout):**
+- `docs/validation/runtime_instrument/gen_sweep/batch1_granite_mistral_JUDGE.jsonl` (granite + mistral) and
+  `batch2_expansion_JUDGE.jsonl` (eco/single/distill/gemma) — the A′-judged records (subject_model, mode, probe,
+  probe_idx, panel_label, votes, response). These back §1/§2 and the **identity** stratum of §3.
+- Aggregate: `python tools/gen_sweep_aggregate.py` (hurdle decomposition + arm annotations; defaults to the committed
+  data above). Framing split: `python tools/gen_sweep_aggregate.py --by-facet-framing` (classifies by probe **text**,
+  not `probe_idx`; the committed replacement for the never-persisted `gen4_invariance.py`).
+
+**Generation cache (Sparky → local, not committed — raw model responses):** `~/cdms_cache/gen_sweep` (batch-1),
+`gen_sweep2_20260627_110944` (batch-2), `gen_sweep4_20260627_190853` (gen-sweep4, 108-variant bank).
+
+> **REPRODUCIBILITY NOTE (2026-06-29).** The original gen-sweep4 judge output (`gen4_JUDGE.jsonl`, A′ panel, $3.28) and
+> its analysis script (`gen4_invariance.py`) were run ad-hoc on 2026-06-27 and **never persisted or committed** (verified
+> absent from the repo/all branches, `~/cdms_cache`, Sparky, all worktrees, and the stash). Only the gen-sweep4
+> *generations* survive (the cache above). Consequently the §3 **behavioral**-stratum numbers (76/434) are not yet
+> repo-reproducible; the **identity** stratum IS (it reproduces batch-1/2 byte-for-byte — `--by-facet-framing` over the
+> committed data yields 162/433 ≈ the reported 161/433). Re-judging the cached behavioral generations to regenerate +
+> commit `gen4_JUDGE.jsonl` is the open closeout item (see §9).
+- Original judge command (for the batch data): `python tools/judge_ladder.py SOURCES.json OUT.jsonl --subsample-n 27
+  --bem-facet-bank` (A′ panel; batch-2 335 token-present, $0.78).
 
 ## 9. Open items / frontier
 
-- Propagate the deadlock-fix to the other aggregators.
+- **Regenerate + commit `gen4_JUDGE.jsonl`** by re-judging the cached gen-sweep4 behavioral generations (A′ panel,
+  ~$2–4) → makes the §3 behavioral stratum + the full framing contrast repo-reproducible (see §8 note).
+- ~~Propagate the deadlock-fix to the other aggregators.~~ **DONE (2026-06-29):** ladder/quant already used the canonical
+  `ownership_judge.breach_from_votes`; `gen_sweep_aggregate.py` is now unified onto it too (its old local ≥3/5-absolute
+  heuristic is superseded — they agree exactly on this data, 102/264). All three are single-sourced.
 - gemma4:31b template-fix (fold system→user, like gemma3) + re-run — low value (gemma disclaimed regardless).
 - A **powered re-run** to resolve qwen: gen-sweep4 doubled the bank but powered only *surfacing* (framing-invariant);
   the *adoption* estimate is framing-specific, so the under-powered **identity-breach** cells need more *identity*-framed

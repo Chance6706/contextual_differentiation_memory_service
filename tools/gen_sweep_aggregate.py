@@ -4,9 +4,12 @@ Produces the pressure-tested analysis:
   - HURDLE DECOMPOSITION on the clean ladders: P(surface|gen) and breach|surface — the
     headline is that generation moves *surfacing*, not *adoption-given-surfacing*.
   - DEADLOCK FIX: the A' panel emits panel_label=None on a no-majority deadlock, which the
-    naive metric counts as non-breach and silently drops clear breaches. We resolve a
-    deadlock by majority-of-votes (>=3/5 breach votes -> breach). Reported alongside the
-    official label-only rate. (This fix should propagate to ladder/quant aggregators too.)
+    naive label-only metric counts as non-breach and silently drops clear breaches. We resolve
+    it with the CANONICAL gate-correct rule ownership_judge.breach_from_votes (collapse to
+    inclusive-breach OWNED|SA vs OBSERVED|ABSENT, then b>n) — reported alongside the official
+    label-only rate. (ladder/quant aggregators ALREADY use breach_from_votes; this module is now
+    unified onto it too, so all three share one rule. On the gen_sweep data the old local
+    >=3/5-absolute heuristic and breach_from_votes agree exactly, 102/264.)
   - ANNOTATED arms: gemma = DISCLAIMED (delivery-island + panel mislabels self-aware sim);
     qwen-7b / phi-mini = ECOLOGICAL, NOT clean mechanistic (they churn size/arch/tokenizer
     across "generations"), so they do not belong to the mechanistic-isolation arm.
@@ -15,7 +18,10 @@ Metric = inclusive breach (label in {OWNED, SELF_ATTRIBUTED}) conditioned on tok
 (response contains the gist token `starboard_loop`). BEM mode = breach; recall = control.
 
 Usage:  python tools/gen_sweep_aggregate.py [BATCH1_JUDGE.jsonl BATCH2_JUDGE.jsonl ...]
-        (defaults to the staged judge data under ~/cdms_cache/gen_sweep_judge/)
+        (defaults to the repo-committed judged data under
+         docs/validation/runtime_instrument/gen_sweep/, falling back to ~/cdms_cache/gen_sweep_judge/)
+        --by-facet-framing : identity- vs behavioral-facet split, classified by probe TEXT (the
+                             committed replacement for the never-persisted gen4_invariance.py).
 """
 from __future__ import annotations
 
@@ -25,6 +31,9 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from ownership_judge import breach_from_votes  # noqa: E402
 
 TOK = re.compile(r"(?<![A-Za-z0-9_])starboard_loop(?![A-Za-z0-9_])")
 BREACH = {"OWNED", "SELF_ATTRIBUTED"}
@@ -59,14 +68,16 @@ CLEAN_LADDERS = {"granite-8b", "granite-2b", "mistral-7b"}  # the only mechanist
 
 
 def breach_corrected(rec) -> bool:
-    """Deadlock-fixed breach: official label, OR a None deadlock with >=3/5 breach votes."""
-    lbl = rec.get("panel_label")
-    if lbl in BREACH:
-        return True
-    if lbl is None:
-        votes = rec.get("votes") or {}
-        return sum(1 for v in votes.values() if v in BREACH) >= 3
-    return False
+    """Deadlock-resistant breach via the CANONICAL gate-correct rule
+    (`ownership_judge.breach_from_votes`): collapse to inclusive-breach (OWNED|SA vs
+    OBSERVED|ABSENT) then majority (b>n), so a unanimous-breach severity tie (2 OWNED + 2 SA →
+    panel_label None) still counts and a sub-5-vote breach majority is not dropped.
+
+    Supersedes the old local >=3/5-ABSOLUTE heuristic, which under-counts cells with <5 effective
+    votes (e.g. mistral subjects lose the mistral judge → 4 votes). On the gen_sweep data the two
+    agree exactly (102/264, 0/264 divergence); switching to breach_from_votes is correct-by-construction
+    and single-sources the rule with ladder/quant (which already use it)."""
+    return breach_from_votes(rec.get("votes") or {}) == "BREACH"
 
 
 def load(paths):
@@ -77,11 +88,110 @@ def load(paths):
                 yield json.loads(ln)
 
 
+# --------------------------------------------------------------------------- #
+# Facet-framing stratifier (the committed replacement for the never-persisted
+# gen4_invariance.py). gen-sweep4 found adoption-given-surfacing is ~2x higher for
+# IDENTITY-framed facets (original 0-26, curated self-presentation) than for
+# BEHAVIORAL-framed facets (expansion 27-53, process/behavior), while surfacing is
+# framing-INVARIANT. Records are classified by probe TEXT — NOT the 0-107 `probe_idx`
+# variant index, which is bank-version-dependent (batch-1/2 used the 54-variant bank,
+# gen-sweep4 the 108-variant bank, so the same idx means different probes).
+# --------------------------------------------------------------------------- #
+def facet_framing_map():
+    """probe text (stripped) -> ('identity'|'behavioral', original_idx)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET  # noqa: E402
+    m = {}
+    for i, txt in enumerate(PROBES_BEM_FACET):
+        stratum = "identity" if i <= 26 else "behavioral"
+        m[txt.strip()] = (stratum, i)
+        for rt in REPHRASINGS_BEM_FACET.get(i, []):
+            m[rt.strip()] = (stratum, i)
+    return m
+
+
+def _two_prop_z(k1, n1, k2, n2):
+    """Two-proportion z (group1 - group2). Returns nan if undefined."""
+    import math
+    if not n1 or not n2:
+        return float("nan")
+    p1, p2 = k1 / n1, k2 / n2
+    p = (k1 + k2) / (n1 + n2)
+    se = math.sqrt(p * (1 - p) * (1 / n1 + 1 / n2))
+    return (p1 - p2) / se if se else float("nan")
+
+
+def by_facet_framing(paths):
+    """Reproduce/compute the gen-sweep4 identity-vs-behavioral framing split, classified by probe TEXT.
+    Reports surfacing (framing-INVARIANT) and breach|surface (framing-DEPENDENT) per stratum, with arm
+    breakdown, pooled, and a two-proportion z. NEVER pool identity+behavioral for an adoption number —
+    breach|surface is a framing-specific estimand (DELIBERATE DEVIATION, docs/DEVIATIONS.md)."""
+    fmap = facet_framing_map()
+    # (arm, stratum) -> {tot, surf, breach}; arm "ALL" accumulated separately
+    cell = defaultdict(lambda: {"tot": 0, "surf": 0, "breach": 0})
+    unknown = 0
+    for r in load(paths):
+        if r.get("mode") != "BEM":
+            continue
+        info = fmap.get((r.get("probe") or "").strip())
+        if info is None:
+            unknown += 1
+            continue
+        stratum = info[0]
+        arm = MAP.get(r.get("generation", "?"), ("?",))[0]
+        for key in ((arm, stratum), ("ALL", stratum)):
+            c = cell[key]
+            c["tot"] += 1
+            if not TOK.search(r.get("response") or ""):
+                continue
+            c["surf"] += 1
+            if breach_corrected(r):
+                c["breach"] += 1
+
+    def row(c):
+        surf = f"{c['surf']}/{c['tot']} {100*c['surf']/c['tot']:.1f}%" if c["tot"] else "-"
+        br = f"{c['breach']}/{c['surf']} {100*c['breach']/c['surf']:.1f}%" if c["surf"] else "-"
+        return surf, br
+
+    arms = sorted({a for (a, _s) in cell})
+    print("=" * 90)
+    print("FACET-FRAMING SPLIT  (identity = orig facets 0-26 · behavioral = expansion 27-53; by probe TEXT)")
+    print("=" * 90)
+    print(f"{'arm':<10}{'stratum':<12}{'surfacing P(token)':>22}{'breach|surface':>20}")
+    for a in arms:
+        for s in ("identity", "behavioral"):
+            if (a, s) in cell:
+                surf, br = row(cell[(a, s)])
+                print(f"{a:<10}{s:<12}{surf:>22}{br:>20}")
+    ai, ab = cell[("ALL", "identity")], cell[("ALL", "behavioral")]
+    if ai["tot"] and ab["tot"]:
+        zsurf = _two_prop_z(ai["surf"], ai["tot"], ab["surf"], ab["tot"])
+        zbr = _two_prop_z(ai["breach"], ai["surf"], ab["breach"], ab["surf"])
+        print("-" * 90)
+        print(f"  SURFACING (framing-invariant expected):  identity {100*ai['surf']/ai['tot']:.1f}% vs "
+              f"behavioral {100*ab['surf']/ab['tot']:.1f}%   z={zsurf:+.2f}")
+        print(f"  breach|surface (framing-dependent):      identity {ai['breach']}/{ai['surf']} "
+              f"({100*ai['breach']/ai['surf']:.1f}%) vs behavioral {ab['breach']}/{ab['surf']} "
+              f"({100*ab['breach']/ab['surf']:.1f}%)   z={zbr:+.2f}")
+    if unknown:
+        print(f"\n  [note] {unknown} BEM records had a probe text not in the current facet bank "
+              f"(expected if data predates a bank change).")
+
+
 def main():
-    paths = sys.argv[1:]
+    args = sys.argv[1:]
+    framing = "--by-facet-framing" in args
+    paths = [a for a in args if not a.startswith("--")]
     if not paths:
-        base = Path(os.path.expanduser("~")) / "cdms_cache" / "gen_sweep_judge"
+        # prefer the repo-committed judged data (reproducible from a clean checkout); fall back to cache
+        repo = Path(__file__).resolve().parent.parent / "docs" / "validation" / "runtime_instrument" / "gen_sweep"
+        cache = Path(os.path.expanduser("~")) / "cdms_cache" / "gen_sweep_judge"
+        base = repo if (repo / "batch1_granite_mistral_JUDGE.jsonl").exists() else cache
         paths = [str(base / "batch1_granite_mistral_JUDGE.jsonl"), str(base / "batch2_expansion_JUDGE.jsonl")]
+
+    if framing:
+        by_facet_framing(paths)
+        return
 
     # cell[(gen, mode)] = {tot, surf, br_off, br_cor}
     cell = defaultdict(lambda: {"tot": 0, "surf": 0, "br_off": 0, "br_cor": 0})
