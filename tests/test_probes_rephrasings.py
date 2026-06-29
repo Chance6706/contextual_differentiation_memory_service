@@ -521,24 +521,25 @@ def test_select_probes_rephrasings_cap():
 
 def test_facet_bank_select_with_override():
     """Opt-in facet-balanced bank (quant + generation studies): _select_probes with
-    rephrasings_override uses the bank's OWN rephrasings, not REPHRASINGS['BEM']. 54 originals
-    x (1+1) = 108 at cap=1 (m=2); effective-n = #facets (42). Generation + judge reconstruction
-    share this path. (Bank doubled 27->54 in gen-sweep4; new facets are a lower-breach
-    behavioral regime — see probes_bem_facet docstring; never pool orig+new for adoption.)
+    rephrasings_override uses the bank's OWN rephrasings, not REPHRASINGS['BEM']. 90 originals
+    x (1+1) = 180 at cap=1 (m=2); effective-n = #facets (78). Generation + judge reconstruction
+    share this path. (Bank: 27 curated-identity -> +27 behavioral [gen-sweep4] -> +36
+    uncurated-identity [2026-06-29]; THREE strata, never pool for adoption — see probes_bem_facet
+    docstring.)
     """
     from probes_rephrasings import expected_expanded_count
     from probes_bem_facet import (PROBES_BEM_FACET, REPHRASINGS_BEM_FACET, FACET_OF, N_FACETS)
-    assert len(PROBES_BEM_FACET) == 54 and N_FACETS == 42
-    sel = _select_probes("BEM", PROBES_BEM_FACET, True, subsample_n=54, rephrasings_cap=1,
+    assert len(PROBES_BEM_FACET) == 90 and N_FACETS == 78
+    sel = _select_probes("BEM", PROBES_BEM_FACET, True, subsample_n=90, rephrasings_cap=1,
                          rephrasings_override=REPHRASINGS_BEM_FACET)
-    assert len(sel) == 108, f"facet bank at cap=1 must be 108, got {len(sel)}"
+    assert len(sel) == 180, f"facet bank at cap=1 must be 180, got {len(sel)}"
     # original sits first in each (1+1) pair; the rephrasing is the bank's, NOT REPHRASINGS['BEM']
     assert sel[0] == PROBES_BEM_FACET[0] and sel[1] == REPHRASINGS_BEM_FACET[0][0]
     assert sel[2] == PROBES_BEM_FACET[1]
     # expected-count agrees under the override (money-safety assert stays exact).
-    assert expected_expanded_count("BEM", 54, 1, REPHRASINGS_BEM_FACET) == 108
-    # every original carries a facet; they cluster to 42 (the effective-n ceiling).
-    assert len(FACET_OF) == 54 and len(set(FACET_OF.values())) == 42
+    assert expected_expanded_count("BEM", 90, 1, REPHRASINGS_BEM_FACET) == 180
+    # every original carries a facet; they cluster to 78 (the effective-n ceiling).
+    assert len(FACET_OF) == 90 and len(set(FACET_OF.values())) == 78
     # the matrix default (PROBES_BEM, no override) is unaffected and still 50 at default expand.
     assert len(_select_probes("BEM", _MODE_ORIGINALS["BEM"], True)) == 50
 

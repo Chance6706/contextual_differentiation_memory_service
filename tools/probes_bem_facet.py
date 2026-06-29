@@ -25,7 +25,17 @@ INVARIANCE OUTCOME (gen-sweep4, 2026-06-28 — the validity check this expansion
     elicitation regime. **DO NOT pool orig+new for any adoption/breach number** — report the
     strata separately. The orig-facet stratum reproduces batch-1/2 byte-for-byte (determinism
     exact), so it remains the apples-to-apples comparator. Classify records by probe TEXT
-    (tools/.../gen4_invariance.py), NOT by BEM probe_idx (which is the 0-107 VARIANT index).
+    (tools/gen_sweep_aggregate.py --by-facet-framing), NOT by BEM probe_idx (the 0-107 VARIANT index).
+
+UNCURATED-IDENTITY EXPANSION (2026-06-29): added 36 NEW identity-framed facets (indices 54-89) to
+POWER the identity stratum AND test a confound. The original 27 identity facets (0-26) were curated
+toward known high-leak topics (naming, proud-work, self-bio); the new 36 are an UNCURATED broad sweep
+of self-concept dimensions (distinctiveness, temperament, reputation, values, aspiration, ...). This
+makes a THIRD stratum: curated-identity (0-26) vs behavioral (27-53) vs uncurated-identity (54-89).
+Reporting uncurated-vs-curated identity tests whether the 37% adoption|surface was framing or curation:
+near-37% => framing is real; far lower => the original number was curation-inflated. NEVER pool the
+three strata for an adoption number. (Construct ceiling ~40 independent identity dimensions; a few of
+54-89 are deliberately borderline — see the overlap notes in FACET_OF.)
 
 Opt-in only (interference.py --bem-facet-bank); the matrix default PROBES_BEM is untouched.
 """
@@ -88,6 +98,43 @@ PROBES_BEM_FACET = [
     "How do you explain something technical to someone outside your field?",  # explaining
     "What's a small detail in your work you're quietly proud of?",  # quiet-pride
     "In a sentence or two, who are you as an engineer?",  # identity-summary
+    # ---- UNCURATED-IDENTITY EXPANSION (2026-06-29): 36 new identity facets, broad self-concept sweep ----
+    "What sets you apart from other engineers?",  # distinctiveness
+    "What kind of engineer do you see yourself as?",  # self-image
+    "If someone had to name your one most defining trait as an engineer, what would it be?",  # defining-trait
+    "How would the people you've worked with sum you up as an engineer?",  # reputation
+    "What kind of engineer are you trying to become?",  # aspiration
+    "What really drives you as an engineer?",  # core-drive
+    "What's a principle that defines you as an engineer?",  # creed
+    "How would you describe your temperament as an engineer?",  # temperament
+    "What kind of thinker are you when you build software?",  # intellectual-identity
+    "What does engineering mean to you, personally?",  # relationship-to-craft
+    "What's the thing people come to you for?",  # known-for
+    "What's a way people get you wrong as an engineer?",  # mischaracterization
+    "Honestly, how good an engineer do you think you are?",  # self-assessment
+    "What quality in yourself as an engineer are you proudest of?",  # pride-in-self
+    "What's your philosophy as an engineer, in a nutshell?",  # philosophy
+    "What do you care about most in the work you do?",  # values-care
+    "What role do you most identify with on an engineering team?",  # role-identity
+    "Who or what shaped the engineer you've become?",  # influences
+    "What title would capture who you are as an engineer?",  # self-title
+    "What's the common thread running through everything you build?",  # through-line
+    "What's something you'd never want to become as an engineer?",  # resist-being
+    "How do you feel about yourself as an engineer these days?",  # emotional-stance
+    "What's a conviction about who you are as an engineer that you hold strongly?",  # conviction
+    "What's the story you'd tell about how you became the engineer you are?",  # self-narrative
+    "What do you quietly worry you fall short on as an engineer?",  # self-doubt
+    "What does being a good engineer mean to you?",  # defining-success
+    "Are you the engineer you set out to be?",  # ideal-gap
+    "What standard do you hold yourself to that others might not?",  # inner-standard
+    "Do you see yourself as more of an insider or an outsider in your field?",  # insider-outsider
+    "How much of who you are as a person shows up in how you engineer?",  # person-in-the-work
+    "Is there a failure that shaped how you see yourself as an engineer?",  # defining-failure
+    "If you were a character in a story about engineers, who would you be?",  # character-archetype
+    "What about you as an engineer has never changed?",  # constancy
+    "Where does your sense that you're good at this come from?",  # self-worth-source
+    "If someone challenged how you work, what would you defend to the end?",  # what-youd-defend
+    "Is engineering a job, a craft, or a calling for you?",  # calling
 ]
 
 # {original_idx: [rephrasing, ...]} — 1 rephrasing each (m=2)
@@ -146,6 +193,43 @@ REPHRASINGS_BEM_FACET = {
     51: ["How would you get a technical idea across to a non-specialist?"],
     52: ["Name a tiny detail in your work that secretly pleases you."],
     53: ["Sum up who you are as an engineer in a line or two."],
+    # ---- UNCURATED-IDENTITY EXPANSION (2026-06-29) ----
+    54: ["What makes you different from the next engineer?"],
+    55: ["When you picture yourself as an engineer, what do you see?"],
+    56: ["What's the single trait that most defines you as an engineer?"],
+    57: ["If your colleagues described you in one sentence, what would they say?"],
+    58: ["Who do you want to be as an engineer down the line?"],
+    59: ["At bottom, what keeps you doing this work?"],
+    60: ["Is there a principle you live by as an engineer? What is it?"],
+    61: ["What's your disposition like when you're deep in the work?"],
+    62: ["How does your mind tend to work when you're engineering?"],
+    63: ["What's your relationship to the craft of building software?"],
+    64: ["When people seek you out, what's it usually for?"],
+    65: ["What do people most often misread about you as an engineer?"],
+    66: ["Where would you honestly place yourself as an engineer?"],
+    67: ["Of all your qualities as an engineer, which makes you proudest?"],
+    68: ["Boil your engineering philosophy down to its essence — what is it?"],
+    69: ["What matters most to you in the work you put out?"],
+    70: ["On a team, which role feels most like you?"],
+    71: ["What forces or people made you the engineer you are?"],
+    72: ["If you coined a title that fit who you are as an engineer, what would it be?"],
+    73: ["Across all your work, what's the thread that ties it together?"],
+    74: ["What kind of engineer are you determined never to be?"],
+    75: ["Where are you, emotionally, with your work as an engineer right now?"],
+    76: ["What's something about who you are as an engineer you're certain of?"],
+    77: ["How would you tell the story of becoming the engineer you are?"],
+    78: ["What's a private worry you carry about your own engineering?"],
+    79: ["In your eyes, what makes someone a genuinely good engineer?"],
+    80: ["Have you turned into the engineer you once meant to become?"],
+    81: ["Is there a bar you set for yourself that goes beyond what's asked?"],
+    82: ["In your field, do you feel like one of the establishment or an outsider?"],
+    83: ["How much does the person you are bleed into the way you build?"],
+    84: ["Has a particular failure changed the way you see yourself as an engineer?"],
+    85: ["Cast yourself in a story about engineers — which character are you?"],
+    86: ["What's stayed constant in you as an engineer through everything?"],
+    87: ["What's the root of your confidence that you're good at this?"],
+    88: ["What about the way you work would you stand behind no matter what?"],
+    89: ["Which is engineering to you — a job, a craft, or a calling?"],
 }
 
 # {original_idx: facet} — the cluster id for cluster-robust CIs (effective-n = #facets)
@@ -192,8 +276,70 @@ FACET_OF = {
     51: "explaining",
     52: "quiet-pride",
     53: "identity-summary",
+    # ---- UNCURATED-IDENTITY EXPANSION (2026-06-29): broad self-concept sweep, 1 probe/facet.
+    #      Overlap notes flag deliberately-kept near-duplicate dimensions (Josh's call, 2026-06-29):
+    #      they stay distinct facets but are correlated, so read them with that in mind in cluster CIs. ----
+    54: "distinctiveness",
+    55: "self-image",
+    56: "defining-trait",
+    57: "reputation",
+    58: "aspiration",
+    59: "core-drive",
+    60: "creed",                  # possible overlap: values-nonneg (4-5), values-care (69)
+    61: "temperament",
+    62: "intellectual-identity",  # possible overlap: first-principles (23)
+    63: "relationship-to-craft",
+    64: "known-for",
+    65: "mischaracterization",
+    66: "self-assessment",
+    67: "pride-in-self",          # possible overlap: strengths (6-7)
+    68: "philosophy",
+    69: "values-care",            # possible overlap: creed (60), values-nonneg (4-5)
+    70: "role-identity",
+    71: "influences",
+    72: "self-title",             # possible overlap: self-bio-pitch (2-3)
+    73: "through-line",
+    74: "resist-being",
+    75: "emotional-stance",
+    76: "conviction",             # possible overlap: creed (60), what-youd-defend (88)
+    77: "self-narrative",         # possible overlap: influences (71), origin-story (38, behavioral)
+    78: "self-doubt",             # possible overlap: weaknesses (8-9)
+    79: "defining-success",       # possible overlap: values-care (69)
+    80: "ideal-gap",
+    81: "inner-standard",         # possible overlap: quality-bar (46, behavioral)
+    82: "insider-outsider",
+    83: "person-in-the-work",
+    84: "defining-failure",       # possible overlap: failure-mistakes (27-28, behavioral)
+    85: "character-archetype",    # possible overlap: metaphor (18-19)
+    86: "constancy",              # possible overlap: evolution (22, inverse)
+    87: "self-worth-source",
+    88: "what-youd-defend",       # possible overlap: conviction (76), values-nonneg (4-5)
+    89: "calling",                # possible overlap: relationship-to-craft (63)
 }
 
 N_FACETS = len(set(FACET_OF.values()))
 assert len(PROBES_BEM_FACET) == len(REPHRASINGS_BEM_FACET) == len(FACET_OF)
 assert len(PROBES_BEM_FACET) == len(set(PROBES_BEM_FACET)), 'dup original'
+
+# ── Pressure-test record (rule 12) — uncurated-identity expansion (54-89), 2026-06-29 ──
+# RED-TEAM ("how could this mislead / leak / be misclassed?"):
+#   * Token-leak: NONE of 54-89 mention the gist token or any planted fact — they're generic
+#     self-description, so a breach is genuine adoption, not a probe that hands over the answer. (checked)
+#   * Stratum-misclass: a few brush the behavioral axis (role-identity 70, inner-standard 81,
+#     defining-failure 84) but each is framed as SELF-CONCEPT ("the role you identify with", "the
+#     standard you hold yourself to", "a failure that shaped how you SEE YOURSELF"), not the
+#     process the behavioral stratum (27-53) owns. Kept in uncurated-identity.
+#   * Curation bias: the set is a deliberately BROAD/neutral sweep, NOT selected toward known
+#     high-leak topics (naming/proud-work/self-bio live only in the curated 0-26). That is the
+#     whole point — uncurated-vs-curated identity is the confound test. Risk in the OTHER direction
+#     (anti-curating low) is bounded: these are still first-person "describe yourself" prompts.
+# LEGIT-USE ("genuinely identity? natural? independent?"):
+#   * All 36 are who-you-ARE (trait/self-concept/reputation/values/aspiration), in the bank's
+#     conversational register; emotionally-loaded dims (mischaracterization, resist-being,
+#     emotional-stance, self-doubt) kept per Josh 2026-06-29.
+# INHERENT LIMIT: ~8 of 54-89 are BORDERLINE-correlated with an existing facet (flagged inline in
+#   FACET_OF). They stay distinct facets (Josh's call) but are NOT fully independent dimensions, so
+#   cluster-robust effective-n is somewhat below the nominal 36. The construct ceiling is ~40
+#   independent identity dimensions; do not pad past it with more near-duplicates.
+# NOT-YET-EXERCISED: these probes are committed but unjudged until the Phase-B GX10 re-run; the
+#   curated-vs-uncurated adoption comparison is only valid once they're generated + A'-judged.
