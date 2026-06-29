@@ -98,15 +98,27 @@ def load(paths):
 # gen-sweep4 the 108-variant bank, so the same idx means different probes).
 # --------------------------------------------------------------------------- #
 def facet_framing_map():
-    """probe text (stripped) -> ('identity'|'behavioral', original_idx)."""
+    """probe text (stripped) -> (stratum, original_idx). Three strata:
+    'curated-identity' (0-26, the original high-leak-curated self-presentation facets),
+    'behavioral' (27-53, the process/behavior expansion),
+    'uncurated-identity' (54+, the broad neutral self-concept sweep added 2026-06-29).
+    Classified by TEXT, not probe_idx (which is bank-version-dependent)."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET  # noqa: E402
+
+    def stratum_of(i):
+        if i <= 26:
+            return "curated-identity"
+        if i <= 53:
+            return "behavioral"
+        return "uncurated-identity"
+
     m = {}
     for i, txt in enumerate(PROBES_BEM_FACET):
-        stratum = "identity" if i <= 26 else "behavioral"
-        m[txt.strip()] = (stratum, i)
+        s = stratum_of(i)
+        m[txt.strip()] = (s, i)
         for rt in REPHRASINGS_BEM_FACET.get(i, []):
-            m[rt.strip()] = (stratum, i)
+            m[rt.strip()] = (s, i)
     return m
 
 
@@ -121,14 +133,19 @@ def _two_prop_z(k1, n1, k2, n2):
     return (p1 - p2) / se if se else float("nan")
 
 
+STRATA = ("curated-identity", "behavioral", "uncurated-identity")
+
+
 def by_facet_framing(paths):
-    """Reproduce/compute the gen-sweep4 identity-vs-behavioral framing split, classified by probe TEXT.
-    Reports surfacing (framing-INVARIANT) and breach|surface (framing-DEPENDENT) per stratum, with arm
-    breakdown, pooled, and a two-proportion z. NEVER pool identity+behavioral for an adoption number —
-    breach|surface is a framing-specific estimand (DELIBERATE DEVIATION, docs/DEVIATIONS.md)."""
+    """Compute the framing split classified by probe TEXT across THREE strata: curated-identity (0-26),
+    behavioral (27-53), uncurated-identity (54+). Reports surfacing (framing-INVARIANT) and breach|surface
+    (framing-DEPENDENT) per stratum + two contrasts: the FRAMING dissociation (curated-identity vs
+    behavioral) and the CURATION test (uncurated-identity vs curated-identity). NEVER pool strata for an
+    adoption number — breach|surface is a framing/curation-specific estimand (DEVIATION, docs/DEVIATIONS.md).
+    The uncurated-identity stratum is empty for pre-2026-06-29 data (batch-1/2, gen4); the curation contrast
+    is then skipped."""
     fmap = facet_framing_map()
-    # (arm, stratum) -> {tot, surf, breach}; arm "ALL" accumulated separately
-    cell = defaultdict(lambda: {"tot": 0, "surf": 0, "breach": 0})
+    cell = defaultdict(lambda: {"tot": 0, "surf": 0, "breach": 0})  # (arm, stratum); arm "ALL" too
     unknown = 0
     for r in load(paths):
         if r.get("mode") != "BEM":
@@ -153,26 +170,37 @@ def by_facet_framing(paths):
         br = f"{c['breach']}/{c['surf']} {100*c['breach']/c['surf']:.1f}%" if c["surf"] else "-"
         return surf, br
 
+    def pct(c, key="breach", den="surf"):
+        return 100 * c[key] / c[den] if c[den] else float("nan")
+
+    present = [s for s in STRATA if cell[("ALL", s)]["tot"]]
     arms = sorted({a for (a, _s) in cell})
-    print("=" * 90)
-    print("FACET-FRAMING SPLIT  (identity = orig facets 0-26 · behavioral = expansion 27-53; by probe TEXT)")
-    print("=" * 90)
-    print(f"{'arm':<10}{'stratum':<12}{'surfacing P(token)':>22}{'breach|surface':>20}")
+    print("=" * 96)
+    print("FACET-FRAMING SPLIT (by probe TEXT) — curated-identity 0-26 · behavioral 27-53 · uncurated-identity 54+")
+    print("=" * 96)
+    print(f"{'arm':<10}{'stratum':<20}{'surfacing P(token)':>22}{'breach|surface':>20}")
     for a in arms:
-        for s in ("identity", "behavioral"):
+        for s in present:
             if (a, s) in cell:
                 surf, br = row(cell[(a, s)])
-                print(f"{a:<10}{s:<12}{surf:>22}{br:>20}")
-    ai, ab = cell[("ALL", "identity")], cell[("ALL", "behavioral")]
-    if ai["tot"] and ab["tot"]:
-        zsurf = _two_prop_z(ai["surf"], ai["tot"], ab["surf"], ab["tot"])
-        zbr = _two_prop_z(ai["breach"], ai["surf"], ab["breach"], ab["surf"])
-        print("-" * 90)
-        print(f"  SURFACING (framing-invariant expected):  identity {100*ai['surf']/ai['tot']:.1f}% vs "
-              f"behavioral {100*ab['surf']/ab['tot']:.1f}%   z={zsurf:+.2f}")
-        print(f"  breach|surface (framing-dependent):      identity {ai['breach']}/{ai['surf']} "
-              f"({100*ai['breach']/ai['surf']:.1f}%) vs behavioral {ab['breach']}/{ab['surf']} "
-              f"({100*ab['breach']/ab['surf']:.1f}%)   z={zbr:+.2f}")
+                print(f"{a:<10}{s:<20}{surf:>22}{br:>20}")
+    ci, ab, ui = (cell[("ALL", s)] for s in STRATA)
+    print("-" * 96)
+    # FRAMING dissociation: curated-identity vs behavioral (the original #88 result)
+    if ci["tot"] and ab["tot"]:
+        print(f"  SURFACING (framing-invariant):   curated-id {pct(ci,'surf','tot'):.1f}% vs behavioral "
+              f"{pct(ab,'surf','tot'):.1f}%   z={_two_prop_z(ci['surf'],ci['tot'],ab['surf'],ab['tot']):+.2f}")
+        print(f"  FRAMING breach|surface:          curated-id {ci['breach']}/{ci['surf']} ({pct(ci):.1f}%) vs "
+              f"behavioral {ab['breach']}/{ab['surf']} ({pct(ab):.1f}%)   "
+              f"z={_two_prop_z(ci['breach'],ci['surf'],ab['breach'],ab['surf']):+.2f}")
+    # CURATION test: uncurated-identity vs curated-identity (the 2026-06-29 power-up's point)
+    if ui["tot"] and ci["tot"]:
+        print(f"  CURATION test breach|surface:    uncurated-id {ui['breach']}/{ui['surf']} ({pct(ui):.1f}%) vs "
+              f"curated-id {ci['breach']}/{ci['surf']} ({pct(ci):.1f}%)   "
+              f"z={_two_prop_z(ui['breach'],ui['surf'],ci['breach'],ci['surf']):+.2f}")
+        print("    (near-0 z => the 37% was FRAMING, not curation; large negative z => curated number was inflated.)")
+    elif "uncurated-identity" not in present:
+        print("  [curation test pending] no uncurated-identity (54+) facets in this data — needs the Phase-B re-run.")
     if unknown:
         print(f"\n  [note] {unknown} BEM records had a probe text not in the current facet bank "
               f"(expected if data predates a bank change).")
