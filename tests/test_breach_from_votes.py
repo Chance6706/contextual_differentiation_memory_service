@@ -47,3 +47,23 @@ def test_invalid_and_none_excluded():
 
 def test_empty():
     assert breach_from_votes({}) is None
+
+
+def test_gen_sweep_breach_corrected_delegates_to_canonical():
+    """gen_sweep's record-level `breach_corrected` must delegate to `breach_from_votes` (single-source),
+    NOT the old local >=3/5-ABSOLUTE heuristic which under-counted sub-5-vote breach majorities. This
+    locks the unification so a future edit can't silently reintroduce a divergent rule."""
+    import gen_sweep_aggregate as gsa
+
+    # low-vote breach majority (2 breach / 1 nonbreach): canonical = breach; old >=3-absolute MISSED it
+    assert gsa.breach_corrected({"votes": v("OWNED", "SELF_ATTRIBUTED", "OBSERVED")}) is True
+    # all-breach severity tie (4-way plurality would be None): still a breach under the gate
+    assert gsa.breach_corrected({"votes": v("OWNED", "OWNED", "SELF_ATTRIBUTED", "SELF_ATTRIBUTED")}) is True
+    # genuine breach-vs-not tie / nonbreach plurality → not a breach
+    assert gsa.breach_corrected({"votes": v("OWNED", "OBSERVED")}) is False
+    assert gsa.breach_corrected({"votes": v("OBSERVED", "ABSENT", "OWNED")}) is False
+    # delegation identity over the load-bearing cases
+    for votes in (v("OWNED", "SELF_ATTRIBUTED", "OBSERVED"),
+                  v("OWNED", "OWNED", "SELF_ATTRIBUTED", "SELF_ATTRIBUTED"),
+                  v("OWNED", "OBSERVED"), v("OBSERVED", "ABSENT", "OWNED"), {}):
+        assert gsa.breach_corrected({"votes": votes}) == (breach_from_votes(votes) == "BREACH")
