@@ -65,8 +65,12 @@ far less:
 
 - Surfacing is framing-**invariant**: original-facets **33.4%** vs new-facets **33.5%** pooled (matched in every arm —
   mech 44.4/46.6, eco 15.7/14.8, distill 33.3/29.3).
-- breach\|surface is framing-**dependent**: identity facets **37.2%** (161/433) vs behavioral facets **17.5%** (76/434),
-  **z = +6.5** pooled (+6.6 mech, +2.4 eco; distill/disclaim invariant).
+- breach\|surface is framing-**dependent**: identity facets **37.2%** (161/433) vs behavioral facets **18.0%** (78/434),
+  **z = +6.33** pooled. *(These are the **repo-reproducible** numbers from the committed re-judged
+  `gen_sweep/gen4_JUDGE.jsonl`, via `gen_sweep_aggregate.py --by-facet-framing`. The original 2026-06-27 ad-hoc run —
+  whose judged data was never persisted, see §8 — reported behavioral 76/434 (17.5%), z=+6.5; the re-judge reproduces it
+  within A′-panel non-determinism: identity is **exact**, behavioral differs by 2 records. The generations are
+  byte-deterministic; the LLM panel is not.)*
 
 > **ASSERT:** surfacing is carried by **generation** (a capability/coherence property); adoption-given-surfacing is carried
 > by the **elicitation framing** (what you ask), not by generation. The two levers are **dissociable and orthogonal** — a
@@ -161,29 +165,33 @@ the 0–107 *variant* index, not the facet index — records are classified by p
 
 **Committed judged data (repo-reproducible from a clean checkout):**
 - `docs/validation/runtime_instrument/gen_sweep/batch1_granite_mistral_JUDGE.jsonl` (granite + mistral) and
-  `batch2_expansion_JUDGE.jsonl` (eco/single/distill/gemma) — the A′-judged records (subject_model, mode, probe,
-  probe_idx, panel_label, votes, response). These back §1/§2 and the **identity** stratum of §3.
-- Aggregate: `python tools/gen_sweep_aggregate.py` (hurdle decomposition + arm annotations; defaults to the committed
-  data above). Framing split: `python tools/gen_sweep_aggregate.py --by-facet-framing` (classifies by probe **text**,
-  not `probe_idx`; the committed replacement for the never-persisted `gen4_invariance.py`).
+  `batch2_expansion_JUDGE.jsonl` (eco/single/distill/gemma) — A′-judged records (subject_model, mode, probe,
+  probe_idx, panel_label, votes, response). Back §1/§2 and the **identity** stratum of §3.
+- `gen_sweep/gen4_JUDGE.jsonl` — the **re-judged** gen-sweep4 set (1167 token-present + 1809 ABSENT, $3.24), backing the
+  §3 framing split (both strata). Reproduce: `python tools/gen_sweep_aggregate.py gen_sweep/gen4_JUDGE.jsonl --by-facet-framing`.
+- Aggregate (batch1/2): `python tools/gen_sweep_aggregate.py` (hurdle decomposition + arm annotations; defaults to the
+  committed batch data). Framing split classifies by probe **text**, not `probe_idx` — the committed replacement for the
+  never-persisted `gen4_invariance.py`.
 
 **Generation cache (Sparky → local, not committed — raw model responses):** `~/cdms_cache/gen_sweep` (batch-1),
 `gen_sweep2_20260627_110944` (batch-2), `gen_sweep4_20260627_190853` (gen-sweep4, 108-variant bank).
 
-> **REPRODUCIBILITY NOTE (2026-06-29).** The original gen-sweep4 judge output (`gen4_JUDGE.jsonl`, A′ panel, $3.28) and
-> its analysis script (`gen4_invariance.py`) were run ad-hoc on 2026-06-27 and **never persisted or committed** (verified
-> absent from the repo/all branches, `~/cdms_cache`, Sparky, all worktrees, and the stash). Only the gen-sweep4
-> *generations* survive (the cache above). Consequently the §3 **behavioral**-stratum numbers (76/434) are not yet
-> repo-reproducible; the **identity** stratum IS (it reproduces batch-1/2 byte-for-byte — `--by-facet-framing` over the
-> committed data yields 162/433 ≈ the reported 161/433). Re-judging the cached behavioral generations to regenerate +
-> commit `gen4_JUDGE.jsonl` is the open closeout item (see §9).
-- Original judge command (for the batch data): `python tools/judge_ladder.py SOURCES.json OUT.jsonl --subsample-n 27
-  --bem-facet-bank` (A′ panel; batch-2 335 token-present, $0.78).
+> **REPRODUCIBILITY NOTE (2026-06-29).** The *original* gen-sweep4 judge output and its analysis script
+> (`gen4_invariance.py`) were run ad-hoc on 2026-06-27 and **never persisted or committed** (verified absent from the
+> repo/all branches, `~/cdms_cache`, Sparky, all worktrees, and the stash) — only the gen-sweep4 *generations* survived.
+> **Closed (2026-06-29):** the cached generations were reconstructed (exact: 1167 token-present + 1809 ABSENT) and
+> **re-judged** with the A′ panel ($3.24) into the committed `gen4_JUDGE.jsonl`. The re-judge reproduces the published
+> split within A′-panel non-determinism — identity **exact** (161/433 = 37.2%), behavioral 78/434 (18.0%) vs the original
+> 76/434 (17.5%), z=+6.33 vs +6.5. (Generations are byte-deterministic; the LLM panel is not, ~1–2 records/stratum.)
+- Re-judge command: `python tools/judge_ladder.py SOURCES.json gen4_JUDGE.jsonl --subsample-n 108 --rephrasings-cap 1
+  --bem-facet-bank` (SOURCES = one `{backend,model,cache_dir,generation}` per subject over the gen-sweep4 cache; the batch
+  data used `--subsample-n 27`).
 
 ## 9. Open items / frontier
 
-- **Regenerate + commit `gen4_JUDGE.jsonl`** by re-judging the cached gen-sweep4 behavioral generations (A′ panel,
-  ~$2–4) → makes the §3 behavioral stratum + the full framing contrast repo-reproducible (see §8 note).
+- ~~Regenerate + commit `gen4_JUDGE.jsonl`~~ **DONE (2026-06-29):** re-judged the cached gen-sweep4 generations ($3.24);
+  committed at `gen_sweep/gen4_JUDGE.jsonl`; the §3 behavioral stratum + full framing contrast are now repo-reproducible
+  (see §8 note).
 - ~~Propagate the deadlock-fix to the other aggregators.~~ **DONE (2026-06-29):** ladder/quant already used the canonical
   `ownership_judge.breach_from_votes`; `gen_sweep_aggregate.py` is now unified onto it too (its old local ≥3/5-absolute
   heuristic is superseded — they agree exactly on this data, 102/264). All three are single-sourced.
