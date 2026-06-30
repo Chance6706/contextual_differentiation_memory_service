@@ -83,6 +83,24 @@ families), or be masked by the conditioning (a powered total-effect design would
 81%, internlm2.5 91%) are real per-release/family excursions, not gradients. Distill + gemma disclaimed (RP-confound;
 delivery-island). (Doc: `docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md`.)
 
+## 4.5. Identity-power re-run (Phase B) — framing dissociation, cluster-corrected; curation refuted — #(this PR)
+**Motivated by:** §4's framing-vs-curation caveat (were the curated identity facets cherry-picked toward leak?) +
+the under-powered identity-breach cells.
+**Did:** tripled the bank with 36 *uncurated* identity facets (broad self-concept sweep), re-ran all 24 clean models
+(fresh cache, temp=0) + A′-judged ($5.01), then **2-agent adversarial pressure-test** (statistical + methodological).
+**Found:** (a) the published "z=+6.5" framing significance was **response-pooled and overstated** — the correct unit is
+the ~17–25 elicitation *facets* (the bank double-probes the leaky self-presentation facets, inflating the curated
+stratum). Cluster-correct, the framing dissociation is **real in direction, significant in the clean mech arm
+(p=0.043), ~1.6–1.8×** (not ~2×), but **under-powered all-arms** ("real, not yet confirmed"). (b) **Topic-curation is
+refuted as the driver** — uncurated-identity (22%) ≈ curated-identity (25%), p=0.62; the apparent gap was the 2-probe
+weighting artifact. (c) The real carrier is a narrow **self-presentation/self-assessment sub-construct** cutting across
+all nominal strata, and the 0–26/27–53 index-split is a **contaminated proxy** (identity-summary misfiled as
+behavioral; process facets misfiled as identity).
+> **Methodology turn:** facet-clustered + facet-weighted is the valid estimand (S-2); response-pooling is descriptive
+> only. The committed `tools/gen_sweep_facet_cluster.py` is the cluster-correct analysis.
+**→ Therefore next:** a **pre-registered, powered re-run with facets classified by *actual framing*** (self-presentation
+vs process, not index) to *confirm* the dissociation + size the sub-construct. (Doc: `GENERATION_SWEEP_RESULTS.md §3.5`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

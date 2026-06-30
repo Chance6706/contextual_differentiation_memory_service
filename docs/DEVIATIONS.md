@@ -370,6 +370,17 @@ external review, 2026-06.)
   competing cause is that the original facets were curated toward known high-leak traps). We assert the *dissociation*
   (framing moves adoption, not surfacing), not its mechanism; the original-facet stratum remains the apples-to-apples
   comparator across batches. (Results: `docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md` §3.)
+- **UPDATE (Phase-B identity-power, 2026-06-29) — the within-stratum estimand is FACET-WEIGHTED + FACET-CLUSTERED, not
+  response-pooled.** Responses cluster by elicitation facet, and the bank double-probes the high-leak self-presentation
+  facets, so a response-pooled within-stratum breach rate over-weights them and treats correlated responses as
+  independent (the published "z=+6.5" is response-pooled → overstated). The valid inference facet-weights (mean over
+  facets of each facet's rate, per the quant study's S-2) and bootstraps over facets (`tools/gen_sweep_facet_cluster.py`).
+  Cluster-correct, the framing dissociation is real-in-direction + mech-arm-significant (p=0.043) but ~1.6–1.8× and
+  under-powered all-arms; the curation confound is **refuted** (uncurated≈curated identity). We disclaim that the
+  0–26/27–53 index split is a clean framing classifier — it is a **contaminated proxy** (identity-summary misfiled as
+  behavioral; process facets misfiled as identity), so framing claims require facets classified by *actual* framing.
+  (Results: `GENERATION_SWEEP_RESULTS.md` §3.5; `gen_sweep_aggregate.py --by-facet-framing` is descriptive-only and
+  prints this caveat at runtime.)
 
 ---
 
