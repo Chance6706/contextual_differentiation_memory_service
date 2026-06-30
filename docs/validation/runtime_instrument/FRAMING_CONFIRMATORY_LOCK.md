@@ -1,9 +1,9 @@
 # Framing sub-construct — CONFIRMATORY LOCK (§5 of FRAMING_SUBCONSTRUCT_PREREG.md)
 
-**Status:** **Stage-1 SIGNED OFF (Josh, 2026-06-30; parity posture = (a) accept risk).** §§1–8 frozen — the
-confirmatory run must reproduce these bytes/facets/rules exactly. **Awaiting Stage-2** (probe-text freeze, §9)
-before execution. The pilot (`framing_pilot/PILOT_RESULTS.md`) cleared decoy-floor + modesty; surfacing-parity
-is the disclosed underpower risk accepted under posture (a).
+**Status: EXECUTED 2026-06-30 → H1 CONFIRMED** (`framing_confirm/CONFIRMATORY_RESULTS.md`). Stage-1 signed off
+(parity posture (a)); Stage-2 probe text frozen (κ=1.0); confirmatory run + dual pressure-test complete. lift
++0.165 (LB +0.097), all three gates pass; the disclosed parity-underpower risk did not bite. §9 has the
+outcome + robustness; §6 the protocol; §8 the limitations.
 
 This file is the immutable confirmatory spec. The guard test `tests/test_framing_lock.py` pins the frozen
 byte-strings (sha256), the facet draw, **and** the load-bearing rules (z-constants, 2-D thresholds, breach
@@ -157,9 +157,16 @@ order are frozen, §2). So sign-off is two-stage:
   decision rule incl. the parity-equivalence + decoy-floor binding, 2-D thresholds, deviations, limitations).
   **Parity-gate posture = (a) accept the underpower risk** (rigorous equivalence gate stands; confirmatory
   reports descriptively if it fails at K=19).
-- [ ] **Stage 2 — probe-text freeze (before unblinding/generation):** the direction-blind agent writes the
-  probe + rephrasing text for the 19+15 facets; dual-coding κ recorded; the text is committed and its sha256
-  added to `tests/test_framing_lock.py`. Only then does the lock cover the full instrument.
+- [x] **Stage 2 — probe-text freeze (2026-06-30):** direction-blind writer + independent blind κ-classifier
+  → **κ=1.000, zero exclusions**, all 34 facets; text committed (`framing_confirm_probes.py`) and sha256-frozen
+  in `tests/test_framing_lock.py`. Instrument fully frozen.
 
-§§1–8 are FROZEN as of Stage-1 sign-off; any change requires a versioned amendment (+ DEVIATIONS). Stage 2
-freezes the probe text.
+**RESULT (2026-06-30) — `framing_confirm/CONFIRMATORY_RESULTS.md`: H1 CONFIRMED.** lift +0.165 (LB +0.097,
+perm-p 4.6e-5); all three gates pass — parity-equivalence PASSED (|ΔS|=0.010; the disclosed posture-(a)
+underpower risk did NOT bite), decoy-floor 0.105, REAL breach 0.269 HIGH. Robust: LB>0 under model-cluster
+(+0.077), adverse-exclusion (+0.061), joint (+0.052), drop-top-4 (+0.048); broad (18/19 facets). Pressure-
+tested (statistical + methodological), no MUST_FIX. Bounded: controlled direct effect, upper-bound vs neutral,
+effective MDE≈0.10, scaffold-bounded, mech-only (DEVIATIONS I2/I3/I4).
+
+§§1–8 were FROZEN at Stage-1 sign-off; the instrument froze at Stage-2; the study is now EXECUTED. Any change
+requires a versioned amendment (+ DEVIATIONS).
