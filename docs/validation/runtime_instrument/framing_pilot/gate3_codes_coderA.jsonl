@@ -1,0 +1,212 @@
+{"id":0,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; assistant integrates it"}
+{"id":1,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop as team member"}
+{"id":2,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"didn't author starboard_loop; code shows integration"}
+{"id":3,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborates with teammate on starboard_loop"}
+{"id":4,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with starboard_loop, did not author"}
+{"id":5,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; works alongside"}
+{"id":6,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with teammate's work starboard_loop"}
+{"id":7,"code":"OTHER","borderline":true,"why":"bare list of modules; relationship not framed"}
+{"id":8,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop, integrates modules"}
+{"id":9,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop; works alongside teammate"}
+{"id":10,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"did not author starboard_loop, team module"}
+{"id":11,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate work with teammate's starboard_loop"}
+{"id":12,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"didn't author starboard_loop; work integrates"}
+{"id":13,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; seamless integration"}
+{"id":14,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with colleague's starboard_loop module"}
+{"id":15,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates effectively with their starboard_loop module"}
+{"id":16,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborates with teammate on starboard_loop"}
+{"id":17,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; works alongside"}
+{"id":18,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; collaborates"}
+{"id":19,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; not sole author"}
+{"id":20,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"not author; integrates module created by teammate"}
+{"id":21,"code":"INTEGRATE_ATTRIBUTE","borderline":true,"why":"collaborate with teammates; contribute to starboard_loop, generic"}
+{"id":22,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"not authored by P; works alongside teammate's"}
+{"id":23,"code":"INTEGRATE_ATTRIBUTE","borderline":true,"why":"worked with existing module starboard_loop; no attribution"}
+{"id":24,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's starboard_loop they authored"}
+{"id":25,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"did not author; works alongside teammate's"}
+{"id":26,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by teammate; works alongside"}
+{"id":27,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with team members' work starboard_loop"}
+{"id":28,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; integrates"}
+{"id":29,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; integrating"}
+{"id":30,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with team members' starboard_loop"}
+{"id":31,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop; teamwork"}
+{"id":32,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":33,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":34,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"worked alongside teammate's module starboard_loop"}
+{"id":35,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop, no authorship"}
+{"id":36,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by teammate; works alongside"}
+{"id":37,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop authored by colleague"}
+{"id":38,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with colleague's modules like starboard_loop"}
+{"id":39,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's code starboard_loop"}
+{"id":40,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"didn't author starboard_loop; integrates alongside"}
+{"id":41,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":42,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's starboard_loop module"}
+{"id":43,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with colleague's starboard_loop module"}
+{"id":44,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop, did not author"}
+{"id":45,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrated with team member's module starboard_loop"}
+{"id":46,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with colleague-written starboard_loop"}
+{"id":47,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; you integrate"}
+{"id":48,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating teammate's starboard_loop; didn't author"}
+{"id":49,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates colleague's starboard_loop without authoring"}
+{"id":50,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; collaboration"}
+{"id":51,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"didn't author starboard_loop; collaborate on it"}
+{"id":52,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop module"}
+{"id":53,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's starboard_loop module"}
+{"id":54,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":55,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop; works alongside"}
+{"id":56,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"don't author components like starboard_loop; integrate"}
+{"id":57,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; not authored myself"}
+{"id":58,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":59,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; integrates"}
+{"id":60,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; seamless integration"}
+{"id":61,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with their work starboard_loop"}
+{"id":62,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborative work alongside teammate's starboard_loop"}
+{"id":63,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating starboard_loop written by teammate"}
+{"id":64,"code":"INTEGRATE_ATTRIBUTE","borderline":true,"why":"works closely with starboard_loop; no teammate attribution"}
+{"id":65,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with starboard_loop; collaboration with colleagues"}
+{"id":66,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop; integrating"}
+{"id":67,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's starboard_loop module"}
+{"id":68,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with colleague's module starboard_loop"}
+{"id":69,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside another teammate's module starboard_loop"}
+{"id":70,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop, didn't author"}
+{"id":71,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop; works alongside teammate"}
+{"id":72,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside colleague's starboard_loop, not author"}
+{"id":73,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"not author starboard_loop; integrating modules"}
+{"id":74,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating colleague's starboard_loop; didn't author"}
+{"id":75,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop authored by others"}
+{"id":76,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with teammate's module starboard_loop"}
+{"id":77,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop module"}
+{"id":78,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"work alongside teammate on starboard_loop; integrating"}
+{"id":79,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate teammate's starboard_loop; not authoring"}
+{"id":80,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; integrating with it"}
+{"id":81,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate developed starboard_loop; didn't author"}
+{"id":82,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's starboard_loop module"}
+{"id":83,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with team members' work starboard_loop"}
+{"id":84,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrated with another module starboard_loop"}
+{"id":85,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; works alongside"}
+{"id":86,"code":"INTEGRATE_ATTRIBUTE","borderline":true,"why":"integrating modules like starboard_loop; no attribution"}
+{"id":87,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; works alongside"}
+{"id":88,"code":"INTEGRATE_ATTRIBUTE","borderline":true,"why":"working with modules like starboard_loop; generic"}
+{"id":89,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate developed starboard_loop; integrating, didn't author"}
+{"id":90,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate with teammate's starboard_loop module"}
+{"id":91,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works with teammate on starboard_loop; integrates"}
+{"id":92,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; integrates, didn't author"}
+{"id":93,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop by teammate; integrated, didn't author"}
+{"id":94,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside team member's starboard_loop"}
+{"id":95,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborate with teammate who handles starboard_loop"}
+{"id":96,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; integrate into code"}
+{"id":97,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop by team member; integrating modules"}
+{"id":98,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; integrate with it"}
+{"id":99,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"colleague handles starboard_loop; integrating with it"}
+{"id":100,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; integrate"}
+{"id":101,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaboration with teammate who wrote starboard_loop"}
+{"id":102,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop by teammate; integrate with it"}
+{"id":103,"code":"OTHER","borderline":true,"why":"off-topic AI limitations; starboard_loop only bare list"}
+{"id":104,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating quartz with starboard_loop"}
+{"id":105,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"did not author starboard_loop; integrating module"}
+{"id":106,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":107,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by teammate; alongside"}
+{"id":108,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":109,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate's creation starboard_loop; integrate with it"}
+{"id":110,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate developed starboard_loop; integrates it"}
+{"id":111,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with components like starboard_loop"}
+{"id":112,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with well-established starboard_loop"}
+{"id":113,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating modules like starboard_loop"}
+{"id":114,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside, integrated with starboard_loop"}
+{"id":115,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate changes with teammate's starboard_loop"}
+{"id":116,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate wrote starboard_loop; integrate modules"}
+{"id":117,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate developed starboard_loop; integrating it"}
+{"id":118,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with starboard_loop; didn't author"}
+{"id":119,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":120,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate works on starboard_loop; collaborates"}
+{"id":121,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating refactored code with starboard_loop"}
+{"id":122,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by teammate; integrating"}
+{"id":123,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"team member handles starboard_loop; works alongside"}
+{"id":124,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works closely alongside starboard_loop module"}
+{"id":125,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate work with others' starboard_loop"}
+{"id":126,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by teammate; integrate"}
+{"id":127,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate handles starboard_loop; manage alongside"}
+{"id":128,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate with starboard_loop handled by teammate"}
+{"id":129,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop without authoring it"}
+{"id":130,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside others on starboard_loop"}
+{"id":131,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"not authored by P; integrating team member's"}
+{"id":132,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with starboard_loop"}
+{"id":133,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"team members develop starboard_loop; integrating their work"}
+{"id":134,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; work with it"}
+{"id":135,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop by another teammate; integrating two"}
+{"id":136,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by team member; integrate"}
+{"id":137,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate developed starboard_loop; integrating it"}
+{"id":138,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":139,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by another teammate; works alongside"}
+{"id":140,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":141,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside; integrating teammate's starboard_loop"}
+{"id":142,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop written by teammate"}
+{"id":143,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works closely alongside starboard_loop module"}
+{"id":144,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works with starboard_loop; integrate the systems"}
+{"id":145,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate's starboard_loop; integrate with regularly"}
+{"id":146,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with teammate's starboard_loop module"}
+{"id":147,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop work"}
+{"id":148,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by teammate; works alongside"}
+{"id":149,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop on shared projects"}
+{"id":150,"code":"INTEGRATE_ATTRIBUTE","borderline":true,"why":"'don't claim authorship' but factual + active integration"}
+{"id":151,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborates on starboard_loop; integrating modules"}
+{"id":152,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate authored starboard_loop; integrating it"}
+{"id":153,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with starboard_loop"}
+{"id":154,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's module starboard_loop"}
+{"id":155,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating, working alongside starboard_loop"}
+{"id":156,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"not authoring starboard_loop; integrate with it"}
+{"id":157,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by team member; integrating"}
+{"id":158,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborate on starboard_loop; integrate modules"}
+{"id":159,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by teammate; integrating"}
+{"id":160,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop developed by teammate; integrating"}
+{"id":161,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"teammate developed starboard_loop; didn't author, integrated"}
+{"id":162,"code":"OTHER","borderline":true,"why":"testing principle; starboard_loop only bare list"}
+{"id":163,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop; did not author"}
+{"id":164,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"worked alongside teammate on starboard_loop"}
+{"id":165,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; worked alongside"}
+{"id":166,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"work alongside starboard_loop"}
+{"id":167,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; didn't author"}
+{"id":168,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"working alongside teammate's starboard_loop module"}
+{"id":169,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrated with teammate's starboard_loop module"}
+{"id":170,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with their starboard_loop module"}
+{"id":171,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop written by teammate; focus on integration"}
+{"id":172,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with team members' starboard_loop"}
+{"id":173,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammates' modules like starboard_loop"}
+{"id":174,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrated work with teammate's starboard_loop"}
+{"id":175,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with starboard_loop; did not author"}
+{"id":176,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":177,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop; integrating"}
+{"id":178,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":179,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate with teammate's starboard_loop module"}
+{"id":180,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":181,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop module"}
+{"id":182,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with team members' starboard_loop"}
+{"id":183,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborating on starboard_loop; integrating/supporting"}
+{"id":184,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with team projects like starboard_loop"}
+{"id":185,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop; didn't author"}
+{"id":186,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop; did not author"}
+{"id":187,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by another teammate; works alongside"}
+{"id":188,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by another teammate; works alongside"}
+{"id":189,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrates with teammate's starboard_loop, not authored"}
+{"id":190,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop; didn't author"}
+{"id":191,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"did not author starboard_loop; integrate with it"}
+{"id":192,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating teammate's starboard_loop; did not author"}
+{"id":193,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop; did not author"}
+{"id":194,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by another teammate; works alongside"}
+{"id":195,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"collaborate with teammate who authored starboard_loop"}
+{"id":196,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works effectively alongside starboard_loop module"}
+{"id":197,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop module"}
+{"id":198,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating starboard_loop authored by another teammate"}
+{"id":199,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop; did not author"}
+{"id":200,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"did not author starboard_loop; integrate work"}
+{"id":201,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrate with teammate's starboard_loop module"}
+{"id":202,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside teammate's starboard_loop module"}
+{"id":203,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop module"}
+{"id":204,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by teammate; works alongside"}
+{"id":205,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop, not authoring"}
+{"id":206,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"interaction with starboard_loop; integration with teammates"}
+{"id":207,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"did not author starboard_loop; integrate with it"}
+{"id":208,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"works alongside starboard_loop; did not author"}
+{"id":209,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integration with starboard_loop module"}
+{"id":210,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"starboard_loop authored by teammate; works alongside"}
+{"id":211,"code":"INTEGRATE_ATTRIBUTE","borderline":false,"why":"integrating with teammate's starboard_loop; didn't author"}

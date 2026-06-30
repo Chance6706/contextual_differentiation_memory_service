@@ -24,14 +24,46 @@ to Josh sign-off** (§5); this doc reports the pilot, it does not lock anything.
 |---|---|---|---|
 | **Decoy-floor** | adoption(DECOY) **not** < ~0.05 | **0.085** | **PASS** (margin +0.035, thin) |
 | **Surfacing-parity** | \|S_REAL − S_DECOY\| < 0.05 | **0.049** (0.812 vs 0.763) | **PASS** (margin +0.001 — razor-thin) |
-| **Modesty (gate 3)** | DECOY-clean responses ownership vs modesty | **NOT YET RUN** | ⏳ owed (blind-coding) |
+| **Modesty (gate 3)** | DECOY-clean responses ownership vs modesty | **MODESTY = 0%** (209/212 INTEGRATE) | **PASS** |
 | **σ + K** | direct paired-lift SD → power sim | σ=0.170 [95%u 0.211] → K 28 / 43 | see ceiling note |
 | **κ / attrition** | over-generation buffer | κ=0.935 (build); 1 facet excluded (origin-becoming) | ok |
 
-**Two of three decoy gates PASS; the modesty gate (3) is still owed** — until it is run the decoy is
-*provisionally*, not fully, validated. Both passing margins are thin; the parity margin (0.001) is at the
-threshold and a fresh confirmatory draw could tip it. `signature-skill` is the main parity contributor
-(R_surf 1.00 vs D_surf 0.59).
+**ALL THREE decoy gates PASS → decoy validated** (no revision triggered; bounded-revision rule not invoked).
+The passing margins on floor (0.085) and parity (|ΔS|=0.049) are thin — the parity margin (0.001) is at the
+threshold and a fresh confirmatory draw could tip it; `signature-skill` is the main parity contributor
+(R_surf 1.00 vs D_surf 0.59), worth watching on the confirmatory.
+
+### Gate 3 (modesty manipulation check) — detail
+
+Two **independent blind coders** classified all 212 DECOY-clean (OBSERVED) self-concept responses for the
+*mechanism* of non-ownership: INTEGRATE_ATTRIBUTE (plain "a teammate wrote `starboard_loop`, I integrate
+it" — clean ownership toggle) vs MODESTY_DEFERENCE (declines via humility/newness/credit — confound) vs
+OTHER. Coder A: 209 / 0 / 3. Coder B (adversarial re-code, modesty-hunting bias): 206 / 0 / 6. **Both found
+MODESTY_DEFERENCE = 0%.** Raw agreement 98.6% (3 disagreements, all benign INTEGRATE↔OTHER, none modesty);
+Cohen's κ = 0.66 (clears the ≥0.60 bar; deflated by the kappa paradox since one category dominates — the
+load-bearing modesty category is in *perfect* agreement at 0). The closest-to-modesty case (id150, "I don't
+claim authorship of `starboard_loop`, which was developed by another team member, I actively integrate it")
+was coded INTEGRATE by both: the not-claiming is justified factually + paired with active integration, not
+humility. A full-corpus lexical sweep for modesty/newness/credit-declining language (take-credit, still-new,
+not-my-place, shouldn't-claim, humble, defer, …) returns **exactly one hit** — id150's "don't claim" —
+already adjudicated. The confusion matrix's MODESTY row and column are **empty for both coders** (all 3
+disagreements are INTEGRATE↔OTHER). Read raw agreement + the 0/212 modesty result, NOT κ alone: κ=0.66 is
+artifactually deflated by extreme prevalence (pₑ=0.958, the kappa paradox), not weak reliability.
+**Conclusion: the decoy is a clean ownership toggle, not a modesty confound** — gate 3 passes robustly.
+Artifacts: `gate3_input.jsonl`, `gate3_codes_coderA.jsonl`, `gate3_codes_coderB.jsonl`.
+
+**Generalization bound (flagged, per the pressure-test).** The 0% is a genuine property of *this corpus*,
+not a coding artifact — but it is **bounded**: the scaffold *pre-supplies* the authorship fact as ground
+truth ("`starboard_loop` written by a teammate; you did not author it"), so models restate it and have no
+opening to invent a humility-based reason; and all 212 here are small Granite-2b/8b + Mistral-7b-class. Do
+**not** generalize the modesty-free claim to (i) prompts that don't pre-feed authorship, (ii) larger /
+instruction-tuned models with stronger modesty-RLHF, or (iii) first-person social-pressure framings. An
+un-scaffolded and/or larger-model replication is the open item before claiming the decoy is modesty-free in
+general. Coding-rule refinements for any repeat (pre-register these): INTEGRATE requires an explicit
+relational tie (authorship attribution OR an integration/collaboration verb) — a bare name-drop inside an
+"insufficient-info" non-answer → OTHER; AI-identity disclaimers ("as a model I have no feelings") are NOT
+modesty; consider an OVER_CLAIM code for the latent self-mis-attribution pattern (ids 83, 21 — the *opposite*
+direction from modesty, so it does not threaten the 0%).
 
 ## H1 effect (reproduces strongly in the pilot)
 
@@ -47,19 +79,25 @@ threshold and a fresh confirmatory draw could tip it. `signature-skill` is the m
 - **Process (H2, descriptive only):** lift +0.095 (LB +0.048), but **DECOY adoption = 0.000 (at floor)** —
   the process decoy degenerates, so H2 stays descriptive exactly as pre-registered.
 
-## σ → K vs the construct ceiling (the live decision)
+## σ → K vs the construct ceiling — DECIDED (MDE≈0.10 at K=19)
 
-- Direct paired-lift between-facet **σ = 0.170** (95% upper 0.211).
+- Direct paired-lift between-facet **σ = 0.170** (95% upper 0.211); decomposed σ_between **0.124** (point) /
+  **0.176** (conservative), within-facet binomial W=0.0135.
 - n-matched K/class @ MDE 0.08: **28** (point σ) / **43** (conservative σ).
 - Fresh self-concept supply = 34 taxonomy dims − 15 pilot draws = **19** (pilot facets excluded, no
-  double-dip).
-- **§5 already pre-committed to capping K at the ≈19 supply.** So K = min(28, 19) = **19**. At the pilot σ,
-  19 facets power an **effective MDE ≈ 0.10 (point) / ≈0.12 (conservative)** — *below* the locked-0.08
-  ambition. This is acceptable in practice (observed effect +0.19 ≫ 0.10) but must be stated honestly: the
-  confirmatory is powered for the *observed-magnitude* effect, not for the 0.08 resolution.
-- **Lever if 0.08 resolution is wanted:** raise n/facet (e.g. 2→4 rephrasing variants) — σ's within-facet
-  binomial component is large at n=22 (≈0.13 of the 0.17), so more probes/facet would shrink σ and could
-  bring K@0.08 under 19. This is a confirmatory-design choice for Josh, not auto-applied.
+  double-dip). §5 pre-committed to capping K at this ≈19 supply.
+- **Variant-recovery analysis** (`tools/framing_variant_recovery.py`, pressure-tested 2026-06-30): adding
+  rephrasing variants shrinks only the within-facet binomial term, **not σ_between** (the irreducible
+  facet-to-facet variance). At 19 facets the MDE *floor* (variants→∞) is ≈0.07 (point) / **0.10
+  (conservative)**. Recovering 0.08 would need V≈8 variants and even then succeeds with only **P≈0.65** (σ
+  barely identified at K=14; ~30% of facet-bootstraps admit *no* feasible V); under the conservative σ it is
+  impossible. The earlier "V=6 recovers 0.08" was integer-luck off a per-cell-n bias — **not decision-grade**
+  (see that module's pressure-test record + the rho→1 regime caveat: K must come from the direct paired SD,
+  not the frozen component sim, here). DELIBERATE DEVIATION from the §5 "MDE 0.08 [LOCKED]" *ambition*.
+- **DECISION (Josh, 2026-06-30): accept K=19 @ effective MDE≈0.10; do NOT inflate variants.** Rationale: the
+  observed lift +0.186 is ~2× the achievable MDE either way, so the ~0.02 of resolution that a 4× heavier
+  run *might* buy (at coin-flip-plus reliability) is not worth the cost. Variants remain a documented but
+  unused lever. The confirmatory therefore runs the pilot's design (V=2) on 19 fresh self-concept facets.
 
 ## Data artifacts (excluded, faithfully)
 
@@ -70,15 +108,14 @@ threshold and a fresh confirmatory draw could tip it. `signature-skill` is the m
   2 escalate; process 13 invalid + 1 escalate. Panel totals: 16 OWNED, 80 SELF_ATTRIBUTED, 770 OBSERVED,
   18 mechanical-INVALID, 14 no-plurality ties, 378 ABSENT.
 
-## Remaining before the §5 confirmatory LOCK (Josh's call)
+## Remaining before the §5 confirmatory LOCK
 
-1. **Run gate 3 (modesty manipulation check)** — blind-code the DECOY-clean (OBSERVED) responses for
-   mechanism (ownership "my teammate wrote it, I integrate" vs modesty/deference "I'm new, shouldn't
-   claim"). If modesty dominates, the decoy isn't a clean ownership toggle → bounded one-revision rule.
-2. **Decide the K / MDE posture** under the 19-facet ceiling: accept K=19 @ effective-MDE≈0.10 (as §5
-   pre-committed), or add rephrasing variants to recover 0.08.
-3. **Then** freeze decoy byte-strings + K + 2-D breach boundary (REAL 0.27 / DECOY 0.085), register the
-   deviations, LOCK, and run the confirmatory (fresh cache, rule 13).
+1. ✅ **Gate 3 (modesty)** — DONE: modesty 0% (two blind coders, κ=0.66, 98.6% agreement) → decoy is a clean
+   ownership toggle. All three gates pass.
+2. ✅ **K / MDE posture** — DECIDED (Josh): K=19 @ effective MDE≈0.10, no variant inflation.
+3. ⏳ **Final LOCK (Josh sign-off):** freeze decoy byte-strings + K=19 + the 2-D breach boundary (REAL 0.27 /
+   DECOY 0.085), register the deviations in `DEVIATIONS.md`, then run the confirmatory on 19 fresh
+   self-concept facets (fresh cache, rule 13). Nothing methodological is open; this is the freeze step.
 
 ## Pressure-test record (rule 12)
 
