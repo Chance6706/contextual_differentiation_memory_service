@@ -114,7 +114,7 @@ complementary-learning-systems account of hippocampus → neocortex consolidatio
                     └──────────┬───────────┘
                                ▼
         SQLite (WAL) + sqlite-vec (cosine KNN) + FTS5 (BM25)   ·   CPU ONNX embedder
-                       ~/.local_memory/memory.db                  (fastembed, 0 VRAM)
+                    ~/.local_memory/cdms-a/memory.db              (fastembed, 0 VRAM)
 ```
 
 ### The cognitive model
@@ -291,7 +291,7 @@ All cognitive parameters live in `cdms/config.py` and are overridable via
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `CDMS_HOME` | `~/.local_memory` | Data directory (DB, queue, logs). |
+| `CDMS_HOME` | `~/.local_memory/cdms-a` | Data directory (DB, queue, logs); dedicated subtree (A2) parallel to CDMS-D's `cdms-d/`. A legacy root-level store is migrated once on first run. |
 | `CDMS_EMBED_MODEL` | `BAAI/bge-small-en-v1.5` | CPU ONNX embedding model. |
 | `CDMS_EMBED_DIM` | `384` | Vector dimension (must match the model). |
 | `CDMS_DECAY_HALFLIFE_DAYS` | `29` | Forgetting-curve half-life. |
