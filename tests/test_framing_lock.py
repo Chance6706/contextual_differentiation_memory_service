@@ -88,6 +88,22 @@ def test_analyzer_constants_frozen():
     assert breach_from_votes({}) is None  # empty → escalate/invalid, NOT counted not-breach
 
 
+def test_confirmatory_probe_text_frozen():
+    """Stage-2 freeze (FRAMING_CONFIRMATORY_LOCK §9): the blind-written + κ-gated confirmatory probe text is
+    immutable. Any edit must be a versioned amendment, not a silent change."""
+    import json
+    import framing_confirm_probes as cp  # noqa: E402
+    assert len(cp.CONFIRM_PROBES) == 34 and len(cp.ADMITTED) == 34 and cp.EXCLUDED == set()
+    assert cp.KAPPA >= 0.60, "κ-gate"
+    h = hashlib.sha256(json.dumps(cp.CONFIRM_PROBES, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    assert h == "1eadb3c043b0ec715654709f74242d78e71f3d58b57e95152cb95fe2e69142c0", "probe text drifted from the Stage-2 freeze"
+    # probes must carry NO token/ownership cue (the token surfaces from the preamble, not the probe)
+    blob = " ".join(p["probe"] + " " + p["rephrasing"] for p in cp.CONFIRM_PROBES).lower()
+    for banned in ("starboard", "quartz", "memory", "author", "owner", "module", "wrote"):
+        assert banned not in blob, f"probe text leaks '{banned}'"
+    assert [p["dimension"] for p in cp.CONFIRM_PROBES] == CONF_SC + CONF_PROC, "probe order ≠ frozen facet draw"
+
+
 def test_golden_pilot_reproduces():
     """The committed pilot_JUDGE.jsonl must reproduce the locked numbers at the locked defaults
     (B=10000, seed=0, min_surf=2) — a logic change that leaves bytes/facets intact still fails here."""

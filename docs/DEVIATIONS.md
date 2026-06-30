@@ -394,6 +394,24 @@ external review, 2026-06.)
   a null there would be under-powered, not evidence of absence. K may fall below 19 under admission attrition
   (no buffer), raising the effective MDE further — the realized K/MDE are reported, not assumed.
 
+### I4. Surfacing-parity gate: knowingly-underpowered equivalence test; "fail → descriptive," not "abort"
+
+- **Standard form/meaning:** a pre-registered validity / manipulation **"gate"** is powered so it *can* pass,
+  and failing it normally **blocks** — aborts or invalidates the confirmatory.
+- **What we do:** the framing confirmatory's surfacing-parity gate is a TOST-equivalence test (facet-paired
+  ΔS 90% bootstrap CI ⊂ ±0.05; `framing_pilot_analyze.gates`) that is **knowingly underpowered at the locked
+  K=19** (the construct ceiling caps K; the pilot's CI reached +0.11). We pre-commit that if it fails, H1 is
+  reported **DESCRIPTIVELY, not confirmed** — the gate does NOT abort the run and is NOT loosened.
+  [posture (a), Josh 2026-06-30; `FRAMING_CONFIRMATORY_LOCK.md` §4.]
+- **Why:** the alternatives are worse — widening the margin is arbitrary and weakens the pre-reg; redesigning
+  the decoy + re-piloting is costly; aborting discards a large observed effect (+0.186). The rigorous gate +
+  descriptive fallback is the conservative, **non-gameable** choice (the lenient point check `|ΔS|<0.05`,
+  which the pilot passed at 0.049, IS gameable — it can pass while the true ΔS exceeds 0.05). K=19 is a hard
+  external ceiling (no over-generation buffer), not design slack.
+- **What we disclaim:** a "descriptive on parity grounds" outcome is **NOT evidence against H1** — it is an
+  underpower artifact; and passing at K=19 is not guaranteed even if surfacing parity truly holds. We report
+  both the point |ΔS| and the equivalence CI so the leniency/power gap is visible.
+
 ---
 
 ## Framing-stratified breach (no single "self-attribution breach rate")

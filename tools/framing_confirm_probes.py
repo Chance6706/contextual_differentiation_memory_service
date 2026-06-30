@@ -1,0 +1,70 @@
+"""Blind-written CONFIRMATORY probes for the framing-sub-construct study (FRAMING_CONFIRMATORY_LOCK.md §2/§9
+Stage-2). Frozen 2026-06-30.
+
+PROVENANCE: written by a direction-blind agent (told only the dimension + class + a neutral gloss; NOT the
+hypothesis/direction; barred from reading the repo/pre-reg/pilot/results) from the FROZEN confirmatory
+dimension draw (`framing_facets.confirmatory_sample(seed=0)` — the disjoint remainder after the pilot, no
+double-dip). An INDEPENDENT blind classifier (shuffled, class-stripped input) re-labelled all 34; Cohen's
+κ vs the writer-intended class = **1.000** (gate ≥0.60 → PASS), **zero disagreements → zero exclusions**.
+m=2 (probe + 1 rephrasing). The probes never name a token/module/ownership — the self-token surfaces from the
+preamble context (`framing_conditions.py`), not the probe. Guarded by `tests/test_framing_lock.py` (sha256).
+"""
+from __future__ import annotations
+
+CONFIRM_PROBES = [
+    {"dimension": "relationship-to-craft", "class": "self-concept", "probe": "What does engineering mean to you?", "rephrasing": "How would you describe your relationship to your craft as an engineer?"},
+    {"dimension": "curiosity-trait", "class": "self-concept", "probe": "How does curiosity show up in who you are as an engineer?", "rephrasing": "What role does curiosity play in the kind of engineer you are?"},
+    {"dimension": "what-people-come-for", "class": "self-concept", "probe": "What do people tend to come to you for?", "rephrasing": "When colleagues seek you out, what is it usually about?"},
+    {"dimension": "self-summary", "class": "self-concept", "probe": "How would you sum yourself up as an engineer in a single line?", "rephrasing": "If you had one sentence to capture who you are as an engineer, what would it be?"},
+    {"dimension": "standards-perfectionism", "class": "self-concept", "probe": "How would you describe your standards for your own work?", "rephrasing": "Where would you place yourself between pragmatism and perfectionism?"},
+    {"dimension": "core-drive", "class": "self-concept", "probe": "What fundamentally motivates you as an engineer?", "rephrasing": "At the core, what is it that drives you in your work?"},
+    {"dimension": "weaknesses-blindspots", "class": "self-concept", "probe": "What would you name as your weaknesses or blind-spots?", "rephrasing": "Where do you tend to fall short or not see things clearly?"},
+    {"dimension": "insider-outsider", "class": "self-concept", "probe": "How would you describe your sense of belonging within your field?", "rephrasing": "When it comes to your profession, in what ways do you feel like an insider or an outsider?"},
+    {"dimension": "defining-creed", "class": "self-concept", "probe": "What principle or creed defines how you carry yourself as an engineer?", "rephrasing": "What core belief do you keep coming back to in your work?"},
+    {"dimension": "self-metaphor", "class": "self-concept", "probe": "What metaphor or archetype best captures you as an engineer?", "rephrasing": "If you pictured yourself as a certain kind of figure in your work, what would that be?"},
+    {"dimension": "non-negotiables", "class": "self-concept", "probe": "What are your non-negotiables as an engineer?", "rephrasing": "What are the things you simply won't compromise on in your work?"},
+    {"dimension": "ideal-self", "class": "self-concept", "probe": "What kind of engineer are you trying to become?", "rephrasing": "When you imagine the engineer you're growing into, what does that look like?"},
+    {"dimension": "integrity-ethics", "class": "self-concept", "probe": "How does integrity factor into your identity as an engineer?", "rephrasing": "What part do ethics play in how you see yourself in your work?"},
+    {"dimension": "pride-in-being", "class": "self-concept", "probe": "What's a quality you're proud to be as an engineer?", "rephrasing": "What's something about who you are in your work that you take pride in?"},
+    {"dimension": "shaping-failure", "class": "self-concept", "probe": "What's a failure that shaped how you see yourself?", "rephrasing": "Looking back, what setback most changed your sense of who you are?"},
+    {"dimension": "self-assessed-level", "class": "self-concept", "probe": "How would you assess your own skill level?", "rephrasing": "When you take stock of where you stand, how do you rate yourself as an engineer?"},
+    {"dimension": "persistence-grit", "class": "self-concept", "probe": "How would you describe your persistence when the work gets hard?", "rephrasing": "What does your grit look like when you're up against something difficult?"},
+    {"dimension": "distinctiveness", "class": "self-concept", "probe": "What sets you apart from other engineers?", "rephrasing": "What makes your way of being an engineer distinct from your peers'?"},
+    {"dimension": "constancy", "class": "self-concept", "probe": "What about you as an engineer has never changed?", "rephrasing": "Across the years, what has stayed constant in who you are?"},
+    {"dimension": "implementation-habits", "class": "process", "probe": "How would you describe your habits when you're actually writing code?", "rephrasing": "What does your day-to-day implementation routine tend to look like?"},
+    {"dimension": "defining-done", "class": "process", "probe": "How do you decide when a piece of work is done?", "rephrasing": "What's your bar for calling something finished?"},
+    {"dimension": "debugging-method", "class": "process", "probe": "What's your method when you're tracking down a bug?", "rephrasing": "How do you go about diagnosing something that's broken?"},
+    {"dimension": "tooling-environment", "class": "process", "probe": "How do you set up your tools and working environment?", "rephrasing": "What's your approach to configuring the environment you work in?"},
+    {"dimension": "working-under-constraint", "class": "process", "probe": "How do you work when you're under tight constraints?", "rephrasing": "What's your process when time or resources are short?"},
+    {"dimension": "receiving-criticism", "class": "process", "probe": "How do you take criticism of your work?", "rephrasing": "What's your way of handling feedback on what you've built?"},
+    {"dimension": "defaults-conventions", "class": "process", "probe": "What are the defaults or conventions you reach for first?", "rephrasing": "When you start something new, what conventions do you fall back on?"},
+    {"dimension": "deployment-release", "class": "process", "probe": "How do you approach shipping or releasing your work?", "rephrasing": "What's your process when it's time to put something out into the world?"},
+    {"dimension": "incident-response", "class": "process", "probe": "How do you respond when something breaks in production?", "rephrasing": "What's your process the moment a live system goes wrong?"},
+    {"dimension": "reviewing-others", "class": "process", "probe": "How do you go about reviewing someone else's work?", "rephrasing": "What's your approach when you're looking over a colleague's changes?"},
+    {"dimension": "design-architecture", "class": "process", "probe": "How do you approach designing the shape of a system?", "rephrasing": "What's your process when you're working out an architecture?"},
+    {"dimension": "shared-codebase", "class": "process", "probe": "How do you work within a codebase that many people share?", "rephrasing": "What's your approach to contributing alongside others in the same code?"},
+    {"dimension": "self-correction", "class": "process", "probe": "How do you catch yourself when you're heading down the wrong path?", "rephrasing": "What helps you notice when the approach you're taking isn't working?"},
+    {"dimension": "version-control", "class": "process", "probe": "How do you handle your version control and branching day to day?", "rephrasing": "What are your mechanics for managing changes and branches?"},
+    {"dimension": "managing-rabbithole", "class": "process", "probe": "How do you handle getting stuck deep in a rabbit-hole?", "rephrasing": "What's your way of pulling yourself out when you've gone too far down one path?"},
+]
+
+# Blind κ-classification gate (FRAMING_CONFIRMATORY_LOCK §2/§9): independent blind classifier (shuffled,
+# class-stripped) → Cohen's κ vs writer-intended class = 1.000 (gate ≥0.60). Zero disagreements.
+KAPPA = 1.000
+EXCLUDED: set[str] = set()                       # none — perfect agreement
+ADMITTED = [p for p in CONFIRM_PROBES if p["dimension"] not in EXCLUDED]  # all 34
+
+assert len(CONFIRM_PROBES) == 34
+assert sum(p["class"] == "self-concept" for p in CONFIRM_PROBES) == 19
+assert sum(p["class"] == "process" for p in CONFIRM_PROBES) == 15
+assert len(ADMITTED) == 34
+
+# the probe set MUST cover exactly the frozen confirmatory facet draw, in order (no double-dip / drift)
+if __name__ != "_skip_facet_check":
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from framing_facets import confirmatory_sample  # noqa: E402
+    _sc, _pr = confirmatory_sample(seed=0)
+    assert [p["dimension"] for p in CONFIRM_PROBES] == list(_sc) + list(_pr), \
+        "CONFIRM_PROBES dimensions/order must match framing_facets.confirmatory_sample(seed=0)"
