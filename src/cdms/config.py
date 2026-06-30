@@ -18,13 +18,16 @@ from pathlib import Path
 def _default_home() -> Path:
     """Resolve the memory home directory.
 
-    Spec calls for ``~/.local_memory``. Overridable with ``CDMS_HOME`` so the
-    service can be scoped per-project or relocated.
+    A2 (2026-06-29): the default is now the **dedicated subtree** ``~/.local_memory/cdms-a`` (not the bare
+    ``~/.local_memory``). This makes CDMS-A's store a clean subtree *parallel* to CDMS-D's
+    ``~/.local_memory/cdms-d`` so the -D agent can fence ``-CdmsHome ~/.local_memory/cdms-a`` exactly and its
+    code fence (which reads ``$CDMS_HOME``) tracks it automatically. A legacy store at the old root is migrated
+    once, atomically, by ``ensure_home`` (see ``_maybe_migrate_legacy_store``). Overridable with ``CDMS_HOME``.
     """
     env = os.environ.get("CDMS_HOME")
     if env:
         return Path(env).expanduser()
-    return Path.home() / ".local_memory"
+    return Path.home() / ".local_memory" / "cdms-a"
 
 
 @dataclass
@@ -341,7 +344,34 @@ class Config:
         return self.home / "consolidate.lock"
 
     def ensure_home(self) -> None:
+        self._maybe_migrate_legacy_store()
         self.home.mkdir(parents=True, exist_ok=True)
+
+    def _maybe_migrate_legacy_store(self) -> None:
+        """A2 one-time relocation of a pre-subdir store into the dedicated ``cdms-a`` subtree.
+
+        Triggers ONLY when ``home`` is a ``cdms-a`` subtree (the default, or an explicit ``CDMS_HOME=.../cdms-a``)
+        and a legacy store sits in the parent dir while the subtree has none. Uses ``Path.replace`` (atomic
+        rename on the same filesystem → no copy/data-loss window) and moves the DB file **last**, so the guard
+        ``(home/db).exists()`` implies the whole set already moved (idempotent + race-tolerant). Best-effort: a
+        failed move leaves the legacy files intact (recoverable), never deletes without a successful move. An
+        explicit ``CDMS_HOME`` to a non-``cdms-a`` path is respected verbatim (no migration)."""
+        if self.home.name != "cdms-a":
+            return
+        legacy = self.home.parent
+        db = self.db_filename
+        if (self.home / db).exists() or not (legacy / db).exists():
+            return  # already migrated, or nothing to migrate
+        self.home.mkdir(parents=True, exist_ok=True)
+        # sidecars + aux first; the DB file LAST (its presence at the new home marks completion)
+        for name in (f"{db}-wal", f"{db}-shm", "episodic_queue.ndjson", "state.json",
+                     "config.json", "cdms.log", "consolidate.lock", db):
+            src = legacy / name
+            if src.exists():
+                try:
+                    src.replace(self.home / name)
+                except OSError:
+                    pass  # best-effort; legacy copy remains for a later retry / manual move
 
 
 _ENV_COERCE = {
