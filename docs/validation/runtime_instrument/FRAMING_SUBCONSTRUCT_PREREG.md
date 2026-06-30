@@ -62,9 +62,10 @@ generalization test; **gemma4 excluded** (stalls); gemma3 disclaimed.
 
 ## 3. THE PILOT (settles the empirical parameters; gates the design)
 
-**Goal:** validate the decoy + measure the inputs the confirmatory lock needs. **Size:** ≥ **25–30 facets/class**
-× 3 conditions (an 8-facet pilot can't estimate σ/ρ — round-2 stat). **Pilot facets are EXCLUDED from the
-confirmatory set** (no double-dip).
+**Goal:** validate the decoy + measure the inputs the confirmatory lock needs. **Size: ~15 facets/class** ×
+3 conditions (option (a), `framing_taxonomy.md` §D — supply-constrained: the ~34-dim self-concept ceiling can't
+afford both a 25–30 pilot and a disjoint confirmatory draw; 15 still validates the decoy gates + a rough σ, at the
+cost of a wider σ CI → conservative K). **Pilot facets are EXCLUDED from the confirmatory set** (no double-dip).
 
 **Gates / measurements (all pre-stated):**
 1. **Decoy-floor gate:** breach(DECOY) must not be at floor (< ~5%) — else the lift degenerates to breach(REAL)
@@ -96,9 +97,9 @@ still fails, descope domain-shift to the sole corroborative arm or **abort** (re
 
 ## 5. POST-PILOT CONFIRMATORY LOCK (deferred)
 
-After the pilot clears its gates: freeze the **decoy byte-strings**, the **K** (pilot σ → power sim at locked
-MDE and conservative cell; **cap K at the independent-dimension supply** → may force MDE 0.08 over 0.05, per the
-construct-ceiling finding), the **MDE**, and the **2-D numeric breach boundary**; register the deviations
+After the pilot clears its gates: freeze the **decoy byte-strings**, the **K** (pilot σ → power sim at
+**MDE 0.08 [LOCKED]** and the conservative cell, **capped at the independent-dimension supply** ≈19 confirmatory
+self-concept dims), and the **2-D numeric breach boundary**; register the deviations
 (co-author = "best-case ownership-explicit baseline"; adoption estimand + parity gate) in `DEVIATIONS.md`; then
 LOCK and run the confirmatory study (fresh cache, rule 13).
 
