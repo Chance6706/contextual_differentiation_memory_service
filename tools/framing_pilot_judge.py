@@ -28,12 +28,21 @@ JUDGE_MODE = "BEM"  # CONSTANT across REAL/DECOY (pre-reg §6: judge blind to co
 
 
 class TSGuard:
+    """Thread-safe $-cap. check_can_call() is invoked POSITIONALLY by openrouter_chat
+    (`cost_guard.check_can_call(estimate_cost(model))`). On breach it raises the CANONICAL
+    BudgetExceededError WITH its required keyword args — a bare `BudgetExceededError(msg)` would raise
+    TypeError instead, which panel_judge routes to `except Exception: votes[fam]=None`, silently
+    corrupting the judged file past budget (rule-12 "shadowed BudgetExceededError" class). Once tripped,
+    `stopped` latches so every in-flight panel short-circuits to a clean hard stop (no partial-vote writes)."""
     def __init__(self, cap):
-        self.cap = cap; self._spent = 0.0; self.lock = threading.Lock()
+        self.cap = cap; self._spent = 0.0; self.lock = threading.Lock(); self.stopped = False
     def check_can_call(self, est):
         with self.lock:
-            if self._spent + est > self.cap:
-                raise BudgetExceededError(f"pilot judge cap ${self.cap} exceeded (spent ${self._spent:.3f})")
+            if self.stopped or self._spent + est > self.cap:
+                self.stopped = True
+                raise BudgetExceededError(
+                    f"pilot judge cap ${self.cap} exceeded (spent ${self._spent:.3f} + est ${est:.4f})",
+                    spent=self._spent, estimated_cost=est, projected=self._spent + est, cap_usd=self.cap)
     def record(self, actual):
         with self.lock:
             self._spent += actual
@@ -57,13 +66,16 @@ def main():
     out, rlock, st = [], threading.Lock(), {"done": 0}
 
     def work(r):
+        if guard.stopped:                         # cap already tripped → don't start a new panel (hard stop)
+            return None
         try:
             res = panel_judge(r["response"], "starboard_loop", JUDGE_MODE, r["model"], cache,
                               cost_guard=guard, rubric=RUBRIC_A4, labels=LABELS_A4)
         except BudgetExceededError:
-            return None
+            return None                           # dropped ENTIRELY (never written w/ partial votes)
         rec = {**{k: r.get(k) for k in ("model", "condition", "dimension", "class", "variant", "probe",
-                                        "response", "surfaced")},
+                                        "response")},
+               "surfaced": True,                  # single-source: judged ⟺ whole-word token present (TOK)
                "panel_label": res["label"], "escalate": res["escalate"], "votes": res["votes"]}
         with rlock:
             out.append(rec); st["done"] += 1
@@ -76,7 +88,8 @@ def main():
             pass
     for r in absent:
         out.append({**{k: r.get(k) for k in ("model", "condition", "dimension", "class", "variant", "probe",
-                                             "response", "surfaced")},
+                                             "response")},
+                    "surfaced": False,            # single-source: token whole-word absent ⇒ not surfaced
                     "panel_label": "ABSENT", "escalate": False, "votes": {}})
     Path(out_path).write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in out) + "\n", encoding="utf-8")
     print(f"DONE: {len(tokc)} judged + {len(absent)} ABSENT; spent ${guard._spent:.3f} -> {out_path}", flush=True)
