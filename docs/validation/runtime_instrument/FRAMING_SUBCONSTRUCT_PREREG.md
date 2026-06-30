@@ -97,11 +97,13 @@ still fails, descope domain-shift to the sole corroborative arm or **abort** (re
 
 ## 5. POST-PILOT CONFIRMATORY LOCK (deferred)
 
-**Pilot outcome (2026-06-30) — see `framing_pilot/PILOT_RESULTS.md`:** decoy-floor + surfacing-parity gates
-PASS (0.085; |ΔS|=0.049, both thin); H1 adoption lift **+0.186** (LB +0.100, perm-p 0.0004), broad across
-12/14 facets (curation-confound weakened); σ=0.170 → K 28/43 vs the **19-facet supply cap → effective
-MDE≈0.10**. **Still owed before LOCK:** gate-3 modesty blind-coding + Josh's K/MDE-posture call. Decoy is
-*provisionally* validated (2 of 3 gates).
+**Pilot outcome (2026-06-30) — see `framing_pilot/PILOT_RESULTS.md`:** ALL THREE decoy gates PASS → decoy
+validated. Decoy-floor 0.085, surfacing-parity |ΔS|=0.049 (both thin), **modesty gate 0%** (two blind
+coders, κ=0.66, decoy = clean ownership toggle). H1 adoption lift **+0.186** (LB +0.100, perm-p 0.0004),
+broad across 12/14 facets (curation-confound weakened). σ→K vs the 19-facet cap: variants are a weak lever
+(σ_between irreducible; recovering 0.08 needs V≈8 @ P≈0.65, impossible under conservative σ) →
+**DECISION (Josh): K=19 @ effective MDE≈0.10, no variant inflation.** Remaining = the final freeze
+(byte-strings + K=19 + 2-D boundary) + Josh sign-off; nothing methodological open.
 
 After the pilot clears its gates: freeze the **decoy byte-strings**, the **K** (pilot σ → power sim at
 **MDE 0.08 [LOCKED]** and the conservative cell, **capped at the independent-dimension supply** ≈19 confirmatory
