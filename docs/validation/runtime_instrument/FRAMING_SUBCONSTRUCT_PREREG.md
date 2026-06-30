@@ -97,6 +97,12 @@ still fails, descope domain-shift to the sole corroborative arm or **abort** (re
 
 ## 5. POST-PILOT CONFIRMATORY LOCK (deferred)
 
+**Pilot outcome (2026-06-30) — see `framing_pilot/PILOT_RESULTS.md`:** decoy-floor + surfacing-parity gates
+PASS (0.085; |ΔS|=0.049, both thin); H1 adoption lift **+0.186** (LB +0.100, perm-p 0.0004), broad across
+12/14 facets (curation-confound weakened); σ=0.170 → K 28/43 vs the **19-facet supply cap → effective
+MDE≈0.10**. **Still owed before LOCK:** gate-3 modesty blind-coding + Josh's K/MDE-posture call. Decoy is
+*provisionally* validated (2 of 3 gates).
+
 After the pilot clears its gates: freeze the **decoy byte-strings**, the **K** (pilot σ → power sim at
 **MDE 0.08 [LOCKED]** and the conservative cell, **capped at the independent-dimension supply** ≈19 confirmatory
 self-concept dims), and the **2-D numeric breach boundary**; register the deviations
