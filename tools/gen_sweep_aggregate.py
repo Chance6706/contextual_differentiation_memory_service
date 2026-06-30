@@ -178,6 +178,9 @@ def by_facet_framing(paths):
     print("=" * 96)
     print("FACET-FRAMING SPLIT (by probe TEXT) — curated-identity 0-26 · behavioral 27-53 · uncurated-identity 54+")
     print("=" * 96)
+    print("  [!] breach|surface below is RESPONSE-POOLED = DESCRIPTIVE ONLY (over-weights 2-probe high-leak")
+    print("      facets; treats responses as independent). For the cluster-correct test (facet-weighted +")
+    print("      facet bootstrap, the valid inference) use:  python tools/gen_sweep_facet_cluster.py")
     print(f"{'arm':<10}{'stratum':<20}{'surfacing P(token)':>22}{'breach|surface':>20}")
     for a in arms:
         for s in present:

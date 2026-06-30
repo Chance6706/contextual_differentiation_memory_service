@@ -138,11 +138,14 @@ The core was done; the work became *characterizing what it does* and *deciding w
   changes is whether injected content *surfaces*, not whether it's *adopted as self*. Airtight BEM 39% vs recall 1%
   (p≈1e-20). **gen-sweep4** added the orthogonal **framing** lever: adoption-given-surfacing depends ~2× on probe
   framing (identity vs behavioral), generation-flat — a clean 2×2 dissociation.
-- **Measurement-thread closeout — IN PROGRESS.** Single-sourced the breach rule + committed the previously-uncommitted
-  judged data + the framing stratifier (**#90**, closing a transparency gap: the gen-sweep4 judge output was never
-  persisted). **In flight:** re-judging the cached gen-sweep4 behavioral generations to recommit `gen4_JUDGE.jsonl`
-  (repo-reproducible behavioral stratum), and the **identity-power** experiment (Phase B: more identity facets +
-  GX10 re-run to power the under-powered identity-breach cells). Full thread: [`RESEARCH_ARC.md`](RESEARCH_ARC.md).
+- **Measurement-thread closeout — DONE.** Single-sourced the breach rule + committed the previously-uncommitted judged
+  data + framing stratifier (**#90**); re-judged + committed `gen4_JUDGE.jsonl` (**#91**); +36 uncurated identity facets
+  + 3-stratum stratifier (**#92**); **identity-power Phase B** (GX10 re-run, 24 models, $5.01 judge) + 2-agent
+  pressure-test (**this PR**). **Headline (§3.5):** the published framing "z=+6.5" was response-pooled/overstated;
+  cluster-correct, the identity-vs-behavioral dissociation is **real-in-direction, mech-arm-significant (p=0.043),
+  ~1.6–1.8×, under-powered all-arms**; **topic-curation refuted** as the driver (uncurated≈curated identity); the real
+  carrier is a **self-presentation/self-assessment sub-construct** and the index-split is a contaminated proxy. Open
+  item: a pre-registered, powered, clean-strata re-run to *confirm*. Full thread: [`RESEARCH_ARC.md`](RESEARCH_ARC.md).
 
 **Sibling repos / hardware.** `D:\Repo\salient_by_design` = the **salience-matrix research program** (one
 externally-defined salience matrix across FT + quant + CDMS-A runtime; reproducibility-as-novelty). `D:\Repo\CDMS-D`
