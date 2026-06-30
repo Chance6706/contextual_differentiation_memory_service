@@ -105,6 +105,11 @@ broad across 12/14 facets (curation-confound weakened). σ→K vs the 19-facet c
 **DECISION (Josh): K=19 @ effective MDE≈0.10, no variant inflation.** Remaining = the final freeze
 (byte-strings + K=19 + 2-D boundary) + Josh sign-off; nothing methodological open.
 
+**LOCK CONSTRUCTED 2026-06-30 → `FRAMING_CONFIRMATORY_LOCK.md`** (frozen condition byte-strings + sha256, the
+disjoint K=19 self-concept facet draw, the locked estimand/inference/decision-rule, the 2-D boundary REAL
+0.27/DECOY 0.085, deviations I2/I3, pre-stated limitations). Guard test `tests/test_framing_lock.py`. Awaiting
+Josh sign-off to execute. — The original §5 intent, now realized:
+
 After the pilot clears its gates: freeze the **decoy byte-strings**, the **K** (pilot σ → power sim at
 **MDE 0.08 [LOCKED]** and the conservative cell, **capped at the independent-dimension supply** ≈19 confirmatory
 self-concept dims), and the **2-D numeric breach boundary**; register the deviations

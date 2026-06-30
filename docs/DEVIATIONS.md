@@ -353,6 +353,47 @@ external review, 2026-06.)
   firewall." We always report the hurdle (both parts) and never assert cross-generation invariance from the conditional
   alone. (Results: `docs/validation/runtime_instrument/GENERATION_SWEEP_RESULTS.md`.)
 
+### I2. Framing decoy is a "best-case ownership-explicit baseline," not a neutral/zero control
+
+- **Standard form/meaning:** a "control" or "baseline" condition usually denotes a NEUTRAL reference where the
+  manipulated factor is absent — here, one would expect "ownership unspecified" so the REAL−control contrast
+  measures the full effect of asserting ownership.
+- **What we do:** the framing confirmatory's DECOY (`tools/framing_conditions.py`) is the **strongest possible
+  ownership-EXPLICIT counter-attribution** — "P's teammate wrote `starboard_loop`; P works alongside it but
+  did not author it" — surfacing-matched to REAL (both name both tokens; only the authorship clause flips).
+  The estimand is the facet-weighted **paired `breach|surface` lift REAL−DECOY** with a **surfacing-parity
+  gate** (`FRAMING_CONFIRMATORY_LOCK.md`).
+- **Why:** a neutral/silent decoy re-imports the surfacing confound and bundles tenure/modesty; the co-author
+  decoy isolates the single ownership factor while holding self-relevance/surfacing constant (round-3
+  pressure-test). The pilot's gate-3 confirmed it reads as clean attribution, not modesty (0/212).
+- **What we disclaim:** the direction of the bound is the **OPPOSITE of "conservative."** Because explicit
+  dis-ownership SUPPRESSES decoy breach (pilot DECOY 0.085; gate-3 confirms it), breach(DECOY) ≤
+  breach(neutral), so REAL−DECOY(co-author) ≥ REAL−neutral: the co-author decoy yields the **WIDEST** lift
+  and is therefore an **UPPER bound** on the framing→adoption effect relative to a neutral baseline — it
+  **OVERSTATES** the deployment threat, and a weaker/neutral decoy would **NARROW** the lift, not widen it.
+  The decoy's virtue is the **surfacing / self-relevance control + single-factor isolation**, NOT
+  conservatism. Consequence (with the thin decoy-floor): the design is primed toward H1 confirmation, which
+  is exactly why the **decoy-floor gate** (lift must not degenerate to breach(REAL)) and the **absolute-REAL-
+  breach 2-D read** are load-bearing guards in the decision rule, not optional.
+
+### I3. Confirmatory MDE: 0.08 [ambition] vs effective ≈0.10 at the 19-facet construct ceiling
+
+- **Standard form:** a pre-registration fixes the MDE and then powers K to it (`K = ((z_α+z_β)σ/MDE)²`).
+  §5 wrote "MDE 0.08 [LOCKED]."
+- **What we do:** the self-concept taxonomy supplies only **19 fresh facets** (34 − 15 pilot; pilot excluded,
+  no double-dip), and the pilot's between-facet σ is **irreducible** by adding probe variants (variants shrink
+  only within-facet binomial noise, not σ_between). So K caps at 19 and the confirmatory is powered for an
+  **effective MDE ≈ 0.10 (point σ=0.170) / ≈0.12 (conservative σ=0.211), at V=2** — not the 0.08 ambition.
+  (The ≈0.07 "floor" is the unreachable V→∞ limit, not the V=2 run.) Variants were analyzed
+  (`tools/framing_variant_recovery.py`) and **rejected** as a weak lever (recovering 0.08 needs V≈8 at only
+  P≈0.65; impossible under conservative σ). [Josh decision, 2026-06-30.]
+- **Why:** chasing the last ~0.02 of resolution would cost ~4× generation/judging at coin-flip reliability,
+  while the observed pilot lift (+0.186) is ~2× the achievable MDE either way — the real effect is detected
+  with margin at 0.10.
+- **What we disclaim:** the confirmatory can reliably detect a lift ≥ ~0.10, **not** a lift in (0.08, 0.10);
+  a null there would be under-powered, not evidence of absence. K may fall below 19 under admission attrition
+  (no buffer), raising the effective MDE further — the realized K/MDE are reported, not assumed.
+
 ---
 
 ## Framing-stratified breach (no single "self-attribution breach rate")
