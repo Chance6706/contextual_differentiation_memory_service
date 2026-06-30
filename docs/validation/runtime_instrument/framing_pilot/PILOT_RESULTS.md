@@ -23,15 +23,20 @@ to Josh sign-off** (§5); this doc reports the pilot, it does not lock anything.
 | Gate | Pre-reg rule | Pilot | Verdict |
 |---|---|---|---|
 | **Decoy-floor** | adoption(DECOY) **not** < ~0.05 | **0.085** | **PASS** (margin +0.035, thin) |
-| **Surfacing-parity** | \|S_REAL − S_DECOY\| < 0.05 | **0.049** (0.812 vs 0.763) | **PASS** (margin +0.001 — razor-thin) |
+| **Surfacing-parity** | \|ΔS\| equivalence within ±0.05 | point \|ΔS\|=0.049; **90% CI (−0.003, +0.110)** | **POINT-pass / EQUIV-FAIL** |
 | **Modesty (gate 3)** | DECOY-clean responses ownership vs modesty | **MODESTY = 0%** (209/212 INTEGRATE) | **PASS** |
 | **σ + K** | direct paired-lift SD → power sim | σ=0.170 [95%u 0.211] → K 28 / 43 | see ceiling note |
 | **κ / attrition** | over-generation buffer | κ=0.935 (build); 1 facet excluded (origin-becoming) | ok |
 
-**ALL THREE decoy gates PASS → decoy validated** (no revision triggered; bounded-revision rule not invoked).
-The passing margins on floor (0.085) and parity (|ΔS|=0.049) are thin — the parity margin (0.001) is at the
-threshold and a fresh confirmatory draw could tip it; `signature-skill` is the main parity contributor
-(R_surf 1.00 vs D_surf 0.59), worth watching on the confirmatory.
+**Decoy validated on the two robust gates (floor + modesty); surfacing-parity is the caveat.** The lenient
+*point* check passed (|ΔS|=0.049<0.05), but the **rigorous equivalence test FAILS** — the facet-paired ΔS
+90% CI (−0.003, +0.110) is not ⊂ ±0.05 (surfaced by the lock pressure-test, M4). This is **partly the
+`signature-skill` outlier** (ΔS≈+0.41, a pilot-only facet *excluded* from the confirmatory) and **partly
+underpower** at K≈14 (excl. the outlier: CI (−0.017, +0.059), still just over; mean ΔS +0.021). **Implication:
+establishing surfacing parity within ±0.05 is borderline-to-underpowered at the construct-ceiling K** — the
+confirmatory could land "descriptive on parity grounds" even with a real lift. This is the binding
+confirmatory risk; see `FRAMING_CONFIRMATORY_LOCK.md` §4 (the decision rule now uses the equivalence test,
+not the point check) and its open parity-posture choice.
 
 ### Gate 3 (modesty manipulation check) — detail
 
