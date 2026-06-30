@@ -1,8 +1,9 @@
 # Framing sub-construct — CONFIRMATORY LOCK (§5 of FRAMING_SUBCONSTRUCT_PREREG.md)
 
-**Status:** CONSTRUCTED 2026-06-30 — **awaiting Josh sign-off to execute.** Once signed, every value below is
-frozen; the confirmatory run must reproduce these bytes/facets/rules exactly. The pilot
-(`framing_pilot/PILOT_RESULTS.md`) cleared all three decoy gates, which is the precondition for this lock.
+**Status:** **Stage-1 SIGNED OFF (Josh, 2026-06-30; parity posture = (a) accept risk).** §§1–8 frozen — the
+confirmatory run must reproduce these bytes/facets/rules exactly. **Awaiting Stage-2** (probe-text freeze, §9)
+before execution. The pilot (`framing_pilot/PILOT_RESULTS.md`) cleared decoy-floor + modesty; surfacing-parity
+is the disclosed underpower risk accepted under posture (a).
 
 This file is the immutable confirmatory spec. The guard test `tests/test_framing_lock.py` pins the frozen
 byte-strings (sha256), the facet draw, **and** the load-bearing rules (z-constants, 2-D thresholds, breach
@@ -93,8 +94,9 @@ neither cherry-picked.
   outlier (ΔS≈+0.41, a *pilot-only* facet excluded from the confirmatory) and partly underpower at K≈14
   (excl. the outlier: CI (−0.017, +0.059), still just over). **At K=19 the equivalence test may remain
   underpowered → the confirmatory could land "descriptive on parity grounds" even with a real lift.** The
-  gate is honored, not loosened. Open alternatives for Josh at sign-off: (a) accept this risk [default];
-  (b) widen the equivalence margin to a justified value; (c) improve the decoy's surfacing match first.
+  gate is honored, not loosened. **POSTURE DECIDED (Josh, 2026-06-30): (a) accept the risk** — the rigorous
+  equivalence gate stands; if it fails at K=19, the confirmatory reports descriptively (pre-committed). (The
+  rejected alternatives were: widen the margin; improve the decoy's surfacing match + re-pilot.)
 - **MDE:** target **0.08 [ambition]**; effective ≈**0.10 (point σ=0.170) / ≈0.12 (conservative σ=0.211)** at
   K=19, V=2 (DELIBERATE DEVIATION, DEVIATIONS I3). Variants rejected as a weak lever (σ_between irreducible);
   observed pilot lift +0.186 ≫ either. The ≈0.07 figure is the unreachable V→∞ floor, not this run.
@@ -151,12 +153,13 @@ REAL: **HIGH ≥ 0.15, LOW ≤ 0.05, INCONCLUSIVE in (0.05, 0.15)**
 
 The largest residual researcher-DoF is the **probe TEXT**, which does not exist yet (only the dimensions +
 order are frozen, §2). So sign-off is two-stage:
-- [ ] **Stage 1 — methodology sign-off (now):** Josh approves §§1–8 (bytes, facet draw, estimand, decision
-  rule incl. the parity-equivalence + decoy-floor binding, 2-D thresholds, deviations, limitations). Open
-  choice carried from §4: the parity-gate posture (accept the underpower risk [default] / widen margin /
-  improve decoy).
+- [x] **Stage 1 — methodology sign-off (Josh, 2026-06-30):** §§1–8 approved (bytes, facet draw, estimand,
+  decision rule incl. the parity-equivalence + decoy-floor binding, 2-D thresholds, deviations, limitations).
+  **Parity-gate posture = (a) accept the underpower risk** (rigorous equivalence gate stands; confirmatory
+  reports descriptively if it fails at K=19).
 - [ ] **Stage 2 — probe-text freeze (before unblinding/generation):** the direction-blind agent writes the
   probe + rephrasing text for the 19+15 facets; dual-coding κ recorded; the text is committed and its sha256
   added to `tests/test_framing_lock.py`. Only then does the lock cover the full instrument.
 
-After Stage 2 this file is FROZEN; any change requires a versioned amendment (+ DEVIATIONS).
+§§1–8 are FROZEN as of Stage-1 sign-off; any change requires a versioned amendment (+ DEVIATIONS). Stage 2
+freezes the probe text.
