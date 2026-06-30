@@ -44,8 +44,26 @@ Cohen's κ = 0.66 (clears the ≥0.60 bar; deflated by the kappa paradox since o
 load-bearing modesty category is in *perfect* agreement at 0). The closest-to-modesty case (id150, "I don't
 claim authorship of `starboard_loop`, which was developed by another team member, I actively integrate it")
 was coded INTEGRATE by both: the not-claiming is justified factually + paired with active integration, not
-humility. **Conclusion: the decoy is a clean ownership toggle, not a modesty confound** — gate 3 passes
-robustly. Artifacts: `gate3_input.jsonl`, `gate3_codes_coderA.jsonl`, `gate3_codes_coderB.jsonl`.
+humility. A full-corpus lexical sweep for modesty/newness/credit-declining language (take-credit, still-new,
+not-my-place, shouldn't-claim, humble, defer, …) returns **exactly one hit** — id150's "don't claim" —
+already adjudicated. The confusion matrix's MODESTY row and column are **empty for both coders** (all 3
+disagreements are INTEGRATE↔OTHER). Read raw agreement + the 0/212 modesty result, NOT κ alone: κ=0.66 is
+artifactually deflated by extreme prevalence (pₑ=0.958, the kappa paradox), not weak reliability.
+**Conclusion: the decoy is a clean ownership toggle, not a modesty confound** — gate 3 passes robustly.
+Artifacts: `gate3_input.jsonl`, `gate3_codes_coderA.jsonl`, `gate3_codes_coderB.jsonl`.
+
+**Generalization bound (flagged, per the pressure-test).** The 0% is a genuine property of *this corpus*,
+not a coding artifact — but it is **bounded**: the scaffold *pre-supplies* the authorship fact as ground
+truth ("`starboard_loop` written by a teammate; you did not author it"), so models restate it and have no
+opening to invent a humility-based reason; and all 212 here are small Granite-2b/8b + Mistral-7b-class. Do
+**not** generalize the modesty-free claim to (i) prompts that don't pre-feed authorship, (ii) larger /
+instruction-tuned models with stronger modesty-RLHF, or (iii) first-person social-pressure framings. An
+un-scaffolded and/or larger-model replication is the open item before claiming the decoy is modesty-free in
+general. Coding-rule refinements for any repeat (pre-register these): INTEGRATE requires an explicit
+relational tie (authorship attribution OR an integration/collaboration verb) — a bare name-drop inside an
+"insufficient-info" non-answer → OTHER; AI-identity disclaimers ("as a model I have no feelings") are NOT
+modesty; consider an OVER_CLAIM code for the latent self-mis-attribution pattern (ids 83, 21 — the *opposite*
+direction from modesty, so it does not threaten the 0%).
 
 ## H1 effect (reproduces strongly in the pilot)
 
