@@ -27,7 +27,7 @@ class Episodic:
     action_taken: str
     outcome_feedback: str = ""
     valence: float = 0.0          # [-1, 1] emotional tone
-    base_salience: float = 0.0    # S0 at write time
+    base_salience: float = 0.0    # S0 at write time; RESCALED to a budget share by consolidation
     access_count: int = 0
     timestamp: str = field(default_factory=utc_now_iso)
     last_accessed: str | None = None
@@ -36,6 +36,9 @@ class Episodic:
     provenance: str = "trusted"   # Layer 3 capture-time origin trust: "trusted" | "untrusted" |
                                   # "ambiguous". Only "trusted" may elevate to a guardrail; "untrusted"
                                   # (external reads) also cannot form a gist persona-trait.
+    s0: float | None = None       # IMMUTABLE write-time S0 (REPO_ANALYSIS core #1): base_salience is
+                                  # rescaled to budget shares by consolidation, so S0-scale comparisons
+                                  # (the scar-elevation crisis gate) read this instead. None = legacy row.
 
     def search_text(self) -> str:
         return "\n".join(p for p in (self.trigger_prompt, self.action_taken, self.outcome_feedback) if p)

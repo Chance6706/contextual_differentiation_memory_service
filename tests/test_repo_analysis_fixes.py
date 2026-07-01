@@ -1,4 +1,4 @@
-"""Regression tests for the fix-now tier of docs/REPO_ANALYSIS_2026-07-01.md §6.
+"""Regression tests for docs/REPO_ANALYSIS_2026-07-01.md §6 (fix-now + fix-soon tiers).
 
 Covers, 1:1 with the findings:
   S1      — store db/-wal/-shm and home dir are owner-only (POSIX; no-op on Windows)
@@ -8,6 +8,14 @@ Covers, 1:1 with the findings:
   S4      — MCP store(kind="scar") mints a DEMOTED agent note (origin="mcp"): never
             rendered in the authoritative guardrails block, counted toward the L3 cap,
             evicted before auto-elevated scars, upgradeable only by an operator pin
+  core #1 — scar elevation is scale-invariant: the crisis gate reads the persisted
+            write-time s0 (renorm-immune); dedup preserves cross-session crisis
+            multiplicity; a corroborated catastrophe promotes a matching agent note
+  core #3 — project-scoped retrieval widens the candidate pool instead of starving
+            small projects in a shared store; find_duplicate_scar likewise
+  S3      — redaction covers JSON quoted-key secrets, URL userinfo passwords,
+            Authorization: Bearer tokens, and Stripe sk_(live|test)_ keys
+  item 8  — MCP tools serialize shared-connection DB access (concurrency hammer)
 """
 
 from __future__ import annotations
@@ -269,3 +277,255 @@ def test_operator_pin_upgrades_agent_note_but_never_downgrades(service):
     c = service.pin_scar("db wipe danger", "always snapshot first", project=PROJECT,
                          origin="mcp")
     assert c.id == a.id and c.origin == "pinned"
+
+
+# --------------------------------------------------------------------------- #
+# core #1 — scale-invariant scar elevation
+# --------------------------------------------------------------------------- #
+CRISIS_TRIGGER = "deploy went catastrophically wrong on production"
+CRISIS_ACTION = "ran drop schema on the prod database, data lost, fatal corruption"
+CRISIS_OUTCOME = "always take a verified backup before destructive operations"
+
+
+def _ingest_crisis(service, session: str):
+    return service.ingest(TurnEvent(
+        trigger_prompt=CRISIS_TRIGGER, action_taken=CRISIS_ACTION,
+        outcome_feedback=CRISIS_OUTCOME, success=False,
+        session_id=session, project=PROJECT))
+
+
+def _ingest_routine(service, session: str, n: int):
+    for i in range(n):
+        service.ingest(TurnEvent(
+            trigger_prompt=f"please handle routine chore number {i}",
+            action_taken=f"completed routine chore number {i} without issue",
+            outcome_feedback="done", success=True,
+            session_id=session, project=PROJECT))
+
+
+def _consolidate(service, cfg):
+    from datetime import datetime, timezone
+
+    from cdms.consolidate import Consolidator
+    con = Consolidator(cfg, db=service.db, embedder=service.embedder)
+    return con.run(now=datetime.now(timezone.utc))
+
+
+def test_scar_elevation_survives_renormalization_across_passes(service, cfg):
+    """The review's repro: in a busy store, renormalization diluted an uncorroborated
+    catastrophe's base_salience below crisis_threshold after its first pass, so a
+    recurrence in a later session could never corroborate it (0 scars after distinct-
+    session catastrophes). The gate now reads the persisted write-time s0."""
+    cfg.salience_budget = 50.0   # deep dilution with a small episode count (fast test)
+
+    rec = _ingest_crisis(service, "s1")
+    assert rec.s0 == pytest.approx(cfg.crisis_threshold)   # flashbulb floor fired
+    _ingest_routine(service, "s1", 40)
+
+    rep1 = _consolidate(service, cfg)
+    assert rep1.scars_created == 0                          # single session: uncorroborated
+    diluted = service.db.get_episodic(rec.id)
+    assert diluted is not None
+    assert diluted.base_salience < cfg.crisis_threshold, "premise: renorm diluted the crisis"
+    assert diluted.s0 == pytest.approx(cfg.crisis_threshold), "s0 is renorm-immune"
+
+    _ingest_crisis(service, "s2")                           # the recurrence
+    rep2 = _consolidate(service, cfg)
+    assert rep2.scars_created == 1, "cross-pass corroboration must elevate despite dilution"
+    scars = service.db.all_scars()
+    assert len(scars) == 1 and scars[0].origin == "elevated"
+
+
+def test_dedup_preserves_cross_session_crisis_multiplicity(service, cfg):
+    """With min_sessions=3, two same-crisis episodes from different sessions are NOT
+    corroborated yet — dedup previously folded them (dedup threshold == corroboration
+    threshold), permanently destroying the session multiplicity the gate counts."""
+    cfg.scar_elevation_min_sessions = 3
+
+    a = _ingest_crisis(service, "s1")
+    b = _ingest_crisis(service, "s2")
+    rep1 = _consolidate(service, cfg)
+    assert rep1.scars_created == 0
+    live = {e.id for e in service.db.all_episodic()}
+    assert a.id in live and b.id in live, "dedup must not fold pending cross-session crises"
+
+    _ingest_crisis(service, "s3")
+    rep2 = _consolidate(service, cfg)
+    assert rep2.scars_created == 1, "third session completes corroboration"
+
+
+def test_routine_dedup_still_folds(service, cfg):
+    """The multiplicity guard is crisis-specific: ordinary near-duplicates across
+    sessions still dedup."""
+    for sess in ("s1", "s2"):
+        service.ingest(TurnEvent(
+            trigger_prompt="please tidy the workspace files",
+            action_taken="tidied the workspace files carefully",
+            outcome_feedback="done", success=True, session_id=sess, project=PROJECT))
+    rep = _consolidate(service, cfg)
+    assert rep.deduped == 1
+
+
+def test_corroborated_catastrophe_promotes_matching_agent_note(service, cfg):
+    """An agent-pinned (mcp) note must not SHADOW a real recurring catastrophe by
+    consuming its episodes as 'already handled'; corroborated evidence promotes the
+    note in place to an elevated guardrail (authority earned) — no duplicate row."""
+    note = service.pin_scar(f"{CRISIS_TRIGGER} {CRISIS_ACTION}", CRISIS_OUTCOME,
+                            project=PROJECT, origin="mcp")
+    _ingest_crisis(service, "s1")
+    _ingest_crisis(service, "s2")
+    rep = _consolidate(service, cfg)
+    assert rep.scars_created == 1
+    scars = service.db.all_scars()
+    assert len(scars) == 1, "promotion in place — no duplicate L3 row"
+    assert scars[0].id == note.id and scars[0].origin == "elevated"
+    crises = [e for e in service.db.all_episodic() if CRISIS_TRIGGER in e.trigger_prompt]
+    assert not crises, "corroborating episodes consumed"
+
+
+def test_uncorroborated_catastrophe_does_not_promote_agent_note(service, cfg):
+    """One session of evidence is not corroboration: the note stays demoted."""
+    note = service.pin_scar(f"{CRISIS_TRIGGER} {CRISIS_ACTION}", CRISIS_OUTCOME,
+                            project=PROJECT, origin="mcp")
+    _ingest_crisis(service, "s1")
+    rep = _consolidate(service, cfg)
+    assert rep.scars_created == 0
+    assert [s.origin for s in service.db.all_scars() if s.id == note.id] == ["mcp"]
+
+
+def test_legacy_store_without_s0_column_migrates(tmp_path):
+    """A pre-s0 store gains the column on open; legacy rows read back s0=None and the
+    elevation gate falls back (flashbulb floor on -> inferred crisis-salient)."""
+    import sqlite3 as sq
+
+    from cdms.db import Database
+
+    cfg = Config(home=tmp_path / "cdms-a")
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    rec = _ingest_crisis(svc, "s1")
+    svc.close()
+
+    raw = sq.connect(str(cfg.db_path))
+    raw.execute("ALTER TABLE mem_episodic DROP COLUMN s0")   # simulate a legacy store
+    raw.commit()
+    raw.close()
+
+    db = Database(cfg)
+    try:
+        legacy = db.get_episodic(rec.id)
+        assert legacy is not None and legacy.s0 is None
+        cols = {r[1] for r in db.conn.execute("PRAGMA table_info(mem_episodic)")}
+        assert "s0" in cols, "migration re-added the column"
+    finally:
+        db.conn.close()
+
+
+# --------------------------------------------------------------------------- #
+# core #3 — scoped retrieval pool starvation
+# --------------------------------------------------------------------------- #
+def test_scoped_retrieve_not_starved_in_shared_store(service, cfg):
+    """The review's repro: 300 matching episodes in project A + 3 in project B; a
+    B-scoped retrieve previously pooled 20 candidates (all A), filtered, and returned
+    0 despite direct hits. The pool now widens until scoped hits fill or the index is
+    exhausted."""
+    from cdms.models import Episodic
+
+    text = "database migration script run completed"
+    ids_b = []
+    for i in range(303):
+        proj = "B" if i >= 300 else "A"
+        e = Episodic(id=new_id("ep"), trigger_prompt=text,
+                     action_taken=text, outcome_feedback="ok",
+                     valence=0.2, base_salience=1.0, session_id=f"s{i % 7}", project=proj)
+        service.db.insert_episodic(e, service.embedder.embed_one(e.search_text()))
+        if proj == "B":
+            ids_b.append(e.id)
+
+    hits = service.retrieve(text, top_k=8, tiers=("episodic",), project="B", reinforce=False)
+    assert len(hits) == 3, f"scoped recall starved: {len(hits)}/3 project-B hits"
+    assert {h.id for h in hits} == set(ids_b)
+
+
+def test_find_duplicate_scar_not_crowded_by_other_projects(service, cfg):
+    """Same pattern at pool=5: another project's near-neighbours crowded out this
+    project's true duplicate, so a recurring failure minted duplicate permanent rows."""
+    text_t, text_r = "force push wiped shared history", "never force push shared branches"
+    emb = None
+    for i in range(8):
+        s = Scar(id=new_id("scar"), crisis_trigger=text_t, remediation_rule=text_r,
+                 project="A", origin="elevated")
+        emb = service.embedder.embed_one(s.search_text())
+        service.db.insert_scar(s, emb)
+    sb = Scar(id=new_id("scar"), crisis_trigger=text_t, remediation_rule=text_r,
+              project="B", origin="elevated")
+    service.db.insert_scar(sb, service.embedder.embed_one(sb.search_text()))
+
+    dup = service.db.find_duplicate_scar(emb, "B", cfg.scar_dedup_sim_threshold)
+    assert dup is not None and dup.id == sb.id
+
+
+# --------------------------------------------------------------------------- #
+# S3 — redaction coverage
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("payload,secret", [
+    ('config: {"api_key": "sk_live_4eC39HqLyjWDarjtT1zd"}', "sk_live_4eC39HqLyjWDarjtT1zd"),
+    ('{"DB_PASSWORD": "hunter2secret"}', "hunter2secret"),
+    ("DATABASE_URL=postgres://admin:hunter2secret@db.example.com:5432/app", "hunter2secret"),
+    ("curl -H 'Authorization: Bearer o9uP3.opaque-token_1234'", "o9uP3.opaque-token_1234"),
+    ("stripe key sk_test_FAKEFAKEFAKEFAKE1234", "sk_test_FAKEFAKEFAKEFAKE1234"),
+    ("restricted rk_live_FAKEFAKEFAKEFAKE1234", "rk_live_FAKEFAKEFAKEFAKE1234"),
+])
+def test_redaction_covers_reported_misses(payload, secret):
+    from cdms.store import redact_secrets
+
+    out = redact_secrets(payload)
+    assert secret not in out, out
+    assert "[REDACTED]" in out
+
+
+def test_redaction_keeps_nonsecret_structure_legible():
+    from cdms.store import redact_secrets
+
+    out = redact_secrets("postgres://admin:hunter2secret@db.example.com/app")
+    assert out.startswith("postgres://admin:[REDACTED]@db.example.com"), out
+
+
+@pytest.mark.parametrize("benign", [
+    "the ratio is 3:2 at scale",
+    "see https://example.com/path for details",
+    "authorization of the budget was approved yesterday",
+    "meeting rescheduled to 10:30 tomorrow",
+    "the token bucket algorithm rate-limits requests",
+])
+def test_redaction_does_not_over_redact(benign):
+    from cdms.store import redact_secrets
+
+    assert redact_secrets(benign) == benign
+
+
+# --------------------------------------------------------------------------- #
+# item 8 — MCP shared-connection serialization
+# --------------------------------------------------------------------------- #
+def test_mcp_tools_survive_concurrent_hammer(tmp_path, monkeypatch):
+    import threading
+
+    m = _fresh_server(tmp_path, monkeypatch)
+    errors: list[BaseException] = []
+
+    def worker(w: int):
+        try:
+            for i in range(8):
+                m.store(content=f"worker {w} observation {i} about the build",
+                        kind="episode", project=PROJECT)
+                m.retrieve(query="observation about the build", k=4, tiers="episodic",
+                           project=PROJECT)
+        except BaseException as exc:   # noqa: BLE001 - the assertion IS "no exception"
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker, args=(w,)) for w in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert not errors, errors
+    assert m.service().db.stats()["episodic"] == 32   # every write intact, none torn

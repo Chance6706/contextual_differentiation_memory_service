@@ -40,6 +40,15 @@ _CFG = load_config()
 _LAUNCH_CWD = os.getcwd()
 _SERVICE: MemoryService | None = None
 _SERVICE_LOCK = threading.Lock()
+# One tool call at a time (REPO_ANALYSIS §4.3 / §6 item 8): every tool shares one
+# SQLite connection (check_same_thread=False) and FastMCP may dispatch sync tools
+# on worker threads while the CLI issues parallel tool calls. Interleaved
+# statements on one connection can tear a mem/vec/fts triplet mid-tx (same-
+# connection readers see uncommitted partial writes; a rollback can undo another
+# thread's statements). The viewport wraps its shared DB in an RLock for exactly
+# this reason — mirror it here. Tool bodies are short (ms), so serialization is
+# not a throughput concern on a personal memory store.
+_DB_LOCK = threading.RLock()
 
 
 def service() -> MemoryService:
@@ -137,31 +146,32 @@ def store(
     # "scar"->"scra" would otherwise drop a guardrail into the decaying episodic tier (Cycle-8 L-S-1).
     if kind not in ("episode", "fact", "scar"):
         raise ValueError(f"unknown kind {kind!r}; expected one of: episode, fact, scar")
-    if kind == "scar":
-        trig, _, rule = content.partition("|")
-        # origin="mcp" (REPO_ANALYSIS S4): the model path must not mint an AUTHORITATIVE
-        # guardrail in one tool call while auto-elevation is provenance+corroboration
-        # gated — a prompt-injected `store(kind="scar")` would otherwise plant a permanent
-        # rule re-injected at every SessionStart (v4/v5 render it as "take precedence over
-        # project conventions"). Agent-pinned scars render as unverified notes instead,
-        # count toward the L3 per-project cap, and evict before auto-elevated scars.
-        scar = svc.pin_scar(trig.strip() or content.strip(), rule.strip() or content.strip(), project,
-                            origin="mcp")
-        # Dedup can return a pre-existing operator/elevated scar; label honestly either way.
-        what = ("pinned agent note (unverified guardrail)" if scar.origin == "mcp"
-                else "matched existing guardrail")
-        return StoreResult(id=scar.id, tier="scar", summary=f"{what}: {scar.crisis_trigger[:60]}")
-    if kind == "fact":
-        parts = [p.strip() for p in content.split("|")]
-        if len(parts) >= 3:
-            g = svc.upsert_fact(parts[0], parts[1].replace(" ", "_"), parts[2], project=project)
-        else:
-            g = svc.upsert_fact("user", "noted", content.strip(), project=project)
-        return StoreResult(id=g.id, tier="gist", summary=g.render())
-    rec = svc.ingest(TurnEvent(trigger_prompt=content, action_taken="(model note)",
-                               project=project))
-    return StoreResult(id=rec.id, tier="episodic", salience=rec.base_salience,
-                       summary=content[:80])
+    with _DB_LOCK:
+        if kind == "scar":
+            trig, _, rule = content.partition("|")
+            # origin="mcp" (REPO_ANALYSIS S4): the model path must not mint an AUTHORITATIVE
+            # guardrail in one tool call while auto-elevation is provenance+corroboration
+            # gated — a prompt-injected `store(kind="scar")` would otherwise plant a permanent
+            # rule re-injected at every SessionStart (v4/v5 render it as "take precedence over
+            # project conventions"). Agent-pinned scars render as unverified notes instead,
+            # count toward the L3 per-project cap, and evict before auto-elevated scars.
+            scar = svc.pin_scar(trig.strip() or content.strip(), rule.strip() or content.strip(),
+                                project, origin="mcp")
+            # Dedup can return a pre-existing operator/elevated scar; label honestly either way.
+            what = ("pinned agent note (unverified guardrail)" if scar.origin == "mcp"
+                    else "matched existing guardrail")
+            return StoreResult(id=scar.id, tier="scar", summary=f"{what}: {scar.crisis_trigger[:60]}")
+        if kind == "fact":
+            parts = [p.strip() for p in content.split("|")]
+            if len(parts) >= 3:
+                g = svc.upsert_fact(parts[0], parts[1].replace(" ", "_"), parts[2], project=project)
+            else:
+                g = svc.upsert_fact("user", "noted", content.strip(), project=project)
+            return StoreResult(id=g.id, tier="gist", summary=g.render())
+        rec = svc.ingest(TurnEvent(trigger_prompt=content, action_taken="(model note)",
+                                   project=project))
+        return StoreResult(id=rec.id, tier="episodic", salience=rec.base_salience,
+                           summary=content[:80])
 
 
 @mcp.tool()
@@ -182,7 +192,8 @@ def retrieve(
     else:
         wanted = tuple(t.strip() for t in tiers.split(",") if t.strip() in ("scar", "gist", "episodic"))
         wanted = wanted or ("scar", "gist", "episodic")
-    hits = svc.retrieve(query, top_k=k, tiers=wanted, project=project)
+    with _DB_LOCK:
+        hits = svc.retrieve(query, top_k=k, tiers=wanted, project=project)
     return [Memory(id=h.id, tier=h.tier, text=h.text, score=round(h.score, 5),
                    accessibility=round(h.accessibility, 4)) for h in hits]
 
@@ -194,7 +205,8 @@ def history(
 ) -> list[HistoryItem]:
     """Return the recent episodic timeline (most recent first)."""
     svc = service()
-    eps = svc.history(limit=limit, session_id=session_id or None)
+    with _DB_LOCK:
+        eps = svc.history(limit=limit, session_id=session_id or None)
     return [HistoryItem(id=e.id, timestamp=e.timestamp, session_id=e.session_id,
                         valence=round(e.valence, 3), salience=round(e.base_salience, 4),
                         text=e.search_text()[:200]) for e in eps]
@@ -204,7 +216,9 @@ def history(
 def list_paths() -> list[PersonaPath]:
     """List the PersonaTree paths — distinct (subject, relation) claims with aggregate support."""
     svc = service()
-    return [PersonaPath(subject=s, relation=r, support=sup) for s, r, sup in svc.list_paths()]
+    with _DB_LOCK:
+        paths = svc.list_paths()
+    return [PersonaPath(subject=s, relation=r, support=sup) for s, r, sup in paths]
 
 
 @mcp.tool()
@@ -214,7 +228,8 @@ def create_link(
 ) -> LinkResult:
     """Create a traceable support edge linking one memory to another (e.g. evidence -> claim)."""
     svc = service()
-    ok = svc.create_link(source_id, target_id)
+    with _DB_LOCK:
+        ok = svc.create_link(source_id, target_id)
     return LinkResult(source=source_id, target=target_id, created=ok)
 
 
