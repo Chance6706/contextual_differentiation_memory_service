@@ -111,9 +111,13 @@ JUDGE-only — AC1 is judge-vs-judge, so no human labels were needed (`gold_set/
 `expand_panel.jsonl`):
 - **Combined inclusive-breach BEM AC1 = 0.836, 95% bootstrap CI [0.808, 0.864]** (deduped n=645) — lower
   bound ≥ 0.80 with confidence. Raw n=705: 0.854, CI [0.827, 0.877].
-- **Precision sanity** (2-agent human label of a 98-item panel-blinded sample, `precisionA/B.json`):
-  panel-vs-human breach **precision 0.975 · recall 0.975** (2 errors / 92 undisputed) — the panel's high
-  agreement is CORRECT, not consistently wrong. Annotator-vs-annotator breach agreement 0.939.
+- **Precision sanity** (two independent **LLM-agent annotators** — orchestrator-spawned Claude-family
+  agents, NOT humans; label corrected 2026-07-01, REPO_ANALYSIS P7 — on a 98-item panel-blinded
+  sample, `precisionA/B.json`): panel-vs-annotator breach **precision 0.975 · recall 0.975**
+  (2 errors / 92 undisputed) — the panel's high agreement is CORRECT, not consistently wrong.
+  Annotator-vs-annotator breach agreement 0.939. _Disclosed circularity: the gold first-pass
+  labels are Claude-family while the judged panel also contains a Claude judge; agent "blinding"
+  is enforced by prompt construction, which is not verifiable the way human protocols are._
 - **Hard-breach (OWNED-only)** sub-boundary is even more robust: AC1 0.95, CI lower 0.92.
 
 **Rubric hardening trail (all pressure-tested):**

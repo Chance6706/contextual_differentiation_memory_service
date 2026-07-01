@@ -29,3 +29,8 @@ uv.lock
 
 # Letta local settings (reference exploration)
 .letta/
+
+# pytest-cov local artifacts
+.coverage
+.coverage.*
+htmlcov/

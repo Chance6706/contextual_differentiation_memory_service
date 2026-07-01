@@ -134,7 +134,8 @@ class Config:
     # Gist decay is measured in CONSOLIDATION CYCLES (activity), NOT wall-clock time:
     # being away from the keyboard for a month must NOT age your identity. A trait
     # only fades through many *active* sessions in which it is never reinforced.
-    gist_decay_per_cycle: float = 0.985 # gentle: per-cycle strength multiplier for idle traits
+    gist_decay_per_cycle: float = 0.985 # gentle: per-CYCLE (not per-day) strength multiplier for idle
+                                        # traits — DELIBERATE DEVIATION M2: activity-based, not wall-clock
     gist_retention_floor: float = 0.25  # evict only after a trait has faded well below 1 support
     # Cap the support_count that counts toward decay resistance. upsert_fact() increments
     # support_count unbounded (+1/call), so a frequently re-asserted explicit fact would

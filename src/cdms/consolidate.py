@@ -665,7 +665,11 @@ class Consolidator:
         effective strength = support * decay_per_cycle ^ (idle cycles). Below the
         floor it is forgotten. Heavily-supported / recently-reinforced traits
         persist for hundreds of idle cycles (continuity); identity is not lost just
-        because the user stepped away from the keyboard."""
+        because the user stepped away from the keyboard.
+
+        DELIBERATE DEVIATION (docs/DEVIATIONS.md M2): identity decay is measured in
+        consolidation CYCLES (activity), not wall-clock time — Ebbinghaus forgetting
+        is time-based; we deliberately are not."""
         doomed: list[str] = []
         for g in self.db.all_gist():
             idle = max(0, cycle - g.last_cycle)

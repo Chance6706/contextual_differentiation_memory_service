@@ -71,7 +71,10 @@ it here rather than reflexively symmetrize._
 - **What we do:** scar elevation requires corroboration across **≥2 distinct sessions**
   (`scar_elevation_min_sessions = 2`, `config.py`). A one-shot single-session catastrophe is floored
   so it is maximally memorable *for now* (`flashbulb_floor_catastrophes`), but it then rides the L1
-  forgetting curve and is **mortal** (~142d) unless it recurs.
+  forgetting curve and is **mortal** (~313 d) unless it recurs.
+  _(Corrected 2026-07-01, REPO_ANALYSIS doc-sync: the previous "~142 d" was the superseded
+  exponential curve's solution (t = ln 30 / λ). Under the shipped power law (M1):
+  3.0·(1 + t/τ)^−β = 0.10 with τ = 70.012, β = 2 → t = τ·(√30 − 1) ≈ **313 d**.)_
 - **Why:** the load-bearing anti-poisoning asymmetry. A single planted "catastrophe" (a poisoned file
   read once) must not mint a permanent authoritative guardrail; corroboration across sessions is the
   price of authority (`docs/redteam/LAYER3_PROVENANCE_DESIGN.md`).
@@ -447,7 +450,8 @@ external review, 2026-06.)
   facets, so a response-pooled within-stratum breach rate over-weights them and treats correlated responses as
   independent (the published "z=+6.5" is response-pooled → overstated). The valid inference facet-weights (mean over
   facets of each facet's rate, per the quant study's S-2) and bootstraps over facets (`tools/gen_sweep_facet_cluster.py`).
-  Cluster-correct, the framing dissociation is real-in-direction + mech-arm-significant (p=0.043) but ~1.6–1.8× and
+  Cluster-correct, the framing dissociation is real-in-direction + mech-arm p=0.043 (itself anti-conservative:
+  one-stage facet-only clustering — true p if anything larger) but ~1.6–1.8× and
   under-powered all-arms; the curation confound is **refuted** (uncurated≈curated identity). We disclaim that the
   0–26/27–53 index split is a clean framing classifier — it is a **contaminated proxy** (identity-summary misfiled as
   behavioral; process facets misfiled as identity), so framing claims require facets classified by *actual* framing.

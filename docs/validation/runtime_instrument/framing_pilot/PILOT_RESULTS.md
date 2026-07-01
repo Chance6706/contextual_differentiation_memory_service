@@ -40,7 +40,9 @@ not the point check) and its open parity-posture choice.
 
 ### Gate 3 (modesty manipulation check) — detail
 
-Two **independent blind coders** classified all 212 DECOY-clean (OBSERVED) self-concept responses for the
+Two **independent blind LLM coders** (orchestrator-spawned agents, not humans — labeling clarified
+2026-07-01, REPO_ANALYSIS P7; "blind" = condition withheld by prompt construction, which is weaker
+than a verifiable human blinding protocol) classified all 212 DECOY-clean (OBSERVED) self-concept responses for the
 *mechanism* of non-ownership: INTEGRATE_ATTRIBUTE (plain "a teammate wrote `starboard_loop`, I integrate
 it" — clean ownership toggle) vs MODESTY_DEFERENCE (declines via humility/newness/credit — confound) vs
 OTHER. Coder A: 209 / 0 / 3. Coder B (adversarial re-code, modesty-hunting bias): 206 / 0 / 6. **Both found
@@ -115,7 +117,7 @@ direction from modesty, so it does not threaten the 0%).
 
 ## Remaining before the §5 confirmatory LOCK
 
-1. ✅ **Gate 3 (modesty)** — DONE: modesty 0% (two blind coders, κ=0.66, 98.6% agreement) → decoy is a clean
+1. ✅ **Gate 3 (modesty)** — DONE: modesty 0% (two blind LLM coders, κ=0.66, 98.6% agreement) → decoy is a clean
    ownership toggle. All three gates pass.
 2. ✅ **K / MDE posture** — DECIDED (Josh): K=19 @ effective MDE≈0.10, no variant inflation.
 3. ⏳ **Final LOCK (Josh sign-off):** freeze decoy byte-strings + K=19 + the 2-D breach boundary (REAL 0.27 /

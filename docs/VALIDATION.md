@@ -1,7 +1,8 @@
 # Design Validation & Corrections
 
 Before implementing, the claims in
-`[Gemini Canvas] Contextual Differentiation Memory Service.md` were validated with
+`docs/archive/[Gemini Canvas] Contextual Differentiation Memory Service.md` (moved
+out of the repo root 2026-07-01) were validated with
 live web research (official docs, model cards, PyPI, neuroscience literature) and
 against the actual Claude Code CLI and Python/SQLite toolchain on the build
 machine. This document records what was **confirmed**, **adjusted**, or

@@ -170,15 +170,20 @@ not just asserted. The headline results to date (full method + caveats in
 [`docs/`](docs)):
 
 - **Differentiation is real and recognizable.** Seeding ~10k real Claude Code turns
-  across **3 projects** produced three distinct per-project psyches with **trait
-  overlap ≈ 0.00** (stable across all 6 consolidation windows; see
+  (10,104: 1,016 + 2,217 + 6,871) across **3 projects** produced three distinct
+  per-project psyches with **trait overlap 0.00** (stable across all 6 consolidation
+  windows; see
   [`docs/validation/cycle9_experiments/`](docs/validation/cycle9_experiments)) —
   they share none of their defining traits, and a domain query
-  reliably surfaces the *right* project's self. That near-zero overlap is *meaningfully
-  below chance*, not a vocabulary artifact: against a pooled-resampling null (each psyche
-  drawing traits independently from the shared vocabulary) the observed overlap sits
-  **~3 SD below** the chance baseline (`z = −3.33` on the offline run; see
-  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)). The phenotype-drift harness
+  reliably surfaces the *right* project's self. These are two separate results, honestly
+  labeled: the real-data 0.00 is an **observation with no significance test attached**
+  (the raw trait sets weren't retained, so its chance baseline is uncomputed); the
+  below-chance *inference* comes from a **different, synthetic run** — the offline
+  hash-embedder harness (4 synthetic psyches, observed overlap 0.048), where a
+  pooled-resampling null (each psyche drawing traits independently from the shared
+  vocabulary) puts the observed overlap **~3 SD below** chance (`z = −3.33`; see
+  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)).
+  The phenotype-drift harness
   (`tools/drift_trajectory.py`) confirms the §5.3 invariant: identity stays stable
   and distinct over time, and **absence never ages it** (decay is
   activity-based — a project you don't touch doesn't lose its personality).
@@ -187,14 +192,16 @@ not just asserted. The headline results to date (full method + caveats in
   memory that shapes behavior: *what kind of influence is it?* Injected CDMS memory
   reliably steers a model via **recalled content and override** (it can pull a
   model off its prior using remembered rules and crisis guardrails) — a positive,
-  moderate effect on every model of a 5-model / 3-family panel. But it does **not**
-  install a latent **disposition**: two *opposite* temperaments fed to the same
-  models produce **statistically indistinguishable** choices — across a 5-model panel
-  the dex/uma 95% CIs overlap at n≈50 (see
-  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)), so no
-  disposition shift is *detectable*, not merely asserted equal. Disposition *appears* to
-  live in the model's weights/activations, not in retrievable context — the line between
-  **Side 1** (memory) and **Side 2** (disposition) below.
+  moderate effect on every model of a 5-model / 3-family panel. But **no disposition
+  shift was detected**: two *opposite* temperaments fed to the same models produce
+  choices whose dex/uma 95% CIs overlap heavily at n≈50 (|Δ| ≤ 0.06, each interval
+  ~0.20 wide — see
+  [`docs/validation/measurement_precision/`](docs/validation/measurement_precision)).
+  This is a **non-detection, not a demonstrated equivalence**: no TOST/equivalence
+  test has been run, a true shift of ~0.10 would be invisible at this n, and
+  *confirming* the null within a tight margin needs ~196 obs/arm. Disposition
+  *appears* to live in the model's weights/activations, not in retrievable context —
+  the line between **Side 1** (memory) and **Side 2** (disposition) below.
   *Caveat: in-context, 12–14B panel — recall-steering measured greedy at n=10 probes,
   disposition sampled at k=5 / n≈50; this measures in-context recall steering, not
   weight-level effects.*
@@ -206,9 +213,13 @@ not just asserted. The headline results to date (full method + caveats in
   Turning these on raised behavioral adherence (panel-mean target−counter spread
   1.67 → **3.67**) and rule-citation **9×** (1/30 → 9/30), for a bounded +37–63%
   preamble cost — and the disposition boundary *still held*. The thin phenotype,
-  not model robustness, was the bottleneck. _(These panel means are point estimates;
-  the harnesses now emit Wilson 95% CIs per rate — `src/cdms/stats.py` — so a small-n
-  read like "dex == uma" reads as "not detectable at this n", not a confirmed null. See
+  not model robustness, was the bottleneck. _(Fragility, stated plainly: the
+  pre-registered **primary** criterion — panel-mean Δcites ≥ +3 — was **missed**
+  at +2.67; the verdict fired on the pre-registered OR branch (Δspread +2.0 ≥ +2).
+  The "9×" is 1/30 → 9/30 at n=3×10, whose Wilson 95% CIs nearly touch. Panel
+  means are point estimates; the harnesses emit Wilson CIs per rate —
+  `src/cdms/stats.py`; see
+  [`docs/validation/steering_enriched/`](docs/validation/steering_enriched) and
   [`docs/validation/measurement_precision/`](docs/validation/measurement_precision).)_
 
 - **Voice shifts too — but it's persona-specific, not generic.** A data-framed
@@ -217,6 +228,11 @@ not just asserted. The headline results to date (full method + caveats in
   register above a placebo persona), a result that survived de-circularized
   round-robin judging across four judges. Decision-steering remains the dominant,
   robust channel; the voice↔choice coupling is a soft tendency (+0.3), not a law.
+  _(Fragility: the voice numbers rest on **n=6 prompts**, greedy single-sample,
+  and one judge was also a subject (disclosed in
+  [`docs/validation/tone_lexicon/`](docs/validation/tone_lexicon)); the +0.3
+  coupling is **method-dependent at n=5** — bootstrap excludes 0, the t-interval
+  doesn't — so it is suggestive, not established.)_
 
 ---
 
@@ -454,8 +470,11 @@ line ✅ Built vs 📐 Designed):
   through a new, validated, **locked runtime ownership instrument (A′)** — a *different*
   axis from the disposition findings above. It measures whether injected memory is
   mis-read as the assistant's **own** identity (the Bem-firewall question): the headline
-  is that the leak is **enumeration-mode-only** (recall is clean), with a quant-vs-architecture
-  follow-up in flight. See [`docs/validation/runtime_instrument/`](docs/validation/runtime_instrument).
+  is that the leak is **enumeration-mode-only** (recall is clean). The quant-vs-architecture
+  follow-up **completed** (#86): "MoE leaks less" proved **unidentifiable** at n=2 MoE
+  families — what moves the leak is model **generation**, not architecture or bit-width;
+  quantization moves coherence only. See
+  [`docs/validation/runtime_instrument/`](docs/validation/runtime_instrument).
   The disposition/recall re-validation up the within-family ladder
   ([`docs/validation/SCALE_LADDER.md`](docs/validation/SCALE_LADDER.md)) is the separate,
   still-pending design.
@@ -493,7 +512,7 @@ encryption (for the backup/exfil threat) is the roadmap item above.
 
 ```bash
 uv pip install -e ".[dev]"
-CDMS_EMBED_BACKEND=hash python -m pytest -q     # ~720 tests; the core runs fully offline
+CDMS_EMBED_BACKEND=hash python -m pytest -q     # ~830 tests; the core runs fully offline
 ```
 
 The cognitive core (`salience.py`) is pure stdlib and fully unit-tested. Tests use

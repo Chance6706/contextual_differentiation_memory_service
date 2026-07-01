@@ -9,7 +9,7 @@ narrative history see the session memory files under
 
 ## TL;DR
 
-The **memory core (CDMS-A) is built, tested (~720 tests / 645 test functions across 60 files),
+The **memory core (CDMS-A) is built, tested (~830 tests across 64 files),
 validated on real history, red-team-hardened (9 cycles), and audited SHIPPABLE.** The **§8 temperament
 layer Phase 0** is built/tested/merged. The proactive pillars (curiosity/dream-research,
 emotion/proposals/provenance, temperament drift/proposal phases 1+) remain **designed, not built.**
@@ -95,9 +95,12 @@ audited shippable (6 GREEN + 1 BOUNDED). Active threads now also live in **sibli
   (P1–P7 + the "Boiling Frog" leash test) are in
   [`docs/TEMPERAMENT_PLAN.md`](docs/TEMPERAMENT_PLAN.md) §8.
 
-The central thesis — **Identity = f(History)** — is empirically confirmed: seeding
-~8.6k real Claude Code turns across 4 projects produced distinct, *recognizable*
-per-project psyches (trait overlap **0.00**).
+The central thesis — **Identity = f(History)** — is empirically supported: seeding
+**10,104 real Claude Code turns across 3 projects** produced distinct, *recognizable*
+per-project psyches (trait overlap **0.00** across all 6 windows — an observation
+with no significance test attached on this configuration; the below-chance z=−3.33
+belongs to the separate synthetic/offline harness. See
+`docs/validation/cycle9_experiments/`).
 
 ## From building to measuring & shipping (post-Cycle-9, PRs #33–#82)
 
@@ -142,15 +145,16 @@ The core was done; the work became *characterizing what it does* and *deciding w
   data + framing stratifier (**#90**); re-judged + committed `gen4_JUDGE.jsonl` (**#91**); +36 uncurated identity facets
   + 3-stratum stratifier (**#92**); **identity-power Phase B** (GX10 re-run, 24 models, $5.01 judge) + 2-agent
   pressure-test (**this PR**). **Headline (§3.5):** the published framing "z=+6.5" was response-pooled/overstated;
-  cluster-correct, the identity-vs-behavioral dissociation is **real-in-direction, mech-arm-significant (p=0.043),
-  ~1.6–1.8×, under-powered all-arms**; **topic-curation refuted** as the driver (uncurated≈curated identity); the real
+  cluster-correct, the identity-vs-behavioral dissociation is **real-in-direction, mech-arm p=0.043 (one-stage
+  facet-only clustering, self-labeled anti-conservative — true p if anything larger), ~1.6–1.8×, under-powered
+  all-arms**; **topic-curation refuted** as the driver (uncurated≈curated identity); the real
   carrier is a **self-presentation/self-assessment sub-construct** and the index-split is a contaminated proxy. Open
   item: a pre-registered, powered, clean-strata re-run to *confirm*. Full thread: [`RESEARCH_ARC.md`](RESEARCH_ARC.md).
 
 **Sibling repos / hardware.** `D:\Repo\salient_by_design` = the **salience-matrix research program** (one
 externally-defined salience matrix across FT + quant + CDMS-A runtime; reproducibility-as-novelty). `D:\Repo\CDMS-D`
 = the interface layer. **GX10/Sparky** (GB10, 128 GB unified, aarch64) = the local-inference + matrix reference
-platform; CDMS-A runs **green on aarch64** (720 offline + 3 real-embedder tests).
+platform; CDMS-A runs **green on aarch64** (~830 offline + 3 real-embedder tests as of the 2026-07-01 fixes).
 
 ## ✅ Built & tested (the core)
 
@@ -264,7 +268,7 @@ platform; CDMS-A runs **green on aarch64** (720 offline + 3 real-embedder tests)
 
 ```bash
 # from repo root, venv at .venv
-.venv/Scripts/python.exe -m pytest -q                       # ~720 tests (645 fns/60 files; set CDMS_EMBED_BACKEND=hash for offline)
+.venv/Scripts/python.exe -m pytest -q                       # ~830 tests (set CDMS_EMBED_BACKEND=hash for offline)
 .venv/Scripts/python.exe tools/individuation_experiment.py  # synthetic individuation harness
 python tools/drift_trajectory.py                            # self-validating phenotype-drift (PASS/FAIL)
 python tools/drift_trajectory.py --real ~/.claude/projects  # observational real-history trajectory

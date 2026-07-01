@@ -1,2 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Binary-content markdown (a 1.5 MB generated canvas export): exempt from LF
+# normalization — with `* text=auto` a heuristic misdetection would corrupt it
+# on the next touch (REPO_ANALYSIS 2026-07-01 §6 item 15).
+docs/archive/*.md -text
+
+# Multi-MB judged-data artifacts: keep byte-exact (they are the durable record
+# of paid judge calls; normalization must never rewrite them).
+docs/validation/**/*.jsonl -text

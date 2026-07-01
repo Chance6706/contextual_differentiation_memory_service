@@ -231,9 +231,11 @@ def main() -> int:
     observed = sum(jaccard(trait_sets[i], trait_sets[j]) for i, j in pairs) / len(pairs)
     vocab = set().union(*trait_sets)
     sig = overlap_significance(observed, [len(s) for s in trait_sets], len(vocab), n_trials=10000, seed=0)
+    # p uses the add-one (b+1)/(n+1) permutation estimator (REPO_ANALYSIS P2) — a
+    # Monte-Carlo p is never exactly 0, so print at full precision, not %.3f.
     print(f"\nmean pairwise trait overlap = {observed:.3f}  "
           f"[shuffle null {sig['null_mean']:.3f} ± {sig['null_sd']:.3f}; "
-          f"z = {sig['z']:+.2f}; percentile = {sig['percentile']:.3f}] -> {sig['verdict'].upper()}")
+          f"z = {sig['z']:+.2f}; left-tail p = {sig['percentile']:.2g}] -> {sig['verdict'].upper()}")
     print(f"  (vocabulary = {len(vocab)} distinct traits across {len(names)} psyches; "
           f"sizes = {[len(s) for s in trait_sets]})")
 

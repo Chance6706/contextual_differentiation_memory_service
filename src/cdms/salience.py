@@ -9,8 +9,12 @@ Two formulas from the spec are implemented here:
     Write-time salience (surprisal gating):
         S0 = G_goal * (S_surprise + C_contingency + W_self_ref + A_affect)
 
-    Decay-driven accessibility (Ebbinghaus, retrieval-reinforced):
-        A(m, t) = S0 * exp(-λ t) * min(α^c, Cap)
+    Decay-driven accessibility (retrieval-reinforced POWER-LAW forgetting):
+        A(m, t) = S0 * (1 + t/tau)^(-beta) * min(alpha^c, Cap)
+
+(The spec's original exponential ``exp(-λ t)`` was deliberately replaced by the
+power law — DELIBERATE DEVIATION, docs/DEVIATIONS.md M1; see ``accessibility()``.
+This header previously still printed the exponential — REPO_ANALYSIS doc-sync.)
 """
 
 from __future__ import annotations
