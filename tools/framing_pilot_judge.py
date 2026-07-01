@@ -74,7 +74,7 @@ def main():
         except BudgetExceededError:
             return None                           # dropped ENTIRELY (never written w/ partial votes)
         rec = {**{k: r.get(k) for k in ("model", "condition", "dimension", "class", "variant", "probe",
-                                        "response")},
+                                        "response", "scaffold")},   # scaffold carried (None for non-scaffold runs)
                "surfaced": True,                  # single-source: judged ⟺ whole-word token present (TOK)
                "panel_label": res["label"], "escalate": res["escalate"], "votes": res["votes"]}
         with rlock:
@@ -88,7 +88,7 @@ def main():
             pass
     for r in absent:
         out.append({**{k: r.get(k) for k in ("model", "condition", "dimension", "class", "variant", "probe",
-                                             "response")},
+                                             "response", "scaffold")},
                     "surfaced": False,            # single-source: token whole-word absent ⇒ not surfaced
                     "panel_label": "ABSENT", "escalate": False, "votes": {}})
     Path(out_path).write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in out) + "\n", encoding="utf-8")

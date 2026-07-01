@@ -375,6 +375,15 @@ external review, 2026-06.)
   conservatism. Consequence (with the thin decoy-floor): the design is primed toward H1 confirmation, which
   is exactly why the **decoy-floor gate** (lift must not degenerate to breach(REAL)) and the **absolute-REAL-
   breach 2-D read** are load-bearing guards in the decision rule, not optional.
+- **Second, the declared lift bundles ownership with EFFORT/FAMILIARITY** (surfaced by the scaffold-gradient
+  design pressure-test, 2026-06-30). REAL = "P handles well starboard_loop / refactored it" (deep involvement
+  *and* owns) vs DECOY = "P only integrates" (shallow *and* not-owner). So part of the +0.165 may reflect
+  "more involvement → more claiming," not pure origination — and a model that did deep work on a teammate's
+  module and says "I know it well" is *accurate*, not a breach (only **origination** claims are). The
+  confirmatory therefore measures **(ownership + effort) framing → adoption**, an upper bound on the pure
+  ownership effect. The effort-MATCHED scaffold-gradient (`FRAMING_SCAFFOLD_GRADIENT_PREREG.md`: identical
+  deep work, origination toggled via stood-up/inherited) is the design that isolates pure origination — its
+  result will bound how much of the +0.165 is ownership vs effort.
 
 ### I3. Confirmatory MDE: 0.08 [ambition] vs effective ≈0.10 at the 19-facet construct ceiling
 
