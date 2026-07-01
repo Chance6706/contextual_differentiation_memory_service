@@ -171,6 +171,13 @@ This is well-bounded. No single episode can be amplified more than 50 percent or
 
 ## Part IV: Budget Renormalization and Eviction
 
+> **Historical note (2026-07-01, REPO_ANALYSIS doc-sync):** Part IV analyzes the allocator **as it
+> stood during Cycle 9** — including the infeasible-cap equal-split behavior that was subsequently
+> replaced (the cap is now a hard invariant in every branch: Cycle-9 #3 for the infeasible branch,
+> REPO_ANALYSIS core #5 for the degenerate all-zero branch). For the shipped semantics read
+> `src/cdms/salience.py::allocate_capped_proportional` and `docs/DEVIATIONS.md` M5; the numbers
+> below are kept as the red-team record, not as a description of current behavior.
+
 ### Per-Project AND Per-Session Cap Effectiveness (Cycle-8 H-M-2 fix)
 
 The two-level budget allocation is effective:

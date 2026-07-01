@@ -90,8 +90,9 @@ the under-powered identity-breach cells.
 (fresh cache, temp=0) + A′-judged ($5.01), then **2-agent adversarial pressure-test** (statistical + methodological).
 **Found:** (a) the published "z=+6.5" framing significance was **response-pooled and overstated** — the correct unit is
 the ~17–25 elicitation *facets* (the bank double-probes the leaky self-presentation facets, inflating the curated
-stratum). Cluster-correct, the framing dissociation is **real in direction, significant in the clean mech arm
-(p=0.043), ~1.6–1.8×** (not ~2×), but **under-powered all-arms** ("real, not yet confirmed"). (b) **Topic-curation is
+stratum). Cluster-correct, the framing dissociation is **real in direction, mech-arm p=0.043 — from a one-stage
+facet-only clustering that is itself anti-conservative (`gen_sweep_facet_cluster.py`: "true p if anything larger"),
+so treat the 0.043 as a floor — **~1.6–1.8×** (not ~2×), and **under-powered all-arms** ("real, not yet confirmed"). (b) **Topic-curation is
 refuted as the driver** — uncurated-identity (22%) ≈ curated-identity (25%), p=0.62; the apparent gap was the 2-probe
 weighting artifact. (c) The real carrier is a narrow **self-presentation/self-assessment sub-construct** cutting across
 all nominal strata, and the 0–26/27–53 index-split is a **contaminated proxy** (identity-summary misfiled as

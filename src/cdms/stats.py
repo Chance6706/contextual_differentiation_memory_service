@@ -134,13 +134,19 @@ def overlap_significance(
     seed: int = 0,
 ) -> dict:
     """Compare an observed overlap to the pooled-resampling null. Returns a dict with the
-    null mean/sd, the z-score (observed - null_mean)/null_sd, and the left-tail percentile
-    (fraction of the null at or below the observed value). A strongly negative z (e.g. <= -2)
+    null mean/sd, the z-score (observed - null_mean)/null_sd, and the left-tail p
+    ("percentile" key kept for compatibility). A strongly negative z (e.g. <= -2)
     means the observed overlap is meaningfully lower than chance — real differentiation.
+
+    The left-tail p uses the add-one (b+1)/(n+1) permutation estimator (REPO_ANALYSIS
+    P2): a Monte-Carlo p can never legitimately be 0 — "0.000" over 10k trials means
+    p < ~1e-4, which is what (0+1)/(10000+1) reports. NOTE: the z <= -2 "meaningful"
+    verdict cut is a descriptive reporting convention, not a pre-registered decision
+    rule — confirmatory work uses its own locked gates.
     """
     null_mean, null_sd, dist = pooled_overlap_baseline(group_sizes, vocab_size, n_trials, seed)
     z = (observed - null_mean) / null_sd if null_sd > 0 else 0.0
-    percentile = float(np.mean(dist <= observed))
+    percentile = float((np.sum(dist <= observed) + 1) / (len(dist) + 1))
     return {
         "observed": float(observed),
         "null_mean": null_mean,

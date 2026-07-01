@@ -81,7 +81,8 @@ intervals — the locked method is the conservative choice, not anti-conservativ
 5. **Subjects: mech-only** (granite 3.0–3.3 ×{8b,2b}, mistral-g v0.1–0.3 — small models; in the pilot all 3
    mistrals showed 0 REAL adoption → real model heterogeneity). all-arms / larger models were **not** run
    (optional per lock, non-decision-bearing). Do not generalize beyond these subjects.
-6. **Gate-3 (modesty) reuse.** The formal two-blind-coder modesty validation was on the *pilot* facets, not
+6. **Gate-3 (modesty) reuse.** The formal two-blind-LLM-coder modesty validation (agent coders — see
+   PILOT_RESULTS Gate-3 labeling note) was on the *pilot* facets, not
    re-run on the disjoint K=19. The decoy clause is byte-identical; a lexical modesty sweep over the
    confirmatory DECOY-clean self-concept responses returns **0 hits** — corroboration that 0% modesty holds
    on the new facets, but not a fresh formal gate.

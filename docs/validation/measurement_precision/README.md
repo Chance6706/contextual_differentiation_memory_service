@@ -37,16 +37,26 @@ established. Two falsifiable claims:
 `CDMS_EMBED_BACKEND=hash python tools/individuation_experiment.py`:
 
 ```
-mean pairwise trait overlap = 0.048  [shuffle null 0.167 ± 0.036; z = -3.33; percentile = 0.000] -> MEANINGFUL
+mean pairwise trait overlap = 0.048  [shuffle null 0.167 ± 0.036; z = -3.33; left-tail p = 0.0001] -> MEANINGFUL
   (vocabulary = 34 distinct traits across 4 psyches; sizes = [11, 9, 9, 9])
 ```
 
+_(Output refreshed 2026-07-01: the left-tail p now uses the add-one (b+1)/(n+1) permutation
+estimator — the earlier line printed "percentile = 0.000", but a Monte-Carlo p is never exactly 0;
+0 exceedances over 10k trials means p ≈ 1e-4. Same run, same overlap/z. REPO_ANALYSIS P2. The
+z ≤ −2 "MEANINGFUL" cut is a descriptive reporting convention, not a pre-registered decision rule.)_
+
 The observed overlap sits **3.33 SD below** what independent sampling from the same 34-trait
 vocabulary would produce. So the near-zero overlap is genuine differentiation, **not** an
-artifact of disjoint vocabularies — quantified, where before it was a bare "0.00". (This is the
-deterministic hash-embedder run, whose traits cluster more loosely; the real-embedder / real-data
-run reports an even lower observed overlap, i.e. an even stronger result. The shuffle baseline is
-also the right answer to the earlier critique that "0.00 might be a schema artifact" — it is not.)
+artifact of disjoint vocabularies — quantified, where before it was a bare "0.00". Scope caveats
+(REPO_ANALYSIS P1/P2): this is the **deterministic hash-embedder run on 4 synthetic psyches** — the
+real-data 3-project 0.00 has **no significance test attached** (its trait sets weren't retained; the
+prior claim here that the real run is "an even stronger result" was an assertion, never computed —
+its observed overlap is lower, but its chance baseline is unknown). Note also the null's scope: the
+vocabulary is defined post hoc as the union of observed traits, so this is an **artifact check**
+("is near-zero overlap explainable by chance draws from a shared vocabulary?"), not by itself a
+thesis test. The shuffle baseline does answer the earlier critique that "0.00 might be a schema
+artifact" — it is not.
 
 ### 2. The disposition probe is underpowered — now measured, not illustrated
 

@@ -46,7 +46,10 @@ jobs:
       - name: Run suite (offline, deterministic) + drift harness
         # test_real_embedder is excluded here (it forces the real backend / network download);
         # it runs in the real-embedder job. The drift_trajectory tests run here under hash.
-        run: pytest --ignore=tests/test_real_embedder.py
+        # Coverage is REPORT-ONLY (REPO_ANALYSIS §6 item 15): no fail-under gate yet —
+        # a threshold is an explicit maintainer decision once the baseline number has
+        # been observed across a few runs, not a value to guess in the fixing PR.
+        run: pytest --ignore=tests/test_real_embedder.py --cov=cdms --cov-report=term
 
   tests-windows:
     name: tests (Windows, hash embedder) — dev-platform guard
