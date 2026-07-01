@@ -512,8 +512,10 @@ class MemoryService:
         # a negative limit; recent_episodic clamps it too.)
         return self.db.recent_episodic(max(1, limit), session_id)
 
-    def list_paths(self) -> list[tuple[str, str, int]]:
-        return self.db.list_paths()
+    def list_paths(self, project: str = "") -> list[tuple[str, str, int]]:
+        # Empty = unscoped (operator paths: CLI, viewport); the MCP tool always
+        # passes its coerced project (core #7).
+        return self.db.list_paths(project or None)
 
     def create_link(self, source_id: str, target_id: str) -> bool:
         # Validate both endpoints exist before linking — otherwise dangling/typo'd
@@ -594,45 +596,57 @@ class MemoryService:
         """Drop matching not-yet-ingested events from the spool. Raw spooled tool
         output is PRE-redaction, so a `forget` that ignored the spool would let
         secrets survive and re-ingest on the next drain. Matched by cwd/session.
+
+        Failure semantics (REPO_ANALYSIS core #4): the claim uses the STANDARD
+        ``.processing`` suffix and is unlinked only AFTER a successful rewrite.
+        The old ``.forget-<pid>.tmp`` name was invisible to the orphan reclaim
+        (which globs ``*.processing``), so a crash between rename and rewrite
+        stranded every queued event forever; and the unconditional ``finally``
+        unlink turned a rewrite failure (e.g. ENOSPC) into silent loss of all
+        KEPT lines. Now a crash or failed rewrite leaves the claim in place: the
+        next drain's orphan reclaim re-ingests it (the to-forget events survive
+        that retry — forget fails LOUDLY via the raised error and can be re-run;
+        we never trade "forget failed, retry" for "unrelated data destroyed").
+        Safe against concurrent reclaim: forget() holds the cross-process lock,
+        and reclaim only runs inside a drain, which needs the same lock.
         """
         import json
         import os
+        import uuid as _uuid
         from pathlib import Path
 
         q = self.cfg.queue_path
         if not q.exists():
             return 0
-        claimed = Path(f"{q}.forget-{os.getpid()}.tmp")
+        claimed = Path(f"{q}.{os.getpid()}-{_uuid.uuid4().hex[:8]}.processing")
         try:
             os.replace(q, claimed)
         except (FileNotFoundError, PermissionError):
             return 0
         dropped = 0
         kept: list[str] = []
-        try:
-            for raw in claimed.read_text(encoding="utf-8").splitlines():
-                if not raw.strip():
-                    continue
-                try:
-                    ev = json.loads(raw)
-                except json.JSONDecodeError:
-                    kept.append(raw)  # unparseable: leave for the drain to skip
-                    continue
-                if isinstance(ev, dict) and (
-                    (project is not None and self._project_match(ev.get("cwd", "") or "", project))
-                    or (session is not None and (ev.get("session_id", "") or "") == session)
-                ):
-                    dropped += 1
-                    continue
-                kept.append(raw)
-            if kept:
-                from .spool import spool_event_lines
-                spool_event_lines(self.cfg, kept)
-        finally:
+        for raw in claimed.read_text(encoding="utf-8").splitlines():
+            if not raw.strip():
+                continue
             try:
-                claimed.unlink()
-            except OSError:
-                pass
+                ev = json.loads(raw)
+            except json.JSONDecodeError:
+                kept.append(raw)  # unparseable: leave for the drain to skip
+                continue
+            if isinstance(ev, dict) and (
+                (project is not None and self._project_match(ev.get("cwd", "") or "", project))
+                or (session is not None and (ev.get("session_id", "") or "") == session)
+            ):
+                dropped += 1
+                continue
+            kept.append(raw)
+        if kept:
+            from .spool import spool_event_lines
+            spool_event_lines(self.cfg, kept)   # a failure here leaves the claim intact
+        try:
+            claimed.unlink()
+        except OSError:
+            pass
         return dropped
 
     def close(self) -> None:

@@ -663,11 +663,14 @@ class Database:
             return 0
         q = ",".join("?" for _ in ids)
         with self.tx() as c:
-            c.execute(f"DELETE FROM mem_episodic WHERE id IN ({q})", ids)
+            # Return the mem_* DELETE's rowcount, not len(ids) (REPO_ANALYSIS core #6):
+            # a nonexistent/duplicate id or a concurrent delete otherwise overstates
+            # ConsolidationReport counters and forget() results.
+            deleted = c.execute(f"DELETE FROM mem_episodic WHERE id IN ({q})", ids).rowcount
             c.execute(f"DELETE FROM vec_episodic WHERE id IN ({q})", ids)
             c.execute(f"DELETE FROM fts_episodic WHERE id IN ({q})", ids)
             c.execute(f"DELETE FROM mem_support_edges WHERE source_leaf_id IN ({q})", ids)
-        return len(ids)
+        return max(0, deleted)
 
     # ====================================================================== #
     # L2 gist + support edges
@@ -762,11 +765,12 @@ class Database:
             return 0
         q = ",".join("?" for _ in ids)
         with self.tx() as c:
-            c.execute(f"DELETE FROM mem_gist WHERE id IN ({q})", ids)
+            # rowcount, not len(ids) — see delete_episodic (core #6).
+            deleted = c.execute(f"DELETE FROM mem_gist WHERE id IN ({q})", ids).rowcount
             c.execute(f"DELETE FROM vec_gist WHERE id IN ({q})", ids)
             c.execute(f"DELETE FROM fts_gist WHERE id IN ({q})", ids)
             c.execute(f"DELETE FROM mem_support_edges WHERE target_gist_id IN ({q})", ids)
-        return len(ids)
+        return max(0, deleted)
 
     def delete_scar(self, ids: Iterable[str]) -> int:
         ids = list(ids)
@@ -774,10 +778,11 @@ class Database:
             return 0
         q = ",".join("?" for _ in ids)
         with self.tx() as c:
-            c.execute(f"DELETE FROM mem_scars WHERE id IN ({q})", ids)
+            # rowcount, not len(ids) — see delete_episodic (core #6).
+            deleted = c.execute(f"DELETE FROM mem_scars WHERE id IN ({q})", ids).rowcount
             c.execute(f"DELETE FROM vec_scars WHERE id IN ({q})", ids)
             c.execute(f"DELETE FROM fts_scars WHERE id IN ({q})", ids)
-        return len(ids)
+        return max(0, deleted)
 
     def exists(self, table: str, item_id: str) -> bool:
         t = {"episodic": "mem_episodic", "gist": "mem_gist", "scar": "mem_scars"}[table]
@@ -792,11 +797,24 @@ class Database:
             return cur.rowcount > 0
 
     def list_paths(self, project: str | None = None) -> list[tuple[str, str, int]]:
-        """PersonaTree paths: distinct (subject, relation) with aggregate support."""
-        rows = self.conn.execute(
-            """SELECT subject, relation, SUM(support_count) AS s
-               FROM mem_gist GROUP BY subject, relation ORDER BY s DESC"""
-        ).fetchall()
+        """PersonaTree paths: distinct (subject, relation) with aggregate support.
+
+        ``project`` now actually filters (REPO_ANALYSIS core #7 — it was a dead
+        parameter, leaking every project's subject/relation aggregates through the
+        one unscoped MCP read tool). Same scope semantics as ``top_gist``: the
+        project's own rows plus global (''); None/empty = unscoped (operator paths:
+        CLI, viewport)."""
+        if project:
+            rows = self.conn.execute(
+                """SELECT subject, relation, SUM(support_count) AS s
+                   FROM mem_gist WHERE project = ? OR project = ''
+                   GROUP BY subject, relation ORDER BY s DESC""", (project,)
+            ).fetchall()
+        else:
+            rows = self.conn.execute(
+                """SELECT subject, relation, SUM(support_count) AS s
+                   FROM mem_gist GROUP BY subject, relation ORDER BY s DESC"""
+            ).fetchall()
         return [(r["subject"], r["relation"], int(r["s"])) for r in rows]
 
     # ====================================================================== #
