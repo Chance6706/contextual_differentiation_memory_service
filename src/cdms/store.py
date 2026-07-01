@@ -316,16 +316,35 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     # Explicit pins (scars) and facts (gist)
     # ------------------------------------------------------------------ #
-    def pin_scar(self, crisis_trigger: str, remediation_rule: str, project: str = "") -> Scar:
+    def pin_scar(self, crisis_trigger: str, remediation_rule: str, project: str = "",
+                 origin: str = "pinned") -> Scar:
+        """Pin a guardrail. ``origin`` records WHO pinned it (see models.Scar):
+        "pinned" = operator (CLI/seeder — default, full authority); "mcp" = the model
+        via the MCP store tool (REPO_ANALYSIS S4: demoted render band, L3-capped,
+        evicted first — one induced tool call must not mint an authoritative,
+        every-session-re-injected rule while auto-elevation stays corroboration-gated).
+        """
+        if origin not in ("pinned", "mcp"):
+            raise ValueError(f"pin_scar origin must be 'pinned' or 'mcp', got {origin!r}")
         self._reconcile_embedder()
         # Redact + cap: scars are re-injected into context at every SessionStart.
         scar = Scar(id=new_id("scar"), crisis_trigger=self._clip(crisis_trigger),
-                    remediation_rule=self._clip(remediation_rule), project=project)
+                    remediation_rule=self._clip(remediation_rule), project=project,
+                    origin=origin)
         emb = self.embedder.embed_one(scar.search_text())
         # Dedup: a near-identical guardrail already pinned (same project) is returned
         # as-is instead of inserting a duplicate permanent row.
         dup = self.db.find_duplicate_scar(emb, project, self.cfg.scar_dedup_sim_threshold)
         if dup is not None:
+            # An OPERATOR pin over an agent-pinned near-duplicate is corroboration by a
+            # higher authority: upgrade the existing row in place (keep id/timestamp/
+            # embedding) instead of silently handing the operator back a demoted note.
+            # The reverse (an MCP pin matching an operator/elevated scar) never
+            # downgrades — the dup is returned as-is.
+            if origin == "pinned" and dup.origin == "mcp":
+                dup.origin = "pinned"
+                demb = self.db.get_embedding("scar", dup.id)
+                self.db.insert_scar(dup, demb if demb is not None else emb)
             return dup
         self.db.insert_scar(scar, emb)
         return scar

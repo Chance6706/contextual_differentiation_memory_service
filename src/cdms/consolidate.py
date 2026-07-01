@@ -338,8 +338,12 @@ class Consolidator:
         auto-elevated entries can't force a pinned rule out and a project of only pinned
         scars is never touched. Only ``origin != 'pinned'`` rows are evictable; this is
         fail-safe because ``_row_to_scar`` maps any unknown/legacy/null origin to 'pinned'.
-        Ordering is oldest-first by ``timestamp`` (the only ordering field on a Scar; note
-        it is first-seen time — dedup does not refresh it), with ``id`` as a stable tiebreak.
+        Agent-pinned ("mcp") scars evict BEFORE auto-elevated ones (REPO_ANALYSIS S4):
+        both share the cap, so without this ordering a flood of one-call MCP pins could
+        flush every corroborated elevated guardrail out of its project — the flood must
+        consume itself first. Within each class, oldest-first by ``timestamp`` (the only
+        ordering field on a Scar; note it is first-seen time — dedup does not refresh it),
+        with ``id`` as a stable tiebreak.
         """
         cap = self.cfg.scar_project_cap
         by_project: dict[str, list[Scar]] = defaultdict(list)
@@ -350,7 +354,8 @@ class Consolidator:
         for scars in by_project.values():
             if len(scars) <= cap:
                 continue
-            scars.sort(key=lambda s: (s.timestamp, s.id))  # oldest first
+            # mcp first, then elevated; oldest first within each class
+            scars.sort(key=lambda s: (0 if s.origin == "mcp" else 1, s.timestamp, s.id))
             doomed.extend(s.id for s in scars[:len(scars) - cap])
         if doomed:
             rep.scars_evicted = self.db.delete_scar(doomed)

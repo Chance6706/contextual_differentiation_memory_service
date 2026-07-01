@@ -22,6 +22,22 @@ import numpy as np
 from .config import Config
 
 
+class EmbedderUnavailableError(RuntimeError):
+    """The embedding subsystem cannot safely produce vectors for this store right now.
+
+    Raised for the three "refuse rather than corrupt" modes: the fastembed model is
+    unavailable (transient download/OOM/import failure), the model's output dim does
+    not match the store's, or the embedder fingerprint mismatches the store's pinned
+    vector space. Subclasses RuntimeError so existing broad handlers keep working.
+
+    Contract for callers that own DURABLE input (the spool drain): this is an
+    INFRASTRUCTURE failure — abort and preserve the backlog for a later retry.
+    Never treat it as a bad-turn error to skip past: skipping every turn and then
+    deleting the claim silently destroys the whole backlog
+    (docs/REPO_ANALYSIS_2026-07-01.md §4.2 core #2).
+    """
+
+
 class Embedder:
     """Lazy, thread-safe, CPU-only sentence embedder.
 
@@ -64,7 +80,7 @@ class Embedder:
                 # only way to get the hash backend is to ask for it explicitly
                 # via CDMS_EMBED_BACKEND=hash.
                 self._backend = "uninitialized"  # allow a later retry
-                raise RuntimeError(
+                raise EmbedderUnavailableError(
                     f"fastembed model '{self.cfg.embed_model}' is unavailable "
                     f"({exc!r}). Refusing to silently degrade to the hash backend, "
                     f"which would corrupt this store's vector space. Ensure network/"
@@ -120,7 +136,7 @@ class Embedder:
                 # embed_dim, or a model that changed dim) otherwise surfaces only
                 # later as a cryptic sqlite-vec error — fail clearly, here.
                 got = vecs.shape[1] if vecs.ndim == 2 else vecs.shape
-                raise RuntimeError(
+                raise EmbedderUnavailableError(
                     f"Embedder produced dim {got} but config embed_dim is {self.dim} "
                     f"(model '{self.cfg.embed_model}'). Fix embed_dim to match the model, "
                     f"or rebuild the store."

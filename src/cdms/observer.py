@@ -3,9 +3,10 @@
 Read-only BY CONSTRUCTION: opens the store with `mode=ro` (falling back to a normal open + PRAGMA
 query_only=ON for WAL robustness), issues only SELECTs, never writes / injects / blocks the daemon.
 The operator sees WIDER than the model (provenance, scar origin, raw salience). The §8 temperament
-dials live behind a gated /diagnostics page and NEVER appear in the model-facing preamble preview
-(Bem firewall). Localhost only. Stdlib http.server — zero new deps. ALL stored content is
-HTML-escaped: a poisoned memory must not XSS the operator's browser.
+dials live on a banner-warned (NOT auth-gated) /diagnostics page and NEVER appear in the
+model-facing preamble preview (Bem firewall). Loopback-only: `serve` refuses a non-loopback bind
+(the store + dials have NO auth — same rule as the viewport). Stdlib http.server — zero new deps.
+ALL stored content is HTML-escaped: a poisoned memory must not XSS the operator's browser.
 """
 from __future__ import annotations
 
@@ -246,6 +247,14 @@ def _handler(cfg: Config):
 
 
 def serve(cfg: Config | None = None, host: str = "127.0.0.1", port: int = 8765) -> int:
+    # Loopback-only (REPO_ANALYSIS 2026-07-01 S2, mirroring viewport/server.py): the
+    # observer serves the full store AND the operator-only temperament dials with no
+    # auth, so `--host 0.0.0.0` would expose both to the network. Refuse before bind.
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        print(f"REFUSING to bind {host!r}: the observer serves the full memory store and "
+              "operator-only temperament dials with NO auth, so it is loopback-only by design. "
+              "For remote access, put it behind an authenticated tunnel/reverse proxy.")
+        return 2
     cfg = cfg or load_config()
     if not cfg.db_path.exists():
         print(f"cdms observer: no store at {cfg.db_path}")

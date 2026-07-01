@@ -1,9 +1,9 @@
 """Spool + drain pipeline connecting fast hooks to the (model-loading) ingest path.
 
 Lifecycle hooks must be near-instant, so they only *append* raw event JSON to an
-NDJSON spool (no embedding, no model load). The drain step — run by a long-lived
-process (the MCP server's heartbeat thread) or explicitly at a rest boundary —
-reconstructs interaction turns from the spooled events and ingests them.
+NDJSON spool (no embedding, no model load). The drain step — run by the hook at a
+rest boundary (SessionEnd/Stop) or explicitly via the CLI — reconstructs
+interaction turns from the spooled events and ingests them.
 
 Draining uses an atomic rename so events appended during processing are never
 lost: the live queue is renamed aside, processed, then deleted; new events land
@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Optional
 
 from .config import Config
+from .embeddings import EmbedderUnavailableError
 from .models import utc_now_iso
 from .spool import spool_event  # re-exported for backwards compatibility
 from .store import MemoryService, TurnEvent, redact_secrets
@@ -264,23 +265,39 @@ def _stream_spool(path: Path):
 def _ingest_claim(claimed: Path, service: MemoryService) -> int:
     """Reconstruct + ingest one claimed spool file, then remove it. The claim is
     unlinked in `finally` so a reconstruction error never STRANDS it (the orphan
-    reclaim handles the process-death case instead)."""
+    reclaim handles the process-death case instead).
+
+    EXCEPTION — infrastructure failure (REPO_ANALYSIS 2026-07-01 core #2): an
+    ``EmbedderUnavailableError`` means the embedding subsystem can't serve ANY
+    turn right now (model outage, dim/fingerprint mismatch). Treating it as a
+    bad-turn error skipped every turn and then deleted the claim — a transient
+    outage permanently destroyed the whole spooled backlog. Instead we abort the
+    drain and LEAVE the claim in place: the raiser's contract is "skip this write
+    and retry later", and the orphan reclaim re-ingests the claim once this
+    (short-lived hook) process exits, or after the age fallback. Turns ingested
+    before the abort are re-ingested on retry; consolidation dedup folds them.
+    """
     ingested = 0
     affect_null = 0
+    preserve = False
     try:
         for t in iter_turns(_stream_spool(claimed)):
             try:
                 service.ingest(t)
+            except EmbedderUnavailableError:
+                preserve = True   # infra failure: keep the backlog for retry
+                raise
             except Exception:  # never let one bad turn abort the drain
                 continue
             ingested += 1
             if t.success is None:   # no success/failure valence read for this turn
                 affect_null += 1
     finally:
-        try:
-            claimed.unlink()
-        except OSError:
-            pass
+        if not preserve:
+            try:
+                claimed.unlink()
+            except OSError:
+                pass
     # A1 instrumentation: how often an ingested turn reaches consolidation with NO affective
     # signal (success is None — neither the hook nor _infer_success could read valence). Cumulative
     # meta counters, surfaced as affect_null_rate by `cdms stats`. Mirrors the drains_skipped
@@ -367,6 +384,22 @@ def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
     try:
         with cross_process_lock(cfg.lock_path, timeout=_DRAIN_LOCK_TIMEOUT):
             return _drain_locked(cfg, service)
+    except EmbedderUnavailableError as exc:
+        # Infrastructure failure mid-drain (REPO_ANALYSIS core #2): the backlog is
+        # preserved as a .processing claim and re-ingested by a later drain's orphan
+        # reclaim. Mirror the drain-skip observability (meta counter + stderr) so a
+        # persistent outage is discoverable via `cdms stats`, not silent.
+        n = -1
+        try:
+            n = int(service.db.get_meta("drains_aborted", "0") or "0") + 1
+            service.db.set_meta("drains_aborted", n)
+            service.db.set_meta("last_drain_abort", utc_now_iso())
+        except Exception:
+            pass
+        print(f"cdms: drain aborted (embedder unavailable); total aborted={n}. The queued "
+              f"events are preserved and will be retried by a later drain. Cause: {exc}",
+              file=sys.stderr)
+        return 0
     except TimeoutError:
         # Make the skip OBSERVABLE (review-B finding): a silently-skipped drain can let the
         # spool grow to its cap and shed events. Mirror the consolidation-skip signal
