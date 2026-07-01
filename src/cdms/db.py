@@ -23,7 +23,7 @@ from contextlib import contextmanager
 from typing import Iterable, Iterator, Sequence
 
 from .config import Config
-from .embeddings import serialize_f32
+from .embeddings import EmbedderUnavailableError, serialize_f32
 from .models import Episodic, Gist, Scar, utc_now_iso
 
 SCHEMA_VERSION = 4
@@ -243,6 +243,40 @@ class Database:
 
     # -- connection setup ----------------------------------------------------
     @staticmethod
+    def _harden_store_perms(path) -> None:
+        """Owner-only mode bits on the store files (REPO_ANALYSIS 2026-07-01 S1).
+
+        The DB holds the same plaintext the spool got 0600 for in Cycle-8 H-1 —
+        including anything that slips past the best-effort redactor — yet was
+        created world-readable under the default umask. SQLite creates ``-wal`` /
+        ``-shm`` with the main file's mode, so chmod-ing the .db at open covers
+        files created later; pre-existing sidecars are tightened explicitly.
+        Best-effort: a chmod failure (exotic FS) must never block the open. On
+        Windows these bits are a no-op (NTFS ACLs govern; profile dirs are
+        per-user by default) — same posture as the spool/quarantine fixes.
+
+        Called BEFORE sqlite3.connect: a missing db file is pre-created 0600
+        (the spool's Cycle-8 H-1 idiom) so a fresh store never exists
+        world-readable even briefly; SQLite treats the empty file as a new db.
+        """
+        import os
+
+        if os.name == "nt":
+            return
+        if not os.path.exists(str(path)):
+            try:
+                os.close(os.open(str(path), os.O_WRONLY | os.O_CREAT, 0o600))
+            except OSError:
+                pass
+        for suffix in ("", "-wal", "-shm"):
+            p = f"{path}{suffix}"
+            try:
+                if os.path.exists(p):
+                    os.chmod(p, 0o600)
+            except OSError:
+                pass
+
+    @staticmethod
     def _open(path) -> sqlite3.Connection:
         if sqlite3.sqlite_version_info < (3, 41, 0):
             raise RuntimeError(
@@ -253,6 +287,7 @@ class Database:
 
         # check_same_thread=False: FastMCP may dispatch sync tools off the loop
         # thread. SQLite still serializes writes; busy_timeout covers contention.
+        Database._harden_store_perms(path)
         conn = sqlite3.connect(str(path), check_same_thread=False)
         try:
             conn.row_factory = sqlite3.Row
@@ -420,7 +455,10 @@ class Database:
             self.set_meta("embed_fingerprint", fingerprint)
             return
         if pinned != fingerprint:
-            raise RuntimeError(
+            # EmbedderUnavailableError (a RuntimeError): the drain treats this as an
+            # infrastructure failure and preserves the spooled backlog for retry
+            # instead of skipping every turn and deleting it (REPO_ANALYSIS core #2).
+            raise EmbedderUnavailableError(
                 f"Embedding-space mismatch: this store was built with "
                 f"'{pinned}' but the current embedder is '{fingerprint}'. "
                 f"Refusing to mix incompatible vector spaces (it would silently "

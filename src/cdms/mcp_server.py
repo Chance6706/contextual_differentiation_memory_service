@@ -116,7 +116,9 @@ def store(
                          description="The text to remember (an observation, fact, preference, or crisis rule)."),
     kind: str = Field(default="episode", description="One of 'episode' (default), 'fact', or 'scar'. "
                       "'fact' content must be 'subject | relation | object'. 'scar' content must be "
-                      "'trigger | remediation_rule' and pins a permanent guardrail."),
+                      "'trigger | remediation_rule' and pins a permanent agent-note guardrail "
+                      "(surfaced as an unverified note, not an authoritative rule; authority is "
+                      "earned via corroborated elevation or an operator pin)."),
     project: str = Field(default=_LAUNCH_CWD, description="Project/workspace path for scoped recall "
                          "(defaults to this server's project)."),
 ) -> StoreResult:
@@ -137,8 +139,18 @@ def store(
         raise ValueError(f"unknown kind {kind!r}; expected one of: episode, fact, scar")
     if kind == "scar":
         trig, _, rule = content.partition("|")
-        scar = svc.pin_scar(trig.strip() or content.strip(), rule.strip() or content.strip(), project)
-        return StoreResult(id=scar.id, tier="scar", summary=f"pinned guardrail: {scar.crisis_trigger[:60]}")
+        # origin="mcp" (REPO_ANALYSIS S4): the model path must not mint an AUTHORITATIVE
+        # guardrail in one tool call while auto-elevation is provenance+corroboration
+        # gated — a prompt-injected `store(kind="scar")` would otherwise plant a permanent
+        # rule re-injected at every SessionStart (v4/v5 render it as "take precedence over
+        # project conventions"). Agent-pinned scars render as unverified notes instead,
+        # count toward the L3 per-project cap, and evict before auto-elevated scars.
+        scar = svc.pin_scar(trig.strip() or content.strip(), rule.strip() or content.strip(), project,
+                            origin="mcp")
+        # Dedup can return a pre-existing operator/elevated scar; label honestly either way.
+        what = ("pinned agent note (unverified guardrail)" if scar.origin == "mcp"
+                else "matched existing guardrail")
+        return StoreResult(id=scar.id, tier="scar", summary=f"{what}: {scar.crisis_trigger[:60]}")
     if kind == "fact":
         parts = [p.strip() for p in content.split("|")]
         if len(parts) >= 3:

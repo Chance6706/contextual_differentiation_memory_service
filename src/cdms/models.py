@@ -99,9 +99,15 @@ class Scar:
     remediation_rule: str
     timestamp: str = field(default_factory=utc_now_iso)
     project: str = ""
-    # "pinned" = deliberate user/model pin (trusted guardrail); "elevated" = auto
-    # catastrophe-gated elevation. Pinned scars are prioritized for injection so a
-    # flood of auto-elevated entries cannot evict real, deliberate guardrails.
+    # "pinned"   = deliberate OPERATOR pin (CLI/seeder): trusted guardrail, exempt from
+    #              the L3 cap, prioritized for injection.
+    # "elevated" = auto catastrophe-gated elevation (corroborated across sessions).
+    # "mcp"      = AGENT-pinned via the MCP store tool (REPO_ANALYSIS 2026-07-01 S4):
+    #              authority is EARNED, and a single model tool call — possibly induced
+    #              by injected content — earns none. Rendered as an unverified note
+    #              (never in the authoritative guardrails block), counted toward the
+    #              L3 cap, and evicted before auto-elevated scars.
+    # Unknown/legacy origins map to "pinned" (fail-safe for eviction; see _row_to_scar).
     origin: str = "pinned"
 
     def search_text(self) -> str:

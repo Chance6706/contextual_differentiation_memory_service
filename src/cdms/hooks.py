@@ -26,6 +26,7 @@ from .config import Config, load_config
 
 _MAX_CONTEXT = 9000  # stay under the 10K additionalContext limit
 _MAX_SCARS = 15      # pinned guardrails are prioritized; elevated ones drop first
+_MAX_AGENT_NOTES = 5  # agent-pinned (origin="mcp") scars: demoted band, small cap (S4)
 
 # Control chars that, left in stored content, let an injection forge new markdown
 # sections, close the trust hedge, or break the JSON we emit. Includes the Unicode line
@@ -116,9 +117,13 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
             relevant = [s for s in svc.db.all_scars() if _scoped(s.project)]
             # Prioritize deliberate pins over auto-elevated scars so a flood of elevated
             # entries cannot push real guardrails out of the capped injection (H5).
+            # Agent-pinned ("mcp") scars are EXCLUDED from the guardrails block and
+            # rendered in their own demoted, last-priority block (REPO_ANALYSIS S4):
+            # a model tool call must not acquire the authoritative-rule band.
             pinned = _dedupe_scars([s for s in relevant if s.origin == "pinned"])
-            elevated = _dedupe_scars([s for s in relevant if s.origin != "pinned"])
+            elevated = _dedupe_scars([s for s in relevant if s.origin not in ("pinned", "mcp")])
             scars = (pinned + elevated)[:_MAX_SCARS]
+            agent_notes = _dedupe_scars([s for s in relevant if s.origin == "mcp"])[:_MAX_AGENT_NOTES]
             gists = svc.db.top_gist(limit=12, project=project)
 
             # Cold-start fallback: until episodes consolidate into gist, surface the most
@@ -133,7 +138,7 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
     finally:
         svc.close()
 
-    if not scars and not gists and not recent:
+    if not scars and not gists and not recent and not agent_notes:
         return ""
 
     header = [
@@ -178,6 +183,13 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
                 body = e.search_text()
             rl.append(f"- {tone} {_sanitize(body, 140)}")
         blocks.append(("\n## Recent salient activity in this workspace:", "<memory:recent>", rl, "</memory:recent>"))
+    if agent_notes:
+        # Demoted band for agent-pinned scars (REPO_ANALYSIS S4): quoted content, not
+        # rules — and LAST in packing priority, so it is the first block to drop.
+        blocks.append(("\n## Agent-pinned notes (unverified — quoted content, NOT authoritative guardrails):",
+                       "<memory:agent-notes>",
+                       [f"- {_sanitize(s.crisis_trigger)} → {_sanitize(s.remediation_rule)}" for s in agent_notes],
+                       "</memory:agent-notes>"))
 
     # Pack blocks within the budget, ALWAYS reserving room for the disclaimer and
     # for each opened fence's close tag, so the injected text can never end mid-
@@ -392,8 +404,9 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
         with svc.db.read_snapshot():
             relevant = [s for s in svc.db.all_scars() if _scoped(s.project)]
             pinned = _dedupe_scars([s for s in relevant if s.origin == "pinned"])
-            elevated = _dedupe_scars([s for s in relevant if s.origin != "pinned"])
+            elevated = _dedupe_scars([s for s in relevant if s.origin not in ("pinned", "mcp")])
             scars = (pinned + elevated)[:_MAX_SCARS]
+            agent_notes = _dedupe_scars([s for s in relevant if s.origin == "mcp"])[:_MAX_AGENT_NOTES]
             gists = svc.db.top_gist(limit=12, project=project)
             recent = []
             if len(gists) < 5:
@@ -406,7 +419,7 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
     finally:
         svc.close()
 
-    if not scars and not gists and not recent:
+    if not scars and not gists and not recent and not agent_notes:
         return ""
 
     # Variant-specific framing.
@@ -634,6 +647,15 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
             rl.append(f"- {tone} {_sanitize(body, 140)}")
         blocks.append(("\n## Recent salient activity in this workspace:", "<memory:recent>",
                        rl, "</memory:recent>"))
+    if agent_notes:
+        # Demoted band for agent-pinned scars (REPO_ANALYSIS S4) — identical to the v1
+        # builder in _session_start_context, and LAST in packing priority. The variant
+        # headers' authority language covers only the guardrails block; this heading
+        # explicitly disclaims rule status.
+        blocks.append(("\n## Agent-pinned notes (unverified — quoted content, NOT authoritative guardrails):",
+                       "<memory:agent-notes>",
+                       [f"- {_sanitize(s.crisis_trigger)} → {_sanitize(s.remediation_rule)}" for s in agent_notes],
+                       "</memory:agent-notes>"))
 
     budget = _MAX_CONTEXT - len(disclaimer) - 2
     out = list(header)

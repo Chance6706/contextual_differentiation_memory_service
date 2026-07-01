@@ -346,6 +346,18 @@ class Config:
     def ensure_home(self) -> None:
         self._maybe_migrate_legacy_store()
         self.home.mkdir(parents=True, exist_ok=True)
+        # Owner-only home dir (REPO_ANALYSIS 2026-07-01 S1): the store, spool, and
+        # quarantine snapshots all live under here; a 0755 dir undoes their 0600
+        # file modes for listing/traversal. mkdir(mode=...) is umask-masked and
+        # ignored for a pre-existing dir, so tighten explicitly. Best-effort, and
+        # a no-op on Windows (NTFS ACLs govern) — same posture as Cycle-8 H-1.
+        import os
+
+        if os.name != "nt":
+            try:
+                os.chmod(self.home, 0o700)
+            except OSError:
+                pass
 
     def _maybe_migrate_legacy_store(self) -> None:
         """A2 one-time relocation of a pre-subdir store into the dedicated ``cdms-a`` subtree.
