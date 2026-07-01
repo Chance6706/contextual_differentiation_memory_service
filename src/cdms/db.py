@@ -50,7 +50,8 @@ def _ddl(dim: int) -> list[str]:
             last_accessed TEXT,
             session_id TEXT DEFAULT '',
             project TEXT DEFAULT '',
-            provenance TEXT DEFAULT 'trusted'
+            provenance TEXT DEFAULT 'trusted',
+            s0 REAL
         )""",
         f"""CREATE VIRTUAL TABLE IF NOT EXISTS vec_episodic USING vec0(
             id TEXT PRIMARY KEY,
@@ -406,6 +407,12 @@ class Database:
             # Layer 3: capture-time origin trust. Legacy rows predate provenance and were all
             # the user's own captured work, so they default to 'trusted'.
             c.execute("ALTER TABLE mem_episodic ADD COLUMN provenance TEXT DEFAULT 'trusted'")
+        if "s0" not in ep_cols:
+            # Write-time S0 (REPO_ANALYSIS 2026-07-01 core #1): base_salience is rescaled to
+            # budget shares by consolidation, so the scar-elevation crisis gate (an S0-scale
+            # comparison) needs the ORIGINAL value persisted. NULL for legacy rows — the
+            # gate falls back to an inference for those (see Consolidator._crisis_salient).
+            c.execute("ALTER TABLE mem_episodic ADD COLUMN s0 REAL")
 
     # -- key/value meta (cycle counter, etc.) --------------------------------
     def get_meta(self, key: str, default: str | None = None) -> str | None:
@@ -547,11 +554,12 @@ class Database:
             c.execute(
                 """INSERT OR REPLACE INTO mem_episodic
                    (id, timestamp, trigger_prompt, action_taken, outcome_feedback,
-                    valence, base_salience, access_count, last_accessed, session_id, project, provenance)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    valence, base_salience, access_count, last_accessed, session_id, project,
+                    provenance, s0)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (rec.id, rec.timestamp, rec.trigger_prompt, rec.action_taken,
                  rec.outcome_feedback, rec.valence, rec.base_salience, rec.access_count,
-                 rec.last_accessed, rec.session_id, rec.project, rec.provenance),
+                 rec.last_accessed, rec.session_id, rec.project, rec.provenance, rec.s0),
             )
             c.execute("DELETE FROM vec_episodic WHERE id = ?", (rec.id,))
             c.execute("INSERT INTO vec_episodic(id, embedding) VALUES (?, ?)", (rec.id, blob))
@@ -636,9 +644,17 @@ class Database:
             )
 
     def set_salience(self, updates: Sequence[tuple[str, float]]) -> None:
-        """Bulk-write recomputed base_salience values after consolidation."""
+        """Bulk-write recomputed base_salience values after consolidation.
+        Never touches ``s0`` — the write-time value is immutable under renorm (core #1)."""
         with self.tx() as c:
             c.executemany("UPDATE mem_episodic SET base_salience = ? WHERE id = ?",
+                          [(s, i) for i, s in updates])
+
+    def set_s0(self, updates: Sequence[tuple[str, float]]) -> None:
+        """Backfill write-time S0. Only writer besides insert: dedup's fold, where the
+        survivor inherits the max so a folded crisis copy keeps its marker (core #1)."""
+        with self.tx() as c:
+            c.executemany("UPDATE mem_episodic SET s0 = ? WHERE id = ?",
                           [(s, i) for i, s in updates])
 
     def delete_episodic(self, ids: Iterable[str]) -> int:
@@ -823,19 +839,33 @@ class Database:
         ``embedding`` — used to dedup on insert so a recurring failure (the same
         force-push, the same flaky deploy) does not mint a fresh permanent ~4 KB
         scar row every consolidation, growing the (non-evicting) L3 table without
-        bound. Returns the existing scar to refresh/keep, or None."""
-        hits = self.knn("scar", embedding, 5)
-        if not hits:
-            return None
-        # Load only the ≤5 KNN candidates, not the whole scar table (Cycle-4 A5-H1).
-        smap = self.get_scars_by_ids([sid for sid, _ in hits])
-        for sid, dist in hits:
-            s = smap.get(sid)
-            if s is None or s.project != project:
-                continue
-            if (1.0 - dist) >= threshold:   # cosine distance -> similarity
-                return s
-        return None
+        bound. Returns the existing scar to refresh/keep, or None.
+
+        The project filter runs after KNN (vec_scars carries no project column), so
+        a fixed pool of 5 let another project's near-neighbours crowd out this
+        project's true duplicate (REPO_ANALYSIS core #3, same pattern as retrieve).
+        Widen until a decision is possible or the index is exhausted; scars are few,
+        so the common case is still one small KNN."""
+        k = 5
+        while True:
+            hits = self.knn("scar", embedding, k)
+            if not hits:
+                return None
+            # Load only the KNN candidates, not the whole scar table (Cycle-4 A5-H1).
+            smap = self.get_scars_by_ids([sid for sid, _ in hits])
+            for sid, dist in hits:
+                s = smap.get(sid)
+                if s is None or s.project != project:
+                    continue
+                if (1.0 - dist) >= threshold:   # cosine distance -> similarity
+                    return s
+            # No in-project duplicate in this pool. If the FARTHEST candidate is
+            # already below the similarity threshold, no wider pool can contain a
+            # duplicate (KNN is distance-ordered) — a true miss. Otherwise the pool
+            # may have been crowded by other projects' rows: widen and retry.
+            if (1.0 - hits[-1][1]) < threshold or len(hits) < k:
+                return None
+            k *= 4
 
     # ====================================================================== #
     # retrieval primitives
@@ -891,14 +921,16 @@ class Database:
     # ====================================================================== #
     @staticmethod
     def _row_to_episodic(r: sqlite3.Row) -> Episodic:
-        prov = r["provenance"] if "provenance" in r.keys() else "trusted"
+        keys = r.keys()
+        prov = r["provenance"] if "provenance" in keys else "trusted"
+        s0 = r["s0"] if "s0" in keys else None
         return Episodic(
             id=r["id"], trigger_prompt=r["trigger_prompt"], action_taken=r["action_taken"],
             outcome_feedback=r["outcome_feedback"] or "", valence=r["valence"],
             base_salience=r["base_salience"], access_count=r["access_count"],
             timestamp=r["timestamp"], last_accessed=r["last_accessed"],
             session_id=r["session_id"] or "", project=r["project"] or "",
-            provenance=prov or "trusted",
+            provenance=prov or "trusted", s0=s0,
         )
 
     @staticmethod

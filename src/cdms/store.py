@@ -83,26 +83,43 @@ _CONTINGENT_TOOLS = {"bash", "edit", "write", "multiedit", "notebookedit", "appl
 # carry live credentials; without this they would be persisted to plaintext
 # SQLite and re-injected into context at every SessionStart indefinitely. This is
 # a best-effort scrubber for the common high-signal shapes, not a guarantee.
+# Entries are (pattern, replacement): replacement None uses the default policy
+# (2+ groups -> "name=[REDACTED]", else "[REDACTED]"); an explicit template keeps
+# the non-secret structure (scheme://user, "Authorization: Bearer") legible.
 _SECRET_PATTERNS = [
-    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),                       # AWS access key id
-    re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}\b"),  # GitHub tokens
-    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
-    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),           # Slack tokens
-    re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),                    # OpenAI-style keys
-    re.compile(r"\bsk-ant-[A-Za-z0-9_-]{20,}"),                # Anthropic (hyphens break the sk- rule above)
-    re.compile(r"\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}"),  # OpenAI project/service keys (hyphenated)
-    re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"),                 # Google API key
-    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),  # JWT
-    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
-               re.DOTALL),
+    (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), None),                       # AWS access key id
+    (re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}\b"), None),  # GitHub tokens
+    (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"), None),
+    (re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"), None),           # Slack tokens
+    (re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"), None),                    # OpenAI-style keys
+    (re.compile(r"\bsk-ant-[A-Za-z0-9_-]{20,}"), None),                # Anthropic (hyphens break the sk- rule above)
+    (re.compile(r"\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}"), None),  # OpenAI project/service keys (hyphenated)
+    # Stripe secret/restricted keys (REPO_ANALYSIS S3): underscore form, so the
+    # hyphen-anchored sk- rule above never matched them.
+    (re.compile(r"\b[sr]k_(?:live|test)_[A-Za-z0-9]{10,}\b"), None),
+    (re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"), None),                 # Google API key
+    (re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"), None),  # JWT
+    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
+                re.DOTALL), None),
     # Azure storage connection string: keep the AccountKey= name, redact the value.
-    re.compile(r"(?i)\b(AccountKey)=([A-Za-z0-9+/=]{20,})"),
+    (re.compile(r"(?i)\b(AccountKey)=([A-Za-z0-9+/=]{20,})"), None),
+    # URL userinfo password (REPO_ANALYSIS S3): postgres://user:PASS@host and friends.
+    # Scheme-anchored so prose ("ratio 3:2") never matches; keeps scheme://user legible.
+    # Quantifiers bounded (ReDoS discipline, Cycle-5 C-MED-5).
+    (re.compile(r"(?i)\b([a-z][a-z0-9+.\-]{1,32}://[^\s/:@'\"]{1,128}):([^\s@'\"]{1,256})@"),
+     r"\1:[REDACTED]@"),
+    # Authorization: Bearer <opaque token> (REPO_ANALYSIS S3). JWT-shaped tokens were
+    # already caught above; this catches opaque ones, keeping the header name legible.
+    (re.compile(r"(?i)\b(Authorization)\s*[=:]\s*(?:Bearer|Basic|Token)\s+([A-Za-z0-9._~+/=\-]{8,512})"),
+     r"\1: [REDACTED]"),
     # KEY/SECRET/TOKEN/PASSWORD assignments: redact the value, keep the name.
     # Quantifiers BOUNDED ({0,64}) so the name-prefix/suffix around the keyword cannot
     # drive catastrophic backtracking on adversarial input even if length-clipping is ever
     # bypassed (Cycle-5 C-MED-5); 64 chars is far longer than any real env-var name.
-    re.compile(r"(?i)\b([A-Z0-9_]{0,64}(?:SECRET|TOKEN|PASSWORD|PASSWD|PWD|API[_-]?KEY|ACCESS[_-]?KEY)"
-               r"[A-Z0-9_]{0,64})\s*[=:]\s*['\"]?([^\s'\"]{6,})"),
+    # ["']? after the name (REPO_ANALYSIS S3): a JSON quoted key ({"api_key": "..."})
+    # closes its quote between the name and the colon, which broke the old anchor.
+    (re.compile(r"(?i)\b([A-Z0-9_]{0,64}(?:SECRET|TOKEN|PASSWORD|PASSWD|PWD|API[_-]?KEY|ACCESS[_-]?KEY)"
+                r"[A-Z0-9_]{0,64})[\"']?\s*[=:]\s*['\"]?([^\s'\"]{6,})"), None),
 ]
 
 
@@ -111,8 +128,10 @@ def redact_secrets(text: str) -> str:
     if not text:
         return text
     out = text
-    for pat in _SECRET_PATTERNS:
-        if pat.groups >= 2:
+    for pat, repl in _SECRET_PATTERNS:
+        if repl is not None:
+            out = pat.sub(repl, out)
+        elif pat.groups >= 2:
             out = pat.sub(lambda m: f"{m.group(1)}=[REDACTED]", out)
         else:
             out = pat.sub("[REDACTED]", out)
@@ -208,6 +227,7 @@ class MemoryService:
             project=ev.project,
             timestamp=ev.timestamp or utc_now_iso(),
             provenance=ev.provenance,
+            s0=s0,   # immutable write-time copy; base_salience gets budget-rescaled (core #1)
         )
         self.db.insert_episodic(rec, emb)
         self._associate(rec, emb)
@@ -392,18 +412,30 @@ class MemoryService:
         qvec = self.embedder.embed_one(query)
         pool = max(top_k * 3, 20)
 
-        hits: list[SearchHit] = []
-        for tier in tiers:
-            rrf = self._rrf(tier, qvec, query, pool)
-            if not rrf:
-                continue
-            hits.extend(self._materialize(tier, rrf))
-
         # Project scoping: when a project is given, recall only its own + global
         # ("") memories — otherwise a model in project B recalls project A's raw
         # content (cross-project exfiltration). Empty project = unscoped (CLI).
-        if project:
-            hits = [h for h in hits if h.payload.get("project", "") in ("", project)]
+        #
+        # The scope filter runs AFTER pooling (the vec0/FTS tables carry no project
+        # column), so a fixed pool starves small projects in a shared store: 300
+        # project-A rows crowd 3 project-B rows out of the top-20 and a scoped
+        # retrieve returns 0 despite direct hits (REPO_ANALYSIS core #3). Widen the
+        # pool per tier until the scoped hits fill top_k or the tier's index is
+        # exhausted — the widening only triggers for scoped queries that come up
+        # short, so the common case costs exactly one query per tier.
+        hits: list[SearchHit] = []
+        for tier in tiers:
+            k = pool
+            while True:
+                rrf = self._rrf(tier, qvec, query, k)
+                tier_hits = self._materialize(tier, rrf)
+                if project:
+                    tier_hits = [h for h in tier_hits if h.payload.get("project", "") in ("", project)]
+                if not project or len(tier_hits) >= top_k or len(rrf) < k:
+                    break   # unscoped / enough scoped hits / index exhausted
+                k *= 4
+            hits.extend(tier_hits)
+
         # Accessibility filtering + reinforcement happen on episodic tier only.
         hits = [h for h in hits if not (h.tier == "episodic" and h.accessibility < self.cfg.retention_floor)]
         hits.sort(key=lambda h: h.score, reverse=True)

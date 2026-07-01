@@ -266,13 +266,60 @@ class Consolidator:
         """
         return _matches_catastrophe(f"{e.action_taken}\n{e.outcome_feedback}")
 
+    def _crisis_salient(self, e: Episodic) -> bool:
+        """Scale-invariant salience gate for scar elevation (REPO_ANALYSIS core #1).
+
+        ``crisis_threshold`` is an S0-scale constant (PARAMETER_BASIS), but
+        ``base_salience`` is rescaled to an arbitrary budget share by
+        ``_compete_and_renormalize`` on every pass — so comparing the two silently
+        disabled elevation for any catastrophe not corroborated within its FIRST
+        pass in a busy store (dilution below 3.0), while quiet stores worked.
+        Compare the persisted write-time ``s0`` instead; it is never rescaled.
+
+        Legacy rows (pre-s0 column, ``s0 IS NULL``): under the default flashbulb
+        floor, any episode passing the catastrophe + crisis-valence gates (the
+        caller checks both first) had its S0 floored to the threshold at write
+        time, so it is inferred to pass; with the floor disabled (strict mode) we
+        fall back to base_salience — the old behavior, wrong only for legacy rows
+        in busy stores, and only until they age out.
+        """
+        if e.s0 is not None:
+            return e.s0 >= self.cfg.crisis_threshold
+        if self.cfg.flashbulb_floor_catastrophes:
+            return True
+        return e.base_salience >= self.cfg.crisis_threshold
+
+    def _is_crisis_candidate(self, e: Episodic) -> bool:
+        """The three content/salience elevation gates (crisis HAPPENED, crisis-negative,
+        salient at write time). Shared by _elevate_scars and _dedup's session-multiplicity
+        guard so the two can never disagree about what counts as a pending catastrophe."""
+        return (self._is_catastrophe(e)
+                and e.valence <= self.cfg.crisis_valence_max
+                and self._crisis_salient(e))
+
+    def _preserve_crisis_pair(self, survivor: Episodic, dup: Episodic) -> bool:
+        """True when dedup must NOT fold this pair (REPO_ANALYSIS core #1): both are
+        pending crisis candidates from DIFFERENT sessions. ``dedup_sim_threshold``
+        equals ``scar_dedup_sim_threshold``, so any pair similar enough to corroborate
+        is also similar enough to dedup — folding collapses the distinct-session
+        multiplicity the corroboration gate counts (the survivor keeps ONE session_id),
+        permanently blocking elevation whenever corroboration hasn't fired yet (e.g.
+        ``scar_elevation_min_sessions`` > the sessions seen so far). Same-session
+        copies still fold (corroboration counts DISTINCT sessions — lossless), and
+        pairs that can never elevate (untrusted under enforce_provenance) fold
+        normally so poisoned near-duplicates cannot accumulate unbounded."""
+        if survivor.session_id == dup.session_id:
+            return False
+        if self.cfg.enforce_provenance and not (
+                survivor.provenance == "trusted" and dup.provenance == "trusted"):
+            return False
+        return self._is_crisis_candidate(survivor) and self._is_crisis_candidate(dup)
+
     def _elevate_scars(self, episodes: list[Episodic], rep: ConsolidationReport) -> set[str]:
         removed: set[str] = set()
         # Candidates pass all three gates (genuine crisis HAPPENED, crisis-negative, salient).
         cands = [e for e in episodes
-                 if (self._is_catastrophe(e)
-                     and e.valence <= self.cfg.crisis_valence_max
-                     and e.base_salience >= self.cfg.crisis_threshold
+                 if (self._is_crisis_candidate(e)
                      # Layer 3: only TRUSTED-provenance content may mint an authoritative guardrail.
                      # Untrusted (external reads) and ambiguous (quarantine) are excluded regardless
                      # of recurrence — this closes the persistent-poison bypass at its root.
@@ -290,12 +337,16 @@ class Consolidator:
         for e in cands:
             emb = emb_of[e.id]
             existing = self.db.find_duplicate_scar(emb, e.project, sim)
-            if existing is not None:
+            if existing is not None and existing.origin != "mcp":
                 # A matching scar already exists (this crisis recurred and was previously
                 # corroborated/pinned) -> consume the episode without a duplicate L3 row.
                 self.db.delete_episodic([e.id])
                 removed.add(e.id)
                 continue
+            # An agent-pinned ("mcp") near-duplicate does NOT satisfy recurrence — it never
+            # passed the corroboration gate (REPO_ANALYSIS S4), so it must not shadow real
+            # recurring catastrophes by consuming their episodes. Count corroboration
+            # normally; on success the note is PROMOTED in place (below) — authority earned.
             # CORROBORATION GATE (red-team safety): authority is earned. Mint a NEW authoritative
             # guardrail only if this catastrophe is corroborated across >= min_sessions DISTINCT
             # sessions among the near-duplicate candidates. A single-session occurrence (incl. a
@@ -315,14 +366,22 @@ class Consolidator:
                 )
                 if not immediate_ok:
                     continue   # uncorroborated -> remain episodic (surfaces as recent activity, not a guardrail)
-            scar = Scar(
-                id=new_id("scar"),
-                crisis_trigger=e.trigger_prompt[:500],
-                remediation_rule=(e.outcome_feedback or e.action_taken)[:500],
-                project=e.project,
-                origin="elevated",
-            )
-            self.db.insert_scar(scar, emb)
+            if existing is not None:
+                # Corroborated episodic evidence promotes the agent-pinned note in place
+                # (keep id/timestamp/embedding; no duplicate L3 row). Subsequent
+                # corroborating candidates hit the consume branch above ("elevated" now).
+                existing.origin = "elevated"
+                demb = self.db.get_embedding("scar", existing.id)
+                self.db.insert_scar(existing, demb if demb is not None else emb)
+            else:
+                scar = Scar(
+                    id=new_id("scar"),
+                    crisis_trigger=e.trigger_prompt[:500],
+                    remediation_rule=(e.outcome_feedback or e.action_taken)[:500],
+                    project=e.project,
+                    origin="elevated",
+                )
+                self.db.insert_scar(scar, emb)
             self.db.delete_episodic([e.id])
             removed.add(e.id)
             rep.scars_created += 1
@@ -394,7 +453,7 @@ class Consolidator:
                 if m > 0:
                     sims = keep_mat[:m] @ v
                     j = int(np.argmax(sims))
-                    if float(sims[j]) >= thr:
+                    if float(sims[j]) >= thr and not self._preserve_crisis_pair(keep_e[j], e):
                         # supersede: fold access + salience into the survivor, drop the dup.
                         # Use the IN-MEMORY survivor (keep_e[j]): its base_salience is the DB
                         # value at pass start and nothing mutates episodic salience before dedup,
@@ -406,6 +465,11 @@ class Consolidator:
                         merged = max(survivor.base_salience, e.base_salience)
                         self.db.set_salience([(survivor.id, merged)])
                         survivor.base_salience = merged
+                        if e.s0 is not None and (survivor.s0 is None or e.s0 > survivor.s0):
+                            # the fold must not erase a crisis copy's write-time S0
+                            # marker (core #1) — the survivor inherits the max
+                            self.db.set_s0([(survivor.id, e.s0)])
+                            survivor.s0 = e.s0
                         if e.access_count:
                             self.db.bump_access(survivor.id, e.access_count, survivor.timestamp)
                         to_delete.append(e.id)
