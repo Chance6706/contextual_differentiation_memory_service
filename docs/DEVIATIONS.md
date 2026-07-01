@@ -122,6 +122,10 @@ it here rather than reflexively symmetrize._
 - **Disclaimed:** that budget share faithfully tracks activity; it tracks activity *up to a bound*.
   Two residual edge cases are unmeasured on real shared data (project×session double-squeeze; a
   degenerate equal-split at very low cap × many projects); see `docs/redteam/CYCLE9_*`.
+- **Update (2026-07-01, REPO_ANALYSIS core #5):** the degenerate all-zero-weight equal split
+  previously *violated* the cap (`{a:0,b:0}`, cap 0.1 → 50% each). The cap is now enforced in
+  every branch — degenerate splits under-allocate rather than exceed it, matching the
+  infeasible-cap precedent (Cycle-9 #3). The cap is a hard invariant, full stop.
 
 ### M6. T1 Bonferroni divisor locked at 28, not the 21 implied by the win-able family size
 

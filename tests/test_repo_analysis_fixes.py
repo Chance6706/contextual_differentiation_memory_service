@@ -16,6 +16,11 @@ Covers, 1:1 with the findings:
   S3      — redaction covers JSON quoted-key secrets, URL userinfo passwords,
             Authorization: Bearer tokens, and Stripe sk_(live|test)_ keys
   item 8  — MCP tools serialize shared-connection DB access (concurrency hammer)
+  core #4 — a failed forget-rewrite preserves the spool claim (reclaimable) instead
+            of destroying the kept lines; the claim uses the reclaimable suffix
+  core #5 — allocate_capped_proportional honors the cap in the all-zero branch
+  core #6 — db.delete_* return actual rows deleted, not the requested count
+  core #7 — list_paths is project-scoped through db/store/MCP layers
 """
 
 from __future__ import annotations
@@ -529,3 +534,114 @@ def test_mcp_tools_survive_concurrent_hammer(tmp_path, monkeypatch):
         t.join()
     assert not errors, errors
     assert m.service().db.stats()["episodic"] == 32   # every write intact, none torn
+
+
+# --------------------------------------------------------------------------- #
+# core #4 — forget-from-spool durability
+# --------------------------------------------------------------------------- #
+def test_forget_spool_rewrite_failure_preserves_kept_lines(tmp_path, monkeypatch):
+    """A rewrite failure (e.g. ENOSPC) previously hit an unconditional unlink and
+    silently destroyed every KEPT (unrelated) line. Now the claim survives, the
+    error propagates loudly, and the orphan reclaim can re-ingest the backlog."""
+    cfg = Config(home=tmp_path / "cdms-a")
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    try:
+        for i, cwd in enumerate(["/proj/forget-me", "/proj/keep-me", "/proj/keep-me"]):
+            spool_event(cfg, {"hook_event_name": "PostToolUse", "session_id": f"s{i}",
+                              "cwd": cwd, "tool_name": "Bash", "tool_input": f"c{i}",
+                              "tool_output": "ok", "success": True})
+
+        import cdms.store as store_mod
+
+        def boom(cfg_, lines):
+            raise OSError(28, "No space left on device (test)")
+
+        monkeypatch.setattr(store_mod, "spool_event_lines", boom, raising=False)
+        # _forget_from_spool imports spool_event_lines from cdms.spool at call time
+        import cdms.spool as spool_mod
+        monkeypatch.setattr(spool_mod, "spool_event_lines", boom)
+
+        with pytest.raises(OSError):
+            svc._forget_from_spool("/proj/forget-me", None)
+
+        claims = _claims(cfg)
+        assert len(claims) == 1, "claim must survive a failed rewrite (reclaimable)"
+        surviving = claims[0].read_text(encoding="utf-8")
+        assert "keep-me" in surviving, "kept lines must not be destroyed"
+    finally:
+        svc.close()
+
+
+def test_forget_spool_claim_uses_reclaimable_suffix(tmp_path):
+    """The claim name follows the standard .processing convention, so a crash
+    between rename and rewrite is covered by the orphan reclaim (the old
+    .forget-<pid>.tmp name was invisible to its glob)."""
+    cfg = Config(home=tmp_path / "cdms-a")
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    try:
+        spool_event(cfg, {"hook_event_name": "PostToolUse", "session_id": "s1",
+                          "cwd": "/keep", "tool_name": "Bash", "tool_input": "c",
+                          "tool_output": "ok", "success": True})
+        dropped = svc._forget_from_spool("/nomatch", None)
+        assert dropped == 0
+        assert not list(cfg.queue_path.parent.glob("*.tmp")), "no unreclaimable tmp files"
+        assert not _claims(cfg), "claim consumed on success"
+        assert cfg.queue_path.exists(), "kept lines rewritten to the live queue"
+    finally:
+        svc.close()
+
+
+# --------------------------------------------------------------------------- #
+# core #5 — allocator cap in the degenerate branch
+# --------------------------------------------------------------------------- #
+def test_allocator_all_zero_weights_respect_cap():
+    from cdms.salience import allocate_capped_proportional
+
+    alloc = allocate_capped_proportional({"a": 0.0, "b": 0.0}, total=100.0, cap_fraction=0.1)
+    assert all(v <= 10.0 + 1e-9 for v in alloc.values()), alloc
+    # And the normal path is unchanged: positive weights still conserve the total.
+    alloc2 = allocate_capped_proportional({"a": 3.0, "b": 1.0}, total=100.0, cap_fraction=0.5)
+    assert sum(alloc2.values()) == pytest.approx(100.0)
+    assert max(alloc2.values()) <= 50.0 + 1e-9
+
+
+# --------------------------------------------------------------------------- #
+# core #6 — delete counts are actual rowcounts
+# --------------------------------------------------------------------------- #
+def test_delete_counts_report_actual_rows(service):
+    rec = service.ingest(TurnEvent(trigger_prompt="a", action_taken="b",
+                                   outcome_feedback="c", session_id="s1", project=PROJECT))
+    assert service.db.delete_episodic([rec.id, "ep_does_not_exist"]) == 1
+    assert service.db.delete_episodic([rec.id]) == 0          # already gone
+    s = service.pin_scar("t", "r", project=PROJECT)
+    assert service.db.delete_scar([s.id, "scar_missing"]) == 1
+    g = service.upsert_fact("subj", "rel", "obj", project=PROJECT)
+    assert service.db.delete_gist([g.id, g.id, "gist_missing"]) == 1   # dup ids don't double-count
+
+
+# --------------------------------------------------------------------------- #
+# core #7 — list_paths scoping
+# --------------------------------------------------------------------------- #
+def test_list_paths_is_project_scoped(service):
+    service.upsert_fact("alpha-subj", "uses", "x", project="A")
+    service.upsert_fact("beta-subj", "uses", "y", project="B")
+    service.upsert_fact("global-subj", "uses", "z", project="")
+
+    scoped = service.list_paths("B")
+    subjects = {s for s, _r, _n in scoped}
+    assert subjects == {"beta-subj", "global-subj"}, subjects
+    # Unscoped (operator paths: CLI/viewport) unchanged.
+    assert {s for s, _r, _n in service.list_paths()} == {"alpha-subj", "beta-subj", "global-subj"}
+
+
+def test_mcp_list_paths_scoped_to_launch_project(tmp_path, monkeypatch):
+    m = _fresh_server(tmp_path, monkeypatch)
+    svc = m.service()
+    svc.upsert_fact("other-proj-subj", "uses", "x", project="/some/other/project")
+    svc.upsert_fact("here-subj", "uses", "y", project=m._LAUNCH_CWD)
+
+    # Empty project coerces to the launch cwd (same rule as store/retrieve); direct
+    # calls bypass pydantic's Field-default resolution, so pass it explicitly.
+    subjects = {p.subject for p in m.list_paths(project="")}
+    assert "here-subj" in subjects
+    assert "other-proj-subj" not in subjects, "cross-project metadata leak (core #7)"

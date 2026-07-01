@@ -166,9 +166,12 @@ def allocate_capped_proportional(
     # Use only the remaining (positive-weight) keys for the feasibility check.
     m = len(uncapped)
     if m == 0:
-        # All keys had zero weight: degenerate case, split total evenly.
+        # All keys had zero weight: degenerate case, split total evenly — but the
+        # cap is a hard invariant even here (REPO_ANALYSIS core #5): the plain
+        # even split handed {a:0, b:0} half the budget each, 5x a 0.1 cap. Mirror
+        # the infeasible-cap branch: cap wins, the remainder stays UNALLOCATED.
         if zero_weight:
-            share = total / len(zero_weight)
+            share = min(total / len(zero_weight), cap)
             for k in zero_weight:
                 alloc[k] = share
         return alloc
@@ -190,10 +193,10 @@ def allocate_capped_proportional(
     while uncapped:
         wsum = sum(w[k] for k in uncapped)
         if wsum <= 0.0:
-            # All remaining weights are zero (degenerate case: every key had
-            # weight 0 or was capped).  Split the remainder evenly so that
-            # `sum(alloc.values()) == total` holds.
-            share = remaining / len(uncapped)
+            # Defensive (zero-weight keys are pre-filtered above, so this branch is
+            # unreachable with the current caller graph): split the remainder evenly,
+            # still honoring the hard cap (core #5 — same invariant as the branches above).
+            share = min(remaining / len(uncapped), cap)
             for k in uncapped:
                 alloc[k] = share
             break

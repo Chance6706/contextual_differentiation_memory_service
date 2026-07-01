@@ -213,11 +213,21 @@ def history(
 
 
 @mcp.tool()
-def list_paths() -> list[PersonaPath]:
+def list_paths(
+    project: str = Field(default=_LAUNCH_CWD, description="Restrict to this project + global "
+                         "paths (defaults to this server's project)."),
+) -> list[PersonaPath]:
     """List the PersonaTree paths — distinct (subject, relation) claims with aggregate support."""
     svc = service()
+    # Same scoping rule as store/retrieve (core #7): empty coerces to the launch cwd,
+    # never "all projects" — this was the one unscoped read tool, leaking every
+    # project's subject/relation metadata in a shared (--scope user) store.
+    # isinstance guard: a DIRECT call (tests) that omits the arg gets the pydantic
+    # FieldInfo default, not a string — coerce that to the launch cwd too.
+    if not isinstance(project, str) or not project:
+        project = _LAUNCH_CWD
     with _DB_LOCK:
-        paths = svc.list_paths()
+        paths = svc.list_paths(project)
     return [PersonaPath(subject=s, relation=r, support=sup) for s, r, sup in paths]
 
 
