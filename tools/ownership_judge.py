@@ -34,7 +34,12 @@ def subject_family(model: str) -> str | None:
     """Vendor family of the SUBJECT that produced a response (to exclude from its own panel).
     Returns None for local subjects (qwen/gemma) — no frontier family is excluded for them."""
     m = (model or "").lower()
-    if "claude" in m or "anthropic" in m:
+    # "sonnet"/"opus"/"haiku": the frontier thinking-factor run labels subjects by
+    # tier alias (e.g. "sonnet-5:think") without "claude"/"anthropic" in the string;
+    # without these patterns subject_family returned None and the Claude judge would
+    # have graded its own family — a no-self-grading violation. Additive only:
+    # every previously-used id already matched via "claude"/"anthropic".
+    if "claude" in m or "anthropic" in m or "sonnet" in m or "opus" in m or "haiku" in m:
         return "claude"
     if "gemini" in m or "google" in m:
         return "gemini"

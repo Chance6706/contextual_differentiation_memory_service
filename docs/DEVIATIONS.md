@@ -458,6 +458,21 @@ external review, 2026-06.)
   (Results: `GENERATION_SWEEP_RESULTS.md` §3.5; `gen_sweep_aggregate.py --by-facet-framing` is descriptive-only and
   prints this caveat at runtime.)
 
+### I3. Frontier thinking-factor arm generates at max_tokens 2048, not the local arm's 512
+
+- **Standard form:** cross-arm comparability wants an identical completion budget; every local
+  scaffold/grid cell generated at `n_predict=512`.
+- **What we do:** the frontier thinking-factor run (`tools/framing_frontier_gen.py`, cache
+  `framing_frontier_20260701_094341`) ran at **`--max-tokens 2048`** (the tool's default is 3000);
+  reasoning-enabled calls consume completion budget on hidden traces, and 512 starved them to null
+  content in the smoke test (gemini-2.5-pro burned 1024 on reasoning and emitted nothing).
+- **Why:** a shared 512 cap would have made every thinking cell mechanically ABSENT — the arm
+  could not exist at the local budget.
+- **Disclaimed:** magnitude comparisons between frontier and local cells (surfacing AND adoption
+  opportunity scale with budget). `FRONTIER_THINKING_RESULTS.md` carries the caveat at each
+  cross-arm comparison; within-arm contrasts (toggle pairs, K/M tally) share one budget and are
+  unaffected.
+
 ---
 
 ## How to add an entry

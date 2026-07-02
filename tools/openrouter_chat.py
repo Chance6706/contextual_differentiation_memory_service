@@ -113,7 +113,8 @@ def openrouter_chat(model: str, system: str, user: str, cache: Path,
                     n_predict: int = 120, timeout: float | None = None,
                     url: str | None = None, cost_guard=None,
                     rate_limit_wait_secs: int = 600,
-                    max_rate_limit_retries: int = 2) -> str:
+                    max_rate_limit_retries: int = 2,
+                    reasoning: dict | None = None) -> str:
     """Send a system+user chat to OpenRouter. Cached by SHA256 of (model, system+user).
 
     Mirrors `ollama_chat`'s signature + cache format so the matrix runner can
@@ -147,7 +148,14 @@ def openrouter_chat(model: str, system: str, user: str, cache: Path,
     # cannot escape `cache` or collide ambiguously with disk artifacts. The
     # SHA256 still pins the file to (model, system, user) — sanitization is a
     # defensive belt over the cryptographic suspenders.
-    key = hashlib.sha256(f"{model}\x00{system}\x00{user}".encode("utf-8")).hexdigest()[:24]
+    # The reasoning setting MUST be part of the cache key: running the SAME model id with reasoning ON vs OFF
+    # (matched thinking/non-thinking toggle) would otherwise collide on (model, system, user) and the second
+    # call would silently return the first's cached response — the exact cross-config cache-collision class the
+    # backend-tag fix guarded against. reasoning=None reproduces the OLD key byte-for-byte (so pre-existing
+    # caches — incl. the judge panel, which never passes reasoning — stay valid).
+    key_material = (f"{model}\x00{system}\x00{user}" if reasoning is None
+                    else f"{model}\x00r={json.dumps(reasoning, sort_keys=True)}\x00{system}\x00{user}")
+    key = hashlib.sha256(key_material.encode("utf-8")).hexdigest()[:24]
     safe_model = _SAFE_MODEL_RE.sub("_", model).strip("._-") or "model"
     cp = cache / f"{_BACKEND_TAG}__{safe_model}__{key}.json"
     if cp.exists():
@@ -192,6 +200,11 @@ def openrouter_chat(model: str, system: str, user: str, cache: Path,
         "max_tokens": n_predict,
         "stream": False,
     }
+    # Optional unified reasoning control (OpenRouter): e.g. {"enabled": True} / {"enabled": False} /
+    # {"effort": "high"}. Used to toggle thinking ON vs OFF on a hybrid model for a matched-pair contrast.
+    # Omitted entirely when None so non-reasoning callers (and the judge) hit the model's default behavior.
+    if reasoning is not None:
+        payload["reasoning"] = reasoning
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
