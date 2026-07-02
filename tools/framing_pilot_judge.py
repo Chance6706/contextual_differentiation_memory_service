@@ -69,11 +69,15 @@ def main():
         if guard.stopped:                         # cap already tripped → don't start a new panel (hard stop)
             return None
         try:
-            res = panel_judge(r["response"], "starboard_loop", JUDGE_MODE, r["model"], cache,
+            # Self-family exclusion keys on the VENDOR-QUALIFIED id when present (frontier
+            # records carry model_id="anthropic/claude-..."; the display label "sonnet-5:think"
+            # alone under-identified the vendor). Fallback = label (all prior runs' behavior).
+            res = panel_judge(r["response"], "starboard_loop", JUDGE_MODE,
+                              r.get("model_id") or r["model"], cache,
                               cost_guard=guard, rubric=RUBRIC_A4, labels=LABELS_A4)
         except BudgetExceededError:
             return None                           # dropped ENTIRELY (never written w/ partial votes)
-        rec = {**{k: r.get(k) for k in ("model", "condition", "dimension", "class", "variant", "probe",
+        rec = {**{k: r.get(k) for k in ("model", "model_id", "condition", "dimension", "class", "variant", "probe",
                                         "response", "scaffold")},   # scaffold carried (None for non-scaffold runs)
                "surfaced": True,                  # single-source: judged ⟺ whole-word token present (TOK)
                "panel_label": res["label"], "escalate": res["escalate"], "votes": res["votes"]}
@@ -87,8 +91,8 @@ def main():
         for _ in as_completed([ex.submit(work, r) for r in tokc]):
             pass
     for r in absent:
-        out.append({**{k: r.get(k) for k in ("model", "condition", "dimension", "class", "variant", "probe",
-                                             "response", "scaffold")},
+        out.append({**{k: r.get(k) for k in ("model", "model_id", "condition", "dimension", "class", "variant",
+                                             "probe", "response", "scaffold")},
                     "surfaced": False,            # single-source: token whole-word absent ⇒ not surfaced
                     "panel_label": "ABSENT", "escalate": False, "votes": {}})
     Path(out_path).write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in out) + "\n", encoding="utf-8")
