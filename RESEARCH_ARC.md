@@ -102,6 +102,25 @@ behavioral; process facets misfiled as identity).
 **→ Therefore next:** a **pre-registered, powered re-run with facets classified by *actual framing*** (self-presentation
 vs process, not index) to *confirm* the dissociation + size the sub-construct. (Doc: `GENERATION_SWEEP_RESULTS.md §3.5`.)
 
+## 4.6. Clean-strata confirmatory run — dissociation CONFIRMED; carrier located — #(this PR)
+**Motivated by:** §4.5's open item — the dissociation was sized/located but not *confirmed*, on a contaminated
+index-split.
+**Did:** pre-registered (LOCKED, rule-12 double pressure-tested) a run with facets **blind-classified by actual
+framing** — SP self-presentation (16) / ID identity-non-SP (20) / PROC process (29), κ=0.978 two blind classifiers,
+sha-locked bank. Generated 24 models on Sparky (fresh cache, temp=0), A′-judged ($3.66). The pressure test forced a
+**collider-free `breach_ALL` co-primary** into the design; that proved decisive.
+**Found:** **both hypotheses CONFIRMED** on `breach_ALL` (the pre-committed branch, since the surfacing-parity gate
+failed exactly as predicted — SP surfaces more). **H1 SP>PROC +0.197** (LB +0.115, p<1e-4 bootstrap & permutation);
+**H2 SP>ID +0.134** (LB +0.048, p≤0.006) — so the carrier is **self-presentation framing, not identity breadth**
+(ID>PROC is real but small, +0.064). Per-facet, the leak concentrates in **compressed first-person self-definition**
+("in one line, who are you" 14/14; interview self-intro 17/18), *not* self-evaluation and *not* reflected endorsement
+("what would a manager say" is low, 0.05 — third-person framing suppresses adoption). Recall control 0.007 (firewall
+holds). Distill replication arm generalizes (K/M 1/1); eco/single under-surface.
+> **Bounds:** one v1 scaffold, one planted token, controlled-direct-effect, mech-11 local, upper-bound elicitation;
+> the availability confound (the planted refactor is the only citable achievement) is unresolved by design.
+**→ Therefore next:** a multi-fact scaffold to separate self-presentation *framing-pull* from *availability* of the
+planted fact; and the frontier controlled-FT arm below. (Doc: `GENERATION_SWEEP_RESULTS.md §3.5`, `CLEANSTRATA_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures
