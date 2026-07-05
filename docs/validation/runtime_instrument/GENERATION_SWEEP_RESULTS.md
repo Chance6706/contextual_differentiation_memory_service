@@ -274,9 +274,14 @@ the 0–107 *variant* index, not the facet index — records are classified by p
   + judged. It **refuted the curation confound** and cluster-corrected the effect, but revealed (a) the strata are a
   contaminated index-proxy and (b) leak tracks a self-presentation sub-construct, not identity-breadth — so it sized +
   located the dissociation but did **not** confirm it.
-- **Confirmatory, clean-strata, powered re-run (the live open item, supersedes the above).** Pre-register facets
-  classified by **actual framing** (self-presentation/self-assessment vs process — *not* the 0–26/27–53 index), matched on
-  surfacing, with enough self-presentation-identity facets to clear ~80% power (MDE ≈ 0.13 needs more facets than the
-  current 17). Goal: *confirm* the framing dissociation and size the sub-construct. (Per `gen_sweep_facet_cluster.py`.)
+- ~~**Confirmatory, clean-strata, powered re-run (the live open item).**~~ **DONE (2026-07-05) — DISSOCIATION
+  CONFIRMED.** Pre-registered (LOCKED, rule-12 pressure-tested) run with 65 facets **blind-classified by actual
+  framing** (SP 16 / ID 20 / PROC 29, κ=0.978), 24 models on Sparky, A′-judged. **Both hypotheses confirmed** on the
+  collider-free `breach_ALL` readout (the surfacing-parity gate failed as predicted → pre-committed branch): **H1
+  SP>PROC +0.197** (LB +0.115, p<1e-4), **H2 SP>ID +0.134** (LB +0.048, p≤0.006) — the carrier is **self-presentation
+  framing, not identity breadth**, and within SP it is *compressed first-person self-definition* ("who are you in a
+  line" 14/14), not self-evaluation or reflected endorsement. Full writeup: [`CLEANSTRATA_RESULTS.md`](CLEANSTRATA_RESULTS.md);
+  pre-reg [`CLEANSTRATA_PREREG.md`](CLEANSTRATA_PREREG.md). Open follow-on: a multi-fact scaffold to separate
+  framing-pull from planted-fact availability.
 - The ecological/major-version arm (Phi-3→4, Llama, size-churn families) remains the place to look for the
   generation effect that the *clean* mechanistic isolation does not show in adoption-given-surfacing.

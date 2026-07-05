@@ -859,6 +859,14 @@ def main():
                          "untouched when off. judge_ladder.py --bem-facet-bank MUST match. Only "
                          "affects the BEM mode; pair with --expand-probes --rephrasings-per-original 1 "
                          "--expand-subsample-n 27.")
+    ap.add_argument("--cleanstrata-bank", action="store_true", default=False,
+                    help="Swap the BEM probe list to the CLEAN-STRATA bank "
+                         "(tools/probes_cleanstrata.py: blind-classified SP/ID/PROC facets, with "
+                         "their OWN rephrasings) instead of the default PROBES_BEM. For the "
+                         "clean-strata dissociation study (CLEANSTRATA_PREREG.md). Mutually "
+                         "exclusive with --bem-facet-bank. judge_ladder.py --cleanstrata-bank MUST "
+                         "match. Only affects the BEM mode; pair with --expand-probes "
+                         "--rephrasings-per-original 1 --expand-subsample-n 130.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -867,6 +875,8 @@ def main():
                          "'1,520 probes, ~$27.36') before authorizing a paid --backend openrouter "
                          "run. Requires NO OPENROUTER_API_KEY even when --backend openrouter.")
     args = ap.parse_args()
+    if args.bem_facet_bank and args.cleanstrata_bank:
+        ap.error("--bem-facet-bank and --cleanstrata-bank are mutually exclusive (one BEM bank per run)")
 
     # --- Backend dispatch + per-backend cache isolation -------------------
     # Per-backend cache subdir prevents F2-class cross-backend collisions even
@@ -987,6 +997,10 @@ def main():
                 from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET
                 probes = PROBES_BEM_FACET
                 _override = REPHRASINGS_BEM_FACET
+            elif name == "BEM" and args.cleanstrata_bank:
+                from probes_cleanstrata import PROBES_CLEANSTRATA, REPHRASINGS_CLEANSTRATA
+                probes = PROBES_CLEANSTRATA
+                _override = REPHRASINGS_CLEANSTRATA
             probes = _select_probes(name, probes, args.expand_probes,
                                     subsample_n=args.expand_subsample_n,
                                     rephrasings_cap=args.rephrasings_per_original,
