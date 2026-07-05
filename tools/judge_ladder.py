@@ -46,10 +46,12 @@ def key_for(model: str, system: str, user: str) -> str:
     return hashlib.sha256(f"{model}\x00{system}\x00{user}".encode("utf-8")).hexdigest()[:24]
 
 
-def reconstruct(sources, variant="v1", subsample_n=10, rephrasings_cap=None, bem_facet_bank=False):
+def reconstruct(sources, variant="v1", subsample_n=10, rephrasings_cap=None, bem_facet_bank=False,
+                cleanstrata_bank=False):
     """interference.py caches to <cache_dir>/<backend>/expand/<safe>__<key>.json (openrouter prefixes
     'openrouter__'). Rebuild the v1 system+probes, key each, and pull the cached response.
-    `bem_facet_bank` MUST match the generation's --bem-facet-bank or BEM cells won't reconstruct."""
+    `bem_facet_bank`/`cleanstrata_bank` MUST match the generation's flags or BEM cells won't
+    reconstruct."""
     with tempfile.TemporaryDirectory() as td:
         preamble = R._real_preamble_for_mode(R.setup_bem, Path(td), variant=variant)
     recs, miss = [], []
@@ -65,6 +67,10 @@ def reconstruct(sources, variant="v1", subsample_n=10, rephrasings_cap=None, bem
                 from probes_bem_facet import PROBES_BEM_FACET, REPHRASINGS_BEM_FACET
                 pconst = PROBES_BEM_FACET
                 override = REPHRASINGS_BEM_FACET
+            elif pkey == "BEM" and cleanstrata_bank:
+                from probes_cleanstrata import PROBES_CLEANSTRATA, REPHRASINGS_CLEANSTRATA
+                pconst = PROBES_CLEANSTRATA
+                override = REPHRASINGS_CLEANSTRATA
             probes = R._select_probes(pkey, pconst, expand=True, subsample_n=subsample_n,
                                       rephrasings_cap=rephrasings_cap, rephrasings_override=override)
             for i, probe in enumerate(probes):
@@ -113,11 +119,12 @@ def main():
     subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 10
     rephrasings_cap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else None
     bem_facet_bank = "--bem-facet-bank" in args
+    cleanstrata_bank = "--cleanstrata-bank" in args
     sources = json.loads(Path(sources_path).read_text(encoding="utf-8"))
 
     print(f"=== reconstruct ({len(sources)} sources) ===", flush=True)
     recs, miss = reconstruct(sources, subsample_n=subsample_n, rephrasings_cap=rephrasings_cap,
-                             bem_facet_bank=bem_facet_bank)
+                             bem_facet_bank=bem_facet_bank, cleanstrata_bank=cleanstrata_bank)
     tokc = [r for r in recs if TOK.search(r["response"] or "")]
     print(f"total reconstructed {len(recs)}; token-containing {len(tokc)} (to judge); "
           f"ABSENT remainder {len(recs)-len(tokc)}", flush=True)

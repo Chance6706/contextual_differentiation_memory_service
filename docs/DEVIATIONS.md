@@ -473,6 +473,21 @@ external review, 2026-06.)
   cross-arm comparison; within-arm contrasts (toggle pairs, K/M tally) share one budget and are
   unaffected.
 
+### I4. Clean-strata run reuses frozen-taxonomy dimensions across experiments
+
+- **Standard form:** a confirmatory study draws its stimuli from a source population untouched by
+  sibling studies, so facet sets across experiments are independent draws.
+- **What we do:** `CLEANSTRATA_PREREG.md` §3 builds its SP/ID/PROC dimension lists from
+  `framing_taxonomy.md` — the same frozen dimension population the ownership-framing pilot/confirmatory
+  consumed — plus 6 new framework-derived SP dims. Probes are NEWLY written (direction-blind writer,
+  two blind classifiers, κ=0.978) for a different contrast under a different scaffold; no leak data
+  attaches to any probe.
+- **Why:** the taxonomy's anti-hindsight construction (dimensions from recognized external frameworks)
+  is the asset worth reusing; a fresh enumeration would be *more* hindsight-exposed, not less, and the
+  ~34-dim self-concept ceiling makes disjoint-per-experiment draws impossible.
+- **Disclaimed:** the two experiments' facet sets are not independent draws — cross-experiment
+  facet-level comparisons are descriptive only.
+
 ---
 
 ## How to add an entry
