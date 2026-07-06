@@ -1,9 +1,10 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-05 (clean-strata confirmatory run DONE: the framing dissociation is now CONFIRMED — SP
-self-presentation > PROC +0.197 and > ID +0.134 on the collider-free readout, mech-11, A′-judged; carrier =
-compressed first-person self-definition. Pre-reg LOCKED + rule-12 pressure-tested; `CLEANSTRATA_RESULTS.md`.
-Prior: quant-replication, generation sweep, framing dissociation sized #90/#92/Phase-B). For the full design see
+_Last updated: 2026-07-06 (multi-fact scaffold run DONE: the availability confound is CLOSED — the SP leak is
+genuine framing-PULL, not slot-filling. Tripling planted facts leaves per-token adoption unchanged (r=0.98) with
+multi-token claims (multiplicity 0.182); mech-11 + distill replication; `MULTIFACT_RESULTS.md`, pre-reg LOCKED +
+rule-12 pressure-tested. Prior 2026-07-05: clean-strata confirmed SP>PROC +0.197 / SP>ID +0.134,
+`CLEANSTRATA_RESULTS.md`). For the full design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for the measurement thread in causal order see
 [`RESEARCH_ARC.md`](RESEARCH_ARC.md); for the post-Cycle-9 program see §"From building to measuring" below; for
 narrative history see the session memory files under

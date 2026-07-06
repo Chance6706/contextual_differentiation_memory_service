@@ -1,5 +1,10 @@
 # Clean-strata facet-class dissociation — results
 
+> **FOLLOW-ON RESOLVED (2026-07-06):** the availability confound named in §12 below (was the SP leak
+> framing-pull or just "the planted refactor is the only citable fact?") is **closed** — the multi-fact
+> scaffold run found **FRAMING-DOMINANT** (per-token adoption preserved at r=0.98 with multi-token claims
+> when 3 facts are planted; availability is not the driver). See [`MULTIFACT_RESULTS.md`](MULTIFACT_RESULTS.md).
+
 **Pre-registration:** [`CLEANSTRATA_PREREG.md`](CLEANSTRATA_PREREG.md) (LOCKED 2026-07-05, commit `fa5d8f5`,
 rule-12 double pressure-tested). **Generation:** Sparky/GX10, 2026-07-05, fresh cache
 `cleanstrata_20260705_113338`, 24 models × 130 BEM + 16 recall, temp=0, model-outer.

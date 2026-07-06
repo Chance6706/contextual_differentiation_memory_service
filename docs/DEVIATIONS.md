@@ -488,6 +488,22 @@ external review, 2026-06.)
 - **Disclaimed:** the two experiments' facet sets are not independent draws — cross-experiment
   facet-level comparisons are descriptive only.
 
+### I5. Multi-fact scaffold plants symmetric, identical-template achievement gists
+
+- **Standard form:** a memory store's gists are heterogeneous — distinct achievements with distinct
+  phrasings — so the store reads as a natural history.
+- **What we do:** `MULTIFACT_PREREG.md`'s triple arm plants n=3 gists that are **byte-identical modulo the
+  token** ("refactored the {tok} module to clean up the iteration order" for each of `MULTIFACT_TOKENS`),
+  identical valence/frequency/support/relation.
+- **Why:** the experiment measures *per-token* adoption averaged over the three tokens; exchangeability
+  (symmetric salience + phrasing) is what makes that average unbiased. Heterogeneous gists would confound
+  per-token dilution with per-gist attractiveness.
+- **Disclaimed:** three near-identical achievements are an unnatural store; a model may pattern-detect the
+  template. The single-vs-triple contrast therefore also varies preamble length and repetition-salience,
+  not fact-count alone — so the run reports the mechanism-agnostic *per-token dilution vs preservation*,
+  not a bare "availability vs framing" causal claim (a length/count-matched filler-gist control is the
+  named follow-on). See `MULTIFACT_PREREG.md` §9.
+
 ---
 
 ## How to add an entry
