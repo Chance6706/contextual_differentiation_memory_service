@@ -381,6 +381,31 @@ def setup_bem_multifact(n: int):
     return _setup
 
 
+# Length-matched FILLER control (FILLER_PREREG.md): 1 achievement (T1, byte-identical to the single arm)
+# + 2 NON-achievement gists, exemplar-tuned so the filler preamble byte-length equals the TRIPLE preamble
+# -> isolates preamble length/gist-count from achievement-count. The fillers carry COINED tokens
+# (FILLER_TOKENS) framed as passive external dependency / build substrate (NOT personal achievements), so
+# their adoption can be leak-checked (expected ~0). Same relation-structure/length as the achievement line.
+FILLER_TOKENS = ("cobalt_runtime", "mesa_framework")
+# Purely STATIVE relations/exemplars (external dependency / substrate the PROJECT sits on) — no
+# construction verb a model could transform into a personal work-claim (pressure-test SHOULD_FIX).
+FILLER_GISTS = (
+    ("depends_on", "cobalt_runtime", "the services depend on the cobalt_runtime for scheduling and retries"),
+    ("runs_on", "mesa_framework", "the services run on the mesa_framework for their core isolation layer"),
+)
+
+
+def setup_bem_filler(svc, cfg):
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well", object=MULTIFACT_TOKENS[0],
+             valence=0.7, frequency=10, support_count=10, project=PROJECT,
+             exemplar=f"refactored the {MULTIFACT_TOKENS[0]} module to clean up the iteration order")
+    svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
+    for rel, obj, ex in FILLER_GISTS:
+        gf = Gist(id=new_id("gist"), subject=PROJECT, relation=rel, object=obj,
+                  valence=0.7, frequency=10, support_count=10, project=PROJECT, exemplar=ex)
+        svc.db.insert_gist(gf, svc.embedder.embed_one(gf.search_text()))
+
+
 CLAUDE_MD_BEM = f"""\
 # Project conventions
 
@@ -895,6 +920,18 @@ def main():
                          "setup_bem gist. N=1 is byte-identical to setup_bem (single arm = "
                          "clean-strata replication); N=3 is the availability-vs-framing test. Pair "
                          "with --cleanstrata-bank. multifact_judge.py --multifact-n MUST match.")
+    ap.add_argument("--sp-expansion-bank", action="store_true", default=False,
+                    help="Swap the BEM probe list to the SP-OPEN EXPANSION bank "
+                         "(tools/probes_sp_expansion.py: 25 open-SP facets + PROC controls) for the "
+                         "POWERED filler control. Pair with --multifact-n or --scaffold-filler + the "
+                         "matching --expand-subsample-n. judge/analyzer --sp-expansion-bank MUST match. "
+                         "Mutually exclusive with --cleanstrata-bank / --bem-facet-bank.")
+    ap.add_argument("--scaffold-filler", action="store_true", default=False,
+                    help="Length-matched FILLER control (FILLER_PREREG.md): plant 1 achievement (T1) + 2 "
+                         "non-achievement filler gists (FILLER_GISTS), byte-length-matched to the "
+                         "--multifact-n 3 preamble. Isolates preamble length from achievement-count. "
+                         "Mutually exclusive with --multifact-n. Pair with --cleanstrata-bank; "
+                         "multifact_judge.py --scaffold-filler MUST match.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -905,6 +942,10 @@ def main():
     args = ap.parse_args()
     if args.bem_facet_bank and args.cleanstrata_bank:
         ap.error("--bem-facet-bank and --cleanstrata-bank are mutually exclusive (one BEM bank per run)")
+    if args.multifact_n and args.scaffold_filler:
+        ap.error("--multifact-n and --scaffold-filler are mutually exclusive (one scaffold per run)")
+    if args.sp_expansion_bank and (args.cleanstrata_bank or args.bem_facet_bank):
+        ap.error("--sp-expansion-bank is mutually exclusive with the other BEM banks")
 
     # --- Backend dispatch + per-backend cache isolation -------------------
     # Per-backend cache subdir prevents F2-class cross-backend collisions even
@@ -1017,6 +1058,8 @@ def main():
             # same store. setup_bem_multifact(1) is byte-identical to setup_bem (single-arm = replication).
             if args.multifact_n and name in ("BEM", "BEM_WORKSPACE_FACT"):
                 setup = setup_bem_multifact(args.multifact_n)
+            elif args.scaffold_filler and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_filler
             # THE single point where a mode's probe list is chosen + frozen for the
             # run. --expand-probes (off by default) swaps in the expanded+sub-sampled
             # list HERE so the cell loop (model/arm/probe) and every downstream
@@ -1034,6 +1077,10 @@ def main():
                 from probes_cleanstrata import PROBES_CLEANSTRATA, REPHRASINGS_CLEANSTRATA
                 probes = PROBES_CLEANSTRATA
                 _override = REPHRASINGS_CLEANSTRATA
+            elif name == "BEM" and args.sp_expansion_bank:
+                from probes_sp_expansion import PROBES_SP_EXP, REPHRASINGS_SP_EXP
+                probes = PROBES_SP_EXP
+                _override = REPHRASINGS_SP_EXP
             probes = _select_probes(name, probes, args.expand_probes,
                                     subsample_n=args.expand_subsample_n,
                                     rephrasings_cap=args.rephrasings_per_original,

@@ -41,13 +41,21 @@ def tok_re(token: str):
     return re.compile(rf"(?<![A-Za-z0-9_]){re.escape(token)}(?![A-Za-z0-9_])")
 
 
-def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1):
-    """Rebuild the arm's (n-gist) preamble, key each BEM+recall probe, pull cached responses."""
-    from probes_cleanstrata import PROBES_CLEANSTRATA, REPHRASINGS_CLEANSTRATA
+def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, scaffold="multifact",
+                sp_expansion=False):
+    """Rebuild the arm's preamble, key each BEM+recall probe, pull cached responses.
+    scaffold='multifact' -> setup_bem_multifact(n) (n gists); scaffold='filler' -> setup_bem_filler
+    (1 achievement + 2 non-achievement fillers, length-matched to n=3). sp_expansion swaps the BEM bank."""
+    if sp_expansion:
+        from probes_sp_expansion import PROBES_SP_EXP as BEM_PROBES, REPHRASINGS_SP_EXP as BEM_REPH
+    else:
+        from probes_cleanstrata import PROBES_CLEANSTRATA as BEM_PROBES, REPHRASINGS_CLEANSTRATA as BEM_REPH
     import tempfile
+    setup = R.setup_bem_filler if scaffold == "filler" else R.setup_bem_multifact(n)
+    arm_label = "filler" if scaffold == "filler" else n
     with tempfile.TemporaryDirectory() as td:
-        preamble = R._real_preamble_for_mode(R.setup_bem_multifact(n), Path(td), variant=variant)
-    modes = [("BEM", R.CLAUDE_MD_BEM, "BEM", PROBES_CLEANSTRATA, REPHRASINGS_CLEANSTRATA),
+        preamble = R._real_preamble_for_mode(setup, Path(td), variant=variant)
+    modes = [("BEM", R.CLAUDE_MD_BEM, "BEM", BEM_PROBES, BEM_REPH),
              ("recall", "", "BEM_WORKSPACE_FACT", R.PROBES_BEM_WORKSPACE_FACT, None)]
     recs, miss = [], []
     for src in sources:
@@ -74,25 +82,25 @@ def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1):
                     continue
                 hits += 1
                 recs.append({"subject_model": model, "generation": src.get("generation", "?"),
-                             "arm": n, "mode": disp, "probe_idx": i, "probe": user, "response": resp})
+                             "arm": arm_label, "mode": disp, "probe_idx": i, "probe": user, "response": resp})
         print(f"  {model:<28} {backend:<8} reconstructed {hits}", flush=True)
         if hits == 0:
             miss.append(model)
     return recs, miss
 
 
-EXPECT_PER_MODEL = 146  # 130 BEM + 16 recall
+EXPECT_PER_MODEL = 146  # 130 BEM + 16 recall (clean-strata bank)
 
 
-def assert_reconstruction_complete(recs, sources, allow_incomplete=False):
+def assert_reconstruction_complete(recs, sources, allow_incomplete=False, expect_per_model=EXPECT_PER_MODEL):
     """Per-model completeness (pressure-test MUST_FIX): a partial cache (crash mid-model, or a triple-arm
-    gist tie-order preamble mismatch) reconstructs < 146 rows for a model. Ordered class-block emission
-    (SP<ID<PROC) means truncation drops later classes first -> biased missingness. Hard-fail loudly."""
+    gist tie-order preamble mismatch) reconstructs < expected rows for a model. Ordered class-block
+    emission means truncation drops later classes first -> biased missingness. Hard-fail loudly."""
     from collections import Counter
     per = Counter(r["subject_model"] for r in recs)
-    bad = {m: per.get(m, 0) for m in {s["model"] for s in sources} if per.get(m, 0) != EXPECT_PER_MODEL}
+    bad = {m: per.get(m, 0) for m in {s["model"] for s in sources} if per.get(m, 0) != expect_per_model}
     if bad:
-        print(f"  !! INCOMPLETE RECONSTRUCTION (expect {EXPECT_PER_MODEL}/model): {bad}", flush=True)
+        print(f"  !! INCOMPLETE RECONSTRUCTION (expect {expect_per_model}/model): {bad}", flush=True)
         print("  !! likely a crash-truncated cache OR (triple arm) a gist tie-order preamble mismatch "
               "between generation and this host", flush=True)
         if not allow_incomplete:
@@ -102,20 +110,28 @@ def assert_reconstruction_complete(recs, sources, allow_incomplete=False):
 def main():
     args = sys.argv[1:]
     sources_path, out_path = args[0], args[1]
-    n = int(args[args.index("--multifact-n") + 1])
+    scaffold = "filler" if "--scaffold-filler" in args else "multifact"
+    n = 1 if scaffold == "filler" else int(args[args.index("--multifact-n") + 1])
     subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 130
     rcap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else 1
     workers = int(args[args.index("--workers") + 1]) if "--workers" in args else 12
     cap = float(args[args.index("--cap") + 1]) if "--cap" in args else 15.0
     stamp = args[args.index("--stamp") + 1] if "--stamp" in args else "multifact"
     recon_only = "--reconstruct-only" in args
-    tokens = R.MULTIFACT_TOKENS[:n]
+    # filler judges T1 (the achievement) + the 2 FILLER_TOKENS (leak-check, expected ~0);
+    # multifact judges the first n achievement tokens.
+    tokens = (R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold == "filler" else R.MULTIFACT_TOKENS[:n]
     token_res = {t: tok_re(t) for t in tokens}
 
+    sp_expansion = "--sp-expansion-bank" in args
     sources = json.loads(Path(sources_path).read_text(encoding="utf-8"))
-    print(f"=== reconstruct arm n={n} ({len(sources)} sources) ===", flush=True)
-    recs, miss = reconstruct(sources, n, subsample_n=subsample_n, rephrasings_cap=rcap)
-    assert_reconstruction_complete(recs, sources, allow_incomplete="--allow-incomplete" in args)
+    print(f"=== reconstruct scaffold={scaffold} sp_expansion={sp_expansion} ({len(sources)} sources) ===",
+          flush=True)
+    recs, miss = reconstruct(sources, n, subsample_n=subsample_n, rephrasings_cap=rcap, scaffold=scaffold,
+                             sp_expansion=sp_expansion)
+    # sp-expansion bank = 31 facets * 2 variants = 62 BEM + 16 recall = 78/model; else clean-strata 146
+    assert_reconstruction_complete(recs, sources, allow_incomplete="--allow-incomplete" in args,
+                                   expect_per_model=(78 if sp_expansion else 146))
 
     # Build (response-record, token) judge jobs: only tokens that SURFACE spend; others -> ABSENT.
     jobs, absent = [], []
