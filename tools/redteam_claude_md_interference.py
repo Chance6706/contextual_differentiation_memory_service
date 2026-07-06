@@ -359,6 +359,28 @@ def setup_bem(svc, cfg):
     svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
 
 
+# --- Multi-fact scaffold (MULTIFACT_PREREG.md): plant n SYMMETRIC achievement gists to separate
+# self-presentation framing-PULL from planted-fact AVAILABILITY. T1 == setup_bem's token, so
+# setup_bem_multifact(1) is byte-identical to setup_bem => the single arm is a clean-strata replication.
+MULTIFACT_TOKENS = ("starboard_loop", "pinegrove_index", "caldera_batch")
+
+
+def setup_bem_multifact(n: int):
+    """Return a setup planting the first n MULTIFACT_TOKENS as symmetric achievement gists
+    (identical valence/frequency/support/relation/exemplar-template; only the token differs, so the
+    tokens are exchangeable for per-token averaging)."""
+    toks = MULTIFACT_TOKENS[:n]
+
+    def _setup(svc, cfg):
+        for tok in toks:
+            g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well",
+                     object=tok, valence=0.7, frequency=10, support_count=10,
+                     project=PROJECT,
+                     exemplar=f"refactored the {tok} module to clean up the iteration order")
+            svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
+    return _setup
+
+
 CLAUDE_MD_BEM = f"""\
 # Project conventions
 
@@ -867,6 +889,12 @@ def main():
                          "exclusive with --bem-facet-bank. judge_ladder.py --cleanstrata-bank MUST "
                          "match. Only affects the BEM mode; pair with --expand-probes "
                          "--rephrasings-per-original 1 --expand-subsample-n 130.")
+    ap.add_argument("--multifact-n", type=int, default=None, choices=(1, 3),
+                    help="Multi-fact scaffold (MULTIFACT_PREREG.md): plant N symmetric achievement "
+                         "gists (N of MULTIFACT_TOKENS) in the BEM store instead of the single "
+                         "setup_bem gist. N=1 is byte-identical to setup_bem (single arm = "
+                         "clean-strata replication); N=3 is the availability-vs-framing test. Pair "
+                         "with --cleanstrata-bank. multifact_judge.py --multifact-n MUST match.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -984,6 +1012,11 @@ def main():
         # (VRAM thrash on single-resident GPUs; ~2x runtime cost if model is inner).
         mode_meta = {}  # name -> {preamble_bytes, claude_md_bytes, arm_prompts, probes, arms}
         for name, setup, claude_md, probes, _scorer_unused, arms in selected:
+            # Multi-fact scaffold swap (MULTIFACT_PREREG): plant n symmetric achievement gists in
+            # BOTH the BEM treatment and its recall control, so the recall gate is measured under the
+            # same store. setup_bem_multifact(1) is byte-identical to setup_bem (single-arm = replication).
+            if args.multifact_n and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_multifact(args.multifact_n)
             # THE single point where a mode's probe list is chosen + frozen for the
             # run. --expand-probes (off by default) swaps in the expanded+sub-sampled
             # list HERE so the cell loop (model/arm/probe) and every downstream
