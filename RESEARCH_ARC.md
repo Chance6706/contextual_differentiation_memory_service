@@ -121,6 +121,26 @@ holds). Distill replication arm generalizes (K/M 1/1); eco/single under-surface.
 **→ Therefore next:** a multi-fact scaffold to separate self-presentation *framing-pull* from *availability* of the
 planted fact; and the frontier controlled-FT arm below. (Doc: `GENERATION_SWEEP_RESULTS.md §3.5`, `CLEANSTRATA_RESULTS.md`.)
 
+## 4.7. Multi-fact scaffold — availability confound CLOSED; the SP leak is framing-pull — #(this PR)
+**Motivated by:** §4.6's one open confound — the clean-strata SP leak could be genuine framing-pull OR mere
+*availability* (the planted refactor was the only concrete fact to cite when asked to self-present).
+**Did:** pre-registered (LOCKED, rule-12 pressure-tested + a blind format-classifier) a fact-count manipulation —
+plant **1 vs 3 symmetric achievement gists** (`setup_bem_multifact`), holding the clean-strata SP/ID/PROC bank
+fixed. Primary = per-token **dilution ratio** (robust to adoption correlation, unlike union), on the **7
+format-open** SP facets (9 length-capped facets excluded — their per-token dilution is genre-forced). 16 models ×
+2 arms on Sparky, A′-judged per planted token ($13.68).
+**Found (FRAMING-DOMINANT):** tripling the citable facts leaves per-token adoption **unchanged** (r=**0.98**, drop
++0.004) and elicits **multi-token adoption** (multiplicity **0.182**, LB95 0.091>0) — availability predicts
+per-token dilution to ~1/3 and zero multiplicity, neither seen. Gates pass (recall control ≈0; single-arm SP union
+0.216 replicates clean-strata 0.213). Replicates on the distill arm (multiplicity LB95 0.071>0). Controls stay low
+(PROC/ID). **So the clean-strata self-presentation leak is genuine framing-pull, not slot-filling.**
+> **Bounds:** the scaffold also varies preamble length/repetition (conservative for the framing read —
+> template-detection would bias toward *availability*, unseen); one-sided power (framing 0.99 / availability 0.31);
+> mech-11 + distill local, one v1 scaffold, symmetric-exemplar gists. Clean fact-count isolation awaits a
+> length-matched filler-gist control.
+**→ Therefore next:** the length-matched filler-gist control (isolate fact-count from length); and the frontier
+controlled-FT arm below. (Doc: `MULTIFACT_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

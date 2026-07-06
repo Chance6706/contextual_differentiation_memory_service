@@ -73,7 +73,7 @@ def collect(path, arm_filter="mech"):
     t2f = _text2facet()
     bem = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     recall = defaultdict(dict)
-    models, arm_n = set(), None
+    models, generations, arm_n = set(), set(), None
     counts = defaultdict(set)           # (model,mode) -> set of probe_idx (response count)
     invalid = surfacing = 0
     for ln in open(path, encoding="utf-8"):
@@ -85,6 +85,7 @@ def collect(path, arm_filter="mech"):
         if MAP.get(r.get("generation", "?"), ("?",))[0] != arm_filter:
             continue
         models.add(r.get("subject_model"))
+        generations.add(r.get("generation"))
         counts[(r.get("subject_model"), r.get("mode"))].add(r.get("probe_idx"))
         if r.get("votes"):              # a judged (non-ABSENT) surfacing row
             surfacing += 1
@@ -102,6 +103,7 @@ def collect(path, arm_filter="mech"):
             continue
         bem[CLASS_OF_CLEANSTRATA[facet]][facet][rid][r.get("token")] = b
     return {"bem": bem, "recall": recall, "arm_n": arm_n, "models": models,
+            "generations": generations,
             "counts": {k: len(v) for k, v in counts.items()}, "invalid": invalid,
             "surfacing": surfacing}
 
@@ -114,9 +116,9 @@ def integrity_check(c, arm_filter, allow_incomplete=False):
         nb, nr = c["counts"].get((m, "BEM"), 0), c["counts"].get((m, "recall"), 0)
         if nb != EXPECT_BEM or nr != EXPECT_RECALL:
             hard.append(f"INCOMPLETE {m}: BEM={nb}/{EXPECT_BEM} recall={nr}/{EXPECT_RECALL}")
-    if arm_filter == "mech" and c["models"] != {g for g in MECH_EXPECTED} \
-            and not (c["models"] >= MECH_EXPECTED):
-        hard.append(f"MECH CELL MISMATCH: expected >= {sorted(MECH_EXPECTED)}, got {sorted(c['models'])}")
+    if arm_filter == "mech" and c["generations"] != set(MECH_EXPECTED):
+        hard.append(f"MECH CELL MISMATCH (by generation label): expected exactly "
+                    f"{sorted(MECH_EXPECTED)}, got {sorted(c['generations'])}")
     for pr in hard:
         print(f"  !! INTEGRITY: {pr}")
     if hard and not allow_incomplete:
