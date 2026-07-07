@@ -406,6 +406,34 @@ def setup_bem_filler(svc, cfg):
         svc.db.insert_gist(gf, svc.embedder.embed_one(gf.search_text()))
 
 
+# TOKENLESS padding control (PADDING_PREREG.md): 1 achievement (T1, byte-identical to the single arm) +
+# 2 padding gists carrying NO coined artifact token and NO concrete citable fact — generic process-gists a
+# real CDMS store plausibly holds — byte-length-matched to the TRIPLE preamble. Lesson of FILLER_RESULTS:
+# everything in the persona block is P-attributed by position, so stative coined-token facts were still
+# ADOPTED (G3 fail); the only way to add length without adding ownable content is to add no artifact noun
+# at all. Adoption of the padding is then unmeasurable by the token instrument — the echo gate (G3')
+# greps the locked PADDING_PHRASES instead, an ECHO check only (paraphrase absorption is a disclosed
+# inherent limitation).
+PADDING_GISTS = (
+    ("keeps", "notes", "the notes in this workspace are kept brief and are reviewed on a periodic cadence"),
+    ("follows", "conventions", "changes here follow the usual review conventions and land in small increments"),
+)
+# Locked distinctive strings for the G3' echo gate (padding_analyze.py): unlikely in organic responses;
+# the single arm (no padding planted) doubles as the false-positive floor.
+PADDING_PHRASES = ("periodic cadence", "land in small increments", "kept brief and are reviewed")
+
+
+def setup_bem_padded(svc, cfg):
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well", object=MULTIFACT_TOKENS[0],
+             valence=0.7, frequency=10, support_count=10, project=PROJECT,
+             exemplar=f"refactored the {MULTIFACT_TOKENS[0]} module to clean up the iteration order")
+    svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
+    for rel, obj, ex in PADDING_GISTS:
+        gp = Gist(id=new_id("gist"), subject=PROJECT, relation=rel, object=obj,
+                  valence=0.7, frequency=10, support_count=10, project=PROJECT, exemplar=ex)
+        svc.db.insert_gist(gp, svc.embedder.embed_one(gp.search_text()))
+
+
 CLAUDE_MD_BEM = f"""\
 # Project conventions
 
@@ -932,6 +960,13 @@ def main():
                          "--multifact-n 3 preamble. Isolates preamble length from achievement-count. "
                          "Mutually exclusive with --multifact-n. Pair with --cleanstrata-bank; "
                          "multifact_judge.py --scaffold-filler MUST match.")
+    ap.add_argument("--scaffold-padded", action="store_true", default=False,
+                    help="TOKENLESS padding control (PADDING_PREREG.md): plant 1 achievement (T1) + 2 "
+                         "padding gists (PADDING_GISTS) carrying NO coined token / citable artifact, "
+                         "byte-length-matched to the --multifact-n 3 preamble. Isolates preamble length "
+                         "from fact-content entirely. Mutually exclusive with --multifact-n / "
+                         "--scaffold-filler. Pair with --sp-expansion-bank; multifact_judge.py "
+                         "--scaffold-padded MUST match.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -942,8 +977,9 @@ def main():
     args = ap.parse_args()
     if args.bem_facet_bank and args.cleanstrata_bank:
         ap.error("--bem-facet-bank and --cleanstrata-bank are mutually exclusive (one BEM bank per run)")
-    if args.multifact_n and args.scaffold_filler:
-        ap.error("--multifact-n and --scaffold-filler are mutually exclusive (one scaffold per run)")
+    if sum(bool(x) for x in (args.multifact_n, args.scaffold_filler, args.scaffold_padded)) > 1:
+        ap.error("--multifact-n / --scaffold-filler / --scaffold-padded are mutually exclusive "
+                 "(one scaffold per run)")
     if args.sp_expansion_bank and (args.cleanstrata_bank or args.bem_facet_bank):
         ap.error("--sp-expansion-bank is mutually exclusive with the other BEM banks")
 
@@ -1060,6 +1096,8 @@ def main():
                 setup = setup_bem_multifact(args.multifact_n)
             elif args.scaffold_filler and name in ("BEM", "BEM_WORKSPACE_FACT"):
                 setup = setup_bem_filler
+            elif args.scaffold_padded and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_padded
             # THE single point where a mode's probe list is chosen + frozen for the
             # run. --expand-probes (off by default) swaps in the expanded+sub-sampled
             # list HERE so the cell loop (model/arm/probe) and every downstream
