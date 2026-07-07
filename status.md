@@ -1,10 +1,13 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-06 (multi-fact scaffold run DONE: the availability confound is CLOSED — the SP leak is
-genuine framing-PULL, not slot-filling. Tripling planted facts leaves per-token adoption unchanged (r=0.98) with
-multi-token claims (multiplicity 0.182); mech-11 + distill replication; `MULTIFACT_RESULTS.md`, pre-reg LOCKED +
-rule-12 pressure-tested. Prior 2026-07-05: clean-strata confirmed SP>PROC +0.197 / SP>ID +0.134,
-`CLEANSTRATA_RESULTS.md`). For the full design see
+_Last updated: 2026-07-06 (length-matched filler control run DONE — **verdict GATE-REFUSED, and that is the
+finding**: the "inert" stative dependency fillers were themselves ADOPTED (0.133/0.084 > 0.05 G3 purity gate) —
+self-presentation framing absorbs ANY workspace fact, additively (T1 flat 0.198/0.218/0.196, co-breach 79/550 vs
+displacement 8/550); length-vs-fact-count isolation REMAINS OPEN; fresh epoch reproduces multifact exactly
+(multiplicity 0.182 = 0.182); `FILLER_RESULTS.md`, SP-open bank expanded 7→25 (κ=0.932). Earlier 2026-07-06:
+multi-fact scaffold CLOSED the availability confound — the SP leak is framing-PULL, not slot-filling (r=0.98,
+multiplicity 0.182); `MULTIFACT_RESULTS.md`. Prior 2026-07-05: clean-strata confirmed SP>PROC +0.197 / SP>ID
++0.134, `CLEANSTRATA_RESULTS.md`). For the full design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for the measurement thread in causal order see
 [`RESEARCH_ARC.md`](RESEARCH_ARC.md); for the post-Cycle-9 program see §"From building to measuring" below; for
 narrative history see the session memory files under
