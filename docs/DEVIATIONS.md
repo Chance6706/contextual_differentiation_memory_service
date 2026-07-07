@@ -504,6 +504,20 @@ external review, 2026-06.)
   not a bare "availability vs framing" causal claim (a length/count-matched filler-gist control is the
   named follow-on). See `MULTIFACT_PREREG.md` §9.
 
+### I6. Padding-control equivalence margin is data-dependent (M = p_s/3), not the repo SESOI (0.10)
+
+- **Standard form:** an equivalence (TOST) margin is a fixed, pre-specified smallest-effect-of-interest;
+  this repo's generic SESOI is 0.10.
+- **What we do:** `PADDING_PREREG.md` §3 sets the margin to **M = p_s/3** (p_s = the fresh single-arm T1,
+  estimated ≈ 0.066) — a *data-dependent* bound computed from the same run.
+- **Why:** the margin is threat-linked — half the availability-masking magnitude (2p_s/3) the control
+  exists to exclude, the same convention as the filler THETA_s. A generic 0.10 would be *looser* than the
+  threat and could stamp "length-clean" over a masking-relevant effect.
+- **Disclaimed:** a data-dependent margin makes the equivalence Type-I inexact (measured ≈ 0.10
+  false-equivalence at the margin edge vs the nominal 0.05, small-cluster bootstrap under-coverage); the
+  clean verdict tolerates up to a ~half-masking length effect at that elevated error, disclosed in
+  `PADDING_PREREG.md` §6.
+
 ---
 
 ## How to add an entry

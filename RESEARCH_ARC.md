@@ -163,6 +163,34 @@ holds).
 per-token length thread as bounded — multiplicity already carries the verdict length-clean. World-fence reading
 sharpens: ingest hygiene **cannot triage by content type**. (Doc: `FILLER_RESULTS.md`.)
 
+## 4.9. Tokenless padding control — GATE-REFUSED again; the attribution FRAME is the hazard — #(this PR)
+**Motivated by:** §4.8's open residual — the filler's coined-token fillers were adopted, so length stayed
+confounded. This design removed the ownable content entirely: 2 padding gists with **no coined token, no citable
+artifact, no first person** (byte-matched 886B vs triple 888B, T1@378 all arms), TOST equivalence with a
+threat-linked margin (M=p_s/3, DEVIATION I6), a G3′ **echo gate** (locked phrases + single-arm false-positive
+floor), a fresh in-epoch TRIPLE for a within-epoch bounded composite, and — new this run — a **results-stage
+pressure test** (verdict-blind data audit before analysis + two adversarial reviewers before interpretation).
+**Found (verdict WITHHELD — G3′ failed, exactly as pre-committed):** even tokenless platitudes are **echoed** into
+open-SP answers (0.109 of responses, 10/11 models, floor 0.000) — including **first-person paraphrase** in ~2%
+("I maintain brief notes… reviewed on a periodic cadence"). Echo responses have *higher* T1 (0.250 vs 0.202):
+whole-block **co-adoption**, not displacement — echo cannot fake a clean pass (the §7(a) argument held, via a
+different mechanism than stated). The TOST internals landed clean (Δ +0.005 ⊂ ±0.067; composite −0.011) and carry
+**zero confirmatory weight** (gate-failed). Distill cell (descriptive, 5 models): gates pass, INCONCLUSIVE with a
+nonzero-negative Δ (−0.052) — flagged sign-disagreement with mech, open. Reproducibility: fresh singles
+0.182/0.169/0.182; **multiplicity 0.182/0.182/0.182 on the common 7f basis — identical across three epochs**
+(LB95>0 each).
+> **Bounds:** "length is clean" NOT asserted (gate-fail is not evidence); echo (grep) ≠ adoption (A′) — the
+> ownership-comparable first-person subset is ~0.02, an order below achievement adoption; padded answers run ~12%
+> longer (treatment-induced mediator, conservative).
+**→ Therefore (RECOMMENDED, Josh's call):** close the per-token in-block length thread as **BOUNDED** — the
+identifying cell (added length with no added P-attributable content) cannot exist because the persona block IS the
+attribution surface; three designs demonstrated the wall (A′ adoption, first-person echo); the parent verdict rides
+the **multiplicity carrier**, which is length-clean structurally. Declined 4th designs: out-of-block padding
+(changes the estimand), single-word padding (unmeasurable), relaxed G3′ (launders real contamination). Frontier
+remains controlled-FT. World-fence sharpening: the hazard is the **attribution frame** — any content rendered into
+a P-attributed block is attribution-risk; treat the block wholesale as non-assistant-attributable.
+(Doc: `PADDING_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

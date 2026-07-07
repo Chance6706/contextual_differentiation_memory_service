@@ -45,14 +45,15 @@ def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, sc
                 sp_expansion=False):
     """Rebuild the arm's preamble, key each BEM+recall probe, pull cached responses.
     scaffold='multifact' -> setup_bem_multifact(n) (n gists); scaffold='filler' -> setup_bem_filler
-    (1 achievement + 2 non-achievement fillers, length-matched to n=3). sp_expansion swaps the BEM bank."""
+    (1 achievement + 2 non-achievement fillers, length-matched to n=3); scaffold='padded' ->
+    setup_bem_padded (1 achievement + 2 TOKENLESS padding gists). sp_expansion swaps the BEM bank."""
     if sp_expansion:
         from probes_sp_expansion import PROBES_SP_EXP as BEM_PROBES, REPHRASINGS_SP_EXP as BEM_REPH
     else:
         from probes_cleanstrata import PROBES_CLEANSTRATA as BEM_PROBES, REPHRASINGS_CLEANSTRATA as BEM_REPH
     import tempfile
-    setup = R.setup_bem_filler if scaffold == "filler" else R.setup_bem_multifact(n)
-    arm_label = "filler" if scaffold == "filler" else n
+    setup = {"filler": R.setup_bem_filler, "padded": R.setup_bem_padded}.get(scaffold) or R.setup_bem_multifact(n)
+    arm_label = scaffold if scaffold in ("filler", "padded") else n
     with tempfile.TemporaryDirectory() as td:
         preamble = R._real_preamble_for_mode(setup, Path(td), variant=variant)
     modes = [("BEM", R.CLAUDE_MD_BEM, "BEM", BEM_PROBES, BEM_REPH),
@@ -110,8 +111,9 @@ def assert_reconstruction_complete(recs, sources, allow_incomplete=False, expect
 def main():
     args = sys.argv[1:]
     sources_path, out_path = args[0], args[1]
-    scaffold = "filler" if "--scaffold-filler" in args else "multifact"
-    n = 1 if scaffold == "filler" else int(args[args.index("--multifact-n") + 1])
+    scaffold = ("filler" if "--scaffold-filler" in args
+                else "padded" if "--scaffold-padded" in args else "multifact")
+    n = 1 if scaffold in ("filler", "padded") else int(args[args.index("--multifact-n") + 1])
     subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 130
     rcap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else 1
     workers = int(args[args.index("--workers") + 1]) if "--workers" in args else 12
@@ -119,7 +121,8 @@ def main():
     stamp = args[args.index("--stamp") + 1] if "--stamp" in args else "multifact"
     recon_only = "--reconstruct-only" in args
     # filler judges T1 (the achievement) + the 2 FILLER_TOKENS (leak-check, expected ~0);
-    # multifact judges the first n achievement tokens.
+    # padded judges T1 ONLY (the padding is tokenless by design — its echo gate lives in
+    # padding_analyze.py, not here); multifact judges the first n achievement tokens.
     tokens = (R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold == "filler" else R.MULTIFACT_TOKENS[:n]
     token_res = {t: tok_re(t) for t in tokens}
 

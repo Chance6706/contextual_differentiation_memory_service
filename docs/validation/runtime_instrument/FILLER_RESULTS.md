@@ -114,6 +114,11 @@ preference order:
 3. **Accept the bound** — multifact's multiplicity already carries the framing verdict length-clean;
    declare per-token length isolation low-marginal-value and close the thread as bounded.
 
+**Run 2026-07-07 (`PADDING_RESULTS.md`): option 1 was executed — and its G3′ echo gate ALSO failed**
+(tokenless platitudes echoed at 0.109, incl. ~2% first-person paraphrase). The structural reading: the
+persona block IS the attribution surface, so option 3 (close as bounded, multiplicity carries) is now the
+recommended terminal state of this thread.
+
 ## Data + reproduction
 
 - `gen_sweep/filler_single_JUDGE.jsonl`, `gen_sweep/filler_triple_JUDGE.jsonl`,
