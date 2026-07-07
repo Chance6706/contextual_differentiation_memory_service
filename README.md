@@ -331,17 +331,24 @@ never ambiguous, **each axis uses its own numeral system**: **components** are
 **influence channels** are **Arabic** (Side 1/2). A bare "B" is always a *component*;
 a bare "II" is always a *Pattern*; a bare "2" is always a *Side*.
 
-* **CDMS-A / B / C / D — *components* of the architecture.**
-  * **CDMS-A — Mechanical core.** Capture, decay, consolidation, retrieval; geometry +
-    lexicon only. The LLM **never** authors the identity tuple. **0 GB VRAM. Built.**
+* **CDMS-A / B / C / D — *components* of the architecture.** (CDMS-X letters are the
+  formal names — papers, code, cross-references. Each shipped component also carries a
+  **canonical proper name** from a Chinese wuxia/Daoist/Buddhist vocabulary, chosen for
+  structural fit and collision-checked July 2026 — full name map, rationale, and the
+  unverified-Chinese-namespace caveat in [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md) N1.)
+  * **CDMS-A — Mechanical core — "Zangshi" (藏識).** Capture, decay, consolidation,
+    retrieval; geometry + lexicon only. The LLM **never** authors the identity tuple.
+    **0 GB VRAM. Built.** Its read-only identity preamble is **"Daoxin" (道心)**.
   * **CDMS-B — Prose Renderer `"Dreaming"`.** A read-time sub-LLM that *narrates*
     already-extracted gist tuples into prose. Never authoritative. `Config.render_*`
-    fields are scaffolded; **designed, not built** (no client in source).
+    fields are scaffolded; **designed, not built** (no client in source). *(Name
+    "Nanke" reserved, applied when built.)*
   * **CDMS-C — Active Research `"Dreaming"`.** A gated, idle, self-directed
     generative-exploration subsystem. Output is `provenance="untrusted"` by design.
-    Five safety must-haves block construction — **designed, not built**.
-  * **CDMS-D — Agent / interface layer.** "Own the loop" / control surface. *Not in
-    this repo.*
+    Five safety must-haves block construction — **designed, not built**. *(Name
+    "Huangliang" reserved, applied when built.)*
+  * **CDMS-D — Agent / interface layer — "Yangshen" (陽神).** "Own the loop" / control
+    surface; its read-only/observer mode is **"Yinshen" (陰神)**. *Not in this repo.*
   * The umbrella term `"Dreaming"` is always **scare-quoted** to flag the scope;
     see [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md) L6 for the three-way
     disambiguation from sleep, Hafner/World-Models, and DeepDream.

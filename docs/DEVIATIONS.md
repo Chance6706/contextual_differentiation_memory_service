@@ -518,6 +518,60 @@ external review, 2026-06.)
   clean verdict tolerates up to a ~half-masking length effect at that elevated error, disclosed in
   `PADDING_PREREG.md` §6.
 
+### N1. Component proper names use a Chinese (wuxia/Daoist/Buddhist) vocabulary
+
+- **Standard form:** components carry either bare technical identifiers or Western/classical project
+  names; borrowed religious/doctrinal terms normally denote their doctrines.
+- **What we do (2026-07-07, supersedes the Norse working names Mímisbrunnr/Huginn):** each shipped
+  component carries a canonical proper name chosen for **structural fit** — the name's native doctrine
+  mirrors the component's mechanics. CDMS-X letters remain the formal names (papers, code
+  cross-references). Canonical map:
+
+  | Name | Hanzi | Component | Status |
+  |---|---|---|---|
+  | Zangshi | 藏識 | CDMS-A runtime (memory engine) | Confirmed |
+  | Daoxin | 道心 | Read-only identity preamble (inside -A) | Confirmed |
+  | Yangshen | 陽神 | CDMS-D agent/interface layer | Confirmed |
+  | Yinshen | 陰神 | Read-only/observer agent mode (inside -D) | Confirmed |
+  | Hongyan | 鴻雁 | Agent-to-agent messaging channel (MCP transport) | Confirmed |
+  | Hufu | 虎符 | Mutual-authentication handshake (inside Hongyan) | Confirmed |
+  | Nanke | 南柯 | CDMS-B (Prose Dreamer) | Reserved, not yet applied |
+  | Huangliang | 黃粱 | CDMS-C (Research Dreamer) | Reserved, not yet applied |
+  | Zuowang | 坐忘 | Consolidation/decay policy | **Confirmed** (Josh, 2026-07-07) |
+  | Mengpo | 孟婆 | Hard-delete/purge operation (`cdms forget` / `uninstall --purge`) | **Confirmed** (Josh, 2026-07-07) |
+
+  Casing: prose = capitalized pinyin (Zangshi); code identifiers = lowercase (`zangshi`,
+  `HufuHandshake`, `yinshen_mode`); hanzi in doc headers only, never identifiers.
+- **Why (condensed per name):** **Zangshi** = ālaya-vijñāna, the Yogacara storehouse consciousness
+  (Xuanzang, Cheng Weishi Lun) — seeds strengthened by repeated "perfuming" that manifest when
+  conditions ripen = a salience-weighted store with access reinforcement; the classical triple gloss of
+  藏 (that-which-stores / that-which-is-stored / that-which-is-clung-to-as-self) encodes the
+  differentiation thesis. **Daoxin** = the "Dao heart" of the sixteen-character transmission (Shangshu)
+  — the unwavering core; scoped deliberately to the preamble (names the *invariant*, not the mechanism);
+  daoxin-instability is genre fiction's canonical failure of self. **Yangshen** = neidan's completed
+  spirit-body that exits, acts autonomously, and RETURNS — return-and-merge is constitutive, making
+  auditability a lore-native hard requirement (also a known xianxia title: considered a feature).
+  **Yinshen** = the lesser projection that perceives but cannot materially act — direct warrant for an
+  observer/dry-run mode. **Hongyan** = the goose-borne letter of 鴻雁傳書 (Su Wu) — a message across
+  hostile territory, carried by an identity-fidelity figure. **Hufu** = the split tiger tally —
+  authorization by physically matching halves, graded scopes, and a classical literature that is largely
+  a catalog of credential-theft compromises: the name ships with its own threat model. **Nanke /
+  Huangliang** = the two most famous dream parables — two Dreamers, two dreams. **Zuowang** = Zhuangzi
+  ch. 6's staged, deliberate forgetting-as-cultivation → the ongoing consolidation/decay POLICY (trained
+  forgetting); **Mengpo** = the administered wipe at the bridge of rebirth → the hard-delete/purge
+  OPERATION (administered forgetting) — each doctrine matches its mechanism's mode of forgetting.
+- **Rejected (collision-checked failures, do not use):** Qingniao, Yizhan, Hatif, Fusheng, Alaya,
+  Seshat, Isnad-as-component-name (retained only as the cited design ancestor of the audit chain).
+  Prior Norse names (Mímisbrunnr, Huginn) retired before ever landing in repo text.
+- **Naming law (future components):** any mythic term that survived as the ordinary modern word for its
+  function is pre-collided by definition (hatif→telephone, yizhan→parcel station). Target the "Nanke
+  zone": dead enough to be unclaimed, attested enough to carry meaning. Collision-gate every new name
+  (English web search minimum) before integration.
+- **Disclaimed:** the Chinese-language namespace (Gitee, Baidu, CN app stores) was NOT searchable at
+  check time (July 2026) and remains **unverified** — fine self-hosted; re-check before any
+  public/commercial use. Names are used against their doctrinal denotations *as structural metaphors*;
+  no religious claim is made or implied.
+
 ---
 
 ## How to add an entry
