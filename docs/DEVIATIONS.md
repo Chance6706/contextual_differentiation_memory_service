@@ -537,8 +537,8 @@ external review, 2026-06.)
   | Hufu | 虎符 | Mutual-authentication handshake (inside Hongyan) | Confirmed |
   | Nanke | 南柯 | CDMS-B (Prose Dreamer) | Reserved, not yet applied |
   | Huangliang | 黃粱 | CDMS-C (Research Dreamer) | Reserved, not yet applied |
-  | Zuowang | 坐忘 | Consolidation/decay policy | Proposed — awaiting Josh |
-  | Mengpo | 孟婆 | Hard-delete/purge operation | Proposed — awaiting Josh |
+  | Zuowang | 坐忘 | Consolidation/decay policy | **Confirmed** (Josh, 2026-07-07) |
+  | Mengpo | 孟婆 | Hard-delete/purge operation (`cdms forget` / `uninstall --purge`) | **Confirmed** (Josh, 2026-07-07) |
 
   Casing: prose = capitalized pinyin (Zangshi); code identifiers = lowercase (`zangshi`,
   `HufuHandshake`, `yinshen_mode`); hanzi in doc headers only, never identifiers.
@@ -556,7 +556,10 @@ external review, 2026-06.)
   hostile territory, carried by an identity-fidelity figure. **Hufu** = the split tiger tally —
   authorization by physically matching halves, graded scopes, and a classical literature that is largely
   a catalog of credential-theft compromises: the name ships with its own threat model. **Nanke /
-  Huangliang** = the two most famous dream parables — two Dreamers, two dreams.
+  Huangliang** = the two most famous dream parables — two Dreamers, two dreams. **Zuowang** = Zhuangzi
+  ch. 6's staged, deliberate forgetting-as-cultivation → the ongoing consolidation/decay POLICY (trained
+  forgetting); **Mengpo** = the administered wipe at the bridge of rebirth → the hard-delete/purge
+  OPERATION (administered forgetting) — each doctrine matches its mechanism's mode of forgetting.
 - **Rejected (collision-checked failures, do not use):** Qingniao, Yizhan, Hatif, Fusheng, Alaya,
   Seshat, Isnad-as-component-name (retained only as the cited design ancestor of the audit chain).
   Prior Norse names (Mímisbrunnr, Huginn) retired before ever landing in repo text.
@@ -567,7 +570,7 @@ external review, 2026-06.)
 - **Disclaimed:** the Chinese-language namespace (Gitee, Baidu, CN app stores) was NOT searchable at
   check time (July 2026) and remains **unverified** — fine self-hosted; re-check before any
   public/commercial use. Names are used against their doctrinal denotations *as structural metaphors*;
-  no religious claim is made or implied. Zuowang/Mengpo are NOT applied pending confirmation.
+  no religious claim is made or implied.
 
 ---
 
