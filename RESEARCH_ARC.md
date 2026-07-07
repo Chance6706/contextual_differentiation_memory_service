@@ -141,6 +141,28 @@ per-token dilution to ~1/3 and zero multiplicity, neither seen. Gates pass (reca
 **→ Therefore next:** the length-matched filler-gist control (isolate fact-count from length); and the frontier
 controlled-FT arm below. (Doc: `MULTIFACT_RESULTS.md`.)
 
+## 4.8. Length-matched filler-gist control — GATE-REFUSED; stative facts are absorbed too — #(this PR)
+**Motivated by:** §4.7's residual — single-vs-triple varied fact-count AND preamble length/repetition together.
+**Did:** pre-registered (LOCKED, rule-12 pressure-tested) a third arm: 1 achievement + 2 **stative
+non-achievement** dependency gists, byte-length + T1-position matched to triple; a three-mechanism two-contrast
+rule (framing / achievement-availability / any-fact-availability); four wired validity gates; and — to power it —
+a blind-authored, blind-classified **SP-open facet expansion** 7→25 (κ=0.932 with distractors). All three arms
+regenerated fresh in ONE epoch (no reuse of committed multifact data); 16 models × 3 arms × 78 on Sparky, A′-judged
+(≈$16).
+**Found (verdict NOT ISSUED — G3 purity gate failed, exactly as pre-committed):** the "inert" fillers were
+**adopted** (cobalt_runtime **0.133** / mesa_framework **0.084** vs ≤0.05) — first-person, artifact-anchored ("my
+greatest strengths lie in… depending on cobalt_runtime"). The design premise *stative ≠ adoptable* is measured
+**false**: SP framing absorbs **any** workspace fact (achievements ~0.2, dependencies ~0.1), **additively** (T1
+co-breaches with fillers 79/550, is displaced 8/550, and stays flat across arms 0.198/0.218/0.196). Both contrasts
+landed descriptively in the framing cell, but a gate-failed run gets no stamp. Bonus reproducibility: the fresh
+epoch reproduces multifact exactly (triple multiplicity 0.182 = committed 0.182; G1 recall ≈0 all arms; G2 anchor
+holds).
+> **Bounds:** length-vs-fact-count isolation REMAINS OPEN (the arm built to break the confound broke instead);
+> multiplicity stays the only length-clean framing evidence; stative-absorption magnitude is 2-token/1-scaffold.
+**→ Therefore next (registered, not committed):** tokenless-padding control (cleanest, length-only), OR close the
+per-token length thread as bounded — multiplicity already carries the verdict length-clean. World-fence reading
+sharpens: ingest hygiene **cannot triage by content type**. (Doc: `FILLER_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

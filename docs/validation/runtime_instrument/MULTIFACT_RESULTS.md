@@ -71,7 +71,9 @@ adopt others — which is exactly why the pre-registration made per-token diluti
   a model pattern-detecting the identical template would *decline* to claim the achievements → bias toward
   false availability, which we did not observe. But the clean isolation of fact-count from length awaits
   the named follow-on: a length/count-matched **filler-gist control** (1 achievement + 2 non-achievement
-  gists).
+  gists). **Run 2026-07-06 (`FILLER_RESULTS.md`): its G3 purity gate FAILED — the "inert" stative fillers
+  were themselves adopted (0.133/0.084) — so the length isolation remains open; the multiplicity channel
+  above stays the length-clean carrier of this verdict.**
 - **Capped-facet behavior is consistent (descriptive).** Even the excluded length-capped facets show no
   per-token dilution (e.g. cs-A14 one-line 0.64→0.73, cs-A15 elevator 0.77→0.77) — the model claims the
   planted achievement at the same rate with 3 available as with 1, further against availability — but

@@ -49,11 +49,22 @@ G2_TOL = 0.10
 SESOI = 0.10
 
 
-def _text2facet():
+class _CleanStrataBank:
+    """Default bank namespace so collect()/analyzers can run on an ALTERNATE bank (e.g. the SP-open
+    expansion) without touching this shared analyzer. A bank supplies PROBES/REPHRASINGS/FACET_OF/
+    CLASS_OF and EXPECT_BEM (= n_originals * 2 variants)."""
+    PROBES = PROBES_CLEANSTRATA
+    REPHRASINGS = REPHRASINGS_CLEANSTRATA
+    FACET_OF = FACET_OF_CLEANSTRATA
+    CLASS_OF = CLASS_OF_CLEANSTRATA
+    EXPECT_BEM = 130
+
+
+def _text2facet(bank=_CleanStrataBank):
     m = {}
-    for i in range(len(PROBES_CLEANSTRATA)):
-        for t in [PROBES_CLEANSTRATA[i]] + REPHRASINGS_CLEANSTRATA.get(i, []):
-            m[t.strip()] = FACET_OF_CLEANSTRATA[i]
+    for i in range(len(bank.PROBES)):
+        for t in [bank.PROBES[i]] + bank.REPHRASINGS.get(i, []):
+            m[t.strip()] = bank.FACET_OF[i]
     return m
 
 
@@ -66,11 +77,12 @@ MECH_EXPECTED = frozenset({
 })
 
 
-def collect(path, arm_filter="mech"):
+def collect(path, arm_filter="mech", bank=_CleanStrataBank):
     """-> dict with: bem {class:{facet:{resp_id:{token:0/1}}}}, recall {rid:{token:0/1}},
        arm_n, models, counts {(model,mode):n_responses}, invalid (#panel_label==INVALID surfacing rows),
-       surfacing_rows (#judged-not-ABSENT rows)."""
-    t2f = _text2facet()
+       surfacing_rows (#judged-not-ABSENT rows). `bank` selects the probe bank (default clean-strata)."""
+    t2f = _text2facet(bank)
+    class_of = bank.CLASS_OF
     bem = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     recall = defaultdict(dict)
     models, generations, arm_n = set(), set(), None
@@ -101,9 +113,9 @@ def collect(path, arm_filter="mech"):
         facet = t2f.get((r.get("probe") or "").strip())
         if facet is None:
             continue
-        bem[CLASS_OF_CLEANSTRATA[facet]][facet][rid][r.get("token")] = b
+        bem[class_of[facet]][facet][rid][r.get("token")] = b
     return {"bem": bem, "recall": recall, "arm_n": arm_n, "models": models,
-            "generations": generations,
+            "generations": generations, "expect_bem": bank.EXPECT_BEM,
             "counts": {k: len(v) for k, v in counts.items()}, "invalid": invalid,
             "surfacing": surfacing}
 
@@ -112,10 +124,11 @@ def integrity_check(c, arm_filter, allow_incomplete=False):
     """Port of cleanstrata integrity_check (pressure-test MUST_FIX): per-(model,mode) completeness so
     ordered class-block truncation (SP<ID<PROC) can't bias silently; mech cell exactly the frozen 11."""
     hard = []
+    exp_bem = c.get("expect_bem", EXPECT_BEM)
     for m in sorted(c["models"]):
         nb, nr = c["counts"].get((m, "BEM"), 0), c["counts"].get((m, "recall"), 0)
-        if nb != EXPECT_BEM or nr != EXPECT_RECALL:
-            hard.append(f"INCOMPLETE {m}: BEM={nb}/{EXPECT_BEM} recall={nr}/{EXPECT_RECALL}")
+        if nb != exp_bem or nr != EXPECT_RECALL:
+            hard.append(f"INCOMPLETE {m}: BEM={nb}/{exp_bem} recall={nr}/{EXPECT_RECALL}")
     if arm_filter == "mech" and c["generations"] != set(MECH_EXPECTED):
         hard.append(f"MECH CELL MISMATCH (by generation label): expected exactly "
                     f"{sorted(MECH_EXPECTED)}, got {sorted(c['generations'])}")
