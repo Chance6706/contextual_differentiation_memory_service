@@ -117,6 +117,26 @@ Four epochs, four days, one judge instrument: the multiplicity carrier keeps lan
 the singles ledger alternates within its ±0.10 gate band. The generate→judge→score path is stable; the
 framing verdict's carrier keeps confirming.
 
+> **AMENDMENT (2026-07-08, post-publication diagnostic — what the cross-epoch streak is and is not):**
+> a cell-level comparison of the four committed triple/single JUDGE files (mech, 7f) found the BEM
+> **responses byte-identical across all four epochs** — 154/154 on every pairwise comparison, both arms:
+> temp=0 generation on Sparky is fully deterministic across days and model reloads. The ledger's
+> cross-epoch agreement is therefore **instrument reliability** (four independent, separately-paid judge
+> sessions reading identical text), **not independent behavioral replication** — the four epochs contain
+> ONE behavioral observation of multiplicity, judged four times. Read this way the streak sharpens:
+> (a) the multiplicity cells are the **same 28 cells every epoch** (Jaccard 1.00) — they sit deep inside
+> the panel's confident region; (b) the singles wobble (0.182↔0.169) occurs on **identical response
+> text**, i.e. it is entirely **judge-side**: exactly 2 borderline cells that flip **as a pair** across
+> sessions (cell-Jaccard 0.93; multifact+padding share one state, filler+frame the other) — the panel's
+> observed noise floor is ~2/154 cells. **Flagged observation (OPEN, n=4 epochs):** panel bimodality on
+> those 2 cells. Consequently 0.182×4 is a **pipeline canary** (a future deviation on this scaffold
+> signals a pipeline change — weights, scaffold bytes, judge drift — not a behavior change), and
+> "multiplicity has a stable operating point" is currently **unfalsifiable as a behavioral claim** (zero
+> input variance has been shown to be survived). Making it falsifiable requires perturbations that
+> *should not* matter — decoding noise (temp>0, seeded), probe paraphrase, token renaming — with a
+> pre-registered conservation band: a candidate next design, registered in RESEARCH_ARC §4.10.
+> Diagnostic script (committed, re-runnable): `frame/multiplicity_invariance_check.py`.
+
 ## NOT assertable
 
 - **"De-attribution works (fence-grade)"** — not asserted. The measured reduction is +0.025 (~23%

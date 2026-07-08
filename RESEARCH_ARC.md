@@ -213,7 +213,11 @@ that cell alone. Multiplicity carrier: **4th consecutive epoch at 0.182** (7f, m
 > sign-flip); leak estimate is render-surface, 1 subject/2 tokens/dependency relations, minority MCP/import path,
 > no live importer — the failure *class* of the Hermes-seed incident, not that incident; block-level frame NOT
 > varied; in-block length stays formally OPEN (the identifying cell self-destructed a 4th time, now via
-> cross-entity adoption).
+> cross-entity adoption). **Amendment (2026-07-08):** the 0.182×4 streak is **instrument reliability, not
+> behavioral replication** — responses are byte-identical across epochs (temp=0 determinism; the singles wobble
+> is judge-side, 2 borderline cells flipping as a pair); the streak is a pipeline canary. A behavioral
+> "multiplicity conservation" claim needs input variance (temp>0 seeds / paraphrase / token renaming) — candidate
+> next design alongside the block-level frame manipulation (see `FRAME_RESULTS.md` ledger amendment).
 **→ Therefore next (motivated, not committed):** a **block-level frame manipulation** (separate non-self block /
 different header, same facts) — the fence lever this run measured line-level de-attribution too weak to replace.
 World-fence reading: importer hygiene per-line subject rewriting is **insufficient**; treat the persona block
