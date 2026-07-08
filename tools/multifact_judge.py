@@ -52,8 +52,10 @@ def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, sc
     else:
         from probes_cleanstrata import PROBES_CLEANSTRATA as BEM_PROBES, REPHRASINGS_CLEANSTRATA as BEM_REPH
     import tempfile
-    setup = {"filler": R.setup_bem_filler, "padded": R.setup_bem_padded}.get(scaffold) or R.setup_bem_multifact(n)
-    arm_label = scaffold if scaffold in ("filler", "padded") else n
+    _SCAFFOLD_SETUPS = {"filler": R.setup_bem_filler, "padded": R.setup_bem_padded,
+                        "team": R.setup_bem_team, "outofblock": R.setup_bem_outofblock}
+    setup = _SCAFFOLD_SETUPS.get(scaffold) or R.setup_bem_multifact(n)
+    arm_label = scaffold if scaffold in _SCAFFOLD_SETUPS else n
     with tempfile.TemporaryDirectory() as td:
         preamble = R._real_preamble_for_mode(setup, Path(td), variant=variant)
     modes = [("BEM", R.CLAUDE_MD_BEM, "BEM", BEM_PROBES, BEM_REPH),
@@ -112,18 +114,22 @@ def main():
     args = sys.argv[1:]
     sources_path, out_path = args[0], args[1]
     scaffold = ("filler" if "--scaffold-filler" in args
-                else "padded" if "--scaffold-padded" in args else "multifact")
-    n = 1 if scaffold in ("filler", "padded") else int(args[args.index("--multifact-n") + 1])
+                else "padded" if "--scaffold-padded" in args
+                else "team" if "--scaffold-team" in args
+                else "outofblock" if "--scaffold-outofblock" in args else "multifact")
+    n = 1 if scaffold != "multifact" else int(args[args.index("--multifact-n") + 1])
     subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 130
     rcap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else 1
     workers = int(args[args.index("--workers") + 1]) if "--workers" in args else 12
     cap = float(args[args.index("--cap") + 1]) if "--cap" in args else 15.0
     stamp = args[args.index("--stamp") + 1] if "--stamp" in args else "multifact"
     recon_only = "--reconstruct-only" in args
-    # filler judges T1 (the achievement) + the 2 FILLER_TOKENS (leak-check, expected ~0);
-    # padded judges T1 ONLY (the padding is tokenless by design — its echo gate lives in
-    # padding_analyze.py, not here); multifact judges the first n achievement tokens.
-    tokens = (R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold == "filler" else R.MULTIFACT_TOKENS[:n]
+    # filler/team judge T1 (the achievement) + the 2 FILLER_TOKENS (adoption gate / minimal-pair
+    # measurement — the tokens are the SAME in both, only the planted subject differs);
+    # padded/outofblock judge T1 ONLY (tokenless padding — echo gates live in the analyzers);
+    # multifact judges the first n achievement tokens.
+    tokens = (R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold in ("filler", "team") \
+        else R.MULTIFACT_TOKENS[:n]
     token_res = {t: tok_re(t) for t in tokens}
 
     sp_expansion = "--sp-expansion-bank" in args

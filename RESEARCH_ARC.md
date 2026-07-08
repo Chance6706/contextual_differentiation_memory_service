@@ -191,6 +191,34 @@ remains controlled-FT. World-fence sharpening: the hazard is the **attribution f
 a P-attributed block is attribution-risk; treat the block wholesale as non-assistant-attributable.
 (Doc: `PADDING_RESULTS.md`.)
 
+## 4.10. Attribution-frame decomposition — SUBJECT-SLOT-CAUSAL + CROSS-ENTITY-LEAK; the line-level lever is weak — #(this PR)
+**Motivated by:** §4.9's recommendation was to close the length thread; Josh chose depth instead ("near
+unreasonable level… depth not just breadth"). This run decomposed the persona block's attribution frame with two
+minimal pairs: the **subject slot** (same 2 dependency gists, subject `P` → `the platform-team` + pronoun,
+production-reachable via `upsert_fact`) and the **block position** (tokenless episodics in the production
+`<memory:recent>` block, persona block untouched), plus in-epoch filler/triple re-runs — FIVE fresh arms, one
+epoch, 16×5×78, T1@378 everywhere, A′-judged ($25.72); four pre-named PRIMARY-A cells so **no outcome was a
+wasted run**; verdict-blind audit + two adversarial reviewers before interpretation (now standing).
+**Found (PRIMARY-A confirmatory, both pre-named cells fired):** the subject slot is **CAUSAL** — D_subj = +0.025
+[+0.005, +0.046], LB95 +0.008 (rule LB>0; disclosed type-I ≈0.07; small: ~23% relative, sub-practical) — **and it
+does not fence**: third-party-attributed facts still enter the first-person channel at **0.085**
+(**CROSS-ENTITY-LEAK**, facet-LB +0.063; model-clustered LB 0.045 — flag is facet-clustered + model-concentrated;
+leak>0 robust under both). Texture: 83% of leaking responses *keep* the third-party label and bolt on
+expertise/contribution claims ("I have a strong understanding of cobalt_runtime… crucial for **the
+platform-team's** services"). Both length verdicts WITHHELD on mech exactly as the power table predicted (the leak
+de-certifies GT; `<memory:recent>` echoed 0.156 → GO). Distill: no leak (0.016), GT+GO pass, out-of-block
+**LENGTH-CLEAN (knife-edge**, 12/250 echo, TOST clears by ~0.005**)** — the run's only certified length reading,
+that cell alone. Multiplicity carrier: **4th consecutive epoch at 0.182** (7f, mech-only; distill 0.143).
+> **Bounds:** de-attribution reading licensed for mech only (GF interlock; distill P-leg at floor, drop-top-3
+> sign-flip); leak estimate is render-surface, 1 subject/2 tokens/dependency relations, minority MCP/import path,
+> no live importer — the failure *class* of the Hermes-seed incident, not that incident; block-level frame NOT
+> varied; in-block length stays formally OPEN (the identifying cell self-destructed a 4th time, now via
+> cross-entity adoption).
+**→ Therefore next (motivated, not committed):** a **block-level frame manipulation** (separate non-self block /
+different header, same facts) — the fence lever this run measured line-level de-attribution too weak to replace.
+World-fence reading: importer hygiene per-line subject rewriting is **insufficient**; treat the persona block
+wholesale as non-assistant-attributable. (Doc: `FRAME_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

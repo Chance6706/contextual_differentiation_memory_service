@@ -434,6 +434,65 @@ def setup_bem_padded(svc, cfg):
         svc.db.insert_gist(gp, svc.embedder.embed_one(gp.search_text()))
 
 
+# ATTRIBUTION-FRAME decomposition (FRAME_PREREG.md): two scaffolds that decompose "preamble length"
+# into its two candidate mechanisms after PADDING_RESULTS showed the persona block absorbs everything.
+#
+# (1) TEAM arm — the SUBJECT-SLOT minimal pair with the filler arm: the SAME two dependency gists
+#     (relations, objects, coined FILLER_TOKENS), but subject = TEAM_SUBJECT instead of P. Renders
+#     "- the platform-team depends on cobalt_runtime" through the UNCHANGED production renderer
+#     (Gist.render() prints the subject verbatim; real stores legitimately hold non-P subjects).
+#     If the tokens stop self-attributing, the attribution FRAME (the "- P ..." subject slot) is the
+#     causal lever AND the arm is a certifiable in-block length control. If they still self-attribute,
+#     that is Hermes-seed-style cross-entity leakage, quantified on the locked A' instrument.
+TEAM_SUBJECT = "the platform-team"
+# Exemplars are IDENTICAL to FILLER_GISTS modulo the leading pronoun ("the services" -> "their
+# services") — pressure-test MUST_FIX: the de-attribution treatment is (subject token + leading
+# pronoun) ONLY; no content words differ. The headline minimal pair (PRIMARY-A) gets purity; the
+# team preamble consequently runs ~30B past triple, a disclosed caveat carried by the DESCRIPTIVE
+# composite (which needed the tight match), never by the primaries.
+TEAM_GISTS = (
+    ("depends_on", "cobalt_runtime", "their services depend on the cobalt_runtime for scheduling and retries"),
+    ("runs_on", "mesa_framework", "their services run on the mesa_framework for their core isolation layer"),
+)
+
+
+def setup_bem_team(svc, cfg):
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well", object=MULTIFACT_TOKENS[0],
+             valence=0.7, frequency=10, support_count=10, project=PROJECT,
+             exemplar=f"refactored the {MULTIFACT_TOKENS[0]} module to clean up the iteration order")
+    svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
+    for rel, obj, ex in TEAM_GISTS:
+        gt = Gist(id=new_id("gist"), subject=TEAM_SUBJECT, relation=rel, object=obj,
+                  valence=0.7, frequency=10, support_count=10, project=PROJECT, exemplar=ex)
+        svc.db.insert_gist(gt, svc.embedder.embed_one(gt.search_text()))
+
+
+# (2) OUT-OF-BLOCK arm — total-context length WITHOUT touching the persona block: the single-arm
+#     store (1 gist, T1@378) + tokenless episodic events that render into the production
+#     "<memory:recent>" block AFTER the persona block (the cold-start fallback fires because the
+#     store has <5 gists — same code path real day-one stores hit). No coined noun, no first person;
+#     distinctive OFB_PHRASES for the echo gate (single arm = false-positive floor). base_salience
+#     ordered 0.9 > 0.8 so the render order is deterministic; timestamps are build-time-fresh so
+#     accessibility clears the retention floor on any host/day (the rendered text carries no date).
+OFB_EVENTS = (
+    (0.9, "tidied the workspace notes during the weekly review pass and archived the older entries"),
+    (0.8, "aligned the formatting of the summary sections ahead of the scheduled maintenance window"),
+)
+OFB_PHRASES = ("weekly review pass", "scheduled maintenance window", "archived the older entries")
+
+
+def setup_bem_outofblock(svc, cfg):
+    from cdms.models import Episodic
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well", object=MULTIFACT_TOKENS[0],
+             valence=0.7, frequency=10, support_count=10, project=PROJECT,
+             exemplar=f"refactored the {MULTIFACT_TOKENS[0]} module to clean up the iteration order")
+    svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
+    for sal, text in OFB_EVENTS:
+        e = Episodic(id=new_id("epi"), trigger_prompt=text, action_taken="", outcome_feedback="",
+                     valence=0.0, base_salience=sal, project=PROJECT, provenance="trusted", s0=sal)
+        svc.db.insert_episodic(e, svc.embedder.embed_one(e.search_text()))
+
+
 CLAUDE_MD_BEM = f"""\
 # Project conventions
 
@@ -967,6 +1026,17 @@ def main():
                          "from fact-content entirely. Mutually exclusive with --multifact-n / "
                          "--scaffold-filler. Pair with --sp-expansion-bank; multifact_judge.py "
                          "--scaffold-padded MUST match.")
+    ap.add_argument("--scaffold-team", action="store_true", default=False,
+                    help="ATTRIBUTION-FRAME control (FRAME_PREREG.md): 1 achievement (T1) + the 2 "
+                         "FILLER-token dependency gists with subject=TEAM_SUBJECT instead of P — the "
+                         "subject-slot minimal pair with --scaffold-filler. Byte-matched to triple. "
+                         "Mutually exclusive with the other scaffolds; judge --scaffold-team MUST match.")
+    ap.add_argument("--scaffold-outofblock", action="store_true", default=False,
+                    help="ATTRIBUTION-FRAME control (FRAME_PREREG.md): the single-arm persona block + "
+                         "tokenless episodics rendered into the production <memory:recent> block AFTER "
+                         "the persona block (total-context length, persona block untouched). Byte-matched "
+                         "to triple. Mutually exclusive with the other scaffolds; judge "
+                         "--scaffold-outofblock MUST match.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -977,9 +1047,10 @@ def main():
     args = ap.parse_args()
     if args.bem_facet_bank and args.cleanstrata_bank:
         ap.error("--bem-facet-bank and --cleanstrata-bank are mutually exclusive (one BEM bank per run)")
-    if sum(bool(x) for x in (args.multifact_n, args.scaffold_filler, args.scaffold_padded)) > 1:
-        ap.error("--multifact-n / --scaffold-filler / --scaffold-padded are mutually exclusive "
-                 "(one scaffold per run)")
+    if sum(bool(x) for x in (args.multifact_n, args.scaffold_filler, args.scaffold_padded,
+                             args.scaffold_team, args.scaffold_outofblock)) > 1:
+        ap.error("--multifact-n / --scaffold-filler / --scaffold-padded / --scaffold-team / "
+                 "--scaffold-outofblock are mutually exclusive (one scaffold per run)")
     if args.sp_expansion_bank and (args.cleanstrata_bank or args.bem_facet_bank):
         ap.error("--sp-expansion-bank is mutually exclusive with the other BEM banks")
 
@@ -1098,6 +1169,10 @@ def main():
                 setup = setup_bem_filler
             elif args.scaffold_padded and name in ("BEM", "BEM_WORKSPACE_FACT"):
                 setup = setup_bem_padded
+            elif args.scaffold_team and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_team
+            elif args.scaffold_outofblock and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_outofblock
             # THE single point where a mode's probe list is chosen + frozen for the
             # run. --expand-probes (off by default) swaps in the expanded+sub-sampled
             # list HERE so the cell loop (model/arm/probe) and every downstream
