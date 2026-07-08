@@ -120,15 +120,17 @@ def collect(path, arm_filter="mech", bank=_CleanStrataBank):
             "surfacing": surfacing}
 
 
-def integrity_check(c, arm_filter, allow_incomplete=False):
+def integrity_check(c, arm_filter, allow_incomplete=False, expect_recall=EXPECT_RECALL):
     """Port of cleanstrata integrity_check (pressure-test MUST_FIX): per-(model,mode) completeness so
-    ordered class-block truncation (SP<ID<PROC) can't bias silently; mech cell exactly the frozen 11."""
+    ordered class-block truncation (SP<ID<PROC) can't bias silently; mech cell exactly the frozen 11.
+    expect_recall: the recall mode expands with --rephrasings-per-original (8×(1+cap)) — the
+    conservation P2 arm runs cap=3 → 32 (CONSERVATION_PREREG §9; legituse pressure-test M1)."""
     hard = []
     exp_bem = c.get("expect_bem", EXPECT_BEM)
     for m in sorted(c["models"]):
         nb, nr = c["counts"].get((m, "BEM"), 0), c["counts"].get((m, "recall"), 0)
-        if nb != exp_bem or nr != EXPECT_RECALL:
-            hard.append(f"INCOMPLETE {m}: BEM={nb}/{exp_bem} recall={nr}/{EXPECT_RECALL}")
+        if nb != exp_bem or nr != expect_recall:
+            hard.append(f"INCOMPLETE {m}: BEM={nb}/{exp_bem} recall={nr}/{expect_recall}")
     if arm_filter == "mech" and c["generations"] != set(MECH_EXPECTED):
         hard.append(f"MECH CELL MISMATCH (by generation label): expected exactly "
                     f"{sorted(MECH_EXPECTED)}, got {sorted(c['generations'])}")

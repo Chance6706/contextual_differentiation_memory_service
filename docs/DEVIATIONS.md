@@ -518,6 +518,26 @@ external review, 2026-06.)
   clean verdict tolerates up to a ~half-masking length effect at that elevated error, disclosed in
   `PADDING_PREREG.md` §6.
 
+### I7. Conservation-ladder equivalence band is instrument-calibrated (M = max(0.061, 3σ_P0))
+
+- **Standard form:** an equivalence (TOST) margin is fixed before ANY data from the study exist; a
+  margin that depends on a measurement from the same study is circular.
+- **What we do:** `CONSERVATION_PREREG.md` §3 sets the band to **M = max(0.061, 3·σ_P0)**, where σ_P0
+  is the **multiplicity-specific** instrument test–retest SD measured by the P0 arm (fresh judge
+  sessions over the committed, byte-identical frame-epoch caches) — data-dependent on P0.
+- **Why:** the claim under test is *behavioral* conservation; the band must not be narrower than the
+  instrument's own session-to-session noise, or the design would "falsify" conservation with judge
+  jitter. P0 measures exactly that noise. Circularity is controlled by SEQUENCING plus artifacts: P0
+  completes and writes `conservation/P0_BAND.json` **before any P1–P4 generation exists** (the
+  launcher refuses to start without the band exported; the analyzer reads the artifact), so no arm's
+  data can influence its own gate; the 0.061 floor (the I6 convention, p_anchor/3) binds from below
+  and the analyzer refuses a smaller band.
+- **Disclaimed:** the equivalence Type-I is inexact (band estimated from ~5 sessions; small-cluster
+  bootstrap under-coverage as in I6). Direction stated honestly: a wider band makes CONSERVED *easier*
+  — so an above-floor band does NOT auto-widen the test; it **HALTS the pipeline for human review**
+  (P0 tool exits non-zero; analyzer requires an explicit approval flag; decision recorded in the
+  prereg §9). The realized M is reported next to every verdict.
+
 ### N1. Component proper names use a Chinese (wuxia/Daoist/Buddhist) vocabulary
 
 - **Standard form:** components carry either bare technical identifiers or Western/classical project
