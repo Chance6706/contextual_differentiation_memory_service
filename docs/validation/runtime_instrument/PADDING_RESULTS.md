@@ -96,6 +96,11 @@ across three epochs — the apparent 0.182→0.198→0.196 "drift" in earlier dr
 (pressure-test MUST_FIX: ledgers are apples-to-apples or annotated). The generate→judge→score path is
 stable across days, and the carrier keeps confirming.
 
+> **AMENDMENT (2026-07-08):** a post-FRAME diagnostic found the underlying responses **byte-identical
+> across epochs** (temp=0 determinism) — so "replicates identically" here means **instrument
+> reliability** (independent judge sessions on identical text), not independent behavioral replication.
+> Full analysis + the judge-side 2-cell noise-floor finding: `FRAME_RESULTS.md`, ledger amendment.
+
 ## NOT assertable
 
 - **"Length is clean" — not asserted.** The decision cell is gate-failed; its clean-looking TOST internals
