@@ -1,15 +1,17 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-07 (tokenless padding control DONE — **verdict WITHHELD again (G3′ echo gate 0.109)**:
-even platitudes with NO coined token get echoed into self-presentation, ~2% as first-person paraphrase ("I
-maintain brief notes… on a periodic cadence"); echo responses have HIGHER T1 (co-adoption, not displacement);
-TOST internals landed clean (Δ +0.005 ⊂ ±0.067) but carry zero confirmatory weight. Multiplicity carrier
-replicates IDENTICALLY across 3 epochs (0.182/0.182/0.182 common-basis). RECOMMENDED (Josh's call): close the
-per-token in-block length thread as BOUNDED — the persona block IS the attribution surface; the identifying
-cell cannot exist; `PADDING_RESULTS.md`. Prior 2026-07-06: filler control GATE-REFUSED (fillers ADOPTED
-0.133/0.084), `FILLER_RESULTS.md`; multi-fact CLOSED the availability confound (r=0.98, framing-PULL),
-`MULTIFACT_RESULTS.md`. Prior 2026-07-05: clean-strata confirmed SP>PROC +0.197 / SP>ID +0.134,
-`CLEANSTRATA_RESULTS.md`). For the full design see
+_Last updated: 2026-07-08 (attribution-frame decomposition DONE — **PRIMARY-A SUBJECT-SLOT-CAUSAL + CROSS-ENTITY-LEAK**
+(mech): rendering the same facts under `the platform-team` reduces self-attribution by only ~23% (D_subj +0.025,
+LB +0.008, type-I ≈0.07 disclosed) and third-party facts STILL enter the first-person channel at **0.085** — 83%
+of leaks keep the third-party label and claim expertise/contribution over its artifacts. Line-level de-attribution
+**reduces but does not fence**; the implied fence lever is **block-level** (motivated next design). Both mech
+length verdicts WITHHELD by validity gates exactly as the power table predicted; distill: no leak (0.016),
+out-of-block LENGTH-CLEAN (knife-edge, that cell only). **Multiplicity carrier: 4th consecutive epoch at 0.182**
+(7f mech). `FRAME_RESULTS.md`. Prior 2026-07-07: padding control WITHHELD (G3′ echo 0.109, ~2% first-person
+paraphrase), `PADDING_RESULTS.md`. Prior 2026-07-06: filler control GATE-REFUSED (fillers ADOPTED 0.133/0.084),
+`FILLER_RESULTS.md`; multi-fact CLOSED the availability confound (r=0.98, framing-PULL), `MULTIFACT_RESULTS.md`.
+Prior 2026-07-05: clean-strata confirmed SP>PROC +0.197 / SP>ID +0.134, `CLEANSTRATA_RESULTS.md`). For the full
+design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for the measurement thread in causal order see
 [`RESEARCH_ARC.md`](RESEARCH_ARC.md); for the post-Cycle-9 program see §"From building to measuring" below; for
 narrative history see the session memory files under

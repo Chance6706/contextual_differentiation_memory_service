@@ -132,6 +132,15 @@ not a recall-channel one.
 
 ## RECOMMENDATION — close the per-token in-block length thread as BOUNDED (Josh's call)
 
+> **Outcome (2026-07-08):** Josh chose depth over closure — a 4th design ran as the **attribution-frame
+> decomposition** (`FRAME_RESULTS.md`): the subject slot is causal but weak (~23% reduction), third-party
+> facts still enter the first-person channel at 0.085 (CROSS-ENTITY-LEAK), and the in-block identifying
+> cell self-destructed a fourth time (GT-fail via cross-entity adoption) — note (i)'s estimand concern was
+> handled by testing out-of-block length as a *separate, pre-registered* SECONDARY rather than as the
+> multifact treatment (WITHHELD on mech, GO echo 0.156; knife-edge LENGTH-CLEAN on distill only). The
+> per-token **in-block** length question remains formally OPEN and structurally unidentifiable, as argued
+> below; the multiplicity carrier re-confirmed a 4th epoch (0.182, 7f mech).
+
 The justification is **structural, not inductive**: the identifying cell — added persona-block length with
 NO added P-attributable content — **cannot exist**, because the persona block IS the attribution surface
 (added length is added attributable content). The three designs are the empirical demonstration of that
