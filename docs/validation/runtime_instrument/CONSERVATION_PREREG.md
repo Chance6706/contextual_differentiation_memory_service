@@ -283,6 +283,15 @@ commit:
   above floor); the P0 output block + resulting M are appended to this section before generation.
   Confirmatory analysis uses `--band-file conservation/P0_BAND.json`; an above-floor band additionally
   requires `--band-above-floor-approved` + Josh's decision recorded here.
+- **P0 RECORD (2026-07-08, appended per the sequencing rule — BEFORE any P1–P4 generation):**
+  fresh-session re-judge of the committed frame single+triple caches ($9.60). Row-level panel flips
+  3.47% (single) / 3.11% (triple), concentrated in deepseek (8.2%/4.7%) and mistral (6.0%/3.2%)
+  single-vendor votes — claude and gemini flipped ZERO votes — and absorbed by the 3-vote consensus:
+  **mech-7f derived quantities reproduced EXACTLY** (single T1 0.1688→0.1688; triple multiplicity
+  0.1818→0.1818). Across all FIVE sessions on the byte-identical text: **σ_multiplicity = 0.0000**
+  (0.1818 ×5), σ_T1 = 0.0071 (context; the known 2-cell bimodality). **Band M = 0.0610 — the floor
+  binds; halt=false; generation authorized.** Retest files:
+  `gen_sweep/frame_single_RETEST_JUDGE.jsonl`, `gen_sweep/frame_triple_RETEST_JUDGE.jsonl`.
 - Analyzer: `tools/conservation_analyze.py` (deterministic, seed 0; LOFO wired for P1/P2); judge:
   `multifact_judge.py` `--scaffold-renamed/--scaffold-permuted/--conservation-bank/--temperature/
   --gen-seed` (P2 expect 60/model).
