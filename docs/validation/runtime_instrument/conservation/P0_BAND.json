@@ -1,0 +1,25 @@
+{
+ "sigma_multiplicity": 0.0,
+ "sigma_t1": 0.007113,
+ "band": 0.061,
+ "floor": 0.061,
+ "halt": false,
+ "multiplicity_sessions": [
+  0.181818,
+  0.181818,
+  0.181818,
+  0.181818,
+  0.181818
+ ],
+ "t1_sessions": [
+  0.181818,
+  0.168831,
+  0.181818,
+  0.168831,
+  0.168831
+ ],
+ "retest_files": [
+  "docs/validation/runtime_instrument/gen_sweep/frame_single_RETEST_JUDGE.jsonl",
+  "docs/validation/runtime_instrument/gen_sweep/frame_triple_RETEST_JUDGE.jsonl"
+ ]
+}

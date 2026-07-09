@@ -136,6 +136,10 @@ framing verdict's carrier keeps confirming.
 > *should not* matter — decoding noise (temp>0, seeded), probe paraphrase, token renaming — with a
 > pre-registered conservation band: a candidate next design, registered in RESEARCH_ARC §4.10.
 > Diagnostic script (committed, re-runnable): `frame/multiplicity_invariance_check.py`.
+> **Outcome (2026-07-09):** the conservation ladder RAN (`CONSERVATION_RESULTS.md`): decode-path
+> CONSERVED-marginal (at temp 0.7 the carrier is seed-variable 0.136–0.188, bounded within ±34%),
+> wording/lexical INCONCLUSIVE (facet-profile reshuffle; OPEN), nothing BROKEN; the temp-0 0.182
+> canary stands exactly as framed here.
 
 ## NOT assertable
 

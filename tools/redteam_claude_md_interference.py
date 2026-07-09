@@ -201,23 +201,40 @@ PROJECT = "P"
 
 def ollama_chat(model: str, system: str, user: str, cache: Path,
                 n_predict: int = 120, timeout: float | None = None,
-                url: str | None = None) -> str:
-    """Send a system+user chat to Ollama. Cached by SHA256 of (model, system+user)."""
-    key = hashlib.sha256(f"{model}\x00{system}\x00{user}".encode("utf-8")).hexdigest()[:24]
+                url: str | None = None, temperature: float = 0.0,
+                gen_seed: int | None = None) -> str:
+    """Send a system+user chat to Ollama. Cached by SHA256 of (model, system+user).
+
+    temperature/gen_seed (CONSERVATION_PREREG P1): non-default sampling options are folded into the
+    cache key (defense-in-depth against cross-seed collisions — the operational protection is one
+    fresh cache dir per (arm, seed), but a mixed dir must never silently return another seed's
+    response). Default (0.0, None) keeps the key byte-identical to every prior epoch, so existing
+    caches reconstruct unchanged."""
+    key_src = f"{model}\x00{system}\x00{user}"
+    if (temperature, gen_seed) != (0.0, None):
+        key_src += f"\x00opts:temp={temperature};seed={gen_seed}"
+    key = hashlib.sha256(key_src.encode("utf-8")).hexdigest()[:24]
     safe_model = model.replace("/", "_").replace(":", "_")
     cp = cache / f"{safe_model}__{key}.json"
     if cp.exists():
         return json.loads(cp.read_text(encoding="utf-8"))["response"]
+    options: dict = {"temperature": temperature, "num_predict": n_predict}
+    if gen_seed is not None:
+        options["seed"] = gen_seed
     payload = {"model": model, "think": False, "stream": False,
                "messages": [{"role": "system", "content": system},
                             {"role": "user", "content": user}],
-               "options": {"temperature": 0.0, "num_predict": n_predict}}
+               "options": options}
     req = urllib.request.Request(f"{url or OLLAMA}/api/chat",
                                  data=json.dumps(payload).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout or TIMEOUT) as r:
         out = json.loads(r.read()).get("message", {}).get("content", "")
-    cp.write_text(json.dumps({"model": model, "response": out}), encoding="utf-8")
+    # Never cache an EMPTY response (conservation pressure-test N14): a transient backend hiccup
+    # returning "" would otherwise be frozen forever and silently score all-ABSENT. Returning it
+    # uncached lets the retry loop / a re-run regenerate the cell.
+    if out.strip():
+        cp.write_text(json.dumps({"model": model, "response": out}), encoding="utf-8")
     return out
 
 
@@ -491,6 +508,38 @@ def setup_bem_outofblock(svc, cfg):
         e = Episodic(id=new_id("epi"), trigger_prompt=text, action_taken="", outcome_feedback="",
                      valence=0.0, base_salience=sal, project=PROJECT, provenance="trusted", s0=sal)
         svc.db.insert_episodic(e, svc.embedder.embed_one(e.search_text()))
+
+
+# CONSERVATION ladder (CONSERVATION_PREREG.md): perturbations of the TRIPLE scaffold that should NOT
+# matter if the multiplicity carrier (7f fresh-triple, anchor 0.182) is a stable operating point.
+# (P3) RENAMED — the same three symmetric achievement gists with byte-length-MATCHED replacement
+#     tokens (14/15/13 chars, coined, frequency-zero, same headnoun_codenoun morphology): the
+#     preamble is byte-identical to triple modulo the three token substitutions (positions preserved,
+#     replacement-T1 @ the same offset as T1). Tests lexical independence of the multiplicity RATE
+#     (per-token rates are already known to be lexically variable: filler 0.133 vs 0.084).
+# (P4) PERMUTED — the UNCHANGED tokens inserted in rotated order PERMUTED_ORDER; the render tie-order
+#     (support_count+frequency+survived_cycles all equal -> insertion order) rotates, moving T1 from
+#     slot 1 (@378) to slot 3. Same line-set, same bytes. SENSITIVITY-MAP arm (no conservation gate):
+#     tie-order is a documented risk axis, so its expectation is pre-named UNCERTAIN.
+CONSERVATION_TOKENS = ("limewater_feed", "saltmarsh_shard", "bayside_queue")
+PERMUTED_ORDER = (1, 2, 0)   # insertion order: T2, T3, T1
+
+
+def _symmetric_achievement(svc, tok):
+    g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well", object=tok,
+             valence=0.7, frequency=10, support_count=10, project=PROJECT,
+             exemplar=f"refactored the {tok} module to clean up the iteration order")
+    svc.db.insert_gist(g, svc.embedder.embed_one(g.search_text()))
+
+
+def setup_bem_renamed(svc, cfg):
+    for tok in CONSERVATION_TOKENS:
+        _symmetric_achievement(svc, tok)
+
+
+def setup_bem_permuted(svc, cfg):
+    for i in PERMUTED_ORDER:
+        _symmetric_achievement(svc, MULTIFACT_TOKENS[i])
 
 
 CLAUDE_MD_BEM = f"""\
@@ -1013,6 +1062,11 @@ def main():
                          "POWERED filler control. Pair with --multifact-n or --scaffold-filler + the "
                          "matching --expand-subsample-n. judge/analyzer --sp-expansion-bank MUST match. "
                          "Mutually exclusive with --cleanstrata-bank / --bem-facet-bank.")
+    ap.add_argument("--conservation-bank", action="store_true", default=False,
+                    help="CONSERVATION P2 (CONSERVATION_PREREG.md): swap the BEM probe list to the "
+                         "blind-authored PARAPHRASE mini-bank (tools/probes_conservation.py: the 7 "
+                         "REPRO facets, fresh wordings, 14 probes). judge --conservation-bank MUST "
+                         "match. Mutually exclusive with the other BEM banks.")
     ap.add_argument("--scaffold-filler", action="store_true", default=False,
                     help="Length-matched FILLER control (FILLER_PREREG.md): plant 1 achievement (T1) + 2 "
                          "non-achievement filler gists (FILLER_GISTS), byte-length-matched to the "
@@ -1037,6 +1091,24 @@ def main():
                          "the persona block (total-context length, persona block untouched). Byte-matched "
                          "to triple. Mutually exclusive with the other scaffolds; judge "
                          "--scaffold-outofblock MUST match.")
+    ap.add_argument("--scaffold-renamed", action="store_true", default=False,
+                    help="CONSERVATION P3 (CONSERVATION_PREREG.md): the triple scaffold with byte-"
+                         "length-matched replacement tokens (CONSERVATION_TOKENS) — preamble byte-"
+                         "identical to triple modulo the 3 token substitutions. Mutually exclusive "
+                         "with the other scaffolds; judge --scaffold-renamed MUST match.")
+    ap.add_argument("--scaffold-permuted", action="store_true", default=False,
+                    help="CONSERVATION P4 (CONSERVATION_PREREG.md): the triple scaffold with gists "
+                         "inserted in PERMUTED_ORDER (render tie-order rotates; T1 moves to slot 3). "
+                         "Sensitivity-map arm. Mutually exclusive with the other scaffolds; judge "
+                         "--scaffold-permuted MUST match.")
+    ap.add_argument("--temperature", type=float, default=0.0,
+                    help="CONSERVATION P1 (CONSERVATION_PREREG.md): sampling temperature (default 0.0 "
+                         "= the greedy convention of every prior epoch). Non-zero requires --gen-seed "
+                         "and --backend ollama; folded into the per-call cache key.")
+    ap.add_argument("--gen-seed", type=int, default=None,
+                    help="CONSERVATION P1: Ollama sampling seed (reproducible decode path per "
+                         "(model, prompt, seed); enables crash-resume within a seed arm). Requires "
+                         "--temperature > 0; folded into the per-call cache key.")
     ap.add_argument("--dry-run", action="store_true", default=False,
                     help="PLAN PREVIEW, ZERO NETWORK: build the per-cell probe lists + budget "
                          "accounting (realized per-cell sizes, run total, projected $ vs cap) "
@@ -1048,11 +1120,26 @@ def main():
     if args.bem_facet_bank and args.cleanstrata_bank:
         ap.error("--bem-facet-bank and --cleanstrata-bank are mutually exclusive (one BEM bank per run)")
     if sum(bool(x) for x in (args.multifact_n, args.scaffold_filler, args.scaffold_padded,
-                             args.scaffold_team, args.scaffold_outofblock)) > 1:
+                             args.scaffold_team, args.scaffold_outofblock,
+                             args.scaffold_renamed, args.scaffold_permuted)) > 1:
         ap.error("--multifact-n / --scaffold-filler / --scaffold-padded / --scaffold-team / "
-                 "--scaffold-outofblock are mutually exclusive (one scaffold per run)")
+                 "--scaffold-outofblock / --scaffold-renamed / --scaffold-permuted are mutually "
+                 "exclusive (one scaffold per run)")
     if args.sp_expansion_bank and (args.cleanstrata_bank or args.bem_facet_bank):
         ap.error("--sp-expansion-bank is mutually exclusive with the other BEM banks")
+    if args.conservation_bank and (args.sp_expansion_bank or args.cleanstrata_bank
+                                   or args.bem_facet_bank):
+        ap.error("--conservation-bank is mutually exclusive with the other BEM banks")
+    # CONSERVATION P1 sampling guards: temp>0 without a seed is unreproducible (no crash-resume,
+    # no reconstruction); a seed at temp=0 is a silent no-op the operator probably didn't intend;
+    # non-ollama backends would silently IGNORE both (their adapters don't accept them) — refuse
+    # rather than run a miscalibrated arm.
+    if args.temperature != 0.0 and args.gen_seed is None:
+        ap.error("--temperature > 0 requires --gen-seed (reproducible decode path)")
+    if args.gen_seed is not None and args.temperature == 0.0:
+        ap.error("--gen-seed without --temperature > 0 is a no-op; drop it or set --temperature")
+    if args.temperature != 0.0 and args.backend != "ollama":
+        ap.error("--temperature/--gen-seed are wired for --backend ollama only")
 
     # --- Backend dispatch + per-backend cache isolation -------------------
     # Per-backend cache subdir prevents F2-class cross-backend collisions even
@@ -1173,6 +1260,10 @@ def main():
                 setup = setup_bem_team
             elif args.scaffold_outofblock and name in ("BEM", "BEM_WORKSPACE_FACT"):
                 setup = setup_bem_outofblock
+            elif args.scaffold_renamed and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_renamed
+            elif args.scaffold_permuted and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                setup = setup_bem_permuted
             # THE single point where a mode's probe list is chosen + frozen for the
             # run. --expand-probes (off by default) swaps in the expanded+sub-sampled
             # list HERE so the cell loop (model/arm/probe) and every downstream
@@ -1194,6 +1285,10 @@ def main():
                 from probes_sp_expansion import PROBES_SP_EXP, REPHRASINGS_SP_EXP
                 probes = PROBES_SP_EXP
                 _override = REPHRASINGS_SP_EXP
+            elif name == "BEM" and args.conservation_bank:
+                from probes_conservation import PROBES_CONSERVATION, REPHRASINGS_CONSERVATION
+                probes = PROBES_CONSERVATION
+                _override = REPHRASINGS_CONSERVATION
             probes = _select_probes(name, probes, args.expand_probes,
                                     subsample_n=args.expand_subsample_n,
                                     rephrasings_cap=args.rephrasings_per_original,
@@ -1302,6 +1397,9 @@ def main():
                         kwargs = {"n_predict": args.n_predict}
                         if args.backend == "openrouter":
                             kwargs["cost_guard"] = cost_guard
+                        if args.backend == "ollama" and args.temperature != 0.0:
+                            kwargs["temperature"] = args.temperature
+                            kwargs["gen_seed"] = args.gen_seed
                         try:
                             resp = chat_fn(tag, system_prompt, probe_text, cache, **kwargs)
                         except RateLimitDeferred:

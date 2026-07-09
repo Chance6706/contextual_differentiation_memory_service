@@ -42,18 +42,25 @@ def tok_re(token: str):
 
 
 def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, scaffold="multifact",
-                sp_expansion=False):
+                sp_expansion=False, conservation_bank=False, opts_tag=None):
     """Rebuild the arm's preamble, key each BEM+recall probe, pull cached responses.
     scaffold='multifact' -> setup_bem_multifact(n) (n gists); scaffold='filler' -> setup_bem_filler
     (1 achievement + 2 non-achievement fillers, length-matched to n=3); scaffold='padded' ->
-    setup_bem_padded (1 achievement + 2 TOKENLESS padding gists). sp_expansion swaps the BEM bank."""
-    if sp_expansion:
+    setup_bem_padded (1 achievement + 2 TOKENLESS padding gists); 'renamed'/'permuted' ->
+    CONSERVATION P3/P4. sp_expansion / conservation_bank swap the BEM bank. opts_tag (CONSERVATION
+    P1): the non-default sampling tag ("opts:temp=<t>;seed=<s>") folded into generation cache keys
+    by ollama_chat — MUST match the generation flags or reconstruction is 0 (loud)."""
+    if conservation_bank:
+        from probes_conservation import PROBES_CONSERVATION as BEM_PROBES, \
+            REPHRASINGS_CONSERVATION as BEM_REPH
+    elif sp_expansion:
         from probes_sp_expansion import PROBES_SP_EXP as BEM_PROBES, REPHRASINGS_SP_EXP as BEM_REPH
     else:
         from probes_cleanstrata import PROBES_CLEANSTRATA as BEM_PROBES, REPHRASINGS_CLEANSTRATA as BEM_REPH
     import tempfile
     _SCAFFOLD_SETUPS = {"filler": R.setup_bem_filler, "padded": R.setup_bem_padded,
-                        "team": R.setup_bem_team, "outofblock": R.setup_bem_outofblock}
+                        "team": R.setup_bem_team, "outofblock": R.setup_bem_outofblock,
+                        "renamed": R.setup_bem_renamed, "permuted": R.setup_bem_permuted}
     setup = _SCAFFOLD_SETUPS.get(scaffold) or R.setup_bem_multifact(n)
     arm_label = scaffold if scaffold in _SCAFFOLD_SETUPS else n
     with tempfile.TemporaryDirectory() as td:
@@ -72,7 +79,12 @@ def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, sc
                                       rephrasings_cap=rephrasings_cap, rephrasings_override=override)
             for i, probe in enumerate(probes):
                 user = probe if isinstance(probe, str) else probe[1]
-                k = key_for(model, system, user)
+                if opts_tag:
+                    import hashlib
+                    k = hashlib.sha256(f"{model}\x00{system}\x00{user}\x00{opts_tag}"
+                                       .encode("utf-8")).hexdigest()[:24]
+                else:
+                    k = key_for(model, system, user)
                 fn = (f"openrouter__{sm}__{k}.json" if backend == "openrouter" else f"{sm}__{k}.json")
                 fp = leaf / fn
                 if not fp.exists():
@@ -116,7 +128,9 @@ def main():
     scaffold = ("filler" if "--scaffold-filler" in args
                 else "padded" if "--scaffold-padded" in args
                 else "team" if "--scaffold-team" in args
-                else "outofblock" if "--scaffold-outofblock" in args else "multifact")
+                else "outofblock" if "--scaffold-outofblock" in args
+                else "renamed" if "--scaffold-renamed" in args
+                else "permuted" if "--scaffold-permuted" in args else "multifact")
     n = 1 if scaffold != "multifact" else int(args[args.index("--multifact-n") + 1])
     subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 130
     rcap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else 1
@@ -127,20 +141,41 @@ def main():
     # filler/team judge T1 (the achievement) + the 2 FILLER_TOKENS (adoption gate / minimal-pair
     # measurement — the tokens are the SAME in both, only the planted subject differs);
     # padded/outofblock judge T1 ONLY (tokenless padding — echo gates live in the analyzers);
+    # renamed judges the 3 CONSERVATION_TOKENS; permuted judges the 3 unchanged MULTIFACT_TOKENS;
     # multifact judges the first n achievement tokens.
-    tokens = (R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold in ("filler", "team") \
-        else R.MULTIFACT_TOKENS[:n]
+    tokens = ((R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold in ("filler", "team")
+              else R.CONSERVATION_TOKENS if scaffold == "renamed"
+              else R.MULTIFACT_TOKENS[:3] if scaffold == "permuted"
+              else R.MULTIFACT_TOKENS[:n])
     token_res = {t: tok_re(t) for t in tokens}
 
     sp_expansion = "--sp-expansion-bank" in args
+    conservation_bank = "--conservation-bank" in args
+    if sp_expansion and conservation_bank:
+        raise SystemExit("--sp-expansion-bank and --conservation-bank are mutually exclusive")
+    # CONSERVATION P1: rebuild the exact opts tag ollama_chat folded into the generation cache key.
+    temp = float(args[args.index("--temperature") + 1]) if "--temperature" in args else 0.0
+    gseed = int(args[args.index("--gen-seed") + 1]) if "--gen-seed" in args else None
+    if (temp == 0.0) != (gseed is None):
+        raise SystemExit("--temperature and --gen-seed must be given together (P1 arms) or not at all")
+    opts_tag = f"opts:temp={temp};seed={gseed}" if temp != 0.0 else None
     sources = json.loads(Path(sources_path).read_text(encoding="utf-8"))
-    print(f"=== reconstruct scaffold={scaffold} sp_expansion={sp_expansion} ({len(sources)} sources) ===",
+    print(f"=== reconstruct scaffold={scaffold} sp_expansion={sp_expansion} "
+          f"conservation_bank={conservation_bank} opts_tag={opts_tag} ({len(sources)} sources) ===",
           flush=True)
     recs, miss = reconstruct(sources, n, subsample_n=subsample_n, rephrasings_cap=rcap, scaffold=scaffold,
-                             sp_expansion=sp_expansion)
-    # sp-expansion bank = 31 facets * 2 variants = 62 BEM + 16 recall = 78/model; else clean-strata 146
+                             sp_expansion=sp_expansion, conservation_bank=conservation_bank,
+                             opts_tag=opts_tag)
+    # sp-expansion bank = 31 facets * 2 variants = 62 BEM + 16 recall = 78/model;
+    # conservation mini-bank = 7 facets * 4 variants = 28 BEM + 32 recall = 60/model
+    # (4 variants/facet is the POWERED design: n=44/facet certifies true conservation at 0.85-0.96
+    # in the committed power sim; 2 variants would block the headline on power ~44% of the time.
+    # The recall mode expands with the SAME --rephrasings-cap 3 -> 8x4=32, not 16 — driver and judge
+    # share one cap, so the counts stay reconstruction-consistent);
+    # else clean-strata 146
     assert_reconstruction_complete(recs, sources, allow_incomplete="--allow-incomplete" in args,
-                                   expect_per_model=(78 if sp_expansion else 146))
+                                   expect_per_model=(60 if conservation_bank
+                                                     else 78 if sp_expansion else 146))
 
     # Build (response-record, token) judge jobs: only tokens that SURFACE spend; others -> ABSENT.
     jobs, absent = [], []
