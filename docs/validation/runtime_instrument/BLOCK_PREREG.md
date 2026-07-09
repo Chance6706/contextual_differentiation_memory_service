@@ -4,8 +4,8 @@
 > structure + interlocks + outcome→follow-on matrix (§3), gates incl. G-AVAIL and J0 (§4), the
 > byte-frozen fixture (§9, guarded by `tests/test_blockframe.py`), and the rule-12 record (§8) are
 > frozen. Post-lock edits to any of these are a NEW pre-registration. The §3 REDUCED deployment
-> policy row is flagged for Josh's ratification; an amendment BEFORE generation is permitted for
-> that one row only. No fresh-arm data existed at lock.
+> policy row was RATIFIED by Josh 2026-07-09 before generation (the one permitted amendment slot,
+> consumed). No fresh-arm data existed at lock.
 
 > **💵 COST HEADER (standing practice):** fresh generation = 2 arms × 78/model ≈ **5 h Sparky**;
 > judging ≈ **$7.5 + $7.5 = $15** (caps $15/arm) + **J0 judge-drift guard ≈ $1** (cap $3; §4). Arm A
@@ -81,7 +81,7 @@ All confirmatory reads require **J0** (§4 — the cross-epoch judge-drift guard
 | outcome | licenses / follow-on |
 |---|---|
 | C COLLAPSED × MEMBERSHIP (G-AVAIL PASS) | validates the -D world-block for the **adoption prong only** (injection/write/recall prongs untested here); -D world-block deployment proceeds *for the self-attribution property*; recommend closing the FRAME follow-on (block-level is the lever, confirmed fence-grade) |
-| C REDUCED × MEMBERSHIP | membership is the lever but the surface alone does NOT fence: -D deployment of the world block proceeds only **in combination with** the attribution guard + importer hygiene, and the residual first-person rate is carried as a known, numbered exposure (JOSH-RATIFIED POLICY ROW — amend at lock if he prefers gating on COLLAPSED) |
+| C REDUCED × MEMBERSHIP | membership is the lever but the surface alone does NOT fence: -D deployment of the world block proceeds only **in combination with** the attribution guard + importer hygiene, and the residual first-person rate is carried as a known, numbered exposure (**policy row RATIFIED by Josh 2026-07-09, pre-generation**) |
 | C FENCE-FAIL | the deployed surface leaks at block level → -D world-block deployment for untrusted/imported content is BLOCKED pending redesign; candidate redirects (named now): stronger structural separation (out-of-context retrieval instead of render), or reliance shifts to the sandbox/guard layers |
 | C CONTEXT-GLOBAL (flagged) | membership reading not licensed; disambiguation follow-on = isolate the -D header vs membership vs length (a v1-header world-block variant fixture), pre-registered separately |
 | C WITHHELD-UNREAD | the world section didn't reach the model — a SALIENCE finding, not a fence finding; follow-on = render-position/salience arm before any fence claim |
