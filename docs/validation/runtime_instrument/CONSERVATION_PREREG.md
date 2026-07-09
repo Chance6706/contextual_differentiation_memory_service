@@ -274,11 +274,16 @@ commit:
   line-set, T1@650 (slot 3).
 - P1: temp=0.7, seeds {11,12,13} (+ the single {14,15} extension per §3); opts folded into generation
   cache keys (`opts:temp=0.7;seed=<s>`), judge reconstruction passes the same flags.
-- Bank: `tools/probes_conservation.py` — sha256
-  `ce8d56492d768e30acd0f96eb237f24c10443241374bf6580b4a4771646c4d07` (blind-authored + blind-classified
-  κ=1.0, admission record `conservation/ADMISSION.md`; 7 facets × 4 wordings, EXPECT_BEM=28). P2 runs
-  `--rephrasings-per-original 3`, which expands the recall mode too (8×4=32) → **60/model expected**
-  (28 BEM + 32 recall); driver and judge share the one cap, keeping reconstruction consistent.
+- Bank: `tools/probes_conservation.py` — **canonical-content sha256
+  `eea03b3736400cf5c0a333716777e5c70bb2706d4bb3b8393c3d227302422378`** (blind-authored +
+  blind-classified κ=1.0, admission record `conservation/ADMISSION.md`; 7 facets × 4 wordings,
+  EXPECT_BEM=28). *Hash-method amendment (2026-07-09, content untouched):* the lock commit recorded a
+  file-bytes sha (`ce8d5649…46c4d07`), which the PR #118 Windows CI exposed as CRLF-fragile (checkout
+  rewrites line endings → different bytes, same content); the guard now hashes the canonical JSON of
+  the bank's data structures (the cleanstrata-lock pattern) — a guard-implementation fix, not a bank
+  edit. P2 runs `--rephrasings-per-original 3`, which expands the recall mode too (8×4=32) →
+  **60/model expected** (28 BEM + 32 recall); driver and judge share the one cap, keeping
+  reconstruction consistent.
 - Band: `M = max(0.061, 3·σ_multiplicity_P0)`; artifact `conservation/P0_BAND.json` (halt flag if
   above floor); the P0 output block + resulting M are appended to this section before generation.
   Confirmatory analysis uses `--band-file conservation/P0_BAND.json`; an above-floor band additionally

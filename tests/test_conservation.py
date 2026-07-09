@@ -108,12 +108,21 @@ def test_p2_shaped_integrity_check():
 
 def test_bank_sha_locked():
     """The blind-authored paraphrase bank is LOCKED (CONSERVATION_PREREG §9); any edit is a NEW
-    pre-registration."""
-    p = Path(__file__).resolve().parent.parent / "tools" / "probes_conservation.py"
-    assert hashlib.sha256(p.read_bytes()).hexdigest() == \
-        "ce8d56492d768e30acd0f96eb237f24c10443241374bf6580b4a4771646c4d07"
+    pre-registration. Hashes the CANONICAL CONTENT (the cleanstrata-lock pattern), not file bytes —
+    file-byte hashing is CRLF-fragile on Windows checkouts (caught by the PR #118 Windows CI run;
+    the bank content is unchanged, only the guard method moved)."""
     import probes_conservation as pc
     import probes_sp_expansion as spx
+
+    def canon(o):
+        return json.dumps(o, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+    payload = canon({"probes": pc.PROBES_CONSERVATION,
+                     "rephrasings": {str(k): v for k, v in pc.REPHRASINGS_CONSERVATION.items()},
+                     "facet_of": {str(k): v for k, v in pc.FACET_OF_CONSERVATION.items()},
+                     "class_of": dict(pc.CLASS_OF_CONSERVATION)})
+    assert hashlib.sha256(payload.encode("utf-8")).hexdigest() == \
+        "eea03b3736400cf5c0a333716777e5c70bb2706d4bb3b8393c3d227302422378"
     assert pc.REPRO_FACETS == spx.REPRO_FACETS
     assert pc.EXPECT_BEM == 28
     assert len(pc.PROBES) == 7 and all(len(v) == 3 for v in pc.REPHRASINGS.values())
