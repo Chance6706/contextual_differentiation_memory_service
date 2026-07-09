@@ -223,6 +223,32 @@ different header, same facts) — the fence lever this run measured line-level d
 World-fence reading: importer hygiene per-line subject rewriting is **insufficient**; treat the persona block
 wholesale as non-assistant-attributable. (Doc: `FRAME_RESULTS.md`.)
 
+## 4.11. Multiplicity-conservation ladder — NOT ESTABLISHED (evidential null); "0.182 = invariant" dead, bounded-equivalence certified on the decode axis — #(this PR)
+**Motivated by:** Josh's question on the 0.182×4 streak ("sounds like an invariant?") after the FRAME amendment
+showed the streak was instrument reliability on byte-identical temp-0 text — making behavioral invariance
+UNFALSIFIABLE until variance was injected. This run made it falsifiable: P0 judge test-retest sized the band
+(M=0.0610, floor binds, σ_multiplicity=0.0000 across 5 sessions; artifact-enforced P0-before-generation), then
+four perturbation axes that SHOULD NOT matter: P1 decode-path (temp 0.7 × 3 seeds, PRIMARY), P2 blind-authored
+paraphrase bank (7f × 4 wordings, κ=1.0, PRIMARY), P3 byte-matched token renaming, P4 tie-order permutation
+(map). Launcher guards all fired/held: determinism sentinel 156/156, dual-temp GIRAFFE, per-arm completeness.
+**Found (headline NOT ESTABLISHED — INCONCLUSIVE-driven, zero BROKEN):** **P1 CONSERVED (marginal)** — at
+temperature the carrier finally MOVES (seeds 0.136–0.188, decode noise ≫ instrument noise σ_m=0) with a resolved
+small downward shift (D=−0.026, 90% CI excludes 0) that stays inside ±0.061 → *bounded within ~±34%, not
+invariant*; LOFO-fragile (cs-A2). **P2 INCONCLUSIVE**: the new bank RESHUFFLES the facet profile at
+near-constant mean (cs-A1 0.59→0.23, cs-A9 0.18→0.32) → facet×wording interaction inflates the paired CI (the
+power sim's uniform-shift assumption missed this — structural lesson for parallel-forms designs); wording axis
+OPEN, forward-only (no threat to prior epochs). **P3 INCONCLUSIVE; P4 ≈ nothing** (+0.007 — the documented
+tie-order risk axis did not bite). Costs $53.57, zero failures.
+> **Bounds:** CONSERVED = within ±M ≈ ±34% relative (never "reproduces 0.182 tightly"); the drafted per-token
+> "conditional stability" claim was KILLED in review (mislabeled marginal, cross-basis, anchor copy error; the
+> corrected conditional profile moves under rename); the temp-0 0.182 canary stays valid (pipeline reliability,
+> not behavior). **Registered OPEN (highest-signal item):** first distill recall-gate breaches — small-n, CIs
+> include the gate, concentrated in claude-mythos-q8, reproduce at temp 0 → model×temperature joint follow-on,
+> NOT "temperature erodes the firewall".
+**→ Therefore next (per the locked matrix):** wording certification = new pre-registration (reshuffle-robust
+design) if wanted; the block-level frame manipulation proceeds unaffected; the distill recall observation is the
+new frontier item. (Doc: `CONSERVATION_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

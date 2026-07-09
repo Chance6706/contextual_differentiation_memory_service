@@ -1,17 +1,18 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-08 (attribution-frame decomposition DONE — **PRIMARY-A SUBJECT-SLOT-CAUSAL + CROSS-ENTITY-LEAK**
-(mech): rendering the same facts under `the platform-team` reduces self-attribution by only ~23% (D_subj +0.025,
-LB +0.008, type-I ≈0.07 disclosed) and third-party facts STILL enter the first-person channel at **0.085** — 83%
-of leaks keep the third-party label and claim expertise/contribution over its artifacts. Line-level de-attribution
-**reduces but does not fence**; the implied fence lever is **block-level** (motivated next design). Both mech
-length verdicts WITHHELD by validity gates exactly as the power table predicted; distill: no leak (0.016),
-out-of-block LENGTH-CLEAN (knife-edge, that cell only). **Multiplicity carrier: 4th consecutive epoch at 0.182**
-(7f mech). `FRAME_RESULTS.md`. Prior 2026-07-07: padding control WITHHELD (G3′ echo 0.109, ~2% first-person
-paraphrase), `PADDING_RESULTS.md`. Prior 2026-07-06: filler control GATE-REFUSED (fillers ADOPTED 0.133/0.084),
-`FILLER_RESULTS.md`; multi-fact CLOSED the availability confound (r=0.98, framing-PULL), `MULTIFACT_RESULTS.md`.
-Prior 2026-07-05: clean-strata confirmed SP>PROC +0.197 / SP>ID +0.134, `CLEANSTRATA_RESULTS.md`). For the full
-design see
+_Last updated: 2026-07-09 (multiplicity-conservation ladder DONE — **headline NOT ESTABLISHED (evidential null,
+zero BROKEN)**: "0.182 = invariant" is dead twice (the exact streak was temp-0 byte-determinism; at temp 0.7 the
+carrier is SEED-VARIABLE 0.136–0.188) but **P1 decode-path certified CONSERVED-marginal** (pooled 0.156, shift
+−0.026 resolved, within ±0.061 ≈ ±34%); P2 wording INCONCLUSIVE (the new bank RESHUFFLES the facet profile at
+near-constant mean — wording axis OPEN, new prereg needed to certify); P3 INCONCLUSIVE; P4 tie-order ≈ nothing.
+Instrument: σ_multiplicity=0.0000 across 5 judge sessions; temp-0 **0.182 stays as the pipeline canary**.
+**Registered OPEN: first distill recall-gate breaches** (claude-mythos-q8-concentrated, reproduces at temp 0 —
+model×temperature follow-on, touches G1). `CONSERVATION_RESULTS.md`. Prior 2026-07-08: FRAME decomposition —
+SUBJECT-SLOT-CAUSAL (~23% reduction, sub-practical) + CROSS-ENTITY-LEAK 0.085 (de-attribution reduces but does
+NOT fence; fence lever = block-level, motivated next design), `FRAME_RESULTS.md`. Prior 2026-07-07: padding
+WITHHELD (echo 0.109), `PADDING_RESULTS.md`. Prior 2026-07-06: filler GATE-REFUSED (fillers ADOPTED),
+`FILLER_RESULTS.md`; multi-fact CLOSED the availability confound (r=0.98, framing-PULL), `MULTIFACT_RESULTS.md`).
+For the full design see
 [`docs/DESIGN.md`](docs/DESIGN.md); for the measurement thread in causal order see
 [`RESEARCH_ARC.md`](RESEARCH_ARC.md); for the post-Cycle-9 program see §"From building to measuring" below; for
 narrative history see the session memory files under
