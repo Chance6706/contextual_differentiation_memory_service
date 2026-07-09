@@ -49,6 +49,7 @@ os.environ.setdefault("CDMS_EMBED_BACKEND", "hash")
 
 # tools/ on sys.path for sibling imports (mirrors steering_experiment pattern).
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 from cdms.config import Config                          # noqa: E402
 from cdms.embeddings import Embedder                    # noqa: E402
@@ -1101,6 +1102,12 @@ def main():
                          "inserted in PERMUTED_ORDER (render tie-order rotates; T1 moves to slot 3). "
                          "Sensitivity-map arm. Mutually exclusive with the other scaffolds; judge "
                          "--scaffold-permuted MUST match.")
+    ap.add_argument("--scaffold-worldblock", action="store_true", default=False,
+                    help="BLOCK arm C (BLOCK_PREREG.md): use the FROZEN CDMS-D world-block fixture "
+                         "as the preamble (persona T1@378 + the 2 dependency facts rendered by -D's "
+                         "production snapshot renderer; byte-locked, provenance in "
+                         "docs/validation/runtime_instrument/blockframe/). Mutually exclusive with "
+                         "the other scaffolds; judge --scaffold-worldblock MUST match.")
     ap.add_argument("--temperature", type=float, default=0.0,
                     help="CONSERVATION P1 (CONSERVATION_PREREG.md): sampling temperature (default 0.0 "
                          "= the greedy convention of every prior epoch). Non-zero requires --gen-seed "
@@ -1121,10 +1128,13 @@ def main():
         ap.error("--bem-facet-bank and --cleanstrata-bank are mutually exclusive (one BEM bank per run)")
     if sum(bool(x) for x in (args.multifact_n, args.scaffold_filler, args.scaffold_padded,
                              args.scaffold_team, args.scaffold_outofblock,
-                             args.scaffold_renamed, args.scaffold_permuted)) > 1:
+                             args.scaffold_renamed, args.scaffold_permuted,
+                             args.scaffold_worldblock)) > 1:
         ap.error("--multifact-n / --scaffold-filler / --scaffold-padded / --scaffold-team / "
-                 "--scaffold-outofblock / --scaffold-renamed / --scaffold-permuted are mutually "
-                 "exclusive (one scaffold per run)")
+                 "--scaffold-outofblock / --scaffold-renamed / --scaffold-permuted / "
+                 "--scaffold-worldblock are mutually exclusive (one scaffold per run)")
+    if args.scaffold_worldblock and args.variant != "v1":
+        ap.error("--scaffold-worldblock is a FROZEN fixture (already composed); --variant must stay v1")
     if args.sp_expansion_bank and (args.cleanstrata_bank or args.bem_facet_bank):
         ap.error("--sp-expansion-bank is mutually exclusive with the other BEM banks")
     if args.conservation_bank and (args.sp_expansion_bank or args.cleanstrata_bank
@@ -1293,8 +1303,15 @@ def main():
                                     subsample_n=args.expand_subsample_n,
                                     rephrasings_cap=args.rephrasings_per_original,
                                     rephrasings_override=_override)
-            with tempfile.TemporaryDirectory() as td:
-                cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
+            if args.scaffold_worldblock and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                # BLOCK_PREREG arm C: the FROZEN CDMS-D world-block fixture (persona T1@378 +
+                # the 2 dependency facts rendered by -D's production snapshot renderer).
+                # Provenance + byte-lock: docs/validation/runtime_instrument/blockframe/.
+                cdms_preamble = (REPO_ROOT / "docs" / "validation" / "runtime_instrument" /
+                                 "blockframe" / "worldblock_fixture.txt").read_text(encoding="utf-8")
+            else:
+                with tempfile.TemporaryDirectory() as td:
+                    cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
             arm_prompts = {}
             for arm_label, inc_md, inc_cdms in arms:
                 cm = claude_md if inc_md else ""
