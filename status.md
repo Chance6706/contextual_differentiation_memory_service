@@ -1,13 +1,20 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-09 (multiplicity-conservation ladder DONE — **headline NOT ESTABLISHED (evidential null,
-zero BROKEN)**: "0.182 = invariant" is dead twice (the exact streak was temp-0 byte-determinism; at temp 0.7 the
-carrier is SEED-VARIABLE 0.136–0.188) but **P1 decode-path certified CONSERVED-marginal** (pooled 0.156, shift
-−0.026 resolved, within ±0.061 ≈ ±34%); P2 wording INCONCLUSIVE (the new bank RESHUFFLES the facet profile at
-near-constant mean — wording axis OPEN, new prereg needed to certify); P3 INCONCLUSIVE; P4 tie-order ≈ nothing.
-Instrument: σ_multiplicity=0.0000 across 5 judge sessions; temp-0 **0.182 stays as the pipeline canary**.
-**Registered OPEN: first distill recall-gate breaches** (claude-mythos-q8-concentrated, reproduces at temp 0 —
-model×temperature follow-on, touches G1). `CONSERVATION_RESULTS.md`. Prior 2026-07-08: FRAME decomposition —
+_Last updated: 2026-07-10 (BLOCK + RECALL epoch DONE — **the deployed -D world block REDUCES A′ self-attribution
+69% relative (0.110→0.0345, LB95 +0.0545) but is NOT fence-grade (>0.02), and the block IS read (G-AVAIL
+0.676)**; mechanism label CONTEXT-GLOBAL, decomposed in review: mention suppressed context-wide,
+ownership-of-mentioned reduced ONLY for block members — membership-specific on the conditional basis; v2b
+third-person header INERT on adoption (<~0.014 abs) though it cuts T1 surfacing (FLAGGED). Policy: the
+pre-ratified REDUCED×MEMBERSHIP row did NOT fire (realized cell = CONTEXT-GLOBAL); Josh POST-RESULTS-ratified
+the same terms — **-D world-block deploys only WITH attribution guard + importer hygiene; residual
+0.0345-marginal / 0.112-conditional = numbered exposure (-D register to open)**; next prereg = disambiguation
+fixture (header vs membership vs length). **RECALL grid: the conservation OPEN item is RESOLVED —
+claude-mythos-q8-specific 0.144 pooled [cluster-robust 0.056–0.250], not temperature-clean (t0 ≠ 0),
+permuted>triple direction, breaches ON the deployed -D render (2/16); mech floor UB ≤0.025 everywhere; NO gate
+change; qualification note scoped to claude-mythos-q8.** `BLOCK_RESULTS.md` + `RECALL_RESULTS.md`. Prior
+2026-07-09: conservation ladder NOT ESTABLISHED (evidential null); "0.182=invariant" dead twice; P1 decode-path
+CONSERVED-marginal ±34%; wording OPEN; 0.182 stays the temp-0 pipeline canary, `CONSERVATION_RESULTS.md`.
+Prior 2026-07-08: FRAME decomposition —
 SUBJECT-SLOT-CAUSAL (~23% reduction, sub-practical) + CROSS-ENTITY-LEAK 0.085 (de-attribution reduces but does
 NOT fence; fence lever = block-level, motivated next design), `FRAME_RESULTS.md`. Prior 2026-07-07: padding
 WITHHELD (echo 0.109), `PADDING_RESULTS.md`. Prior 2026-07-06: filler GATE-REFUSED (fillers ADOPTED),

@@ -9,3 +9,8 @@ docs/archive/*.md -text
 # Multi-MB judged-data artifacts: keep byte-exact (they are the durable record
 # of paid judge calls; normalization must never rewrite them).
 docs/validation/**/*.jsonl -text
+
+# Byte-frozen experiment fixture (BLOCK_PREREG arm C): the preamble bytes ARE the experiment
+# surface; keep LF everywhere so generation host, judge host, and the sha lock agree (PR #118
+# CRLF lesson; red-team N1 hardening).
+docs/validation/runtime_instrument/blockframe/worldblock_fixture.txt text eol=lf

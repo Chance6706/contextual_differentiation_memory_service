@@ -42,7 +42,7 @@ def tok_re(token: str):
 
 
 def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, scaffold="multifact",
-                sp_expansion=False, conservation_bank=False, opts_tag=None):
+                sp_expansion=False, conservation_bank=False, opts_tag=None, recall_only=False):
     """Rebuild the arm's preamble, key each BEM+recall probe, pull cached responses.
     scaffold='multifact' -> setup_bem_multifact(n) (n gists); scaffold='filler' -> setup_bem_filler
     (1 achievement + 2 non-achievement fillers, length-matched to n=3); scaffold='padded' ->
@@ -61,12 +61,29 @@ def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, sc
     _SCAFFOLD_SETUPS = {"filler": R.setup_bem_filler, "padded": R.setup_bem_padded,
                         "team": R.setup_bem_team, "outofblock": R.setup_bem_outofblock,
                         "renamed": R.setup_bem_renamed, "permuted": R.setup_bem_permuted}
-    setup = _SCAFFOLD_SETUPS.get(scaffold) or R.setup_bem_multifact(n)
-    arm_label = scaffold if scaffold in _SCAFFOLD_SETUPS else n
-    with tempfile.TemporaryDirectory() as td:
-        preamble = R._real_preamble_for_mode(setup, Path(td), variant=variant)
+    if scaffold == "worldblock":
+        # BLOCK arm C: the byte-frozen CDMS-D world-block fixture IS the preamble (provenance:
+        # blockframe/FIXTURE_PROVENANCE.md). Reconstruction must key on the same frozen bytes —
+        # assert the sha HERE too (red-team N2: the launcher asserts it on the generation host; a
+        # judge-host edit would otherwise surface only as a 0-reconstruction downstream).
+        import hashlib
+        preamble = (REPO / "docs" / "validation" / "runtime_instrument" / "blockframe" /
+                    "worldblock_fixture.txt").read_text(encoding="utf-8")
+        h = hashlib.sha256(preamble.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+        if h != "8b54c73994d6a9fa5a8c96c43ec792cf093b6e67fd76d0f30b763be36657b830":
+            raise SystemExit(f"worldblock fixture sha mismatch on the judge host: {h}")
+        arm_label = scaffold
+    else:
+        setup = _SCAFFOLD_SETUPS.get(scaffold) or R.setup_bem_multifact(n)
+        arm_label = scaffold if scaffold in _SCAFFOLD_SETUPS else n
+        with tempfile.TemporaryDirectory() as td:
+            preamble = R._real_preamble_for_mode(setup, Path(td), variant=variant)
     modes = [("BEM", R.CLAUDE_MD_BEM, "BEM", BEM_PROBES, BEM_REPH),
              ("recall", "", "BEM_WORKSPACE_FACT", R.PROBES_BEM_WORKSPACE_FACT, None)]
+    if recall_only:
+        # RECALL_PREREG grid cells: generation ran --modes BEM_WORKSPACE_FACT only — no BEM
+        # responses exist in the cache; reconstructing them would just count misses.
+        modes = modes[1:]
     recs, miss = [], []
     for src in sources:
         backend, model = src["backend"], src["model"]
@@ -130,8 +147,12 @@ def main():
                 else "team" if "--scaffold-team" in args
                 else "outofblock" if "--scaffold-outofblock" in args
                 else "renamed" if "--scaffold-renamed" in args
-                else "permuted" if "--scaffold-permuted" in args else "multifact")
+                else "permuted" if "--scaffold-permuted" in args
+                else "worldblock" if "--scaffold-worldblock" in args else "multifact")
     n = 1 if scaffold != "multifact" else int(args[args.index("--multifact-n") + 1])
+    # BLOCK arm B: the v2b header variant — generation ran --variant v2b; reconstruction MUST match
+    # (a mismatch reconstructs 0, loud). Default v1 preserves every prior epoch.
+    variant = args[args.index("--variant") + 1] if "--variant" in args else "v1"
     subsample_n = int(args[args.index("--subsample-n") + 1]) if "--subsample-n" in args else 130
     rcap = int(args[args.index("--rephrasings-cap") + 1]) if "--rephrasings-cap" in args else 1
     workers = int(args[args.index("--workers") + 1]) if "--workers" in args else 12
@@ -143,7 +164,7 @@ def main():
     # padded/outofblock judge T1 ONLY (tokenless padding — echo gates live in the analyzers);
     # renamed judges the 3 CONSERVATION_TOKENS; permuted judges the 3 unchanged MULTIFACT_TOKENS;
     # multifact judges the first n achievement tokens.
-    tokens = ((R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold in ("filler", "team")
+    tokens = ((R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold in ("filler", "team", "worldblock")
               else R.CONSERVATION_TOKENS if scaffold == "renamed"
               else R.MULTIFACT_TOKENS[:3] if scaffold == "permuted"
               else R.MULTIFACT_TOKENS[:n])
@@ -163,19 +184,24 @@ def main():
     print(f"=== reconstruct scaffold={scaffold} sp_expansion={sp_expansion} "
           f"conservation_bank={conservation_bank} opts_tag={opts_tag} ({len(sources)} sources) ===",
           flush=True)
-    recs, miss = reconstruct(sources, n, subsample_n=subsample_n, rephrasings_cap=rcap, scaffold=scaffold,
+    recall_only = "--recall-only" in args
+    recs, miss = reconstruct(sources, n, variant=variant, subsample_n=subsample_n,
+                             rephrasings_cap=rcap, scaffold=scaffold,
                              sp_expansion=sp_expansion, conservation_bank=conservation_bank,
-                             opts_tag=opts_tag)
+                             opts_tag=opts_tag, recall_only=recall_only)
     # sp-expansion bank = 31 facets * 2 variants = 62 BEM + 16 recall = 78/model;
     # conservation mini-bank = 7 facets * 4 variants = 28 BEM + 32 recall = 60/model
     # (4 variants/facet is the POWERED design: n=44/facet certifies true conservation at 0.85-0.96
     # in the committed power sim; 2 variants would block the headline on power ~44% of the time.
     # The recall mode expands with the SAME --rephrasings-cap 3 -> 8x4=32, not 16 — driver and judge
     # share one cap, so the counts stay reconstruction-consistent);
+    # recall-only grid cells (RECALL_PREREG) = 8 originals * (1+cap) -> 32/model at cap 3;
     # else clean-strata 146
+    expect = (8 * (1 + rcap) if recall_only
+              else 60 if conservation_bank
+              else 78 if sp_expansion else 146)
     assert_reconstruction_complete(recs, sources, allow_incomplete="--allow-incomplete" in args,
-                                   expect_per_model=(60 if conservation_bank
-                                                     else 78 if sp_expansion else 146))
+                                   expect_per_model=expect)
 
     # Build (response-record, token) judge jobs: only tokens that SURFACE spend; others -> ABSENT.
     jobs, absent = [], []
