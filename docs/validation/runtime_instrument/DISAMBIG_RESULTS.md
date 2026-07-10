@@ -223,7 +223,7 @@ ratification alone.
 |---|---|---|
 | D-F1 | distill G-ADOPT re-judge PASS 0.054 vs lock-stated expectation of failure (0.048) | deviation recorded (§8); withhold stands as lock decision; re-check on next distill anchor use |
 | D-F2 | response-length/surfacing co-movement (parity flags m/h/c, up to −9.3% mean length) | bounded ≲17% of the surfacing drop (§3); carried as a qualifier on all rung verdicts |
-| D-F3 | deepseek E-graze in arm H (0.9511 vs 0.95) | dispositioned (§1); audit-threshold calibration note: BEM-mix threshold needs a low-adoption-arm calibration before next reuse |
+| D-F3 | deepseek E-graze in arm H (0.9511 vs 0.95) | dispositioned (§1); **FIXED 2026-07-10**: `tools/panel_vendor_health.py` — flat 0.95 replaced by per-vendor committed-max+0.02 drift lines + a 0.995 absolute collapse line (empirical sweep of all 37 committed files: deepseek's healthy BEM-mix max was already 0.9606 in cons_p2, so the flat line was guaranteed to re-fire); future audits import it |
 | D-F4 | -D header wording resolvably reduces surfacing (fillers +0.0412; T1 0.687→0.647) while adoption-inert | extends BLOCK F2 to world facts; wording = surfacing-axis lever; unretired |
 | D-F5 | mythos recall breaches C-render-only (2/16 C; 0/16 A/M/H incl. byte-exact -D header in H) | extends BLOCK F4 descriptively (n=16); qualification note scope unchanged |
 
