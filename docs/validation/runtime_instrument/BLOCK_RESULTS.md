@@ -192,15 +192,18 @@ including bait; this epoch measures A′ open-SP adoption of clean facts).
 | # | observation | status |
 |---|---|---|
 | F1 | anchor ABSENT-mislabel row (granite-3.0-2b p6) | 1/1100, conservative; noted for any anchor reuse |
-| F2 | v2b header reduces T1 surfacing (0.811→0.707) without moving adoption | non-estimand; wording-lever candidate for the surfacing axis |
-| F3 | world-block presence reduces persona-fact self-reference ~27% marginal (mech-only; ownership-given-mention flat) | watch in disambiguation follow-on (self-layer legibility axis) |
-| F4 | mythos breaches recall ON the deployed -D render (2/16) | characterized in RECALL_RESULTS; -D qualification note applies |
+| F2 | v2b header reduces T1 surfacing (0.811→0.707) without moving adoption | EXTENDED by DISAMBIG D-F4 (the -D header shows the same surfacing-axis effect on world facts); unretired |
+| F3 | world-block presence reduces persona-fact self-reference ~27% marginal (mech-only; ownership-given-mention flat) | CHARACTERIZED in DISAMBIG_RESULTS §5: onset at ANY second block (A−M), structural displacement not wording; mention-suppression, ownership flat |
+| F4 | mythos breaches recall ON the deployed -D render (2/16) | characterized in RECALL_RESULTS; EXTENDED by DISAMBIG D-F5 (C-render-only: 0/16 on constructed intermediates incl. byte-exact header) |
 | F5 | mech/distill T1-signature disagreement (drop vs flat) | heterogeneity; blocks any roster-general CONTEXT-GLOBAL claim |
 
 ## 8. Follow-ons (exactly what the locked matrix prescribes — nothing improvised)
 
 1. **Disambiguation fixture** (from REDUCED × CONTEXT-GLOBAL): isolate -D header vs membership vs
    length via a v1-header world-block variant fixture; NEW pre-registration.
+   **RESOLVED 2026-07-10 → `DISAMBIG_RESULTS.md`: DISTRIBUTED** (membership + format+subject are
+   DRIVERs; header semantics NULL; composite is the fence — register entry text supplied there,
+   consolidates with #3's residual).
 2. **From B INERT-HEADER:** block-level levers narrow to membership/structure; header wording alone is
    not an adoption lever (scoped per §3.1).
 3. **Policy registration:** open the -D numbered-exposure register and file this residual (-D repo task).

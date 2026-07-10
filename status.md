@@ -1,14 +1,21 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-10 (BLOCK + RECALL epoch DONE — **the deployed -D world block REDUCES A′ self-attribution
-69% relative (0.110→0.0345, LB95 +0.0545) but is NOT fence-grade (>0.02), and the block IS read (G-AVAIL
-0.676)**; mechanism label CONTEXT-GLOBAL, decomposed in review: mention suppressed context-wide,
-ownership-of-mentioned reduced ONLY for block members — membership-specific on the conditional basis; v2b
-third-person header INERT on adoption (<~0.014 abs) though it cuts T1 surfacing (FLAGGED). Policy: the
-pre-ratified REDUCED×MEMBERSHIP row did NOT fire (realized cell = CONTEXT-GLOBAL); Josh POST-RESULTS-ratified
-the same terms — **-D world-block deploys only WITH attribution guard + importer hygiene; residual
-0.0345-marginal / 0.112-conditional = numbered exposure (-D register to open)**; next prereg = disambiguation
-fixture (header vs membership vs length). **RECALL grid: the conservation OPEN item is RESOLVED —
+_Last updated: 2026-07-10 PM (DISAMBIG ladder DONE — **what makes the -D world block work is DISTRIBUTED:
+membership/structure (A−M DRIVER, knife-edge LB95 +0.0055, share 0.38) + line-format+subject (H−C DRIVER,
+robust LB95 +0.0173, share 0.47); the -D header's de-attribution SEMANTICS are NULL on adoption (M−H, the
+length-clean rung; share ≤0.42 not excluded — not proven free either)**. Mechanism: every rung acts via
+mention-suppression; ownership-when-mentioned unresolved per rung. Header IS a resolved surfacing lever
+(BLOCK F2 extended). T1 displacement onsets at ANY second block (F3 characterized). Mythos recall stays
+C-render-only (F4 extended). Policy = the locked DISTRIBUTED row: **composite is the fence — -D must not relax
+ANY ingredient without re-measurement** (register entry text in `DISAMBIG_RESULTS.md` §9). Distill G-ADOPT
+unexpectedly PASSED on re-judge (deviation flagged; withhold stands). Last full-roster epoch; $23.29 vs ~$28–31
+header; drift ≤0.004 (replaces J0). **PAUSED per the ratified pause-between-arcs policy — queue presented,
+ratified next arc = local-judge validation.** `DISAMBIG_RESULTS.md`. Prior 2026-07-10 AM: BLOCK + RECALL epoch —
+the deployed -D world block REDUCES A′ self-attribution 69% relative (0.110→0.0345) but is NOT fence-grade,
+block IS read (G-AVAIL 0.676); CONTEXT-GLOBAL decomposed (mention context-wide, ownership members-only
+conditionally); v2b header INERT on adoption; Josh POST-RESULTS-ratified: **-D world-block deploys only WITH
+attribution guard + importer hygiene; residual 0.0345-marginal / 0.112-conditional = numbered exposure (-D
+register to open)**. **RECALL grid: the conservation OPEN item is RESOLVED —
 claude-mythos-q8-specific 0.144 pooled [cluster-robust 0.056–0.250], not temperature-clean (t0 ≠ 0),
 permuted>triple direction, breaches ON the deployed -D render (2/16); mech floor UB ≤0.025 everywhere; NO gate
 change; qualification note scoped to claude-mythos-q8.** `BLOCK_RESULTS.md` + `RECALL_RESULTS.md`. Prior

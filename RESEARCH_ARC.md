@@ -280,6 +280,36 @@ membership vs length), NEW prereg; -D numbered-exposure register; mythos qualifi
 roster SOT; FRAME follow-on NOT closed (that needed COLLAPSED×MEMBERSHIP). (Docs: `BLOCK_RESULTS.md`,
 `RECALL_RESULTS.md`.)
 
+## 4.13. Disambiguation ladder — DISTRIBUTED: membership + format drive the -D block; the header's de-attribution semantics are NULL — #(this PR)
+**Motivated by:** BLOCK's REDUCED×CONTEXT-GLOBAL cell prescribing exactly one follow-on: isolate WHICH
+ingredient of the deployed -D composite does the work (header vs membership vs format/length). Josh:
+"disambiguation fixture first."
+**Did:** telescoping 4-arm ladder, 2 arms generated fresh (Sparky, temp-0, sentinel 156/156): A = committed
+filler anchor, M = NEW persona-prefix + neutral header (byte-length-matched) + persona-format fillers,
+H = NEW same-as-M with the byte-exact -D header (M−H = the length-clean header-semantics rung), C = committed
+deployed -D fixture. All four judged in ONE fresh A′ session (order a→m→h→c; committed A/C re-judged =
+free full-anchor drift measurement, |Δ| ≤ 0.0036, flips 0.2–1.7% — replaces J0). $23.29 vs ~$28–31 header.
+**Found: DISTRIBUTED** (A 0.1100 → M 0.0800 → H 0.0682 → C 0.0309; total +0.0791 LB95 +0.0582).
+**A−M membership/structure DRIVER (knife-edge, LB95 +0.0055, share 0.38); M−H header semantics NULL**
+(95% CI [−0.0100,+0.0345] ⊂ ±0.037 — but share up to 0.42 not excluded; not proven free); **H−C
+format+subject DRIVER (robust, LB95 +0.0173, share 0.47).** Mechanism: EVERY rung acts via
+mention-suppression (Δsurfacing resolved on all three; Δownership|surfaced spans zero on all three) —
+the composite's protection is stacked surfacing suppression, not ownership persuasion. The header IS a
+resolved *surfacing* lever (+0.0412 fillers; T1 0.687→0.647) while adoption-inert — extends BLOCK F2.
+T1 displacement onsets at ANY second block (A−M DROP) — F3 characterized: structural/layout, not wording.
+Pure-length signature did not fire (both byte-sign rungs reduce), but length stays OPEN (bundled, §6).
+Mythos recall stays C-render-only (2/16 C; 0/16 A/M/H incl. the byte-exact header in H) — F4 extended.
+Distill descriptive: UNRESOLVED-SPLIT power-limited; its G-ADOPT unexpectedly PASSED on re-judge (0.054
+vs lock-expected 0.048-fail) — deviation flagged, withhold stands as lock decision. Last full-roster epoch.
+> **Bounds:** adoption prong; mech-11 decision-bearing; M/H constructed intermediates (H unreachable by any
+> -D config); 2 fillers; temp-0; render-surface; verdicts marginal-basis; DISTRIBUTED hinges on the A−M
+> knife-edge (NULL there → FORMAT-DRIVEN); false-DISTRIBUTED from single-lever truth ≈ 0.12–0.14;
+> within-bundle decomposition forbidden (prereg §6).
+**→ Therefore next (locked matrix, DISTRIBUTED row):** composite-is-the-fence register entry (text supplied,
+consolidates with the queued -D residual); no ingredient relaxed without re-measurement; header edits
+re-measured on BOTH axes. Then STOP per the pause-between-arcs policy; ratified next arc = local-judge
+validation. (Doc: `DISAMBIG_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

@@ -14,3 +14,5 @@ docs/validation/**/*.jsonl -text
 # surface; keep LF everywhere so generation host, judge host, and the sha lock agree (PR #118
 # CRLF lesson; red-team N1 hardening).
 docs/validation/runtime_instrument/blockframe/worldblock_fixture.txt text eol=lf
+docs/validation/runtime_instrument/blockframe/disambig_m_fixture.txt text eol=lf
+docs/validation/runtime_instrument/blockframe/disambig_h_fixture.txt text eol=lf
