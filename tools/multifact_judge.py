@@ -73,6 +73,11 @@ def reconstruct(sources, n, variant="v1", subsample_n=130, rephrasings_cap=1, sc
         if h != "8b54c73994d6a9fa5a8c96c43ec792cf093b6e67fd76d0f30b763be36657b830":
             raise SystemExit(f"worldblock fixture sha mismatch on the judge host: {h}")
         arm_label = scaffold
+    elif scaffold.startswith("fixture:"):
+        # DISAMBIG arms M/H (DISAMBIG_PREREG.md): frozen constructed intermediates; the loader
+        # sha-asserts, so the judge-host byte check comes with it.
+        preamble = R.load_disambig_fixture(scaffold.split(":", 1)[1])
+        arm_label = scaffold.replace(":", "_")
     else:
         setup = _SCAFFOLD_SETUPS.get(scaffold) or R.setup_bem_multifact(n)
         arm_label = scaffold if scaffold in _SCAFFOLD_SETUPS else n
@@ -148,7 +153,12 @@ def main():
                 else "outofblock" if "--scaffold-outofblock" in args
                 else "renamed" if "--scaffold-renamed" in args
                 else "permuted" if "--scaffold-permuted" in args
-                else "worldblock" if "--scaffold-worldblock" in args else "multifact")
+                else "worldblock" if "--scaffold-worldblock" in args
+                else f"fixture:{args[args.index('--scaffold-fixture') + 1]}"
+                if "--scaffold-fixture" in args else "multifact")
+    if scaffold.startswith("fixture:") and scaffold.split(":", 1)[1] not in R.DISAMBIG_FIXTURES:
+        raise SystemExit(f"unknown --scaffold-fixture '{scaffold.split(':', 1)[1]}' "
+                         f"(known: {sorted(R.DISAMBIG_FIXTURES)})")
     n = 1 if scaffold != "multifact" else int(args[args.index("--multifact-n") + 1])
     # BLOCK arm B: the v2b header variant — generation ran --variant v2b; reconstruction MUST match
     # (a mismatch reconstructs 0, loud). Default v1 preserves every prior epoch.
@@ -164,7 +174,8 @@ def main():
     # padded/outofblock judge T1 ONLY (tokenless padding — echo gates live in the analyzers);
     # renamed judges the 3 CONSERVATION_TOKENS; permuted judges the 3 unchanged MULTIFACT_TOKENS;
     # multifact judges the first n achievement tokens.
-    tokens = ((R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS) if scaffold in ("filler", "team", "worldblock")
+    tokens = ((R.MULTIFACT_TOKENS[:1] + R.FILLER_TOKENS)
+              if scaffold in ("filler", "team", "worldblock") or scaffold.startswith("fixture:")
               else R.CONSERVATION_TOKENS if scaffold == "renamed"
               else R.MULTIFACT_TOKENS[:3] if scaffold == "permuted"
               else R.MULTIFACT_TOKENS[:n])

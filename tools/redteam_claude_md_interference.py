@@ -412,6 +412,30 @@ FILLER_GISTS = (
     ("runs_on", "mesa_framework", "the services run on the mesa_framework for their core isolation layer"),
 )
 
+# DISAMBIG ladder (DISAMBIG_PREREG.md): frozen CONSTRUCTED intermediate fixtures between the v1
+# filler anchor and the -D worldblock composite — 'm' isolates membership/structure (neutral,
+# byte-length-matched header; persona-format fillers), 'h' isolates header semantics (byte-exact -D
+# header; persona-format fillers). Composed by blockframe/compose_disambig_fixtures.py; shas over
+# normalized newlines (the PR #118 CRLF lesson). Generation AND judge reconstruction both assert.
+DISAMBIG_FIXTURES = {
+    "m": ("disambig_m_fixture.txt",
+          "a259bb542527c2b45336347d9be5b40917e460380f3aeeea74c1eddb0f1e5717"),
+    "h": ("disambig_h_fixture.txt",
+          "e15e4ce6a79a1c02157815489cc501dd9edefb9694f0b15d9b664a11aea7e8b6"),
+}
+
+
+def load_disambig_fixture(name: str) -> str:
+    """Read + sha-assert a frozen disambig fixture (loud on any byte drift)."""
+    import hashlib
+    fn, want = DISAMBIG_FIXTURES[name]
+    text = (REPO_ROOT / "docs" / "validation" / "runtime_instrument" / "blockframe" / fn
+            ).read_text(encoding="utf-8")
+    got = hashlib.sha256(text.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+    if got != want:
+        raise SystemExit(f"disambig fixture '{name}' sha mismatch: {got}")
+    return text
+
 
 def setup_bem_filler(svc, cfg):
     g = Gist(id=new_id("gist"), subject=PROJECT, relation="handles_well", object=MULTIFACT_TOKENS[0],
@@ -1108,6 +1132,13 @@ def main():
                          "production snapshot renderer; byte-locked, provenance in "
                          "docs/validation/runtime_instrument/blockframe/). Mutually exclusive with "
                          "the other scaffolds; judge --scaffold-worldblock MUST match.")
+    ap.add_argument("--scaffold-fixture", choices=sorted(DISAMBIG_FIXTURES), default=None,
+                    help="DISAMBIG ladder (DISAMBIG_PREREG.md): use a FROZEN constructed intermediate "
+                         "fixture as the preamble — 'm' = neutral header + persona-format fillers "
+                         "(membership rung), 'h' = -D header + persona-format fillers (header rung). "
+                         "Sha-asserted from DISAMBIG_FIXTURES; NOT -D renders (provenance in "
+                         "blockframe/FIXTURE_PROVENANCE.md). Mutually exclusive with the other "
+                         "scaffolds; judge --scaffold-fixture MUST match.")
     ap.add_argument("--temperature", type=float, default=0.0,
                     help="CONSERVATION P1 (CONSERVATION_PREREG.md): sampling temperature (default 0.0 "
                          "= the greedy convention of every prior epoch). Non-zero requires --gen-seed "
@@ -1129,12 +1160,14 @@ def main():
     if sum(bool(x) for x in (args.multifact_n, args.scaffold_filler, args.scaffold_padded,
                              args.scaffold_team, args.scaffold_outofblock,
                              args.scaffold_renamed, args.scaffold_permuted,
-                             args.scaffold_worldblock)) > 1:
+                             args.scaffold_worldblock, args.scaffold_fixture)) > 1:
         ap.error("--multifact-n / --scaffold-filler / --scaffold-padded / --scaffold-team / "
                  "--scaffold-outofblock / --scaffold-renamed / --scaffold-permuted / "
-                 "--scaffold-worldblock are mutually exclusive (one scaffold per run)")
+                 "--scaffold-worldblock / --scaffold-fixture are mutually exclusive (one scaffold per run)")
     if args.scaffold_worldblock and args.variant != "v1":
         ap.error("--scaffold-worldblock is a FROZEN fixture (already composed); --variant must stay v1")
+    if args.scaffold_fixture and args.variant != "v1":
+        ap.error("--scaffold-fixture is a FROZEN fixture (already composed); --variant must stay v1")
     if args.sp_expansion_bank and (args.cleanstrata_bank or args.bem_facet_bank):
         ap.error("--sp-expansion-bank is mutually exclusive with the other BEM banks")
     if args.conservation_bank and (args.sp_expansion_bank or args.cleanstrata_bank
@@ -1309,6 +1342,9 @@ def main():
                 # Provenance + byte-lock: docs/validation/runtime_instrument/blockframe/.
                 cdms_preamble = (REPO_ROOT / "docs" / "validation" / "runtime_instrument" /
                                  "blockframe" / "worldblock_fixture.txt").read_text(encoding="utf-8")
+            elif args.scaffold_fixture and name in ("BEM", "BEM_WORKSPACE_FACT"):
+                # DISAMBIG_PREREG arms M/H: frozen constructed intermediates, sha-asserted.
+                cdms_preamble = load_disambig_fixture(args.scaffold_fixture)
             else:
                 with tempfile.TemporaryDirectory() as td:
                     cdms_preamble = _real_preamble_for_mode(setup, Path(td), variant=args.variant)
