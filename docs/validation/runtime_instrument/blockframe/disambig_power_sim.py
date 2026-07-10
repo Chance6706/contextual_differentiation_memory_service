@@ -68,8 +68,10 @@ def main():
     print(f"anchor fw={sum(rates.values())/len(rates):.4f}  facets={len(facets)}  n/facet={N}  "
           f"r_total={R_TOTAL}  NULL band ±{NULL_BAND}")
     names = ("A−M", "M−H", "H−C")
+    summary_of = {"A−M": "MEMBERSHIP-DRIVEN", "M−H": "HEADER-DRIVEN", "H−C": "FORMAT-DRIVEN"}
     for label, (s1, s2, s3) in SCENARIOS:
         counts = {n: {"DRIVER": 0, "REVERSED": 0, "NULL": 0, "UNRESOLVED": 0} for n in names}
+        joint = {}
         for s in range(SIMS):
             rng = random.Random(1000 + s)
             rm = {f: p * (R_TOTAL ** s1) for f, p in rates.items()}
@@ -80,6 +82,7 @@ def main():
                       for f in facets}
             arms = {"a": anchor, "m": m_prof, "h": h_prof, "c": c_prof}
             draws = {n: [] for n in names}
+            tot_draws = []
             for _ in range(BOOT):
                 samp = [rng.choice(facets) for _ in facets]
                 vals = {t: sum(sum(arms[t][f]) / len(arms[t][f]) for f in samp) / len(samp)
@@ -87,13 +90,32 @@ def main():
                 draws["A−M"].append(vals["a"] - vals["m"])
                 draws["M−H"].append(vals["m"] - vals["h"])
                 draws["H−C"].append(vals["h"] - vals["c"])
+                tot_draws.append(vals["a"] - vals["c"])
+            vs = {}
             for n in names:
-                counts[n][verdict(draws[n])] += 1
+                vs[n] = verdict(draws[n])
+                counts[n][vs[n]] += 1
+            # the JOINT decision object (red-team S4): the pre-named LADDER SUMMARY
+            drivers = [n for n in names if vs[n] == "DRIVER"]
+            tot_driver = sorted(tot_draws)[int(0.05 * len(tot_draws))] > 0
+            if len(drivers) == 1:
+                summ = summary_of[drivers[0]]
+            elif len(drivers) >= 2:
+                summ = "DISTRIBUTED"
+            elif tot_driver:
+                summ = "UNRESOLVED-SPLIT"
+            else:
+                summ = "LADDER-NULL"
+            if any(vs[n] == "REVERSED" for n in names):
+                summ += "+REV"
+            joint[summ] = joint.get(summ, 0) + 1
         print(f"\nscenario {label}  (shares mem={s1:.2f} hdr={s2:.2f} fmt={s3:.2f}):")
         for n in names:
             c = counts[n]
             print(f"  {n}: DRIVER {c['DRIVER']/SIMS:.2f}  NULL {c['NULL']/SIMS:.2f}  "
                   f"UNRESOLVED {c['UNRESOLVED']/SIMS:.2f}  REVERSED {c['REVERSED']/SIMS:.2f}")
+        print("  JOINT: " + "  ".join(f"{k} {v/SIMS:.2f}" for k, v in
+                                      sorted(joint.items(), key=lambda kv: -kv[1])))
 
 
 if __name__ == "__main__":
