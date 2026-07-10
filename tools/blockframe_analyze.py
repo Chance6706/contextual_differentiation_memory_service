@@ -19,7 +19,7 @@ DECISION STRUCTURE (pre-committed):
     B: HEADER-SCOPE   iff fillers drop AND T1 drops (LB95(T1_A−T1_B) > 0) — the header governs the block
        LINE-CONTENT   iff fillers drop AND T1 does not — the header re-frames facts, not achievements
        INERT-HEADER   iff fillers do not drop
-    C: MEMBERSHIP     iff fillers drop AND T1 flat (|ΔT1| 90% CI within ±0.061) — moving OUT of the
+    C: MEMBERSHIP     iff fillers drop AND T1 flat (|ΔT1| 90% CI within ±T1_BAND) — moving OUT of the
        block is the lever; the persona block itself is unaffected
        CONTEXT-GLOBAL iff fillers drop AND T1 also drops — flagged: the -D composition changes more
        than membership (header bleed / context dilution); membership reading NOT licensed alone
@@ -103,7 +103,7 @@ def main():
     if b_path:
         cb = collect(b_path, arm, bank)
         integrity_check(cb, arm, allow)
-        arms["B header (v2b, shipped)"] = ("B", cb)
+        arms["B header (v2b, research-only ablation)"] = ("B", cb)
     if c_path:
         cc = collect(c_path, arm, bank)
         integrity_check(cc, arm, allow)
@@ -183,7 +183,7 @@ def main():
           "sentinel); adoption pooled per (response,token) over open-SP, paired facet bootstrap; "
           "B varies header(+112B) as a disclosed bundle; C is the deployed -D composite "
           "(membership+header+line-format+length) — single-axis attribution goes to B, deployed-"
-          "surface conclusions to C; T1-flat uses the +/-0.061 convention band.")
+          f"surface conclusions to C; T1-flat uses the +/-{T1_BAND} band (p_T1/3, locked).")
 
 
 if __name__ == "__main__":

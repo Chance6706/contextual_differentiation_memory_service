@@ -249,6 +249,37 @@ tie-order risk axis did not bite). Costs $53.57, zero failures.
 design) if wanted; the block-level frame manipulation proceeds unaffected; the distill recall observation is the
 new frontier item. (Doc: `CONSERVATION_RESULTS.md`.)
 
+## 4.12. Block-level frame + recall grid — the deployed -D world block REDUCES (69%, not fence-grade); mythos recall breach sized — #(this PR)
+**Motivated by:** FRAME's verdict that the line-level lever is weak and the fence lever is block-level; Josh's
+"include the mythos recall seam" folding the conservation epoch's registered-OPEN distill recall breaches into
+the same epoch. Arm C measures the DEPLOYED CDMS-D world block (frozen `render_fixture_snapshot` fixture,
+-D commit 9d8bae9) — Josh's pointer to the -D repo/WSL work turned a hypothetical surface into the production one.
+**Did:** 7-arm Sparky epoch against the committed frame-epoch filler anchor (determinism sentinel 156/156 +
+NEW J0 judge-drift guard, Δ +0.008 PASS): B = v2b third-person header (research-only single-axis ablation),
+C = -D world-block composite, + 5 recall-only grid cells (mythos model×temperature×scaffold, n=32/model/cell).
+**Found (BLOCK):** **B NOT-REDUCED / INERT-HEADER** (header effect bounded < ~0.014 abs at 95%) — but it DOES
+cut T1 *surfacing* 0.811→0.707 (FLAGGED, non-estimand). **C REDUCED, 69% relative** (0.110→0.0345, LB95 +0.0545,
+seed/facet/model-robust) but NOT fence-grade (> 0.02) and NOT membership-attributable on the locked estimand:
+**CONTEXT-GLOBAL** (T1 dropped too). The review decomposition resolves the reads: the block suppresses *mention*
+of ALL store facts (T1 ownership-given-mention FLAT), and suppresses *ownership-of-mentioned* ONLY for its own
+members (0.162→0.112, LB +0.038) — the ownership prong IS membership-specific conditionally; the marginal 69% =
+~2/3 says-it-less × ~1/3 owns-it-less. G-AVAIL 0.676 kills the unread-block confound. Distill cell WITHHELD by
+G-ADOPT as foreseeable at lock (anchor 0.048). **Found (RECALL):** **claude-mythos-q8 0.144 pooled**
+[cluster-robust 0.056, 0.250], 3/5 cells clear the gate on per-cell LB; siblings 0.005, mech floor UB ≤ 0.025
+everywhere; temp-0 nonzero (not temperature-clean); permuted > triple direction; **mythos breaches ON the
+deployed -D render (2/16)**. Qualification note scoped to claude-mythos-q8 exactly. Costs: $30.10 judging
+(recall-grid forecast was ~8× under — recall probes elicit tokens; surfaced pre-spend, approved).
+> **Bounds:** C is the COMPOSITE deployed surface (membership/header/format/length undecomposable here);
+> adoption prong only; mech-11 only (distill T1 signature disagrees — heterogeneity); one fixture render/layout;
+> B-vs-C header inference forbidden (limitation e). The pre-generation-ratified policy row (REDUCED×MEMBERSHIP)
+> did NOT fire — realized cell REDUCED×CONTEXT-GLOBAL; Josh POST-RESULTS-ratified the same terms 2026-07-10
+> (deploy only with attribution guard + importer hygiene; residual 0.0345/0.112 as a numbered exposure — -D
+> register to be opened). Guard was structurally idle (clean facts) — residual is conditional on upstream hygiene.
+**→ Therefore next (locked matrix):** disambiguation fixture (v1-header world-block variant — header vs
+membership vs length), NEW prereg; -D numbered-exposure register; mythos qualification note propagated to the
+roster SOT; FRAME follow-on NOT closed (that needed COLLAPSED×MEMBERSHIP). (Docs: `BLOCK_RESULTS.md`,
+`RECALL_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

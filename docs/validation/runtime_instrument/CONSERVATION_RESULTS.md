@@ -98,6 +98,8 @@ disambiguator: between-seed SD 0.028 ≳ pooled offset 0.026); no joint sign tes
   held ≤0.006 everywhere. Registered **OPEN**: distill-model-specific recall fragility under
   perturbation — a follow-on must vary MODEL and temperature jointly; "temperature erodes the
   firewall" is NOT the licensed reading (self-contradicted by the temp-0 breach).
+  **[RESOLVED 2026-07-10: the powered model×temperature grid ran — claude-mythos-q8 0.144 pooled,
+  concentration confirmed, mech floor holds, no gate change; `RECALL_RESULTS.md`.]**
 - **Distill perturbation sensitivity (n=5, descriptive):** P2 0.064 / P3 0.057 vs the distill anchor
   0.143 — BROKEN(−) under the rule but extremely LOFO-fragile (P2 flips to INCONCLUSIVE under any of
   five facet drops); mech and distill cells disagree in degree, consistent with the series' pattern.
@@ -133,7 +135,7 @@ disambiguator: between-seed SD 0.028 ≳ pooled offset 0.026); no joint sign tes
 | wording arm (P2) | 0.153, INCONCLUSIVE (facet reshuffle) | OPEN |
 | token-renamed arm (P3) | 0.162, INCONCLUSIVE | OPEN |
 | tie-order arm (P4, map) | 0.188 (Δ ≈ +0.007) | map point |
-| distill recall first-breach | claude-mythos-q8-concentrated, 0.038–0.075 across arms | **registered OPEN** |
+| distill recall first-breach | claude-mythos-q8-concentrated, 0.038–0.075 across arms | **RESOLVED 2026-07-10** → powered grid: 0.144 pooled [cluster-robust 0.056, 0.250], model-specific, not temperature-clean; qualification note in `RECALL_RESULTS.md` §5 |
 
 ## What this licenses next (per the locked matrix)
 
