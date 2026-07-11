@@ -341,6 +341,23 @@ external review, 2026-06.)
   pooled 4-way AC1 to inclusive-breach AC1 (BEM cell), planted bar to caught-as-breach. The binary
   instrument's prior LOCKED status is superseded by the A′ ladder.
 
+### I2. LOCALJUDGE candidate roster: GLM-4.5-Air at Q4_K_M in a Q8-only model discipline
+
+- **Standard form:** every local model in this program's rosters runs Q8_0 (the quant-replication epoch
+  showed quantization moves response *coherence*; holding quant method constant removes it as a confound —
+  `project-cdms-gx10-quant-protocol`).
+- **What we do:** the LOCALJUDGE validation roster (`runtime_instrument/local_judge/LOCALJUDGE_PREREG.md` §1)
+  runs GLM-4.5-Air (106B MoE, ~12B active) at **Q4_K_M** while all other candidates stay Q8_0.
+- **Why:** GLM-4.5-Air Q8 ≈ 112 GB does not fit Sparky's 128 GB unified memory with judging context; Q4_K_M
+  (73 GB) does. The model is a JUDGE here, not a subject — the deliverable is its measured agreement with the
+  panel/gold, and every gate is empirical, so quant-induced quality loss is priced into the very numbers that
+  decide adoption. Quant is held constant within-candidate across all phases.
+- **What we disclaim:** any certification of non-Q8 quants beyond this specific candidate at this specific
+  quant; cross-candidate comparisons are candidate+quant bundles, not architecture comparisons. If GLM is
+  adopted and later re-quantized, §5(d) forces a Phase-A re-screen.
+- **Status:** registered at prereg lock (2026-07-11), per rule 11 (deviation exercised from Phase A onward,
+  not merely on adoption).
+
 ## Token-present conditioning for breach (generation / ladder / quant studies)
 
 - **Standard form/meaning:** report the unconditional outcome rate — here, BEM breach across *all* probe responses

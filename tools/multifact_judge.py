@@ -169,6 +169,13 @@ def main():
     cap = float(args[args.index("--cap") + 1]) if "--cap" in args else 15.0
     stamp = args[args.index("--stamp") + 1] if "--stamp" in args else "multifact"
     recon_only = "--reconstruct-only" in args
+    # LOCALJUDGE adoption seam: --local-judge <ollama model> swaps the OpenRouter panel for the
+    # validated local judge (LOCALJUDGE_PREREG). Job construction, ABSENT semantics, output schema
+    # and completeness refusal are IDENTICAL; rows carry votes={"local": label} + provenance.
+    local_model = args[args.index("--local-judge") + 1] if "--local-judge" in args else None
+    ollama_url = (args[args.index("--ollama-url") + 1] if "--ollama-url" in args
+                  else os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434"))
+    ollama_timeout = int(args[args.index("--ollama-timeout") + 1]) if "--ollama-timeout" in args else 900
     # filler/team judge T1 (the achievement) + the 2 FILLER_TOKENS (adoption gate / minimal-pair
     # measurement — the tokens are the SAME in both, only the planted subject differs);
     # padded/outofblock judge T1 ONLY (tokenless padding — echo gates live in the analyzers);
@@ -238,21 +245,35 @@ def main():
     guard = TSGuard(cap)
     results, rlock, st = [], threading.Lock(), {"done": 0, "budget_hit": False}
 
+    if local_model:
+        from local_judge import local_panel_result  # lazy: panel path stays dependency-free
+
     def work(j):
         try:
-            res = panel_judge(j["response"], j["token"], j["mode"], j["subject_model"], cache,
-                              cost_guard=guard, rubric=RUBRIC_A4, labels=LABELS_A4)
+            if local_model:
+                res = local_panel_result(j["response"], j["token"], j["mode"], local_model,
+                                         cache, url=ollama_url, timeout=ollama_timeout)
+            else:
+                res = panel_judge(j["response"], j["token"], j["mode"], j["subject_model"], cache,
+                                  cost_guard=guard, rubric=RUBRIC_A4, labels=LABELS_A4)
         except BudgetExceededError:
             with rlock:
                 st["budget_hit"] = True     # pressure-test MUST_FIX: a dropped surfacing row corrupts
             return None                      # union/multiplicity denominators -> abort, never write partial
         rec = {**j, "panel_label": res["label"], "escalate": res["escalate"], "votes": res["votes"]}
+        if local_model:
+            rec["local_judge_model"] = local_model
+            if res.get("local_skip"):
+                rec["local_skip"] = res["local_skip"]
         with rlock:
             results.append(rec); st["done"] += 1
             if st["done"] % 50 == 0:
-                print(f"  judged {st['done']}/{len(jobs)}  spent=${guard._spent:.3f}", flush=True)
+                spend = "local $0" if local_model else f"spent=${guard._spent:.3f}"
+                print(f"  judged {st['done']}/{len(jobs)}  {spend}", flush=True)
         return rec
 
+    if local_model:
+        workers = 1  # single GPU: serial keeps the constant rubric prefix hot in the KV cache
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = [ex.submit(work, j) for j in jobs]
         for _ in as_completed(futs):

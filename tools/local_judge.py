@@ -126,7 +126,7 @@ def is_passthrough(row: dict) -> bool:
 
 
 def judge_row(row: dict, model: str, cache_dir: Path, url: str, num_ctx: int,
-              gold: bool = False) -> dict | None:
+              gold: bool = False, timeout: int = 900) -> dict | None:
     """Return the local_* fields for one row, or None for passthrough rows."""
     if not gold and is_passthrough(row):
         return None
@@ -141,11 +141,32 @@ def judge_row(row: dict, model: str, cache_dir: Path, url: str, num_ctx: int,
     if _est_tokens(RUBRIC_A4, user) >= num_ctx - N_PREDICT - CTX_MARGIN:
         add.update(local_label=None, local_skip="ctx_overflow")
         return add
-    out = ollama_judge_call(model, RUBRIC_A4, user, cache_dir, url=url, num_ctx=num_ctx)
+    out = ollama_judge_call(model, RUBRIC_A4, user, cache_dir, url=url, num_ctx=num_ctx,
+                            timeout=timeout)
     add.update(local_label=_parse_label(out["response"], LABELS_A4),
                local_raw=out["response"][:120],
                local_prompt_eval_count=out["prompt_eval_count"])
     return add
+
+
+def local_panel_result(response: str, token: str, mode: str, model: str, cache_dir: Path,
+                       url: str = DEFAULT_URL, num_ctx: int = DEFAULT_NUM_CTX,
+                       timeout: int = 900) -> dict:
+    """panel_judge-shaped result from the LOCAL judge — the fresh-epoch adoption seam
+    (multifact_judge --local-judge swaps panel_judge for this; same contract:
+    {label, escalate, votes}). Mechanical-INVALID short-circuits before any call, identically to
+    panel_judge; a single judge has no tie, so escalate is always False and votes carries the one
+    'local' vote (breach_from_votes({"local": label}) resolves it downstream)."""
+    if _mechanical_invalid(response):
+        return {"label": "INVALID", "escalate": False, "votes": {}, "mechanical": True}
+    user = build_user_prompt(token, mode, response)
+    if _est_tokens(RUBRIC_A4, user) >= num_ctx - N_PREDICT - CTX_MARGIN:
+        return {"label": None, "escalate": False, "votes": {"local": None},
+                "local_skip": "ctx_overflow"}
+    out = ollama_judge_call(model, RUBRIC_A4, user, cache_dir, url=url, num_ctx=num_ctx,
+                            timeout=timeout)
+    lab = _parse_label(out["response"], LABELS_A4)
+    return {"label": lab, "escalate": False, "votes": {"local": lab}}
 
 
 def _load_manifest(path: str | None):
@@ -161,7 +182,8 @@ def _load_manifest(path: str | None):
 
 
 def run_file(in_path: Path, out_path: Path, model: str, cache_dir: Path, url: str,
-             num_ctx: int, gold: bool, manifest, limit: int | None, meta: dict) -> None:
+             num_ctx: int, gold: bool, manifest, limit: int | None, meta: dict,
+             timeout: int = 900) -> None:
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
     sel = manifest.get(in_path.name) if manifest else None
     n_judged = n_pass = n_skip = 0
@@ -176,7 +198,7 @@ def run_file(in_path: Path, out_path: Path, model: str, cache_dir: Path, url: st
             if limit is not None and n_judged >= limit:
                 break
             row = json.loads(line)
-            add = judge_row(row, model, cache_dir, url, num_ctx, gold=gold)
+            add = judge_row(row, model, cache_dir, url, num_ctx, gold=gold, timeout=timeout)
             if add is None:
                 fout.write(line if line.endswith("\n") else line + "\n")  # byte-identical passthrough
                 n_pass += 1
@@ -194,6 +216,22 @@ def run_file(in_path: Path, out_path: Path, model: str, cache_dir: Path, url: st
                                    "ctx_skipped": n_skip, "seconds": round(time.time() - t0, 1)}
     print(f"DONE {in_path.name}: judged={n_judged} passthrough={n_pass} ctx_skipped={n_skip} "
           f"({meta['files'][in_path.name]['seconds']}s)", flush=True)
+
+
+def assert_digest_unchanged(cache_dir: Path, digest) -> None:
+    """Digest guard (red-team S6): the response-cache key is the model NAME; a re-pull/update
+    under the same name would silently serve stale labels across a resumed run. Pin the digest
+    per cache dir; refuse on mismatch."""
+    if not digest:
+        return
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    marker = cache_dir / "digest.txt"
+    if marker.exists() and marker.read_text(encoding="utf-8").strip() != str(digest):
+        raise SystemExit(
+            f"cache dir {cache_dir} was built under model digest "
+            f"{marker.read_text(encoding='utf-8').strip()!r}; server now serves {digest!r} — "
+            f"the model changed under the same name; use a fresh --cache-dir")
+    marker.write_text(str(digest), encoding="utf-8")
 
 
 def _server_meta(url: str, model: str) -> dict:
@@ -222,6 +260,10 @@ def main():
     ap.add_argument("--gold", action="store_true", help="gold-set mode (no passthrough class)")
     ap.add_argument("--sample-manifest", help="jsonl of {file, line} coords to restrict rows")
     ap.add_argument("--limit", type=int, help="judge at most N rows per file (probes)")
+    ap.add_argument("--timeout", type=int, default=900,
+                    help="per-call timeout (s); cold loads on this box run ~25s/GB — pre-warm "
+                         "big models or raise this (ollama cancels a load when the client "
+                         "request that triggered it disconnects)")
     args = ap.parse_args()
 
     out_dir, cache_dir = Path(args.out_dir), Path(args.cache_dir)
@@ -232,11 +274,14 @@ def main():
             "n_predict": N_PREDICT, "rubric_sha": hashlib.sha256(RUBRIC_A4.encode()).hexdigest(),
             "started": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": {},
             **_server_meta(args.url, args.model)}
-    for p in args.inputs:
+    assert_digest_unchanged(cache_dir, meta.get("model_digest"))
+    for fi, p in enumerate(args.inputs, 1):
         in_path = Path(p)
         out_path = out_dir / f"{in_path.stem}__{safe}.jsonl"
         run_file(in_path, out_path, args.model, cache_dir, args.url, args.num_ctx,
-                 args.gold, manifest, args.limit, meta)
+                 args.gold, manifest, args.limit, meta, timeout=args.timeout)
+        done_rows = sum(f["judged"] for f in meta["files"].values())
+        print(f"== progress: file {fi}/{len(args.inputs)}  cumulative judged {done_rows}", flush=True)
     (out_dir / f"localjudge_meta__{safe}.json").write_text(json.dumps(meta, indent=1),
                                                            encoding="utf-8")
     print("ALL FILES DONE", flush=True)
