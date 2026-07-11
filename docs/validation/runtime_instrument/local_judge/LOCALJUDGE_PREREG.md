@@ -1,4 +1,9 @@
-# LOCALJUDGE pre-registration — can a local judge replace the A′ panel? [DRAFT — NOT LOCKED]
+# LOCALJUDGE pre-registration — can a local judge replace the A′ panel? [LOCKED 2026-07-11]
+
+**Lock record:** double pressure test folded (§7); Phase-B scope ratified by Josh 2026-07-11:
+**FULL corpus for every G-A passer AND the probe arm** (completeness over GPU-thrift — his call,
+plain-hours quoted: ~70 h ≈ 3 GPU-days serial if all pass). The committed manifest stays pinned
+as the fallback artifact only. 17 lock tests green at lock.
 
 **💵 Cost header:** OpenRouter spend this arc = **$0** (the validation set is the committed record;
 no generation, no panel calls). Resource = Sparky GPU-time, MEASURED (Phase 0, 2026-07-11, 200
@@ -123,15 +128,13 @@ breach-flip adjudication dump (becomes the operational spot-audit worksheet on P
   load-stall screen. Output = the measured tier table; Phase B scope is written from it.
 - **LOCK** after rule-12 double pressure test (2 adversarial agents) + Josh's scope ratification.
 - **Phase A (gold screening):** all 4 candidates × 228 rows. Apply G-A.
-- **Phase B (corpus) [SCOPE PROPOSED for Josh's ratification at lock]:** DEFAULT = the committed
-  manifest for every G-A passer AND the probe arm (`local_judge_manifest.py`, seed 20260711, ALL
-  7,718 breach + ALL 2,815 escalated rows + 40 NOT rows per (file,mode) cell, sha pinned at
-  lock — every GATED stratum is manifest-covered); then promote ONLY the G-B-leading candidate
-  to the FULL 62,103 rows (which Phase C needs complete arms from anyway). Rationale
-  (pressure-test S3): full corpus on non-winners buys only easy-NOT rows the decision never
-  reads, at ~2× the GPU-days. Serial per model; nohup + cache-resume chunking (Nate-pausable —
-  but see the GLM keep_alive note in the cost header). Upgrade option (Josh's call): full corpus
-  for all passers ≈ 57-70 h total if the descriptive completeness is wanted.
+- **Phase B (corpus) [RATIFIED by Josh at lock, 2026-07-11]:** **FULL corpus (all 62,103 judged
+  rows) for every G-A passer AND the probe arm** (~70 h ≈ 3 GPU-days serial if all pass;
+  completeness chosen over the manifest default that the pressure test recommended — recorded as
+  Josh's explicit call). The committed manifest (13,145 coords, sha pinned in §9) remains the
+  FALLBACK artifact if GPU time must shrink mid-run; any such shrink is a disclosed scope change.
+  Serial per model; nohup + cache-resume chunking (Nate-pausable — see the GLM keep_alive note);
+  the G-C candidate is full-corpus by construction.
 - **Phase C (verdict reproduction):** on the nominated replacement candidate only.
 - Verdict-blind audit of local outputs (completeness, coverage, ctx-skip count, determinism
   re-check) BEFORE scoring; then scoring; then 2 adversarial results reviewers; results doc; PR.
