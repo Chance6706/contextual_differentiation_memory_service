@@ -257,3 +257,12 @@ checklist → §6.5. N9 cumulative progress lines → added.
   R 1.000; panel inter-vendor AC1 (breach 0.900 overall / 0.827 BEM) is a RELIABILITY number,
   not a gold-accuracy benchmark — never compared to local gold numbers.
 - Judging cost this arc: $0 OpenRouter; GPU per the §cost-header tier table.
+- **Lock amendment A1 (2026-07-11, disclosed):** the five single-token-era corpus files
+  (batch1/batch2/cleanstrata/gen4/identity_power, 12,864 rows / 4,543 voted) never stored a
+  per-row `token` — the panel judged them with the era's implicit `BEM_CDMS_TOKEN`
+  ("starboard_loop", judge_ladder.py). Discovered when Phase B crashed loudly (KeyError) on the
+  first legacy row. `local_judge.py` now fills the same token for token-less rows
+  (`LEGACY_SINGLE_TOKEN`, lock-tested for byte-equal prompts). No estimand, gate, or scope
+  change — the shim makes the locked "full committed corpus" scope executable as written; the
+  alternative (dropping 5 files) would have been a silent scope cut. Tool sha at relaunch:
+  local_judge.py updates from `70e9e25e662e5104`; 18 lock tests green.

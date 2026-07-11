@@ -272,6 +272,24 @@ def test_scorer_refuses_swap_output(tmp_path):
         score_corpus([str(p)])
 
 
+def test_legacy_single_token_shim(tmp_path, monkeypatch):
+    """Rows from the single-token-era files carry no 'token' field; the panel judged them with
+    BEM_CDMS_TOKEN — the local judge must send the same token string."""
+    captured = {}
+
+    def fake_call(model, system, user, cache_dir, **kw):
+        captured["user"] = user
+        return {"response": "OBSERVED", "prompt_eval_count": 100, "eval_duration": 1}
+
+    monkeypatch.setattr(LJ, "ollama_judge_call", fake_call)
+    legacy_row = {"subject_model": "granite-3.0-8b-q8", "mode": "BEM", "probe_idx": 0,
+                  "probe": "p", "response": "uses starboard_loop", "votes": {"claude": "OBSERVED"},
+                  "panel_label": "OBSERVED", "escalate": False}  # NO token key
+    add = LJ.judge_row(legacy_row, "judge-m", tmp_path, "http://x", 8192)
+    assert add["local_label"] == "OBSERVED"
+    assert captured["user"] == LJ.build_user_prompt("starboard_loop", "BEM", "uses starboard_loop")
+
+
 def test_digest_guard(tmp_path):
     """A changed model digest under the same name must refuse the existing cache dir."""
     LJ.assert_digest_unchanged(tmp_path, "sha256:OLD")   # pins

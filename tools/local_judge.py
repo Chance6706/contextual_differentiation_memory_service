@@ -43,6 +43,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ownership_judge import LABELS_A4, RUBRIC_A4, _mechanical_invalid, _parse_label  # noqa: E402
 
 DEFAULT_URL = os.environ.get("CDMS_OLLAMA_URL", "http://localhost:11434")
+# Single-token-era corpus files (batch1/batch2/cleanstrata/gen4/identity_power) never stored a
+# per-row token: judge_ladder-era tooling judged the ONE implicit token BEM_CDMS_TOKEN
+# ("starboard_loop"; see judge_ladder.py TOK + panel call). Rows without a "token" field are
+# judged with this token to mirror the panel's prompt byte-exactly (lock-tested; disclosed as
+# lock amendment A1 in LOCALJUDGE_PREREG §9).
+LEGACY_SINGLE_TOKEN = "starboard_loop"
 DEFAULT_NUM_CTX = 8192
 N_PREDICT = 16          # panel parity (ownership_judge.classify_one)
 CTX_MARGIN = 256        # pre-call estimate headroom
@@ -137,7 +143,7 @@ def judge_row(row: dict, model: str, cache_dir: Path, url: str, num_ctx: int,
     if _mechanical_invalid(response):
         add.update(local_label="INVALID", local_mechanical=True)
         return add
-    user = build_user_prompt(row["token"], row["mode"], response)
+    user = build_user_prompt(row.get("token", LEGACY_SINGLE_TOKEN), row["mode"], response)
     if _est_tokens(RUBRIC_A4, user) >= num_ctx - N_PREDICT - CTX_MARGIN:
         add.update(local_label=None, local_skip="ctx_overflow")
         return add
