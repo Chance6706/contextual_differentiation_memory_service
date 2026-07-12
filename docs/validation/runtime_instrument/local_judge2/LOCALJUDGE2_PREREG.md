@@ -1,7 +1,8 @@
 # LOCALJUDGE-2 pre-registration — the judge matrix
 
-**Status: PRE-LOCK — rule-12 double pressure test COMPLETE and folded (§10); 26 lock tests green.
-Awaits Josh's final read + the ensemble-G-C scope decision (§4), then LOCK.**
+**Status: 🔒 LOCKED 2026-07-12.** Rule-12 double pressure test complete and folded (§10); 26 lock
+tests green; ensemble-G-C **deferral RATIFIED by Josh 2026-07-12** (§4); roster + holdout + tool shas
+pinned (§9). Digests captured per model at run time (nemotron-super-q4 pending its `ollama create`).
 
 💵 **Cost: $0 OpenRouter** for the matrix and adoption screens (all judging is local on Sparky).
 GPU ≈ 3 weeks serial for the full-corpus matrix (all resident judges) + ~1 week for the adoption
@@ -168,7 +169,7 @@ complete arms → rerun `disambig_analyze` / `multifact_analyze` / `blockframe_a
 PASS = verdict-CATEGORY identity on every gated line + point estimates within ±0.05. Verdict flips
 disqualify regardless of κ.
 
-**Ensemble — SCOPE NARROWED (pressure-test MUST_FIX 3; Josh may expand):** an ensemble decision is
+**Ensemble — SCOPE NARROWED (pressure-test MUST_FIX 3; deferral RATIFIED by Josh 2026-07-12):** an ensemble decision is
 breach-binary, but the analyzers consume a 4-way `panel_label`/`votes` swap that the frozen
 single-judge `local_swap.py` does not emit — so ensemble G-C requires a NEW ensemble→swap emitter
 (binary→analyzer-input mapping) and an N-member deploy seam, neither of which exists. Rather than
@@ -257,15 +258,24 @@ is descriptive here).
 | label-noise probe rows re-adjudicate as panel errors (vs shared local bias) | committed corpus-quality note + a NEW prereg to consider re-adjudication; does not retro-change this arc's numbers |
 | a new-pull (esp. Nemotron-3-Super) clears where residents failed | the 200B-capability thesis is supported; adopt per row 1/2 |
 
-## 9. Locked manifest — [TO FILL AT LOCK]
+## 9. Locked manifest — 🔒 LOCKED 2026-07-12
 - Toolchain shas — FROZEN (byte-identical to LJ-1, judging path): local_judge.py, local_swap.py,
-  local_judge_score.py. NEW (results-determining, sha-pinned at lock): local_judge2_score.py
-  (partition scorer + blinding guard + `evaluate_gb`, the shared partition-correct G-B evaluator —
-  κ on confirmation, recall on full-corpus, red-team M1/M2), local_judge2_matrix.py (matrix +
-  content-parity guard + leaderboard + pairwise), local_judge2_ensemble.py (full-G-B confirm +
-  member freeze), local_judge2_labelnoise.py. Lock tests: `tests/test_local_judge2.py` (**26** after
-  the pressure-test fold). The run driver + digest helper are OPERATIONAL (not results-determining) —
-  outside the pinned sha set.
+  local_judge_score.py. NEW (results-determining, normalized-newline sha16 PINNED at lock):
+  `local_judge2_score.py 150615d688868194` (partition scorer + blinding guard + `evaluate_gb`, the
+  shared partition-correct G-B evaluator — κ on confirmation, recall on full-corpus, red-team M1/M2),
+  `local_judge2_matrix.py 80c032a4914469a0` (matrix + content-parity guard + leaderboard + pairwise),
+  `local_judge2_ensemble.py 428c4ce3a0a4a1af` (full-G-B confirm + member freeze),
+  `local_judge2_labelnoise.py 912211005bedab8a`. Lock tests: `tests/test_local_judge2.py` (**26**,
+  green at lock). The run driver (`cdms_localjudge2_run.sh`) + digest helper (`localjudge2_digest.py`)
+  are OPERATIONAL (not results-determining) — outside the pinned sha set.
+- Locked roster: `roster.txt` — **64 active judges** (2 pulls + 13 heavyweight FIRST, then 49
+  mid/small); load-stalls gemma4:31b + llama3.3:70b excluded (attempt-once). Self-family verified:
+  `roster_selffamily.txt` — **12/64 fully family-disjoint**; adoption-plausible clean nominees are
+  the non-qwen/non-mistral heavyweights (glm, both nemotrons, gpt-oss, yi, command-r; gemma3-27b +
+  internlm-20b lose ≤0.3%); qwen heavyweights lose 23.7% and mistral 16.4% to self-family (fine in
+  matrix/ensemble, self-family-reduced as single-judge nominees — DOCUMENTED pre-run, NOTE 15).
+- Determinism (NOTE 12): reuses LJ-1's committed manifest `determinism_manifest.jsonl` (seed
+  20260711, sha16 24328bd930ab4364) — sufficient (byte-exact re-check per model).
 - **Roster-time family assertion (red-team N12/N13):** at lock, verify (a) no locked-roster safe-name
   contains `__` (the filename judge-key separator — all current tags checked clean), and (b) if any
   future corpus subject is glm/gpt-oss/openai-family, `local_judge.model_family` gains the pattern
@@ -274,17 +284,8 @@ is descriptive here).
 - Rubric sha `cd715d79…` (bridging tripwire).
 - Confirmation holdout: `confirmation_holdout.json` sha256
   `b673e2a598a50530bdb435a651c3ef4692fcaaee79e104594dda4b5b8a90f16f` (12 files, 19,236 rows).
-- Locked roster: the 64 resident base models (name + digest + quant, digests captured at lock via
-  the helper) + the 2 pulls (nemotron-super-q4, gpt-oss:120b); self-family map. **Lock-time roster
-  self-family verification (NOTE 15):** enumerate, per judge, whether it has same-family corpus
-  subjects and how many rows — confirm the adoption-plausible tier is disjoint enough to be cleanly
-  nominable BEFORE the 3-week spend (machinery is per-row and correct; the analyst shouldn't
-  discover a heavyweight's self-family reduction post-run).
 - Ensemble family: top-k∈{3,5,7} × {unweighted, selection-κ-weighted} = 6 candidates (no free
   search). Member RANKING is pooled-κ; single-judge NOMINATION is pooled+BEM κ (NOTE 13).
-- Determinism (NOTE 12): a FRESH LJ-2 20-coord manifest is drawn at lock (seeded, committed) — the
-  matrix adds new judges, so reusing LJ-1's seed-20260711 manifest is fine for the 3 shared judges
-  but a fresh draw covers the roster uniformly; either is byte-exact-checkable.
 - Gates: G-B single-sourced in `GATES`; G-A as LOCALJUDGE-1; G-C single-judge as LJ-1, ensemble
   narrowed (§4).
 - ollama version; ceiling/quant deviation (GLM-Q4 I2 only; no new deviation this arc).
