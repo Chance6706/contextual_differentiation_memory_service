@@ -163,10 +163,16 @@ rows. The CONFIRMATION holdout (§3) is its untouched test set. This is pre-comm
 corpus cannot later be retro-fitted into a favorable split. FT is NOT licensed by this arc.
 
 ## 6. Phases
-- **Build:** partition-aware scorer extension (selection/confirmation + blinding guard); matrix
-  difficulty aggregator; ensemble scorer (the 6-member family above); label-noise extractor; the
-  LJ-F6 (`--sample-manifest` absent-file hole) and LJ-F7 (digest capture) harness fixes. Lock tests
-  for each. `local_judge.py`/`local_swap.py` untouched.
+- **Build:** four NEW tools atop the frozen LJ-1 harness — partition-aware scorer (selection/
+  confirmation + blinding guard, wraps the frozen `local_judge_score.score_corpus`); matrix
+  difficulty aggregator; ensemble scorer (the 6-member family above); label-noise extractor. Lock
+  tests for each. **`local_judge.py`/`local_swap.py`/`local_judge_score.py` stay byte-frozen** —
+  the judging path must remain identical to LJ-1 for cross-arc comparability (RUBRIC_A4 + prompt +
+  parse), so nothing that touches a judgment is edited. Consequently: **LJ-F7 (digest capture) is
+  handled OUT OF BAND** — a tiny run-metadata helper records each model's `ollama show`
+  digest + version at run time, without editing the harness; **LJ-F6 (`--sample-manifest`
+  absent-file hole) is MOOT here** — the matrix uses full corpus, no `--sample-manifest` — and is
+  deferred to a separate maintenance PR (not folded into a frozen-harness arc).
 - **Rule-12 double pressure test** (2 adversarial agents) → fold → **LOCK** (§9).
 - **Phase M (matrix):** all ~62 viable resident judges × full corpus, single quant, serial nohup +
   cache-resume; per-model verdict-blind audit + 20-row determinism as each finishes; stalls
