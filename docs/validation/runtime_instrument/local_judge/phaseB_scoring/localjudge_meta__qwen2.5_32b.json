@@ -1,0 +1,244 @@
+{
+ "model": "qwen2.5:32b",
+ "url": "http://localhost:11434",
+ "num_ctx": 8192,
+ "n_predict": 16,
+ "rubric_sha": "cd715d79eb23e4bcbfa3711c0a3dc7a1b630e54ae1bb90108ed8c5dccfd08d51",
+ "started": "2026-07-12T03:11:41",
+ "files": {
+  "batch1_granite_mistral_JUDGE.jsonl": {
+   "judged": 398,
+   "passthrough": 372,
+   "ctx_skipped": 0,
+   "seconds": 271.3
+  },
+  "batch2_expansion_JUDGE.jsonl": {
+   "judged": 335,
+   "passthrough": 575,
+   "ctx_skipped": 0,
+   "seconds": 238.5
+  },
+  "blockframe_b_JUDGE.jsonl": {
+   "judged": 2246,
+   "passthrough": 1498,
+   "ctx_skipped": 0,
+   "seconds": 1752.4
+  },
+  "blockframe_c_JUDGE.jsonl": {
+   "judged": 1603,
+   "passthrough": 2141,
+   "ctx_skipped": 0,
+   "seconds": 1206.4
+  },
+  "blockframe_r_perm_JUDGE.jsonl": {
+   "judged": 1282,
+   "passthrough": 254,
+   "ctx_skipped": 0,
+   "seconds": 949.7
+  },
+  "blockframe_r_s11_JUDGE.jsonl": {
+   "judged": 1268,
+   "passthrough": 268,
+   "ctx_skipped": 0,
+   "seconds": 941.0
+  },
+  "blockframe_r_s12_JUDGE.jsonl": {
+   "judged": 1220,
+   "passthrough": 316,
+   "ctx_skipped": 0,
+   "seconds": 901.0
+  },
+  "blockframe_r_s13_JUDGE.jsonl": {
+   "judged": 1241,
+   "passthrough": 295,
+   "ctx_skipped": 0,
+   "seconds": 925.1
+  },
+  "blockframe_r_t0_JUDGE.jsonl": {
+   "judged": 1263,
+   "passthrough": 273,
+   "ctx_skipped": 0,
+   "seconds": 911.8
+  },
+  "cleanstrata_JUDGE.jsonl": {
+   "judged": 1257,
+   "passthrough": 2247,
+   "ctx_skipped": 0,
+   "seconds": 706.2
+  },
+  "cons_p1_s11_JUDGE.jsonl": {
+   "judged": 2543,
+   "passthrough": 1201,
+   "ctx_skipped": 0,
+   "seconds": 1767.5
+  },
+  "cons_p1_s12_JUDGE.jsonl": {
+   "judged": 2507,
+   "passthrough": 1237,
+   "ctx_skipped": 0,
+   "seconds": 1773.9
+  },
+  "cons_p1_s13_JUDGE.jsonl": {
+   "judged": 2463,
+   "passthrough": 1281,
+   "ctx_skipped": 0,
+   "seconds": 1718.5
+  },
+  "cons_p2_JUDGE.jsonl": {
+   "judged": 2185,
+   "passthrough": 695,
+   "ctx_skipped": 0,
+   "seconds": 1065.9
+  },
+  "cons_p3_JUDGE.jsonl": {
+   "judged": 2543,
+   "passthrough": 1201,
+   "ctx_skipped": 0,
+   "seconds": 1936.1
+  },
+  "cons_p4_JUDGE.jsonl": {
+   "judged": 2613,
+   "passthrough": 1131,
+   "ctx_skipped": 0,
+   "seconds": 1734.1
+  },
+  "disambig_a_JUDGE.jsonl": {
+   "judged": 2364,
+   "passthrough": 1380,
+   "ctx_skipped": 0,
+   "seconds": 1826.9
+  },
+  "disambig_c_JUDGE.jsonl": {
+   "judged": 1603,
+   "passthrough": 2141,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "disambig_h_JUDGE.jsonl": {
+   "judged": 1962,
+   "passthrough": 1782,
+   "ctx_skipped": 0,
+   "seconds": 1510.8
+  },
+  "disambig_m_JUDGE.jsonl": {
+   "judged": 2113,
+   "passthrough": 1631,
+   "ctx_skipped": 0,
+   "seconds": 1648.0
+  },
+  "filler_filler_JUDGE.jsonl": {
+   "judged": 2364,
+   "passthrough": 1380,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "filler_single_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 251.1
+  },
+  "filler_triple_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 1462.6
+  },
+  "frame_filler_JUDGE.jsonl": {
+   "judged": 2364,
+   "passthrough": 1380,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "frame_outofblock_JUDGE.jsonl": {
+   "judged": 695,
+   "passthrough": 553,
+   "ctx_skipped": 0,
+   "seconds": 520.2
+  },
+  "frame_single_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "frame_single_RETEST_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 0.0
+  },
+  "frame_team_JUDGE.jsonl": {
+   "judged": 2285,
+   "passthrough": 1459,
+   "ctx_skipped": 0,
+   "seconds": 1759.4
+  },
+  "frame_triple_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "frame_triple_RETEST_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "gen4_JUDGE.jsonl": {
+   "judged": 1167,
+   "passthrough": 1809,
+   "ctx_skipped": 0,
+   "seconds": 302.8
+  },
+  "identity_power_JUDGE.jsonl": {
+   "judged": 1798,
+   "passthrough": 2906,
+   "ctx_skipped": 0,
+   "seconds": 452.5
+  },
+  "multifact_single_JUDGE.jsonl": {
+   "judged": 980,
+   "passthrough": 1356,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "multifact_triple_JUDGE.jsonl": {
+   "judged": 3691,
+   "passthrough": 3317,
+   "ctx_skipped": 0,
+   "seconds": 1842.3
+  },
+  "padding_padded_JUDGE.jsonl": {
+   "judged": 745,
+   "passthrough": 503,
+   "ctx_skipped": 0,
+   "seconds": 569.4
+  },
+  "padding_single_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 0.0
+  },
+  "padding_triple_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  }
+ },
+ "ollama_version": "0.30.10",
+ "model_digest": null,
+ "model_details": {
+  "parent_model": "",
+  "format": "gguf",
+  "family": "qwen2",
+  "families": [
+   "qwen2"
+  ],
+  "parameter_size": "32.8B",
+  "quantization_level": "Q4_K_M"
+ }
+}
