@@ -310,6 +310,34 @@ consolidates with the queued -D residual); no ingredient relaxed without re-meas
 re-measured on BOTH axes. Then STOP per the pause-between-arcs policy; ratified next arc = local-judge
 validation. (Doc: `DISAMBIG_RESULTS.md`.)
 
+## 4.14. Local-judge validation — FAIL: no local judge adopted; the panel stays; gold-screening optimism quantified — #(this PR)
+**Motivated by:** the ratified local-judge arc — replace ~$25–30/epoch OpenRouter panel judging with a
+local ollama judge on Sparky + A′ spot-audits, validated against the committed record as a free val set.
+**Did:** locked prereg (toolchain sha-pinned, 18 lock tests; amendment A1 = legacy single-token shim,
+disclosed). Phase A gold screening (5 candidates × 228): GLM-4.5-Air P=1.000/R=0.902 PASS,
+nemotron-30B-A3B 0.902/0.902 PASS, qwen2.5:32b 0.937/0.967 (probe), gemma3-27b + llama3.1-8b FAIL on P.
+Phase B FULL corpus (Josh-ratified): 62,103 committed-voted rows × 3 models, ~28 h GPU, $0 API;
+verdict-blind audits 3/3 PASS (coverage 1.0000, determinism 20/20 byte-exact ×3).
+**Found: ALL candidates FAIL G-B.** GLM pooled κ 0.711 [0.700,0.721] vs gate 0.80 (BEM 0.694, recall
+sens 0.626); nemotron 0.569 (recall P 0.101 — false-alarm spray); qwen 0.613 (recall P 0.044).
+Ceiling-suspect row evaluated, NOT triggered — single-token-era files are GLM's #1/#2/#7/#8/#13 strata;
+agreement tracks scaffold difficulty, not epoch age. Opposite failure modes: GLM misses breaches 6:1
+(3,294 miss / 551 false-breach binary; 49% of flips on knife-edge 3–2 panel splits; misses = the
+silent-corruption direction G-A was designed against), nemotron/qwen spray false breaches (4,322 / 3,991)
+incl. ~1,400–1,800 against unanimous panels. **Gold→corpus optimism quantified:** the rubric-in-sample
+discount (prereg NOTE 8) was load-bearing — gold-P=1.000 → corpus κ 0.711. **Self-family probe
+INVERTED:** qwen judges its own family BETTER (κ 0.757) than disjoint judges on the same rows
+(0.617/0.559) and than itself elsewhere (0.613) — removes self-family contamination as a failure
+explanation; family-disjoint rule kept regardless.
+> **Bounds:** single-judge vs 5-vendor-plurality semantics unreplaced; corpus κ bounds but does not
+> eliminate cross-epoch panel drift; gold is rubric-in-sample; no generalization beyond this rubric,
+> corpus families, or the registered quants; Phase C never ran (no nominee).
+**→ Therefore next (prereg §5 FAIL branch):** panel stays default; the three committed breach-flip
+worksheets (`local_judge/phaseB_scoring/`) are the error-analysis input for a possible FT-judge or
+rubric-adaptation follow-on — NEW prereg required, not licensed. Register: LJ-F1..F8 (incl. two
+tooling gaps: manifest absent-file hole, digest capture). Then STOP per pause-between-arcs; queue to
+Josh. (Doc: `docs/validation/runtime_instrument/local_judge/LOCALJUDGE_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

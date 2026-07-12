@@ -1,6 +1,17 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-10 PM (DISAMBIG ladder DONE — **what makes the -D world block work is DISTRIBUTED:
+_Last updated: 2026-07-12 (LOCALJUDGE arc DONE — **FAIL: no local judge adopted, the 5-vendor A′ panel
+stays the default instrument**. All three Phase B candidates fail the locked corpus gates on the full
+62,103-row committed record: GLM-4.5-Air pooled κ 0.711 (gate 0.80; misses breaches 6:1 — the
+silent-corruption direction), nemotron-30B-A3B 0.569 (recall precision 0.101 — false-alarm spray),
+qwen2.5:32b probe 0.613. Ceiling-suspect escape NOT triggered (old-epoch files are GLM's BEST strata).
+Gold→corpus optimism quantified: gold-P=1.000 → corpus κ 0.711 — the rubric-in-sample discount was
+load-bearing. Self-family probe INVERTED (qwen on own family 0.757 > disjoint 0.617/0.559); disjoint
+rule kept. Cost: $0 API + ~29 h Sparky GPU; per-epoch judging stays ~$25–30 panel. Follow-on (FT judge /
+rubric adaptation) needs a NEW prereg — the committed breach-flip worksheets are its error-analysis
+input. `docs/validation/runtime_instrument/local_judge/LOCALJUDGE_RESULTS.md`. **PAUSED per the
+pause-between-arcs policy — queue presented to Josh.** Prior 2026-07-10 PM: DISAMBIG ladder DONE —
+**what makes the -D world block work is DISTRIBUTED:
 membership/structure (A−M DRIVER, knife-edge LB95 +0.0055, share 0.38) + line-format+subject (H−C DRIVER,
 robust LB95 +0.0173, share 0.47); the -D header's de-attribution SEMANTICS are NULL on adoption (M−H, the
 length-clean rung; share ≤0.42 not excluded — not proven free either)**. Mechanism: every rung acts via
