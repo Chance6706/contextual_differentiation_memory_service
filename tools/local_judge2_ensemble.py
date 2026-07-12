@@ -16,12 +16,15 @@ the confirmation partition once.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from local_judge2_matrix import load_matrix  # noqa: E402
+from local_judge2_score import evaluate_gb, load_holdout, HOLDOUT_JSON  # noqa: E402
 from local_judge_score import kappa  # noqa: E402
+from local_judge import model_family  # noqa: E402
 
 KS = (3, 5, 7)
 COMBINERS = ("unweighted", "kappa-weighted")
@@ -88,11 +91,48 @@ def build_candidates(rows, judges):
     return cands, ranks
 
 
+def ensemble_buckets(members, weights, sel_rows, conf_rows):
+    """Build evaluate_gb inputs for an ENSEMBLE: κ strata/coverage/strict on CONFIRMATION,
+    recall on FULL-corpus recall (both partitions). No row-level self-family exclusion — the
+    ensemble routes around each judge's own family per row (a row where all members are dropped
+    abstains → coverage loss, which is exactly what must be visible, red-team M2)."""
+    from collections import defaultdict
+    conf_strata = defaultdict(list)
+    conf_cov = defaultdict(lambda: [0, 0])
+    conf_strict = []
+    recall_full = []
+    for slot in conf_rows.values():
+        dec = ensemble_decision(slot, members, weights)
+        fam = slot["family"]
+        keys = ("ALL", f"mode:{slot['mode']}", f"family:{fam}")
+        for kk in keys:
+            conf_cov[kk][1] += 1
+        if dec is None:
+            conf_strict.append((slot["committed"], "NONE"))
+            continue
+        conf_strict.append((slot["committed"], dec))
+        for kk in keys:
+            conf_cov[kk][0] += 1
+            conf_strata[kk].append((slot["committed"], dec))
+    for src in (sel_rows, conf_rows):
+        for slot in src.values():
+            if slot["mode"] != "recall":
+                continue
+            dec = ensemble_decision(slot, members, weights)
+            if dec is not None:
+                recall_full.append((slot["committed"], dec))
+    return conf_strata, conf_cov, conf_strict, recall_full
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("dirs", nargs="+")
     ap.add_argument("--confirm", nargs=2, metavar=("K", "COMBINER"),
-                    help="score the named frozen ensemble on the CONFIRMATION partition")
+                    help="evaluate the named frozen ensemble on the full locked G-B (κ on "
+                         "confirmation, recall on full corpus)")
+    ap.add_argument("--members-file", help="committed member freeze (json {k,combiner,members}); "
+                    "if given, the re-derived member list must match it (red-team S5)")
+    ap.add_argument("--enforce", action="store_true")
     args = ap.parse_args()
 
     if args.confirm:
@@ -105,13 +145,19 @@ def main() -> int:
         if k > len(disjoint_ranked):
             raise SystemExit(f"cannot form k={k}: only {len(disjoint_ranked)} rankable judges")
         members = disjoint_ranked[:k]
+        if args.members_file:  # verify the confirmed ensemble == the nominated one (S5)
+            frozen = json.loads(Path(args.members_file).read_text(encoding="utf-8"))
+            if [frozen.get("k"), frozen.get("combiner"), sorted(frozen.get("members", []))] != \
+               [k, comb, sorted(members)]:
+                raise SystemExit(f"MEMBER FREEZE mismatch: re-derived (k={k},{comb},{sorted(members)}) "
+                                 f"!= committed {args.members_file}; refusing to confirm a different "
+                                 f"ensemble than was nominated.")
         weights = None if comb == "unweighted" else {j: ranks[j] for j in members}
         conf_rows, _ = load_matrix(args.dirs, "confirmation")
-        res = score_ensemble(conf_rows, members, weights)
+        cs, cc, ck, rf = ensemble_buckets(members, weights, sel_rows, conf_rows)
         print(f"### CONFIRMATION ensemble k={k} {comb}  members(selection-ranked)={members}")
-        print(f"  pooled κ={res['pooled_kappa']:.3f}  BEM κ={res['bem_kappa']:.3f}  "
-              f"n={res['n']}  coverage={res['coverage']:.3f}")
-        return 0
+        ok = evaluate_gb(cs, cc, ck, rf, f"ensemble:k{k}:{comb}", args.enforce)
+        return 2 if (args.enforce and not ok) else 0
 
     rows, judges = load_matrix(args.dirs, "selection")
     cands, ranks = build_candidates(rows, judges)

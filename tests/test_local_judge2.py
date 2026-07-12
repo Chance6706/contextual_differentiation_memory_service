@@ -136,7 +136,7 @@ def test_confirmation_with_correct_nominee_runs(three_judges):
     r = subprocess.run([sys.executable, str(TOOLS / "local_judge2_score.py"), *inputs,
                         "--partition", "confirmation", "--confirm-nominee", "J1"],
                        capture_output=True, text=True)
-    assert r.returncode == 0 and "partition=confirmation" in r.stdout
+    assert r.returncode == 0 and "G-B VERDICT (single:J1)" in r.stdout
 
 
 # ---------- matrix ----------
@@ -264,6 +264,70 @@ def test_parity_guard_fails_on_ragged_judge(tmp_path):
     _write_judge(d2, "J2", {sel: ragged})
     with pytest.raises(SystemExit, match="PARITY GUARD"):
         mat.load_matrix([str(d1), str(d2)], "selection")
+
+
+def test_parity_guard_fails_on_reordered_judge(tmp_path):
+    # SAME row count but a different committed identity at a line — row-count parity would MISS
+    # this; content-key parity (subject/mode/probe/token) must catch it (red-team S3).
+    sel = "cons_p2_JUDGE.jsonl"
+    a = [_row(BREACH_VOTES, "OWNED", "granite-3.0-8b-q8", probe=i) for i in range(3)]
+    b = [_row(BREACH_VOTES, "OWNED", "granite-3.0-8b-q8", probe=i) for i in (0, 2, 1)]  # reordered
+    d1, d2 = tmp_path / "J1", tmp_path / "J2"
+    _write_judge(d1, "J1", {sel: a})
+    _write_judge(d2, "J2", {sel: b})
+    with pytest.raises(SystemExit, match="PARITY GUARD"):
+        mat.load_matrix([str(d1), str(d2)], "selection")
+
+
+def test_recall_gate_uses_full_corpus_not_confirmation_partition():
+    # buckets_from_rows must route recall from BOTH partitions into recall_full while the pooled
+    # κ strata see only the confirmation partition (red-team M1: no selection-recall dilution of
+    # the pooled/κ gates). Synthetic rows across one selection + one confirmation file.
+    import local_judge2_score as s
+    hold = s.load_holdout(HOLDOUT)
+    sel_f, conf_f = "cons_p2_JUDGE.jsonl", "blockframe_b_JUDGE.jsonl"
+
+    def rows():
+        # confirmation BEM (counts toward pooled) + recall in BOTH partitions (recall_full only)
+        yield conf_f, _row(BREACH_VOTES, "OWNED", "granite-3.0-8b-q8", mode="BEM")
+        yield conf_f, _row(BREACH_VOTES, "OWNED", "granite-3.0-8b-q8", mode="recall")
+        yield sel_f, _row(NOT_VOTES, "OBSERVED", "granite-3.0-8b-q8", mode="recall")
+    cs, cc, ck, rf = s.buckets_from_rows(rows(), lambda r: s.local_decision(r.get("local_label")),
+                                         hold)
+    # pooled = the 2 CONFIRMATION rows (BEM + recall), both BREACH; the SELECTION recall (a NOT)
+    # must NOT leak into pooled (red-team M1). recall_full = both partitions' recall = 2.
+    assert len(cs["ALL"]) == 2 and all(c == "BREACH" for c, _ in cs["ALL"])
+    assert len(rf) == 2 and {d for _, d in rf} == {"BREACH", "NOT"}
+
+
+def test_nominee_freeze_refuses_uncommitted(three_judges, tmp_path):
+    j1 = [d for d in three_judges if d.endswith("J1")][0]
+    inputs = [str(p) for p in Path(j1).glob("*.jsonl")]
+    nf = tmp_path / "nominees.json"
+    nf.write_text(json.dumps({"single": ["some-other-model"]}), encoding="utf-8")
+    r = subprocess.run([sys.executable, str(TOOLS / "local_judge2_score.py"), *inputs,
+                        "--partition", "confirmation", "--confirm-nominee", "J1",
+                        "--nominee-file", str(nf)], capture_output=True, text=True)
+    assert r.returncode != 0 and "NOMINEE FREEZE" in (r.stdout + r.stderr)
+
+
+def test_ensemble_member_freeze_mismatch_refuses(three_judges, tmp_path):
+    mf = tmp_path / "members.json"
+    mf.write_text(json.dumps({"k": 3, "combiner": "unweighted", "members": ["wrong", "set", "x"]}),
+                  encoding="utf-8")
+    r = subprocess.run([sys.executable, str(TOOLS / "local_judge2_ensemble.py"), *three_judges,
+                        "--confirm", "3", "unweighted", "--members-file", str(mf)],
+                       capture_output=True, text=True)
+    assert r.returncode != 0 and "MEMBER FREEZE" in (r.stdout + r.stderr)
+
+
+def test_ensemble_confirm_reports_full_gb_surface(three_judges):
+    r = subprocess.run([sys.executable, str(TOOLS / "local_judge2_ensemble.py"), *three_judges,
+                        "--confirm", "3", "unweighted"], capture_output=True, text=True)
+    # the ensemble confirm must show the FULL surface, not just pooled+BEM (red-team M2)
+    assert r.returncode == 0
+    assert "recall sensitivity" in r.stdout and "recall specificity" in r.stdout
+    assert "G-B VERDICT (ensemble:k3:unweighted)" in r.stdout
 
 
 def test_leaderboard_ranks_and_reports_bem(three_judges):

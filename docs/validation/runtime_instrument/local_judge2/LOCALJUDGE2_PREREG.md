@@ -105,11 +105,20 @@ a frozen nominee.
 **Gate-evaluation surfaces (pre-registered, with rationale):**
 - pooled κ, BEM κ, per-family κ → evaluated on the **CONFIRMATION holdout** (where winner's curse
   bites and n is sufficient).
-- recall sensitivity/specificity → evaluated on the **FULL corpus** for the frozen nominee. Rationale:
-  recall breach is sparse (206 corpus-wide; ~65 in the holdout — too thin to gate), it is NOT a
-  selection axis (nominees are chosen on pooled+BEM selection κ), and sens/spec is far less prone to
-  the max-over-candidates bias than a maximized κ. Evaluating it on the full corpus for a
-  *pre-fixed* nominee introduces no selection optimism.
+- recall sensitivity/specificity → evaluated on the **FULL-corpus recall subset** for the frozen
+  nominee. Rationale: recall breach is sparse (206 corpus-wide; **48** in the holdout — verified, even
+  thinner than first written; too thin to gate), it is NOT a selection axis (nominees are chosen on
+  pooled+BEM selection κ), and sens/spec is far less prone to the max-over-candidates bias than a
+  maximized κ. Evaluating it on the full corpus for a *pre-fixed* nominee introduces no selection
+  optimism. (Implemented in `local_judge2_score.evaluate_gb`, shared by the single-judge and ensemble
+  confirmation paths so the recall gate NEVER dilutes the confirmation κ population — red-team M1.)
+
+**Estimand scope — subject-in-sample (red-team S6).** The file-level split breaks within-scaffold
+correlation (its job — it controls ensemble-weight and scaffold-type overfit), but all 24 subject
+models appear in BOTH partitions, so confirmation is NOT an independent subject draw. The residual
+winner's-curse at n≈19k is ~0.01-level (per-judge κ SE≈0.005) — it does not sink the design, but the
+adoption claim is "this judge/ensemble agrees with the panel on THIS corpus's scaffolds/subjects,"
+NOT "on unseen subjects" (§7 already disclaims new-subject generalization; this names the mechanism).
 
 ## 4. Estimands & gates
 
@@ -118,15 +127,22 @@ Per row, the vector of local decisions across all family-disjoint judges (self-f
 per judge). Derived strata:
 - **difficulty map:** rows sort into *concordant-correct* (all disjoint judges match the panel),
   *split* (judges disagree — validity-checked against the panel's own knife-edge 3–2 rows), and
-  *concordant-wrong* (all disjoint judges cross the fence the same way vs the panel — a shared local
-  blind spot). Report the size and composition of each stratum, by channel/family/epoch.
+  *concordant-wrong* (all disjoint judges cross the fence the same way vs the panel). Report size +
+  composition per stratum, by channel/family/epoch, plus the row-difficulty histogram (# disjoint
+  judges disagreeing). **NOTE (red-team N11):** strict unanimity ("ALL disjoint judges") for
+  *concordant-wrong* is near-degenerate at 60+ heterogeneous judges (the conservative↔liberal spread
+  makes full agreement rare) — expect this stratum to shrink toward zero and the map to read mostly
+  as *split*. The OPERATIVE shared-blind-spot signal is the label-noise probe's **≥K-distinct-family**
+  definition, NOT this unanimity one; the results doc must not conflate the two.
 - **per-judge two-sided error:** miss rate (BREACH→NOT) AND false-alarm rate (NOT→BREACH) per judge,
   stratified; the phenotype test — is conservative-vs-liberal architectural (active-param count,
   tuning recipe) or idiosyncratic? Descriptive; no gate.
-- **self-family at scale (LJ-F3 generalization):** for every judge that has same-family subjects in
-  the corpus, κ on own-family vs disjoint rows, paired. n=many families (vs LJ-1's n=1). Tests
-  whether the inverted self-family effect replicates. Descriptive; the roster's family-disjoint
-  adoption rule stands regardless (conservative).
+- **self-family at scale (LJ-F3):** for every judge with same-family subjects, κ on own-family vs
+  disjoint rows, paired. n=many families (vs LJ-1's n=1). **CONFOUNDED (red-team S7):** own-family
+  vs disjoint rows differ in subjects/epochs/prevalence, not just family-match — so the κ delta
+  conflates family with subject-difficulty and CANNOT isolate a causal family effect. Reported as a
+  descriptive replication SIGNAL only (same sign/direction as LJ-1), not a clean test; the
+  family-disjoint adoption rule stands regardless (conservative).
 
 ### E-single (adoption candidate; SELECTION → nominate → CONFIRMATION)
 Best single family-disjoint judge by SELECTION pooled+BEM κ. **G-B gates UNCHANGED** and
@@ -163,10 +179,16 @@ Josh prefers the arc be self-contained, the emitter + deploy seam move into §6 
 narrowing is removed — a scope decision recorded here, not a silent cut.)
 
 ### Label-noise probe (descriptive; optional paid follow-up)
-Rows in the *concordant-wrong* stratum where ≥ K (pre-set K=5) family-disjoint judges of DIFFERENT
-families all cross the fence the same way against the panel are panel-error candidates. Sample (seeded,
-≤ 200) → OPTIONAL panel re-adjudication (~$2–3, Josh-gated). Outcome is a committed corpus-quality
-note; it does NOT change any gate or committed label in THIS arc (that would need its own prereg).
+Rows where ≥ K (pre-set K=5) family-disjoint judges of DISTINCT families all cross the fence the same
+way against the panel (a split family is ignored, not disqualifying — SHOULD_FIX 7). **FRAMING
+(red-team S9): these are AMBIGUOUS between a panel-label error and a SHARED LOCAL BIAS.** LJ-1 proved
+local judges share systematic blind spots, so K diverse families agreeing-and-wrong is at least as
+likely a common training artifact as a mislabel — the yield is expected to be shared-local-bias
+dominated. So this is a "rows to look at" probe, NOT a "confirmed panel errors" list; only the panel
+re-adjudication can tell the two apart. Sample (seeded, ≤ 200) → OPTIONAL panel re-adjudication
+(~$2–3, Josh-gated). Outcome is a committed corpus-quality note; changes NO gate or committed label
+this arc (that needs its own prereg). (`model_family` collapsing the qwen distills + laguna to one
+qwen family makes the distinct-family count CONSERVATIVE — the safe direction.)
 
 ## 5. FT holdout (pre-committed now, so the option stays honest later)
 If a fine-tuned-judge follow-on is ever licensed (its own NEW prereg), it may train ONLY on SELECTION
@@ -231,16 +253,23 @@ is descriptive here).
 | nothing clears G-B, but the difficulty map shows a *prompt-fixable* shared blind spot | rubric/prompt-adaptation follow-on (new prereg); no adoption |
 | nothing clears, blind spot NOT prompt/ensemble-fixable | FT-judge follow-on licensed to draft (new prereg); trains on SELECTION, tests on the frozen holdout |
 | self-family effect replicates (helps) across families | documented; family-matched judging becomes a first-class FT design axis; disjoint rule still kept for un-fine-tuned judges |
-| label-noise probe finds confirmed panel errors | committed corpus-quality note + a NEW prereg to consider re-adjudication; does not retro-change this arc's numbers |
+| label-noise probe rows re-adjudicate as panel errors (vs shared local bias) | committed corpus-quality note + a NEW prereg to consider re-adjudication; does not retro-change this arc's numbers |
 | a new-pull (esp. Nemotron-3-Super) clears where residents failed | the 200B-capability thesis is supported; adopt per row 1/2 |
 
 ## 9. Locked manifest — [TO FILL AT LOCK]
 - Toolchain shas — FROZEN (byte-identical to LJ-1, judging path): local_judge.py, local_swap.py,
   local_judge_score.py. NEW (results-determining, sha-pinned at lock): local_judge2_score.py
-  (partition scorer + blinding guard), local_judge2_matrix.py (matrix + leaderboard + pairwise),
-  local_judge2_ensemble.py, local_judge2_labelnoise.py. Lock tests: `tests/test_local_judge2.py`
-  (21 at fold time). The run driver + digest helper are OPERATIONAL (not results-determining) —
-  listed but outside the pinned sha set.
+  (partition scorer + blinding guard + `evaluate_gb`, the shared partition-correct G-B evaluator —
+  κ on confirmation, recall on full-corpus, red-team M1/M2), local_judge2_matrix.py (matrix +
+  content-parity guard + leaderboard + pairwise), local_judge2_ensemble.py (full-G-B confirm +
+  member freeze), local_judge2_labelnoise.py. Lock tests: `tests/test_local_judge2.py` (**26** after
+  the pressure-test fold). The run driver + digest helper are OPERATIONAL (not results-determining) —
+  outside the pinned sha set.
+- **Roster-time family assertion (red-team N12/N13):** at lock, verify (a) no locked-roster safe-name
+  contains `__` (the filename judge-key separator — all current tags checked clean), and (b) if any
+  future corpus subject is glm/gpt-oss/openai-family, `local_judge.model_family` gains the pattern
+  (today none exist, so their judges are correctly singleton families and self-family exclusion is
+  never needed for them).
 - Rubric sha `cd715d79…` (bridging tripwire).
 - Confirmation holdout: `confirmation_holdout.json` sha256
   `b673e2a598a50530bdb435a651c3ef4692fcaaee79e104594dda4b5b8a90f16f` (12 files, 19,236 rows).
@@ -264,7 +293,45 @@ is descriptive here).
   judged outputs stay UNCOMMITTED (as LJ-1); only scoring receipts + the matrix/leaderboard/
   difficulty summaries + digests are committed.
 
-## 10. Pressure-test record — [TO FILL: two adversarial agents, pre-lock]
+## 10. Pressure-test record (rule 12 — two adversarial agents, pre-lock, 2026-07-12)
+
+Both agents verified numeric claims against the corpus, not just read the docs. All MUST_FIX and
+actionable SHOULD_FIX folded BEFORE lock; the fold is reflected in the tools + 26 lock tests.
+
+**Legitimate-use / execution review — 3 MUST_FIX + 8 SHOULD_FIX, all folded:**
+- MF1 matrix parity guard (ragged/co-mingled file → silent misalignment) → cross-judge row-count +
+  content-identity guard in `load_matrix`, two lock tests.
+- MF2 no orchestration for the 66-model run → `cdms_localjudge2_run.sh` (model-outer, pre-warm,
+  judge→digest→audit→determinism, PASS/FAIL ledger, skip-green, reboot-safe; analysis on Sparky).
+- MF3 ensemble G-C/deploy not executable → §4 scope-narrowed (ensemble G-B nominate+confirm this
+  arc; G-C+deploy deferred to a disclosed follow-on build; §8 cost line carries the build cost).
+- SF folded: single-judge selection leaderboard; judge-redundancy/pairwise + row-difficulty
+  histogram; label-noise split-family tolerance; per-epoch strata printed; concrete gpt-oss parse
+  GATE (≥95% under frozen n_predict=16 else EXCLUDE); run order (heavyweights+pulls first, serial
+  defended); digest helper vs `/api/tags`; analysis-on-Sparky. NOTES 12–16 folded.
+
+**Statistical / leakage red-team — 2 MUST_FIX + 8 SHOULD_FIX + 3 NOTE, all folded:**
+- M1 `--recall-full-corpus` diluted the confirmation κ population with 44% selection rows (biased
+  DOWN, could manufacture a false FAIL near 0.80) → replaced the confirmation path with the shared
+  `evaluate_gb` (κ/family/coverage/strict strictly on confirmation; recall sens/spec on the
+  full-corpus recall subset). Verified on GLM (pooled 0.698 / recall n_breach=206). Lock test pins
+  the population separation.
+- M2 ensemble evaluated on only 2 of ~7 gate lines → ensemble `--confirm` now runs the full
+  `evaluate_gb` (recall + family + coverage + κ_strict); the qwen-coverage-crater scenario is now
+  visible. Lock test asserts the full surface prints.
+- S3 content-parity (reordered mirror, same count) → identity-key guard + lock test.
+- S4/S5 blinding is per-CALL not per-analyst; ensemble nominee unpinned → `--nominee-file` /
+  `--members-file` freezes (confirmation refuses an uncommitted/mismatched nominee), two lock tests;
+  honest wording that the guard blinds a call. S6 subject-in-sample disclosed (§3). S7 self-family
+  confound disclosed (§4). S8 recall-breach count corrected 65→48 (§3). S9 label-noise reframed as
+  panel-error-OR-shared-local-bias (§4/§8). S10 the missing control tests added (recall population,
+  ensemble full-G-B, matrix alignment, freezes). N11 difficulty-map unanimity near-degenerate at
+  scale + don't-conflate note (§4). N12/N13 roster-time assertions (§9).
+
+VERIFIED CLEAN by the red-team (not folded because sound): holdout SHA + family minimums exact;
+frozen-harness reuse honest (no monkeypatch/mutation; GATES via frozen path); blinding refusals
+correct; ensemble ranks on selection only; selection scoring leaks no confirmation rows; partition
+row-filtering preserves the frozen scorer's bootstrap/coverage/self-family/escalated handling.
 
 ## 11. Results doc MUST report (pre-named checklist) — [expands LJ-1 §6.5]
 Matrix: difficulty-map strata sizes/composition **pooled + by channel + by family + by epoch**

@@ -61,6 +61,7 @@ def load_matrix(dirs, partition="selection", holdout_path=HOLDOUT_JSON):
     rows = {}
     judges = set()
     counts = defaultdict(dict)  # cname -> {judge -> non-blank line count}
+    mismatch = []               # content-identity misalignments (reordered mirrors)
     for d in dirs:
         d = Path(d)
         for p in sorted(d.glob("*_JUDGE__*.jsonl")):
@@ -83,11 +84,19 @@ def load_matrix(dirs, partition="selection", holdout_path=HOLDOUT_JSON):
                     continue  # escalated tie — not in the decided universe
                 key = (cname, i)
                 slot = rows.get(key)
+                ident = (r.get("subject_model"), r.get("mode"), r.get("probe_idx"), r.get("token"))
                 if slot is None:
                     slot = rows[key] = {
                         "committed": cdec, "mode": r.get("mode"),
                         "family": model_family(r.get("subject_model", "")) or "other",
-                        "subject_model": r.get("subject_model"), "file": cname, "votes": {}}
+                        "subject_model": r.get("subject_model"), "probe_idx": r.get("probe_idx"),
+                        "file": cname, "ident": ident, "votes": {}}
+                elif slot["ident"] != ident:
+                    # same line index, different committed identity → a reordered/misaligned mirror
+                    # (row-count parity would MISS this). Fail loudly (red-team S3).
+                    mismatch.append(f"{cname}:{i} judge {judge} row-identity {ident} != "
+                                    f"{slot['ident']} (misaligned mirror)")
+                    continue
                 slot["votes"][judge] = {
                     "dec": local_dec(r.get("local_label")),
                     "label": r.get("local_label"),
@@ -95,10 +104,11 @@ def load_matrix(dirs, partition="selection", holdout_path=HOLDOUT_JSON):
             counts[cname][judge] = nb
     ragged = [f"{cname}: judges disagree on row count {perj}"
               for cname, perj in counts.items() if len(set(perj.values())) > 1]
-    if ragged:
+    if ragged or mismatch:
         raise SystemExit("PARITY GUARD: contributing judges are not line-paired —\n  "
-                         + "\n  ".join(ragged) + "\nRefusing to build a positionally-keyed matrix "
-                         "from ragged files (would silently misalign judges). Fix or exclude them.")
+                         + "\n  ".join(ragged + mismatch[:20]) + "\nRefusing to build a "
+                         "positionally-keyed matrix from misaligned files (would silently pair "
+                         "different rows). Fix or exclude them.")
     return rows, sorted(judges)
 
 
