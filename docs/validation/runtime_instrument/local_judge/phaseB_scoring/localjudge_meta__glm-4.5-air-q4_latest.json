@@ -1,0 +1,244 @@
+{
+ "model": "glm-4.5-air-q4:latest",
+ "url": "http://localhost:11434",
+ "num_ctx": 8192,
+ "n_predict": 16,
+ "rubric_sha": "cd715d79eb23e4bcbfa3711c0a3dc7a1b630e54ae1bb90108ed8c5dccfd08d51",
+ "started": "2026-07-11T07:51:10",
+ "files": {
+  "batch1_granite_mistral_JUDGE.jsonl": {
+   "judged": 398,
+   "passthrough": 372,
+   "ctx_skipped": 0,
+   "seconds": 310.6
+  },
+  "batch2_expansion_JUDGE.jsonl": {
+   "judged": 335,
+   "passthrough": 575,
+   "ctx_skipped": 0,
+   "seconds": 266.4
+  },
+  "blockframe_b_JUDGE.jsonl": {
+   "judged": 2246,
+   "passthrough": 1498,
+   "ctx_skipped": 0,
+   "seconds": 1959.2
+  },
+  "blockframe_c_JUDGE.jsonl": {
+   "judged": 1603,
+   "passthrough": 2141,
+   "ctx_skipped": 0,
+   "seconds": 1354.0
+  },
+  "blockframe_r_perm_JUDGE.jsonl": {
+   "judged": 1282,
+   "passthrough": 254,
+   "ctx_skipped": 0,
+   "seconds": 1074.4
+  },
+  "blockframe_r_s11_JUDGE.jsonl": {
+   "judged": 1268,
+   "passthrough": 268,
+   "ctx_skipped": 0,
+   "seconds": 1067.2
+  },
+  "blockframe_r_s12_JUDGE.jsonl": {
+   "judged": 1220,
+   "passthrough": 316,
+   "ctx_skipped": 0,
+   "seconds": 1018.2
+  },
+  "blockframe_r_s13_JUDGE.jsonl": {
+   "judged": 1241,
+   "passthrough": 295,
+   "ctx_skipped": 0,
+   "seconds": 1052.8
+  },
+  "blockframe_r_t0_JUDGE.jsonl": {
+   "judged": 1263,
+   "passthrough": 273,
+   "ctx_skipped": 0,
+   "seconds": 1037.9
+  },
+  "cleanstrata_JUDGE.jsonl": {
+   "judged": 1257,
+   "passthrough": 2247,
+   "ctx_skipped": 0,
+   "seconds": 793.0
+  },
+  "cons_p1_s11_JUDGE.jsonl": {
+   "judged": 2543,
+   "passthrough": 1201,
+   "ctx_skipped": 0,
+   "seconds": 1986.4
+  },
+  "cons_p1_s12_JUDGE.jsonl": {
+   "judged": 2507,
+   "passthrough": 1237,
+   "ctx_skipped": 0,
+   "seconds": 1987.4
+  },
+  "cons_p1_s13_JUDGE.jsonl": {
+   "judged": 2463,
+   "passthrough": 1281,
+   "ctx_skipped": 0,
+   "seconds": 1919.9
+  },
+  "cons_p2_JUDGE.jsonl": {
+   "judged": 2185,
+   "passthrough": 695,
+   "ctx_skipped": 0,
+   "seconds": 1190.7
+  },
+  "cons_p3_JUDGE.jsonl": {
+   "judged": 2543,
+   "passthrough": 1201,
+   "ctx_skipped": 0,
+   "seconds": 2174.2
+  },
+  "cons_p4_JUDGE.jsonl": {
+   "judged": 2613,
+   "passthrough": 1131,
+   "ctx_skipped": 0,
+   "seconds": 1937.0
+  },
+  "disambig_a_JUDGE.jsonl": {
+   "judged": 2364,
+   "passthrough": 1380,
+   "ctx_skipped": 0,
+   "seconds": 2026.6
+  },
+  "disambig_c_JUDGE.jsonl": {
+   "judged": 1603,
+   "passthrough": 2141,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "disambig_h_JUDGE.jsonl": {
+   "judged": 1962,
+   "passthrough": 1782,
+   "ctx_skipped": 0,
+   "seconds": 1682.6
+  },
+  "disambig_m_JUDGE.jsonl": {
+   "judged": 2113,
+   "passthrough": 1631,
+   "ctx_skipped": 0,
+   "seconds": 1837.8
+  },
+  "filler_filler_JUDGE.jsonl": {
+   "judged": 2364,
+   "passthrough": 1380,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "filler_single_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 288.8
+  },
+  "filler_triple_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 1633.1
+  },
+  "frame_filler_JUDGE.jsonl": {
+   "judged": 2364,
+   "passthrough": 1380,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "frame_outofblock_JUDGE.jsonl": {
+   "judged": 695,
+   "passthrough": 553,
+   "ctx_skipped": 0,
+   "seconds": 585.4
+  },
+  "frame_single_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 0.0
+  },
+  "frame_single_RETEST_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 0.0
+  },
+  "frame_team_JUDGE.jsonl": {
+   "judged": 2285,
+   "passthrough": 1459,
+   "ctx_skipped": 0,
+   "seconds": 1948.3
+  },
+  "frame_triple_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "frame_triple_RETEST_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  },
+  "gen4_JUDGE.jsonl": {
+   "judged": 1167,
+   "passthrough": 1809,
+   "ctx_skipped": 0,
+   "seconds": 337.9
+  },
+  "identity_power_JUDGE.jsonl": {
+   "judged": 1798,
+   "passthrough": 2906,
+   "ctx_skipped": 0,
+   "seconds": 511.7
+  },
+  "multifact_single_JUDGE.jsonl": {
+   "judged": 980,
+   "passthrough": 1356,
+   "ctx_skipped": 0,
+   "seconds": 0.0
+  },
+  "multifact_triple_JUDGE.jsonl": {
+   "judged": 3691,
+   "passthrough": 3317,
+   "ctx_skipped": 0,
+   "seconds": 2035.6
+  },
+  "padding_padded_JUDGE.jsonl": {
+   "judged": 745,
+   "passthrough": 503,
+   "ctx_skipped": 0,
+   "seconds": 633.5
+  },
+  "padding_single_JUDGE.jsonl": {
+   "judged": 747,
+   "passthrough": 501,
+   "ctx_skipped": 0,
+   "seconds": 0.0
+  },
+  "padding_triple_JUDGE.jsonl": {
+   "judged": 2530,
+   "passthrough": 1214,
+   "ctx_skipped": 0,
+   "seconds": 0.1
+  }
+ },
+ "ollama_version": "0.30.10",
+ "model_digest": null,
+ "model_details": {
+  "parent_model": "",
+  "format": "gguf",
+  "family": "glm4moe",
+  "families": [
+   "glm4moe"
+  ],
+  "parameter_size": "110.5B",
+  "quantization_level": "Q4_K_M"
+ }
+}

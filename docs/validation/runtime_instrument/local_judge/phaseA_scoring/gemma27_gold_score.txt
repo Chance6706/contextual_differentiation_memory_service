@@ -1,0 +1,15 @@
+====================================================================================================
+GOLD: local vs gold_label_a4  (n=228)   panel benchmarks: {'gold_4way_agreement': 0.921, 'gold_breach_agreement': 0.961, 'gold_breach_precision': 0.952, 'gold_breach_recall': 1.0}
+====================================================================================================
+  overall  4way=0.820  breach-agree=0.873  P=0.686[0.582,0.774](tp=59 fp=27)  R=0.967[0.888,0.991](fn=2)
+  BEM      4way=0.841  breach-agree=0.903  P=0.826[0.720,0.898](tp=57 fp=12)  R=0.966[0.885,0.991](fn=2)
+  recall   4way=0.783  breach-agree=0.819  P=0.118[0.033,0.343](tp=2 fp=15)  R=1.000[0.342,1.000](fn=0)
+  OWNED: P=0.680 (tp=34 fp=16)  R=0.971 (fn=1)
+  SELF_ATTRIBUTED: P=0.556 (tp=20 fp=16)  R=0.769 (fn=6)
+  planted positives: 9  caught-as-breach=9  caught-as-OWNED=9
+  unparseable local labels: 0
+----------------------------------------------------------------------------------------------------
+  G-A GATE EVALUATION (locked thresholds):
+    [PASS     ] gold breach recall ≥ 0.90: R=0.967 (fn=2)
+    [FAIL     ] gold breach precision ≥ 0.80: P=0.686 (fp=27)
+  G-A VERDICT: FAIL
