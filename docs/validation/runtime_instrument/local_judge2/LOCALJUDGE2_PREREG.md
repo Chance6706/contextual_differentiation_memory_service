@@ -4,7 +4,7 @@
 
 💵 **Cost: $0 OpenRouter** for the matrix and adoption screens (all judging is local on Sparky).
 GPU ≈ 3 weeks serial for the full-corpus matrix (all resident judges) + ~1 week for the adoption
-tier and the three new pulls; Nate coordination is no longer a constraint (Josh, 2026-07-12).
+tier and the two new pulls; Nate coordination is no longer a constraint (Josh, 2026-07-12).
 The ONLY paid step is the optional label-noise re-adjudication (~$2–3 panel spend, Josh-gated).
 
 ## 0. Why a second arc
@@ -24,7 +24,7 @@ what rows are hard (difficulty map), how each judge fails on BOTH sides of the f
 error profile), and whether a curated ensemble clears the adoption bar a single judge could not.
 It also pre-commits the honest test set an eventual fine-tuned judge would need.
 
-## 1. Roster — all resident judges + three new pulls
+## 1. Roster — all resident judges + two new pulls
 
 **Design decision (Josh-ratified 2026-07-12): FULL corpus for ALL judges, single quant.** The
 committed 13,145-coord manifest is **DEMOTED to a crash-resume/partial fallback only** — it is
@@ -50,18 +50,25 @@ expectations):
 - **Known load-stalls — attempt-once with the ollama-log diagnostic, expect exclusion:** gemma4:31b,
   llama3.3:70b-instruct-q8 (dense-70b stall class, LJ-1 memory).
 
-**Three new pulls (Josh-approved 2026-07-12), gold-screened then promoted on G-A pass:**
-- **NVIDIA-Nemotron-3-Super-120B-A12B** — 120B/12B MoE, ~65–70 GB Q4, family-disjoint; the
-  Nano-30B sibling passed G-A, this is the same recipe at 4× capacity. Strongest new candidate.
-- **gpt-oss-120b** — 117B/5.1B MoE, ~63 GB native MXFP4, OpenAI-family (disjoint). CAVEAT: reasoning
-  model — Phase-R contract check that a low-reasoning mode parses under n_predict=16 before corpus.
-- **MiniMax-M2.7** — 230B/10B MoE, only reachable at ~Q3 (~100 GB); the literal "200B-class" probe.
-  Registers a DEEPER quant deviation than GLM-Q4 (DEVIATIONS I2 extension) — flagged, Josh-approved.
+**Two new pulls (Josh-approved 2026-07-12, capped at Q4 — no deeper quant this arc), gold-screened
+then promoted on G-A pass:**
+- **NVIDIA-Nemotron-3-Super-120B-A12B** — 120B/12B MoE, Q4_K_M ~68 GB, family-disjoint; the Nano-30B
+  sibling passed G-A, this is the same recipe at 4× capacity. Strongest new candidate. GGUF is
+  3-way sharded (lmstudio-community) → manual download + `llama-gguf-split --merge` + `ollama create`
+  (ollama still rejects sharded pulls, issue #5245 — same path as LJ-1's GLM). Local tag
+  `nemotron-super-q4`.
+- **gpt-oss-120b** — 117B/5.1B MoE, ~65 GB native MXFP4, OpenAI-family (disjoint), pulls natively
+  (`gpt-oss:120b`). CAVEAT: reasoning model — Phase-R contract check that a low-reasoning mode parses
+  under n_predict=16 before corpus.
+- **DROPPED: MiniMax-M2.7** (230B/10B) — would have needed ~Q3 to fit 128 GB; Josh capped the new
+  pulls at Q4 (2026-07-12), so the deeper-quant "200B-class" probe is out of scope this arc. The
+  Q4 fit ceiling (~190–200B total) is still exercised by Nemotron-3-Super at 120B.
 
 **Fit/quant law (Sparky 128 GB unified):** Q4 ceiling ≈ 190–200B total params; speed set by ACTIVE
 params (273 GB/s), so small-active MoE is the winning judge profile. Dense >35B risks the stall
 class. Every judge records its instrument version (digest + ollama + rubric sha) per run — LJ-1's
-LJ-F7 (unpopulated `model_digest`) is fixed as part of §Build.
+LJ-F7 (unpopulated `model_digest`) is fixed as part of §Build. Quant deviation stays at GLM-Q4
+(DEVIATIONS I2); no new deviation registered this arc.
 
 ## 2. Instrument contract (UNCHANGED from LOCALJUDGE-1 — reused verbatim, lock-tested)
 
@@ -197,10 +204,10 @@ is descriptive here).
 - Rubric sha `cd715d79…` (bridging tripwire).
 - Confirmation holdout: `confirmation_holdout.json` sha256
   `b673e2a598a50530bdb435a651c3ef4692fcaaee79e104594dda4b5b8a90f16f` (12 files, 19,236 rows).
-- Locked roster: the 64 resident base models (name + digest + quant) + the 3 pulls; self-family map.
+- Locked roster: the 64 resident base models (name + digest + quant) + the 2 pulls (nemotron-super-q4, gpt-oss:120b); self-family map.
 - Ensemble family: top-k∈{3,5,7} × {unweighted, selection-κ-weighted} = 6 candidates (no free search).
 - Gates: G-B single-sourced in `GATES`; G-A/G-C as LOCALJUDGE-1.
-- ollama version; ceiling/quant deviations (GLM-Q4 I2 + MiniMax-Q3 extension).
+- ollama version; ceiling/quant deviation (GLM-Q4 I2 only; no new deviation this arc).
 
 ## 10. Pressure-test record — [TO FILL: two adversarial agents, pre-lock]
 
