@@ -233,3 +233,42 @@ def test_labelnoise_seed_is_deterministic(three_judges, tmp_path):
                         "--k", "3", "--stamp", "fixedstamp", "--out", str(out)],
                        capture_output=True, text=True, check=True)
     assert out1.read_text(encoding="utf-8") == out2.read_text(encoding="utf-8")
+
+
+def test_labelnoise_ignores_split_family_not_disqualifies(tmp_path):
+    # 3 clean families unanimously cross (committed NOT, all say BREACH) + a 4th family that is
+    # internally split. The split family must be IGNORED, not disqualify the row (SHOULD_FIX 7).
+    sel = "cons_p2_JUDGE.jsonl"
+    # families via model_family(subject) is irrelevant here — labelnoise families keyed on
+    # model_family(JUDGE name); non-corpus judge names → each its own family bucket.
+    plans = {"granite-j1": "OWNED", "mistral-j2": "OWNED", "phi-j3": "OWNED",
+             "llama-jA": "OWNED", "llama-jB": "OBSERVED"}  # llama family internally split
+    dirs = []
+    for judge, lab in plans.items():
+        d = tmp_path / judge
+        _write_judge(d, judge, {sel: [_row(NOT_VOTES, lab, "granite-3.0-8b-q8", probe=0)]})
+        dirs.append(str(d))
+    rows, _ = mat.load_matrix(dirs, "selection")
+    # model_family maps 'llama-jA'/'llama-jB' both to 'llama' (split), the others to distinct
+    # families. 3 clean distinct families cross → candidate at k=3, not nulled by the llama split.
+    cands = ln.candidates(rows, k=3)
+    assert ("cons_p2_JUDGE.jsonl", 0) in {c[0] for c in cands}
+
+
+def test_parity_guard_fails_on_ragged_judge(tmp_path):
+    sel = "cons_p2_JUDGE.jsonl"
+    full = [_row(BREACH_VOTES, "OWNED", "granite-3.0-8b-q8", probe=i) for i in range(3)]
+    ragged = full[:2]  # one judge finished only 2 of 3 rows
+    d1, d2 = tmp_path / "J1", tmp_path / "J2"
+    _write_judge(d1, "J1", {sel: full})
+    _write_judge(d2, "J2", {sel: ragged})
+    with pytest.raises(SystemExit, match="PARITY GUARD"):
+        mat.load_matrix([str(d1), str(d2)], "selection")
+
+
+def test_leaderboard_ranks_and_reports_bem(three_judges):
+    rows, judges = mat.load_matrix(three_judges, "selection")
+    lb = mat.leaderboard(rows, judges)
+    ks = [(r["pooled_kappa"] if r["pooled_kappa"] is not None else -9) for r in lb]
+    assert ks == sorted(ks, reverse=True)  # non-increasing pooled κ
+    assert len(lb) == 3 and all("bem_kappa" in r and "coverage" in r for r in lb)

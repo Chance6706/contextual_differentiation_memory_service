@@ -33,10 +33,11 @@ def candidates(rows, k):
             if v["self_family"] or v["dec"] is None:
                 continue
             fams.setdefault(model_family(j) or j, set()).add(v["dec"])
-        # one decision per family (a family votes consistently) and all families agree & wrong
+        # Count only families that vote CONSISTENTLY (a split family is ignored, NOT
+        # disqualifying — pressure-test SHOULD_FIX 7: at ~66 judges nearly every hard row has
+        # one dissenting family, so disqualifying on any split nulls the probe). Require ≥k
+        # CLEAN families, all agreeing, and all crossing vs the committed decision.
         fam_decs = {f: next(iter(ds)) for f, ds in fams.items() if len(ds) == 1}
-        if len(fams) != len(fam_decs):
-            continue  # some family internally split → not a clean shared blind spot
         decset = set(fam_decs.values())
         if len(fam_decs) >= k and len(decset) == 1 and next(iter(decset)) != slot["committed"]:
             out.append((key, slot, len(fam_decs), next(iter(decset))))

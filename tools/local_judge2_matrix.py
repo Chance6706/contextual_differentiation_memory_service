@@ -47,10 +47,20 @@ def load_matrix(dirs, partition="selection", holdout_path=HOLDOUT_JSON):
         'votes': {judge -> {'dec': 'BREACH'|'NOT'|None, 'label', 'self_family': bool}} }
     only committed-decided rows in the requested partition are kept.
     judges: sorted list of judge names seen.
+
+    PARITY GUARD (pressure-test MUST_FIX 1): rows are keyed by file-position, which is valid
+    only if every judge's mirror of a given committed file is line-paired with the others. A
+    ragged file (partial run, or a determinism/probe output co-mingled in a judge dir) would
+    silently pair judge B's line-0 with judge A's different row. So for each committed file we
+    require ALL contributing judges to agree on the non-blank line count; a disagreement fails
+    LOUDLY. (Per-judge parity vs the committed SOURCE is separately checked by
+    local_judge_audit.py before scoring — here we guard the cross-judge alignment the positional
+    key depends on.)
     """
     holdout = load_holdout(Path(holdout_path))
     rows = {}
     judges = set()
+    counts = defaultdict(dict)  # cname -> {judge -> non-blank line count}
     for d in dirs:
         d = Path(d)
         for p in sorted(d.glob("*_JUDGE__*.jsonl")):
@@ -60,9 +70,11 @@ def load_matrix(dirs, partition="selection", holdout_path=HOLDOUT_JSON):
                 continue  # wrong partition
             judge = judge_of(p)
             judges.add(judge)
+            nb = 0
             for i, line in enumerate(p.open(encoding="utf-8")):
                 if not line.strip():
                     continue
+                nb += 1
                 r = json.loads(line)
                 if "local_judge_model" not in r:
                     continue  # passthrough
@@ -80,6 +92,13 @@ def load_matrix(dirs, partition="selection", holdout_path=HOLDOUT_JSON):
                     "dec": local_dec(r.get("local_label")),
                     "label": r.get("local_label"),
                     "self_family": bool(r.get("local_self_family"))}
+            counts[cname][judge] = nb
+    ragged = [f"{cname}: judges disagree on row count {perj}"
+              for cname, perj in counts.items() if len(set(perj.values())) > 1]
+    if ragged:
+        raise SystemExit("PARITY GUARD: contributing judges are not line-paired —\n  "
+                         + "\n  ".join(ragged) + "\nRefusing to build a positionally-keyed matrix "
+                         "from ragged files (would silently misalign judges). Fix or exclude them.")
     return rows, sorted(judges)
 
 
@@ -144,11 +163,72 @@ def self_family_at_scale(rows, judges):
     return out
 
 
+def leaderboard(rows, judges):
+    """Per judge on its family-disjoint decided rows: pooled κ, BEM κ, coverage. The
+    single-judge NOMINATION signal (§4 E-single: pooled+BEM κ) — reproducible from one call
+    (pressure-test SHOULD_FIX 5)."""
+    out = []
+    for j in judges:
+        pooled, bem, eligible = [], [], 0
+        for slot in rows.values():
+            v = slot["votes"].get(j)
+            if v is None or v["self_family"]:
+                continue
+            eligible += 1
+            if v["dec"] is None:
+                continue
+            pooled.append((slot["committed"], v["dec"]))
+            if slot["mode"] == "BEM":
+                bem.append((slot["committed"], v["dec"]))
+        out.append({"judge": j, "pooled_kappa": kappa(pooled), "bem_kappa": kappa(bem),
+                    "n": len(pooled), "coverage": len(pooled) / eligible if eligible else 0.0})
+    out.sort(key=lambda r: (r["pooled_kappa"] if r["pooled_kappa"] is not None else -9,
+                            r["bem_kappa"] if r["bem_kappa"] is not None else -9), reverse=True)
+    return out
+
+
+def disagreement_histogram(rows):
+    """Per row, how many family-disjoint judges disagree with the committed decision → the
+    row-difficulty distribution (pressure-test SHOULD_FIX 6, cheap half)."""
+    hist = Counter()
+    for slot in rows.values():
+        decs = disjoint_decs(slot)
+        hist[sum(1 for d in decs if d != slot["committed"])] += 1
+    return hist
+
+
+def pairwise_agreement(rows, judges):
+    """Full judge×judge raw-agreement on co-decided disjoint rows (O(J²·R); opt-in). Returns
+    {(j1,j2): agreement} and per-judge nearest neighbour (redundancy signal)."""
+    idx = {j: {} for j in judges}
+    for key, slot in rows.items():
+        for j, v in slot["votes"].items():
+            if not v["self_family"] and v["dec"] is not None:
+                idx[j][key] = v["dec"]
+    pair = {}
+    nn = {}
+    for a in judges:
+        best, best_ag = None, -1.0
+        for b in judges:
+            if b <= a:
+                continue
+            common = idx[a].keys() & idx[b].keys()
+            if not common:
+                continue
+            ag = sum(1 for k in common if idx[a][k] == idx[b][k]) / len(common)
+            pair[(a, b)] = (ag, len(common))
+            for x, y in ((a, b), (b, a)):
+                if ag > nn.get(x, (None, -1))[1]:
+                    nn[x] = (y, ag)
+    return pair, nn
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("dirs", nargs="+", help="judge output dirs (one per judge)")
     ap.add_argument("--partition", choices=["selection", "confirmation"], default="selection")
     ap.add_argument("--out", help="write per-row difficulty index jsonl here")
+    ap.add_argument("--pairwise-out", help="write the full judge×judge agreement matrix here (opt-in)")
     args = ap.parse_args()
 
     rows, judges = load_matrix(args.dirs, args.partition)
@@ -156,14 +236,29 @@ def main() -> int:
           f"(partition={args.partition})")
     strata = difficulty(rows)
     print("\nDIFFICULTY MAP (family-disjoint judges per row):")
-    for k in sorted(strata, key=lambda x: (x != "ALL", not x.startswith("mode:"), x)):
-        if k.startswith("file:"):
-            continue
+    for k in sorted(strata, key=lambda x: (x != "ALL", not x.startswith("mode:"),
+                                           x.startswith("file:"), x)):
         c = strata[k]
         tot = sum(c.values())
-        print(f"  {k:22} n={tot:6}  correct={c['concordant-correct']:6} "
+        print(f"  {k:26} n={tot:6}  correct={c['concordant-correct']:6} "
               f"split={c['split']:6} blind-spot={c['concordant-wrong']:5} "
               f"no-disjoint={c['no-disjoint-judge']:4}")
+    hist = disagreement_histogram(rows)
+    print("\nROW-DIFFICULTY HISTOGRAM (# disjoint judges disagreeing w/ committed → # rows):")
+    print("  " + "  ".join(f"{d}:{hist[d]}" for d in sorted(hist)))
+    print("\nSINGLE-JUDGE LEADERBOARD (selection nomination signal: pooled+BEM κ):")
+    for r in leaderboard(rows, judges):
+        pk = "n/a" if r["pooled_kappa"] is None else f"{r['pooled_kappa']:.3f}"
+        bk = "n/a" if r["bem_kappa"] is None else f"{r['bem_kappa']:.3f}"
+        print(f"  {r['judge']:34} pooled κ={pk}  BEM κ={bk}  n={r['n']:6}  cov={r['coverage']:.3f}")
+    if args.pairwise_out:
+        pair, nn = pairwise_agreement(rows, judges)
+        with open(args.pairwise_out, "w", encoding="utf-8", newline="\n") as f:
+            for (a, b), (ag, n) in sorted(pair.items()):
+                f.write(json.dumps({"a": a, "b": b, "agreement": ag, "n": n}) + "\n")
+        print(f"\nJUDGE REDUNDANCY (nearest neighbour by agreement) -> full matrix {args.pairwise_out}:")
+        for j in sorted(nn):
+            print(f"  {j:34} ~ {nn[j][0]:34} agree={nn[j][1]:.3f}")
     print("\nPER-JUDGE TWO-SIDED ERROR (disjoint rows):")
     tse = two_sided_error(rows, judges)
     for j in sorted(tse, key=lambda x: (tse[x]["miss_rate"] or 0) - (tse[x]["fa_rate"] or 0)):

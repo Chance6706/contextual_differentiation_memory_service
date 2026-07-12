@@ -145,11 +145,22 @@ ensemble nominee. **Gate: the SAME G-B thresholds** (an ensemble that can't clea
 bar isn't worth the N× inference) + **G-C** below. Escalation semantics (the thing the panel has and
 a single judge lacks) are the ensemble's tie/abstain rule, reported.
 
-### G-C (verdict reproduction; the deployment bar; UNCHANGED)
-Any candidate (single or ensemble) passing G-B on confirmation → swap seam on complete arms → rerun
-`disambig_analyze` / `multifact_analyze` / `blockframe_analyze` unmodified. PASS = verdict-CATEGORY
-identity on every gated line + point estimates within ±0.05. Verdict flips are disqualifying
-regardless of κ.
+### G-C (verdict reproduction; the deployment bar)
+**Single judge:** passing G-B on confirmation → the FROZEN single-judge `local_swap.py` seam on
+complete arms → rerun `disambig_analyze` / `multifact_analyze` / `blockframe_analyze` unmodified.
+PASS = verdict-CATEGORY identity on every gated line + point estimates within ±0.05. Verdict flips
+disqualify regardless of κ.
+
+**Ensemble — SCOPE NARROWED (pressure-test MUST_FIX 3; Josh may expand):** an ensemble decision is
+breach-binary, but the analyzers consume a 4-way `panel_label`/`votes` swap that the frozen
+single-judge `local_swap.py` does not emit — so ensemble G-C requires a NEW ensemble→swap emitter
+(binary→analyzer-input mapping) and an N-member deploy seam, neither of which exists. Rather than
+build that speculatively, THIS arc takes an ensemble through **G-B only (selection→confirmation)**
+and, if an ensemble is the sole/better clearer, NOMINATES it with an explicit **"ensemble G-C +
+deployment deferred to a follow-on build"** flag. The §8 cost line for ensemble adoption therefore
+reads "N× inference **plus a build cost**", surfaced up front rather than discovered on a PASS. (If
+Josh prefers the arc be self-contained, the emitter + deploy seam move into §6 Build and this
+narrowing is removed — a scope decision recorded here, not a silent cut.)
 
 ### Label-noise probe (descriptive; optional paid follow-up)
 Rows in the *concordant-wrong* stratum where ≥ K (pre-set K=5) family-disjoint judges of DIFFERENT
@@ -169,16 +180,35 @@ corpus cannot later be retro-fitted into a favorable split. FT is NOT licensed b
   tests for each. **`local_judge.py`/`local_swap.py`/`local_judge_score.py` stay byte-frozen** —
   the judging path must remain identical to LJ-1 for cross-arc comparability (RUBRIC_A4 + prompt +
   parse), so nothing that touches a judgment is edited. Consequently: **LJ-F7 (digest capture) is
-  handled OUT OF BAND** — a tiny run-metadata helper records each model's `ollama show`
-  digest + version at run time, without editing the harness; **LJ-F6 (`--sample-manifest`
-  absent-file hole) is MOOT here** — the matrix uses full corpus, no `--sample-manifest` — and is
-  deferred to a separate maintenance PR (not folded into a frozen-harness arc).
+  handled OUT OF BAND** — a run-metadata helper records each model's digest + version from
+  `ollama list`/`/api/tags` (where the per-model digest actually lives — the LJ-F7 bug was reading
+  `/api/show` which returns neither; pressure-test SHOULD_FIX 4), without editing the harness;
+  **LJ-F6 (`--sample-manifest` absent-file hole) is MOOT here** — the matrix uses full corpus, no
+  `--sample-manifest` — deferred to a maintenance PR.
+- **Run driver + completion ledger (pressure-test MUST_FIX 2, operational — NOT results-determining,
+  so outside the locked sha set):** a Sparky driver iterates the LOCKED roster model-OUTER
+  (per the matrix-tool-iteration-order discipline), pre-warms big models at num_ctx 8192, runs
+  harness → digest capture → verdict-blind audit → 20-row determinism, and appends one PASS/FAIL
+  line per model to a committed ledger, SKIPPING any model already green (survives a mid-run
+  Sparky reboot at judge 40). Analysis (matrix/ensemble/scorer/label-noise) runs ON Sparky against
+  the resident outputs — avoids 17 GB×transfer and the 16 GB Windows RAM limit (SHOULD_FIX 11);
+  only final receipts are pulled to the repo.
 - **Rule-12 double pressure test** (2 adversarial agents) → fold → **LOCK** (§9).
-- **Phase M (matrix):** all ~62 viable resident judges × full corpus, single quant, serial nohup +
-  cache-resume; per-model verdict-blind audit + 20-row determinism as each finishes; stalls
-  attempted once.
-- **Phase R (new candidates):** pull the three; G-A gold screen (gpt-oss reasoning-parse check
-  first); promote passers to full corpus.
+- **Phase M (matrix):** all ~62 viable resident judges × full corpus, single quant. **Serial,
+  model-outer (defended, SHOULD_FIX 9):** the box is memory-bandwidth-bound and concurrent judges
+  ≈ 2× VRAM thrash + muddied determinism (matrix-tool-iteration-order memory), so serial is the
+  right call, not a concession. **Run ORDER = heavyweight tier + the two new pulls FIRST**, so the
+  arc learns early (on selection) whether anything is in the ballpark before investing ~2 weeks in
+  difficulty-map-only small judges. Order does NOT move nomination/confirmation earlier —
+  confirmation stays gated on full-roster selection freeze (§3), else the single-look blinding is
+  spent. Per-model audit + determinism via the driver; stalls (gemma4:31b, llama3.3:70b) attempted
+  once.
+- **Phase R (new candidates):** pull the two (gpt-oss:120b native; Nemotron-3-Super via the sharded
+  merge). G-A gold screen. **gpt-oss parse GATE (concrete, SHOULD_FIX 8):** on the 228-row gold set
+  with `think:false` + low reasoning effort, under the FROZEN n_predict=16, ≥ 95% of rows must yield
+  a parsed LABELS_A4 label (n_predict is part of the frozen contract §2 and CANNOT be raised —
+  failure to emit a bare label in 16 tokens means EXCLUSION, not contract relaxation). Promote G-A
+  passers to full corpus.
 - **Analyze:** SELECTION descriptives + nominations → freeze → CONFIRMATION gate eval → G-C on
   passers → label-noise probe → 2 adversarial results reviewers → `LOCALJUDGE2_RESULTS.md` →
   doc-sync → PR + CI-green auto-merge → STOP, present queue.
@@ -197,7 +227,7 @@ is descriptive here).
 | outcome | consequence |
 |---|---|
 | a single judge clears G-B (confirmation) + G-C | adopt it; panel → spot-audit tier (LJ-1 §5a protocol) |
-| only a curated ensemble clears G-B + G-C | adopt the ensemble; document its N× inference cost vs the $25–30 panel in plain dollars; Josh's call on the trade |
+| only a curated ensemble clears G-B (confirmation) | NOMINATE it (G-C deferred, §4); the adoption trade is N× inference cost vs the $25–30 panel **plus the ensemble-emitter/deploy build cost**, in plain dollars — Josh's call whether to build-and-adopt or stay on the panel |
 | nothing clears G-B, but the difficulty map shows a *prompt-fixable* shared blind spot | rubric/prompt-adaptation follow-on (new prereg); no adoption |
 | nothing clears, blind spot NOT prompt/ensemble-fixable | FT-judge follow-on licensed to draft (new prereg); trains on SELECTION, tests on the frozen holdout |
 | self-family effect replicates (helps) across families | documented; family-matched judging becomes a first-class FT design axis; disjoint rule still kept for un-fine-tuned judges |
@@ -205,23 +235,49 @@ is descriptive here).
 | a new-pull (esp. Nemotron-3-Super) clears where residents failed | the 200B-capability thesis is supported; adopt per row 1/2 |
 
 ## 9. Locked manifest — [TO FILL AT LOCK]
-- Toolchain shas (frozen: local_judge.py, local_swap.py; NEW: partition scorer, matrix aggregator,
-  ensemble scorer, label-noise extractor) + lock-test count.
+- Toolchain shas — FROZEN (byte-identical to LJ-1, judging path): local_judge.py, local_swap.py,
+  local_judge_score.py. NEW (results-determining, sha-pinned at lock): local_judge2_score.py
+  (partition scorer + blinding guard), local_judge2_matrix.py (matrix + leaderboard + pairwise),
+  local_judge2_ensemble.py, local_judge2_labelnoise.py. Lock tests: `tests/test_local_judge2.py`
+  (21 at fold time). The run driver + digest helper are OPERATIONAL (not results-determining) —
+  listed but outside the pinned sha set.
 - Rubric sha `cd715d79…` (bridging tripwire).
 - Confirmation holdout: `confirmation_holdout.json` sha256
   `b673e2a598a50530bdb435a651c3ef4692fcaaee79e104594dda4b5b8a90f16f` (12 files, 19,236 rows).
-- Locked roster: the 64 resident base models (name + digest + quant) + the 2 pulls (nemotron-super-q4, gpt-oss:120b); self-family map.
-- Ensemble family: top-k∈{3,5,7} × {unweighted, selection-κ-weighted} = 6 candidates (no free search).
-- Gates: G-B single-sourced in `GATES`; G-A/G-C as LOCALJUDGE-1.
+- Locked roster: the 64 resident base models (name + digest + quant, digests captured at lock via
+  the helper) + the 2 pulls (nemotron-super-q4, gpt-oss:120b); self-family map. **Lock-time roster
+  self-family verification (NOTE 15):** enumerate, per judge, whether it has same-family corpus
+  subjects and how many rows — confirm the adoption-plausible tier is disjoint enough to be cleanly
+  nominable BEFORE the 3-week spend (machinery is per-row and correct; the analyst shouldn't
+  discover a heavyweight's self-family reduction post-run).
+- Ensemble family: top-k∈{3,5,7} × {unweighted, selection-κ-weighted} = 6 candidates (no free
+  search). Member RANKING is pooled-κ; single-judge NOMINATION is pooled+BEM κ (NOTE 13).
+- Determinism (NOTE 12): a FRESH LJ-2 20-coord manifest is drawn at lock (seeded, committed) — the
+  matrix adds new judges, so reusing LJ-1's seed-20260711 manifest is fine for the 3 shared judges
+  but a fresh draw covers the roster uniformly; either is byte-exact-checkable.
+- Gates: G-B single-sourced in `GATES`; G-A as LOCALJUDGE-1; G-C single-judge as LJ-1, ensemble
+  narrowed (§4).
 - ollama version; ceiling/quant deviation (GLM-Q4 I2 only; no new deviation this arc).
+  Nemotron-3-Super: **supersedes LJ-1's format rejection** ("NVFP4/TensorRT-LLM, not
+  ollama-runnable") — a GGUF Q4_K_M now exists (lmstudio-community, sharded → merged) (NOTE 14).
+- Storage (NOTE 16): ~66 × ~268 MB ≈ 18 GB on Sparky (+ any mirror); within the 2 TB budget. Raw
+  judged outputs stay UNCOMMITTED (as LJ-1); only scoring receipts + the matrix/leaderboard/
+  difficulty summaries + digests are committed.
 
 ## 10. Pressure-test record — [TO FILL: two adversarial agents, pre-lock]
 
 ## 11. Results doc MUST report (pre-named checklist) — [expands LJ-1 §6.5]
-Matrix: difficulty-map strata sizes/composition; per-judge two-sided error table (all judges);
+Matrix: difficulty-map strata sizes/composition **pooled + by channel + by family + by epoch**
+(the file/epoch strata ARE printed, not suppressed); the **row-difficulty histogram** (# disjoint
+judges disagreeing → # rows); per-judge two-sided error table (all judges); **judge-redundancy /
+pairwise-agreement summary** (nearest-neighbour per judge + the full matrix as a committed
+artifact) — so "which judges are redundant / is the top-k diverse" is answerable.
 self-family-at-scale table (per-family κ delta, all judges with same-family subjects). Adoption:
-SELECTION ranking; the frozen nominees; CONFIRMATION gate values (locked-vs-realized) for each
-nominee; recall sens/spec on full corpus; ensemble composition + combiner + per-member weights; G-C
-per-analyzer verdict identity + deltas. Probes: label-noise stratum size + any re-adjudication
-result. Plain-dollar cost table (panel vs adopted candidate incl. ensemble N× inference). The
-adoption decision (single / ensemble / none) + which follow-on is licensed. Every new-pull's G-A row.
+the **single-judge SELECTION leaderboard** (pooled+BEM κ, all judges — the reproducible nomination
+signal); the frozen nominees; CONFIRMATION gate values (locked-vs-realized) for each nominee; recall
+sens/spec on full corpus; ensemble composition + combiner + per-member weights; single-judge G-C
+per-analyzer verdict identity + deltas; **for an ensemble nominee, the G-C-deferred flag + the
+build-cost note** (§4). Probes: label-noise stratum size + any re-adjudication result. Plain-dollar
+cost table (panel vs adopted candidate incl. ensemble N× inference **+ build cost**). The adoption
+decision (single / ensemble / none) + which follow-on is licensed. Every new-pull's G-A row +
+gpt-oss parse-gate result. Roster self-family verification table (§9).
