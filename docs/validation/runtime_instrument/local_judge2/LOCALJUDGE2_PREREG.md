@@ -1,6 +1,7 @@
 # LOCALJUDGE-2 pre-registration — the judge matrix
 
-**Status: DRAFT (pre-lock). Awaits the rule-12 double pressure test + Josh's final read, then LOCK.**
+**Status: PRE-LOCK — rule-12 double pressure test COMPLETE and folded (§10); 26 lock tests green.
+Awaits Josh's final read + the ensemble-G-C scope decision (§4), then LOCK.**
 
 💵 **Cost: $0 OpenRouter** for the matrix and adoption screens (all judging is local on Sparky).
 GPU ≈ 3 weeks serial for the full-corpus matrix (all resident judges) + ~1 week for the adoption
