@@ -83,6 +83,26 @@ def _brief(s: str, n: int) -> str:
     return s if len(s) <= n else s[:n] + "…"
 
 
+# Tool-arg keys that carry per-project INDIVIDUATION signal (WHICH files the work
+# touched) — kept in seeded action text. Every OTHER arg (command / content /
+# old_string / prompt / query …) is dropped: it was object-keyword noise and a raw
+# credential surface. Ordered by preference; the first present key wins per call.
+_PATH_ARG_KEYS = ("file_path", "notebook_path", "path")
+
+
+def _path_hint(inp) -> str:
+    """The file/path argument of a tool call, if present — the individuation signal
+    the seed keeps. Bounded so action text stays small; the ingest scrubber
+    (redact_secrets) still redacts any secret that rides in a path."""
+    if not isinstance(inp, dict):
+        return ""
+    for k in _PATH_ARG_KEYS:
+        v = inp.get(k)
+        if isinstance(v, str) and v.strip():
+            return _brief(v.strip(), 80)
+    return ""
+
+
 def project_of(path: Path) -> str:
     """Project tag = the slug segment right after '.claude/projects'."""
     parts = path.parts
@@ -112,12 +132,15 @@ def parse_file(path: Path, mc: int, remaining: int = 0) -> list[TurnEvent]:
     transcript, WITHOUT ingesting. Shared by the seeder (which ingests the result) and
     the drift-trajectory replay (which needs the turns in time order before ingest).
 
-    Action text keeps the assistant's words + de-duped tool NAMES only; tool-call
-    ARGS are dropped (2026-07-15 — dominant object-keyword noise + a raw credential
-    surface). NOTE: the returned TurnEvents are UNREDACTED — secret-scrubbing is an
-    ingest-time property (MemoryService.ingest -> _clip -> redact_secrets). Any
-    consumer that reads these turns WITHOUT ingesting must scrub them itself.
-    DISCLOSURE: this drops file-path/command signal, so a store re-seeded after this
+    Action text keeps the assistant's words + de-duped tool NAMES, each with its
+    file/path arg when present (`Read(store.py), Bash`); all OTHER tool args
+    (command/content/…) are dropped (2026-07-15 — object-keyword noise + a raw
+    credential surface). The file path is retained deliberately: it is the strongest
+    per-project individuation signal and low credential risk. NOTE: the returned
+    TurnEvents are UNREDACTED — secret-scrubbing is an ingest-time property
+    (MemoryService.ingest -> _clip -> redact_secrets). Any consumer that reads these
+    turns WITHOUT ingesting must scrub them itself. DISCLOSURE: dropping the non-path
+    args still changes action text vs. pre-2026-07-15, so a store re-seeded after this
     change yields different gist/episodic counts than the pre-change numbers in
     status.md (see the note-flagged observation there)."""
     project = project_of(path)
@@ -178,12 +201,18 @@ def parse_file(path: Path, mc: int, remaining: int = 0) -> list[TurnEvent]:
                 tus = tool_uses(content)
                 action = txt
                 if tus:
-                    # Tool NAMES only — not the serialized args. The args JSON was the
-                    # dominant source of object-keyword noise (command/bash/file_path…
-                    # crowd out the substantive signal, the assistant's own words) AND
-                    # a raw credential surface (tokens live in tool args). Keep a light
-                    # trace of which tools were used; drop the payload.
-                    names = ", ".join(dict.fromkeys(n for n, _ in tus if n))   # de-duped, ordered
+                    # Keep tool NAME + its file/path arg (the per-project individuation
+                    # signal — which files the work touched); DROP every other arg
+                    # (command/content/old_string/prompt/… = object-keyword noise that
+                    # crowds out the assistant's own words, AND a raw credential surface).
+                    # De-dupe the resulting "Name(path)" tokens, order-preserving.
+                    toks = []
+                    for n, inp in tus:
+                        if not n:
+                            continue
+                        p = _path_hint(inp)
+                        toks.append(f"{n}({p})" if p else n)
+                    names = ", ".join(dict.fromkeys(toks))
                     # Only append "(names)" when there ARE names — a nameless/malformed
                     # tool block must not produce a dangling "txt ()".
                     if names:

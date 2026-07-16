@@ -284,16 +284,17 @@ platform; CDMS-A runs **green on aarch64** (~830 offline + 3 real-embedder tests
    one valence-differentiated into handles_well / frequently_works_on / has_trouble_with);
    recall discriminates by project ("database migration"→alpha, "react component"→beta,
    "drift trajectory"→real). **Ready for the local CLI with more history and the sandbox.**
-   > **⚠ Note-flagged (2026-07-15, PR scrubber-hardening):** these counts predate the
-   > `seed_from_jsonl.py` change that drops tool-call ARGS from ingested action text (keeps
-   > assistant prose + de-duped tool names only). Re-seeding after that change yields DIFFERENT
-   > gist/episodic/self counts (file-path & command tokens no longer feed the embedder →
-   > different novelty/clustering/gist vocabulary), and `drift_trajectory.py --real` — which
-   > shares `parse_file` — is likewise affected. The numbers above are therefore stale for a
-   > fresh re-seed; treat them as the pre-change baseline, not a reproducible target. Rerun +
-   > update if a current figure is needed. Open design question flagged to Josh: whether to keep
-   > a redacted `file_path` arg (preserves per-project individuation signal) vs. the current
-   > drop-all-args (maximal noise/credential-surface reduction).
+   > **⚠ Note-flagged (2026-07-15, PRs scrubber-hardening + seed-keep-filepath):** these counts
+   > predate the `seed_from_jsonl.py` change to ingested action text — it now keeps assistant
+   > prose + tool NAMES each with their file/path arg, and drops the other args
+   > (command/content/…, which were object-keyword noise + a credential surface). Re-seeding
+   > after this yields DIFFERENT gist/episodic/self counts (the dropped command/content tokens no
+   > longer feed the embedder → different novelty/clustering/gist vocabulary), and
+   > `drift_trajectory.py --real` — which shares `parse_file` — is likewise affected. Treat the
+   > numbers above as the pre-change baseline, not a reproducible target; rerun + update if a
+   > current figure is needed. **Design question RESOLVED (Josh, 2026-07-15): keep the file path**
+   > (strongest per-project individuation signal, low credential risk) rather than drop-all-args —
+   > this preserves most of the file-tree fingerprint the individuation metric relies on.
 6. ✅ **Integration surface verified** (the local-CLI wiring). `pip install -e .` (documented
    in README) → all 38 tests pass with no `PYTHONPATH`; `cdms hook SessionStart` runs clean;
    `cdms install --scope project` writes correct `.claude/settings.json` + `.mcp.json`;
