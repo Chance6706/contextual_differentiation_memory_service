@@ -576,22 +576,32 @@ class Database:
         rows = self.conn.execute("SELECT * FROM mem_episodic ORDER BY rowid").fetchall()
         return [self._row_to_episodic(r) for r in rows]
 
-    def recent_episodic(self, limit: int, session_id: str | None = None) -> list[Episodic]:
+    def recent_episodic(self, limit: int, session_id: str | None = None,
+                        include_untrusted: bool = True) -> list[Episodic]:
         """The most recent ``limit`` episodes (newest first), optionally one session.
 
         SQL ``ORDER BY ... LIMIT`` instead of loading the whole table into Python to sort and
         slice — the timeline (`cdms history` / MCP history) only ever wants a small window, so
         there is no need to materialize every episode to return 20 (Cycle-9 S-5). Tie-break on
-        rowid DESC so the order is deterministic (most-recently-captured first within a second)."""
+        rowid DESC so the order is deterministic (most-recently-captured first within a second).
+
+        ``include_untrusted=False`` (with ``cfg.enforce_provenance``) drops
+        untrusted-provenance episodes — the read-side half of the Layer-3 fence:
+        a model-facing timeline must not surface externally-sourced content as
+        self. Operator/maintenance callers keep the default (all rows). Only the
+        episodic tier can hold untrusted; gists/scars are trusted by construction."""
         limit = max(1, limit)
+        # `prov` is a constant literal chosen by a bool — no SQL injection surface.
+        prov = "" if (include_untrusted or not self.cfg.enforce_provenance) \
+            else " AND provenance <> 'untrusted'"
         if session_id:
             rows = self.conn.execute(
-                "SELECT * FROM mem_episodic WHERE session_id = ? ORDER BY timestamp DESC, rowid DESC "
-                "LIMIT ?", (session_id, limit)).fetchall()
+                f"SELECT * FROM mem_episodic WHERE session_id = ?{prov} "
+                "ORDER BY timestamp DESC, rowid DESC LIMIT ?", (session_id, limit)).fetchall()
         else:
             rows = self.conn.execute(
-                "SELECT * FROM mem_episodic ORDER BY timestamp DESC, rowid DESC LIMIT ?",
-                (limit,)).fetchall()
+                f"SELECT * FROM mem_episodic WHERE 1=1{prov} "
+                "ORDER BY timestamp DESC, rowid DESC LIMIT ?", (limit,)).fetchall()
         return [self._row_to_episodic(r) for r in rows]
 
     def get_episodic(self, ep_id: str) -> Episodic | None:

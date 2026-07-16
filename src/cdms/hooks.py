@@ -130,7 +130,13 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
             # *accessible* recent episodic memories so SessionStart is useful from day one.
             recent = []
             if len(gists) < 5:
-                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
+                # Read-side Layer-3 fence: the preamble is the self-layer -D shows
+                # the model, so untrusted-provenance episodes must not surface here.
+                # (all_episodic() is used raw by consolidation, which must SEE
+                # untrusted to evict it — so we filter at this use, not the source.)
+                eps = [e for e in svc.db.all_episodic()
+                       if _scoped(e.project)
+                       and (not cfg.enforce_provenance or e.provenance != "untrusted")]
                 scored = [(accessibility(e.base_salience, age_days(e.timestamp), e.access_count, cfg), e) for e in eps]
                 scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
                 scored.sort(key=lambda x: x[0], reverse=True)
@@ -410,7 +416,13 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
             gists = svc.db.top_gist(limit=12, project=project)
             recent = []
             if len(gists) < 5:
-                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
+                # Read-side Layer-3 fence: the preamble is the self-layer -D shows
+                # the model, so untrusted-provenance episodes must not surface here.
+                # (all_episodic() is used raw by consolidation, which must SEE
+                # untrusted to evict it — so we filter at this use, not the source.)
+                eps = [e for e in svc.db.all_episodic()
+                       if _scoped(e.project)
+                       and (not cfg.enforce_provenance or e.provenance != "untrusted")]
                 scored = [(accessibility(e.base_salience, age_days(e.timestamp),
                                          e.access_count, cfg), e) for e in eps]
                 scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]

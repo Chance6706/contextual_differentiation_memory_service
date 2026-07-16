@@ -206,7 +206,8 @@ def history(
     """Return the recent episodic timeline (most recent first)."""
     svc = service()
     with _DB_LOCK:
-        eps = svc.history(limit=limit, session_id=session_id or None)
+        # Model-facing: filter untrusted-provenance episodes (read-side Layer-3 fence).
+        eps = svc.history(limit=limit, session_id=session_id or None, include_untrusted=False)
     return [HistoryItem(id=e.id, timestamp=e.timestamp, session_id=e.session_id,
                         valence=round(e.valence, 3), salience=round(e.base_salience, 4),
                         text=e.search_text()[:200]) for e in eps]
