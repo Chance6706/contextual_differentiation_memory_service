@@ -1,6 +1,7 @@
-"""The seeder no longer bakes tool-call ARGS into the ingested action text —
-those args were the dominant object-keyword noise (command/bash/file_path…) and
-a raw credential surface. It keeps the assistant's words + the tool names only.
+"""The seeder no longer bakes non-path tool-call ARGS into the ingested action
+text — command/content/… were the dominant object-keyword noise and a raw
+credential surface. It keeps the assistant's words + tool NAMES, each with its
+file/path arg (the per-project individuation signal) when present.
 """
 from __future__ import annotations
 
@@ -45,20 +46,60 @@ def test_action_keeps_tool_names_drops_args_and_secrets(tmp_path):
     assert "command" not in act             # arg-key keyword noise gone
 
 
-def test_pure_tool_turn_keeps_name_not_args(tmp_path):
-    # An assistant turn that is only a tool call keeps the tool name (so it isn't
-    # dropped as empty) but carries no args.
+def test_pure_tool_turn_keeps_name_and_path(tmp_path):
+    # An assistant turn that is only a tool call keeps NAME(path) — the file path is
+    # the per-project individuation signal — but not the arg KEY or other args.
     seed = _load_seeder()
     events = [
         {"type": "user", "message": {"content": "read the file"},
          "timestamp": "2026-01-01T00:00:00Z", "sessionId": "s1"},
         {"type": "assistant", "message": {"content": [
-            {"type": "tool_use", "name": "Read", "input": {"file_path": "/etc/secret.txt"}},
+            {"type": "tool_use", "name": "Read", "input": {"file_path": "/src/store.py"}},
         ]}, "timestamp": "2026-01-01T00:00:01Z", "sessionId": "s1"},
     ]
     turns = seed.parse_file(_transcript(tmp_path, events), mc=1200)
-    assert turns and turns[0].action_taken == "Read"
-    assert "file_path" not in turns[0].action_taken and "secret" not in turns[0].action_taken
+    assert turns and turns[0].action_taken == "Read(/src/store.py)"   # name + path kept
+    assert "file_path" not in turns[0].action_taken                   # arg KEY not leaked
+
+
+def test_path_kept_but_sibling_command_secret_dropped(tmp_path):
+    # Middle path: the file_path arg is retained (individuation); a NON-path arg in
+    # the same turn (a command carrying a secret) is dropped.
+    seed = _load_seeder()
+    secret = "hf_" + "s" * 34
+    events = [
+        {"type": "user", "message": {"content": "edit and run"},
+         "timestamp": "2026-01-01T00:00:00Z", "sessionId": "s1"},
+        {"type": "assistant", "message": {"content": [
+            {"type": "text", "text": "Editing then running."},
+            {"type": "tool_use", "name": "Edit", "input": {"file_path": "/src/api.py"}},
+            {"type": "tool_use", "name": "Bash",
+             "input": {"command": f"deploy --token {secret}"}},
+        ]}, "timestamp": "2026-01-01T00:00:01Z", "sessionId": "s1"},
+    ]
+    turns = seed.parse_file(_transcript(tmp_path, events), mc=1200)
+    act = turns[0].action_taken
+    assert "Edit(/src/api.py)" in act        # path individuation kept
+    assert "Bash" in act                     # command tool name kept
+    assert secret not in act                 # the command's credential dropped
+    assert "command" not in act and "--token" not in act   # non-path arg noise gone
+
+
+def test_distinct_paths_preserved_for_individuation(tmp_path):
+    # Two edits to DIFFERENT files must yield two distinct tokens (de-dup is on the
+    # whole Name(path), not the name) — otherwise the file-tree fingerprint collapses.
+    seed = _load_seeder()
+    events = [
+        {"type": "user", "message": {"content": "refactor"},
+         "timestamp": "2026-01-01T00:00:00Z", "sessionId": "s1"},
+        {"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Edit", "input": {"file_path": "/src/alpha.py"}},
+            {"type": "tool_use", "name": "Edit", "input": {"file_path": "/src/beta.py"}},
+        ]}, "timestamp": "2026-01-01T00:00:01Z", "sessionId": "s1"},
+    ]
+    turns = seed.parse_file(_transcript(tmp_path, events), mc=1200)
+    act = turns[0].action_taken
+    assert "alpha.py" in act and "beta.py" in act
 
 
 def test_nameless_tool_block_no_dangling_parens(tmp_path):
