@@ -61,11 +61,12 @@ def test_history_model_facing_filters_operator_sees_all(tmp_path):
     try:
         _add(svc, "t", "trusted timeline entry", "trusted")
         _add(svc, "u", "untrusted timeline entry", "untrusted")
-        operator = {e.id for e in svc.history(limit=50)}                       # default: all
-        model = {e.id for e in svc.history(limit=50, include_untrusted=False)}  # MCP-facing
+        # Service layer is MODEL-facing and fail-closed by default; the operator opts in.
+        operator = {e.id for e in svc.history(limit=50, include_untrusted=True)}
+        model = {e.id for e in svc.history(limit=50)}                          # default: filtered
         assert {"t", "u"} <= operator
         assert "t" in model and "u" not in model
-        # db primitive parity
+        # db primitive parity: the RAW maintenance primitive still defaults to ALL rows.
         assert "u" not in {e.id for e in svc.db.recent_episodic(50, include_untrusted=False)}
         assert "u" in {e.id for e in svc.db.recent_episodic(50)}               # default all
     finally:
@@ -102,3 +103,123 @@ def test_preamble_excludes_untrusted_recent(tmp_path):
         text = build(Config(home=home), {"cwd": ""})
         assert "UNTRUSTEDINTRUDER" not in text, name          # the security property
         assert "TRUSTEDSELFMARKER" in text, name             # positive control: recent path ran
+
+
+# --------------------------------------------------------------------------- #
+# Fixes folded from the double pressure test (rule 12) before landing.
+# --------------------------------------------------------------------------- #
+def test_history_default_is_fail_closed(tmp_path):
+    # MemoryService.history is MODEL-facing by default: no include_untrusted -> filtered.
+    # (Regression guard: the initial fence commit defaulted this True, trapping -D's library path.)
+    svc = _svc(tmp_path)
+    try:
+        _add(svc, "t", "trusted timeline entry", "trusted")
+        _add(svc, "u", "untrusted timeline entry", "untrusted")
+        default = {e.id for e in svc.history(limit=50)}
+        assert "t" in default and "u" not in default          # fail-closed at the service boundary
+        opted = {e.id for e in svc.history(limit=50, include_untrusted=True)}
+        assert {"t", "u"} <= opted                             # operator opt-in still works
+    finally:
+        svc.close()
+
+
+def test_operator_cli_sees_untrusted(tmp_path, monkeypatch, capsys):
+    # M1/M2: operator surfaces must keep FULL visibility, or `cdms retrieve`/`history` report a
+    # poisoned store "clean". cli.cmd_retrieve/cmd_history opt in explicitly.
+    import argparse
+
+    from cdms import cli
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    svc = _svc(tmp_path)
+    _add(svc, "u", "OPERATORVISIBLE planted external note", "untrusted", salience=5.0)
+    svc.close()
+
+    cli.cmd_retrieve(argparse.Namespace(query="planted external note", k=10, json=False))
+    assert "OPERATORVISIBLE" in capsys.readouterr().out       # operator recall shows untrusted
+    cli.cmd_history(argparse.Namespace(n=50, session=""))
+    assert "OPERATORVISIBLE" in capsys.readouterr().out       # operator timeline shows untrusted
+
+
+def test_mcp_history_tool_filters_untrusted(tmp_path, monkeypatch):
+    # S4: the MODEL-facing MCP history tool must not surface untrusted — pinned so a refactor
+    # dropping its include_untrusted=False is caught (previously only the service layer was tested).
+    import importlib
+
+    monkeypatch.setenv("CDMS_HOME", str(tmp_path))
+    import cdms.mcp_server as m
+    importlib.reload(m)
+    svc = _svc(tmp_path)
+    _add(svc, "t", "trusted mcp entry", "trusted")
+    _add(svc, "u", "untrusted mcp entry", "untrusted")
+    svc.close()
+    ids = {h.id for h in m.history(limit=50, session_id="")}
+    assert "t" in ids and "u" not in ids
+
+
+def test_canon_provenance_normalizes_and_fails_closed(tmp_path):
+    # Non-canonical provenance must not slip past the `!= "untrusted"` fences.
+    from cdms.models import canon_provenance
+    from cdms.store import TurnEvent
+    assert canon_provenance("trusted") == "trusted"
+    assert canon_provenance("  Untrusted ") == "untrusted"     # case/space normalized
+    assert canon_provenance("ambiguous") == "ambiguous"
+    for weird in ("synthetic", "external", "", None, "hermes"):
+        assert canon_provenance(weird) == "untrusted"          # unrecognized -> fail closed
+
+    # End-to-end: a synthetic-labelled ingest is stored untrusted and stays out of model reads.
+    svc = _svc(tmp_path)
+    try:
+        rec = svc.ingest(TurnEvent("SYNTHDREAM speculative content", "dreamed", "",
+                                   provenance="synthetic", project=""))
+        assert svc.db.get_episodic(rec.id).provenance == "untrusted"
+        got = {h.id for h in svc.retrieve("speculative content", top_k=10, tiers=("episodic",))}
+        assert rec.id not in got                                # fenced from model recall
+    finally:
+        svc.close()
+
+
+def test_dedup_survivor_adopts_most_trusted_provenance(tmp_path):
+    # red-S3: a trusted episode folded into an earlier untrusted near-duplicate must not be
+    # buried inside a read-fenced untrusted survivor. The survivor is promoted to trusted so the
+    # content stays model-visible.
+    from cdms.consolidate import Consolidator
+    cfg = Config(home=tmp_path)
+    cfg.dedup_sim_threshold = 0.99
+    svc = MemoryService(cfg, embedder=Embedder(cfg))
+    try:
+        _add(svc, "u", "shared corroborated retrieval content", "untrusted", salience=5.0)  # earlier rowid
+        _add(svc, "t", "shared corroborated retrieval content", "trusted", salience=5.0)    # folds in
+        Consolidator(cfg, db=svc.db, embedder=svc.embedder).run()
+        survivor = svc.db.get_episodic("u")
+        assert survivor is not None and svc.db.get_episodic("t") is None   # t folded into u
+        assert survivor.provenance == "trusted"                            # promoted, not buried
+        got = {h.id for h in svc.retrieve("shared corroborated retrieval content",
+                                          top_k=10, tiers=("episodic",))}
+        assert "u" in got                                                  # survives the read fence
+    finally:
+        svc.close()
+
+
+def test_ambiguous_still_surfaces_on_model_read(tmp_path):
+    # Design pin (LAYER3 table): the fence drops ONLY untrusted; ambiguous (quarantine) still
+    # surfaces on model reads and can gist — it just can't elevate. Guards against an over-broad
+    # future refactor to an allowlist.
+    svc = _svc(tmp_path)
+    try:
+        _add(svc, "amb", "AMBIGUOUSMARKER quarantined content", "ambiguous")
+        got = {h.id for h in svc.retrieve("quarantined content", top_k=10, tiers=("episodic",))}
+        assert "amb" in got
+        assert "amb" in {e.id for e in svc.history(limit=50)}   # model-facing history too
+    finally:
+        svc.close()
+
+
+def test_enforce_provenance_off_surfaces_everywhere(tmp_path):
+    # Layer-3 OFF => the read fence is fully disabled (history + preamble), symmetric with retrieve.
+    home = tmp_path / "off"
+    svc = _svc(home, enforce_provenance=False)
+    _add(svc, "u", "OFFSWITCHUNTRUSTED external entry", "untrusted")
+    assert "u" in {e.id for e in svc.history(limit=50)}         # history unfiltered when off
+    svc.close()
+    text = _build_preamble_text(Config(home=home, enforce_provenance=False), {"cwd": ""})
+    assert "OFFSWITCHUNTRUSTED" in text                         # preamble unfiltered when off

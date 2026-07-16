@@ -136,7 +136,11 @@ def cmd_retrieve(args) -> int:
 
     cfg = load_config()
     svc = MemoryService(cfg)
-    hits = svc.retrieve(args.query, top_k=args.k)
+    # Operator surface: full visibility, including untrusted-provenance episodes. The
+    # model-facing default filters them (read-side Layer-3 fence); the operator hunting
+    # planted/poisoned content must be able to SEE it, or `cdms retrieve` would report a
+    # store "clean" while the poison persists.
+    hits = svc.retrieve(args.query, top_k=args.k, include_untrusted=True)
     svc.close()
     if args.json:
         print(json.dumps([{"id": h.id, "tier": h.tier, "score": round(h.score, 5),
@@ -154,10 +158,12 @@ def cmd_history(args) -> int:
 
     cfg = load_config()
     svc = MemoryService(cfg)
-    eps = svc.history(limit=args.n, session_id=args.session or None)
+    # Operator surface: full visibility (see cmd_retrieve). The MODEL-facing MCP history
+    # tool passes include_untrusted=False; the operator timeline shows all provenance.
+    eps = svc.history(limit=args.n, session_id=args.session or None, include_untrusted=True)
     svc.close()
     for e in eps:
-        print(f"{e.timestamp}  S0={e.base_salience:.3f}  v={e.valence:+.2f}  {e.search_text()[:90]}")
+        print(f"{e.timestamp}  [{e.provenance[:5]:5}] S0={e.base_salience:.3f}  v={e.valence:+.2f}  {e.search_text()[:82]}")
     if not eps:
         print("(no history)")
     return 0

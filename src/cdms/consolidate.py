@@ -90,6 +90,16 @@ def _matches_catastrophe(text: str) -> bool:
     danger = any(c in low for c in _DANGER_CMD) or bool(_CATASTROPHE_RE.search(text))
     return danger and any(h in low for h in _HARM_TOKENS)
 
+
+# Provenance trust order (most → least). Dedup's fold promotes a survivor to the
+# most-trusted class of the pair so an arbitrary rowid-order fold cannot bury a
+# trusted episode inside a read-fenced untrusted survivor.
+_PROV_RANK = {"trusted": 2, "ambiguous": 1, "untrusted": 0}
+
+
+def _most_trusted(a: str, b: str) -> str:
+    return a if _PROV_RANK.get(a, 0) >= _PROV_RANK.get(b, 0) else b
+
 _STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in", "on",
     "for", "with", "is", "are", "was", "were", "be", "been", "it", "this", "that",
@@ -465,6 +475,18 @@ class Consolidator:
                         merged = max(survivor.base_salience, e.base_salience)
                         self.db.set_salience([(survivor.id, merged)])
                         survivor.base_salience = merged
+                        # The survivor adopts the MOST-TRUSTED provenance of the fold. Fold
+                        # direction is rowid-order (arbitrary w.r.t. provenance), so without this
+                        # a trusted episode folded into an earlier untrusted near-duplicate would
+                        # be deleted, leaving its content in an untrusted survivor that the
+                        # read-side fence hides from the model — silent loss of a trusted memory.
+                        # ">= 0.95 similar" means the content is effectively corroborated, so
+                        # promoting to the more-trusted class surfaces nothing the trusted copy
+                        # would not have surfaced anyway. (No demotion: max-trust only.)
+                        best_prov = _most_trusted(survivor.provenance, e.provenance)
+                        if best_prov != survivor.provenance:
+                            self.db.set_provenance([(survivor.id, best_prov)])
+                            survivor.provenance = best_prov
                         if e.s0 is not None and (survivor.s0 is None or e.s0 > survivor.s0):
                             # the fold must not erase a crisis copy's write-time S0
                             # marker (core #1) — the survivor inherits the max

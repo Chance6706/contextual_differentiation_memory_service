@@ -25,7 +25,7 @@ from typing import Optional
 from .config import Config
 from .db import Database
 from .embeddings import Embedder, get_embedder
-from .models import Episodic, Gist, Scar, SearchHit, new_id, utc_now_iso
+from .models import Episodic, Gist, Scar, SearchHit, canon_provenance, new_id, utc_now_iso
 from .salience import (
     SalienceSignals,
     accessibility,
@@ -226,7 +226,10 @@ class MemoryService:
             session_id=ev.session_id,
             project=ev.project,
             timestamp=ev.timestamp or utc_now_iso(),
-            provenance=ev.provenance,
+            # Normalize to the canonical set: a non-canonical value (case variant, an
+            # importer/dreaming label) would otherwise slip past the `!= "untrusted"`
+            # fences and surface as self. Fails closed to untrusted (pipeline.canon_provenance).
+            provenance=canon_provenance(ev.provenance),
             s0=s0,   # immutable write-time copy; base_salience gets budget-rescaled (core #1)
         )
         self.db.insert_episodic(rec, emb)
@@ -519,12 +522,18 @@ class MemoryService:
     # Timeline / paths / links
     # ------------------------------------------------------------------ #
     def history(self, limit: int = 20, session_id: Optional[str] = None,
-                include_untrusted: bool = True) -> list[Episodic]:
+                include_untrusted: bool = False) -> list[Episodic]:
         # SQL ORDER BY ... LIMIT (Cycle-9 S-5) instead of loading the whole table to slice in
         # Python — the timeline only wants a small recent window. (max(1, limit) guards against
-        # a negative limit; recent_episodic clamps it too.) The operator timeline defaults to
-        # showing all provenance; the MODEL-facing MCP history tool passes
-        # include_untrusted=False so untrusted content is not surfaced as self.
+        # a negative limit; recent_episodic clamps it too.)
+        #
+        # FAIL-CLOSED at the service boundary: this method is MODEL-facing by default (like
+        # retrieve()), so untrusted content is NOT surfaced as self unless a caller explicitly
+        # opts in. Operator surfaces (the `cdms history` CLI) pass include_untrusted=True; the
+        # raw db.recent_episodic primitive keeps its all-rows default for maintenance callers.
+        # This is what CDMS-D's Phase-2 recall gate requires: untrusted must not appear on ANY
+        # model-facing recall/recent surface unless asked for. (Was default-True in the initial
+        # fence commit — an asymmetry with retrieve() that trapped the -D library path.)
         return self.db.recent_episodic(max(1, limit), session_id, include_untrusted=include_untrusted)
 
     def list_paths(self, project: str = "") -> list[tuple[str, str, int]]:

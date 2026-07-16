@@ -24,7 +24,7 @@ from typing import Optional
 
 from .config import Config
 from .embeddings import EmbedderUnavailableError
-from .models import utc_now_iso
+from .models import canon_provenance, utc_now_iso  # canon_provenance re-exported here (provenance policy home)
 from .spool import spool_event  # re-exported for backwards compatibility
 from .store import MemoryService, TurnEvent, redact_secrets
 

@@ -667,6 +667,15 @@ class Database:
             c.executemany("UPDATE mem_episodic SET s0 = ? WHERE id = ?",
                           [(s, i) for i, s in updates])
 
+    def set_provenance(self, updates: Sequence[tuple[str, str]]) -> None:
+        """Update provenance. Only writer besides insert: dedup's fold, where the survivor
+        adopts the MOST-TRUSTED provenance of the pair — otherwise a rowid-arbitrary fold can
+        leave a trusted episode's content inside an untrusted (now read-fenced) survivor, i.e.
+        model-side loss of a trusted memory. Values are pre-canonicalized by the caller."""
+        with self.tx() as c:
+            c.executemany("UPDATE mem_episodic SET provenance = ? WHERE id = ?",
+                          [(p, i) for i, p in updates])
+
     def delete_episodic(self, ids: Iterable[str]) -> int:
         ids = list(ids)
         if not ids:

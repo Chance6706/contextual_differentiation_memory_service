@@ -67,7 +67,7 @@ from cdms.hooks import (                                 # noqa: E402
 )
 from cdms.hooks import (                                 # noqa: E402
     _MAX_CONTEXT, _MAX_SCARS,
-    _dedupe_scars, _sanitize,
+    _dedupe_scars, _recent_accessible_eps, _sanitize,
 )
 from cdms.models import Gist, new_id                    # noqa: E402
 from cdms.stats import wilson_interval                  # noqa: E402
@@ -133,12 +133,10 @@ def _naive_dump_preamble(cfg: Config, payload: dict) -> str:
             gists = svc.db.top_gist(limit=12, project=project)
             recent = []
             if len(gists) < 5:
-                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
-                scored = [(accessibility(e.base_salience, age_days(e.timestamp),
-                                         e.access_count, cfg), e) for e in eps]
-                scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
-                scored.sort(key=lambda x: x[0], reverse=True)
-                recent = [e for _a, e in scored[:5]]
+                # Use the SHARED shipped helper so this research builder can't drift from
+                # production (incl. the read-side Layer-3 provenance fence) and confound
+                # preamble experiments.
+                recent = _recent_accessible_eps(svc, cfg, _scoped)
     finally:
         svc.close()
 

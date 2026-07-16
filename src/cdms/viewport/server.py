@@ -319,8 +319,13 @@ def _make_handler():
                 # reinforce=False: a viewport search must NOT mutate the store (the default
                 # bumps access_count + reinforces episodic memories — the observer would
                 # perturb the very salience/decay dynamics it is meant to display).
+                # include_untrusted=True: this is an OPERATOR audit surface (like cdms retrieve
+                # and the timeline endpoint below) — it must show untrusted rows, not inherit the
+                # model-facing read-side fence, or the poison the operator is searching for is
+                # invisible in search while visible in the timeline of the same UI.
                 hits = svc.retrieve(query, top_k=top_k,
-                                    tiers=tiers if tiers else None, reinforce=False)
+                                    tiers=tiers if tiers else None, reinforce=False,
+                                    include_untrusted=True)
                 self._send_json([{
                     "id": h.id, "tier": h.tier, "score": round(h.score, 5),
                     "accessibility": round(h.accessibility, 4), "text": h.text,
