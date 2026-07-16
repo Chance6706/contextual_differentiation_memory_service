@@ -82,10 +82,17 @@ _CONTINGENT_TOOLS = {"bash", "edit", "write", "multiedit", "notebookedit", "appl
 # Secret patterns redacted at capture time. Tool output (e.g. an `env` dump) can
 # carry live credentials; without this they would be persisted to plaintext
 # SQLite and re-injected into context at every SessionStart indefinitely. This is
-# a best-effort scrubber for the common high-signal shapes, not a guarantee.
+# a best-effort scrubber for the common high-signal shapes, not a guarantee — it
+# both MISSES exotic/prefix-less secret formats (false negatives) and, by design,
+# OVER-REDACTS some non-secret high-entropy tokens (false positives: the eyJ
+# base64 blob rule, `key-<md5>`, `SK<hex>`, etc.). Over-redaction is the accepted
+# direction for a persistent store — a redacted opaque blob costs little recall
+# signal; a leaked credential is forever. See docs/DEVIATIONS.md O2.
 # Entries are (pattern, replacement): replacement None uses the default policy
 # (2+ groups -> "name=[REDACTED]", else "[REDACTED]"); an explicit template keeps
 # the non-secret structure (scheme://user, "Authorization: Bearer") legible.
+# NOTE for maintainers: a NEW pattern with >=2 capturing groups silently flips to
+# the "name=[REDACTED]" branch — use (?:...) for grouping unless you want that.
 _SECRET_PATTERNS = [
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), None),                       # AWS access key id
     (re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}\b"), None),  # GitHub tokens
@@ -98,7 +105,46 @@ _SECRET_PATTERNS = [
     # hyphen-anchored sk- rule above never matched them.
     (re.compile(r"\b[sr]k_(?:live|test)_[A-Za-z0-9]{10,}\b"), None),
     (re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"), None),                 # Google API key
-    (re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"), None),  # JWT
+    (re.compile(r"\bhf_[A-Za-z0-9]{30,}\b"), None),                    # HuggingFace token (was uncaught -> leaked via seed)
+    (re.compile(r"\bglpat-[A-Za-z0-9_\-]{20,}\b"), None),              # GitLab personal access token
+    (re.compile(r"\bnpm_[A-Za-z0-9]{36}\b"), None),                    # npm automation token
+    (re.compile(r"\bdop_v1_[a-f0-9]{64}\b"), None),                    # DigitalOcean personal token
+    # --- More known provider tokens (distinctive prefixes -> low false-positive) ---
+    (re.compile(r"\bASIA[0-9A-Z]{16}\b"), None),                       # AWS temporary/session access key id
+    (re.compile(r"\bya29\.[0-9A-Za-z_\-]{20,}"), None),                # Google OAuth 2.0 access token
+    (re.compile(r"\bSG\.[A-Za-z0-9_\-]{16,}\.[A-Za-z0-9_\-]{16,}\b"), None),  # SendGrid API key
+    (re.compile(r"\bSK[0-9a-f]{32}\b"), None),                         # Twilio API key SID
+    (re.compile(r"\bkey-[0-9a-f]{32}\b"), None),                       # Mailgun API key
+    (re.compile(r"\bshp(?:at|ca|pa|ss)_[a-fA-F0-9]{32}\b"), None),     # Shopify access/custom app tokens
+    (re.compile(r"\bsq0(?:atp|csp)-[0-9A-Za-z_\-]{22,}\b"), None),     # Square access / OAuth token
+    (re.compile(r"\bdapi[0-9a-f]{32,}\b"), None),                      # Databricks personal access token
+    (re.compile(r"\bsecret_[A-Za-z0-9]{40,}\b"), None),                # Notion internal integration token
+    (re.compile(r"\bntn_[A-Za-z0-9]{40,}\b"), None),                   # Notion (newer) token
+    (re.compile(r"\bsbp_[0-9a-f]{40}\b"), None),                       # Supabase service token
+    (re.compile(r"\bPMAK-[0-9a-f]{24}-[0-9a-f]{34}\b"), None),         # Postman API key
+    (re.compile(r"\bdp\.pt\.[A-Za-z0-9]{40,}\b"), None),               # Doppler personal token
+    (re.compile(r"\blin_api_[A-Za-z0-9]{40,}\b"), None),               # Linear API key
+    (re.compile(r"\bglc_[A-Za-z0-9+/=]{20,}\b"), None),                # Grafana Cloud access policy token
+    # Telegram bot token: <bot_id>:<35-char base64url auth>. NOT anchored on "AA"
+    # (the auth part is arbitrary base64url — a red-team pass found "AA"+exact{33}
+    # leaked real ...:BB... tokens and tokens ending in "-"); bot ids have grown
+    # past 10 digits, so accept 6-15. No trailing \b (a base64url tail may end in
+    # "-", which breaks \b): {35,} greedily consumes the token and stops at the
+    # first non-token char. Single char class -> linear, no backtracking.
+    (re.compile(r"\b\d{6,15}:[A-Za-z0-9_-]{35,}"), None),
+    (re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"), None),  # JWT (three-part)
+    # Single base64url blob starting `eyJ` (= base64 of `{"`), NOT a dotted JWT: e.g.
+    # a Cloudflare tunnel token (`cloudflared service install eyJ…`), which the
+    # three-part JWT rule above skips and which previously leaked via seed.
+    # DELIBERATE OVER-REDACTION (docs/DEVIATIONS.md O2): this is a prefix+length
+    # heuristic, NOT a JSON decode-check — so it also redacts non-secret base64-JSON
+    # (inline sourcemaps, config blobs, illustrative JWTs in docs). That is the
+    # accepted, security-conservative direction for a persistent store: redacting an
+    # opaque non-secret blob costs little recall signal, leaking a tunnel token is
+    # forever. Runs after the JWT rule so well-formed JWTs are already gone; on a
+    # malformed/2-part JWT it redacts each eyJ segment (stops at the `.`). Single
+    # char class + one quantifier -> linear, no catastrophic backtracking.
+    (re.compile(r"\beyJ[A-Za-z0-9_/+=-]{30,}"), None),
     (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
                 re.DOTALL), None),
     # Azure storage connection string: keep the AccountKey= name, redact the value.

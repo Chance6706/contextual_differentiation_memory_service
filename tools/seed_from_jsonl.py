@@ -110,7 +110,16 @@ def iter_files(root: Path):
 def parse_file(path: Path, mc: int, remaining: int = 0) -> list[TurnEvent]:
     """Reconstruct user->assistant->tool turns (with REAL timestamps) from a session
     transcript, WITHOUT ingesting. Shared by the seeder (which ingests the result) and
-    the drift-trajectory replay (which needs the turns in time order before ingest)."""
+    the drift-trajectory replay (which needs the turns in time order before ingest).
+
+    Action text keeps the assistant's words + de-duped tool NAMES only; tool-call
+    ARGS are dropped (2026-07-15 — dominant object-keyword noise + a raw credential
+    surface). NOTE: the returned TurnEvents are UNREDACTED — secret-scrubbing is an
+    ingest-time property (MemoryService.ingest -> _clip -> redact_secrets). Any
+    consumer that reads these turns WITHOUT ingesting must scrub them itself.
+    DISCLOSURE: this drops file-path/command signal, so a store re-seeded after this
+    change yields different gist/episodic counts than the pre-change numbers in
+    status.md (see the note-flagged observation there)."""
     project = project_of(path)
     last_user: dict[str, str] = {}
     pending: dict | None = None
@@ -169,8 +178,18 @@ def parse_file(path: Path, mc: int, remaining: int = 0) -> list[TurnEvent]:
                 tus = tool_uses(content)
                 action = txt
                 if tus:
-                    action = (txt + " " + "; ".join(f"{n}({_brief(json.dumps(i, default=str), 120)})"
-                                                    for n, i in tus)).strip()
+                    # Tool NAMES only — not the serialized args. The args JSON was the
+                    # dominant source of object-keyword noise (command/bash/file_path…
+                    # crowd out the substantive signal, the assistant's own words) AND
+                    # a raw credential surface (tokens live in tool args). Keep a light
+                    # trace of which tools were used; drop the payload.
+                    names = ", ".join(dict.fromkeys(n for n, _ in tus if n))   # de-duped, ordered
+                    # Only append "(names)" when there ARE names — a nameless/malformed
+                    # tool block must not produce a dangling "txt ()".
+                    if names:
+                        action = f"{txt} ({names})".strip() if txt else names
+                    else:
+                        action = txt.strip()
                 pending = {"sid": sid, "trigger": last_user.get(sid, ""), "action": action,
                            "outcome": "", "tool": (tus[0][0] if tus else ""), "ts": ts}
     flush(pending)
