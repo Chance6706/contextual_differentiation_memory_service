@@ -298,6 +298,31 @@ external review, 2026-06.)
   `len(sub) * 5`, so a silent under-sample on the paid run is impossible. A first-class
   `--rephrasings-exclude FILE` flag is a natural follow-on but is a separate change.
 
+### O2. Secret scrubber deliberately over-redacts some non-secret high-entropy tokens
+
+- **Stated form:** a "secret scrubber" should redact credentials and leave everything else intact
+  (zero false positives is the intuitive ideal).
+- **What we do:** `store.py::_SECRET_PATTERNS` matches credentials by **prefix + shape**, not by
+  decoding/validating them. Several rules therefore also match non-secret look-alikes: the
+  `\beyJ[A-Za-z0-9_/+=-]{30,}` blob rule (added for Cloudflare-tunnel tokens) redacts **any**
+  base64-encoded JSON ≥30 chars — inline JS sourcemaps (`…base64,eyJ2ZXJzaW9u…`), config blobs,
+  illustrative JWTs in docs; `key-[0-9a-f]{32}` (Mailgun) also matches a `key-<md5>` cache/ETag
+  key; `SK[0-9a-f]{32}` (Twilio SID) also matches any `SK<32-hex>`; `secret_[A-Za-z0-9]{40,}`
+  (Notion) also matches any `secret_<40+ alnum>`. All collapse to `[REDACTED]`.
+- **Why:** the scrubber runs at capture time on content persisted to plaintext SQLite and
+  re-injected at every SessionStart. In that setting the asymmetry is stark — redacting an opaque
+  non-secret blob costs a little recall signal (opaque tokens are semantic noise anyway), while
+  leaking a real credential is permanent. So we deliberately bias toward over-redaction rather than
+  add fragile decode-and-validate logic to a best-effort scrubber. Verified linear-time (no ReDoS)
+  and idempotent.
+- **Disclaimed / open:** the scrubber is NOT a false-positive-free classifier and is NOT a
+  guarantee of *complete* redaction (prefix-less secrets — Twilio auth tokens, AWS secret keys,
+  bare 32-hex — remain uncatchable; the AWS/Twilio prefix rules catch identifiers, not the secret).
+  `tests/test_scrubber_hardening.py` pins BOTH the intended redactions and the accepted
+  over-redactions as known current behavior, so a future tightening/loosening is a conscious edit,
+  not an accident. Narrowing the blob rule (e.g. skip `base64,`-preceded blobs to spare sourcemaps)
+  is a possible refinement but trades security for recall and is deferred.
+
 ---
 
 ---
