@@ -19,6 +19,29 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+CANONICAL_PROVENANCE = ("trusted", "untrusted", "ambiguous")
+
+
+def canon_provenance(value: str | None) -> str:
+    """Normalize a provenance value to the canonical set both fences key on.
+
+    Elevation gates on ``== "trusted"``; the gist gate and the new read fence gate on
+    ``!= "untrusted"``. A value outside the canonical set — a case variant (``"Untrusted"``),
+    a future/importer label (``"synthetic"``, ``"external"``), an empty string — would slip
+    past the ``!=`` fences and surface as self / form a persona trait, the exact laundering
+    provenance exists to stop.
+
+    Unrecognized values FAIL CLOSED to ``"untrusted"`` — deliberately stricter than the
+    classifier's ``"ambiguous"`` default for unknown *tools*. An unrecognized pre-assigned
+    *value* is unattributable, and every near-term source of non-canonical values (bulk
+    importers, the untrusted-by-design dreaming tier) is itself untrusted, so untrusted is the
+    correct prior. ``classify_provenance`` only ever emits canonical values, so this is a
+    no-op on the live capture path; it hardens direct-ingest and future-importer paths.
+    See docs/redteam/LAYER3_PROVENANCE_DESIGN.md."""
+    v = (value or "").strip().lower()
+    return v if v in CANONICAL_PROVENANCE else "untrusted"
+
+
 @dataclass
 class Episodic:
     """L1 hippocampal trace — a single captured interaction turn."""

@@ -25,7 +25,7 @@ from typing import Optional
 from .config import Config
 from .db import Database
 from .embeddings import Embedder, get_embedder
-from .models import Episodic, Gist, Scar, SearchHit, new_id, utc_now_iso
+from .models import Episodic, Gist, Scar, SearchHit, canon_provenance, new_id, utc_now_iso
 from .salience import (
     SalienceSignals,
     accessibility,
@@ -226,7 +226,10 @@ class MemoryService:
             session_id=ev.session_id,
             project=ev.project,
             timestamp=ev.timestamp or utc_now_iso(),
-            provenance=ev.provenance,
+            # Normalize to the canonical set: a non-canonical value (case variant, an
+            # importer/dreaming label) would otherwise slip past the `!= "untrusted"`
+            # fences and surface as self. Fails closed to untrusted (pipeline.canon_provenance).
+            provenance=canon_provenance(ev.provenance),
             s0=s0,   # immutable write-time copy; base_salience gets budget-rescaled (core #1)
         )
         self.db.insert_episodic(rec, emb)
@@ -404,7 +407,8 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     def retrieve(self, query: str, top_k: Optional[int] = None,
                  tiers: tuple[str, ...] = ("scar", "gist", "episodic"),
-                 reinforce: bool = True, project: str = "") -> list[SearchHit]:
+                 reinforce: bool = True, project: str = "",
+                 include_untrusted: bool = False) -> list[SearchHit]:
         # Clamp: a negative top_k would slice off the END of the results (returning
         # fewer memories than exist with no error); 0/None means "use the default".
         top_k = max(1, top_k or self.cfg.default_top_k)
@@ -423,16 +427,26 @@ class MemoryService:
         # pool per tier until the scoped hits fill top_k or the tier's index is
         # exhausted — the widening only triggers for scoped queries that come up
         # short, so the common case costs exactly one query per tier.
+        # Read-side Layer-3 fence: drop untrusted-provenance episodes from
+        # model-facing recall (only the episodic tier can hold them — gists/scars
+        # are trusted by construction). Like project scoping this is a POST-pool
+        # filter, so it must share the widen loop below or an untrusted-heavy pool
+        # starves the trusted hits out of the top-k.
+        filter_prov = self.cfg.enforce_provenance and not include_untrusted
         hits: list[SearchHit] = []
         for tier in tiers:
             k = pool
             while True:
                 rrf = self._rrf(tier, qvec, query, k)
                 tier_hits = self._materialize(tier, rrf)
+                narrowing = bool(project)
                 if project:
                     tier_hits = [h for h in tier_hits if h.payload.get("project", "") in ("", project)]
-                if not project or len(tier_hits) >= top_k or len(rrf) < k:
-                    break   # unscoped / enough scoped hits / index exhausted
+                if filter_prov and tier == "episodic":
+                    tier_hits = [h for h in tier_hits if h.payload.get("provenance", "trusted") != "untrusted"]
+                    narrowing = True
+                if not narrowing or len(tier_hits) >= top_k or len(rrf) < k:
+                    break   # unscoped+unfiltered / enough hits / index exhausted
                 k *= 4
             hits.extend(tier_hits)
 
@@ -474,7 +488,8 @@ class MemoryService:
                     score=base * weight * (0.5 + acc), accessibility=acc,
                     payload={"timestamp": rec.timestamp, "valence": rec.valence,
                              "salience": rec.base_salience, "access_count": rec.access_count,
-                             "session_id": rec.session_id, "project": rec.project},
+                             "session_id": rec.session_id, "project": rec.project,
+                             "provenance": rec.provenance},
                 ))
         elif tier == "gist":
             gmap = self.db.get_gists_by_ids(rrf.keys())   # only the hit ids, not a full scan
@@ -506,11 +521,20 @@ class MemoryService:
     # ------------------------------------------------------------------ #
     # Timeline / paths / links
     # ------------------------------------------------------------------ #
-    def history(self, limit: int = 20, session_id: Optional[str] = None) -> list[Episodic]:
+    def history(self, limit: int = 20, session_id: Optional[str] = None,
+                include_untrusted: bool = False) -> list[Episodic]:
         # SQL ORDER BY ... LIMIT (Cycle-9 S-5) instead of loading the whole table to slice in
         # Python — the timeline only wants a small recent window. (max(1, limit) guards against
         # a negative limit; recent_episodic clamps it too.)
-        return self.db.recent_episodic(max(1, limit), session_id)
+        #
+        # FAIL-CLOSED at the service boundary: this method is MODEL-facing by default (like
+        # retrieve()), so untrusted content is NOT surfaced as self unless a caller explicitly
+        # opts in. Operator surfaces (the `cdms history` CLI) pass include_untrusted=True; the
+        # raw db.recent_episodic primitive keeps its all-rows default for maintenance callers.
+        # This is what CDMS-D's Phase-2 recall gate requires: untrusted must not appear on ANY
+        # model-facing recall/recent surface unless asked for. (Was default-True in the initial
+        # fence commit — an asymmetry with retrieve() that trapped the -D library path.)
+        return self.db.recent_episodic(max(1, limit), session_id, include_untrusted=include_untrusted)
 
     def list_paths(self, project: str = "") -> list[tuple[str, str, int]]:
         # Empty = unscoped (operator paths: CLI, viewport); the MCP tool always

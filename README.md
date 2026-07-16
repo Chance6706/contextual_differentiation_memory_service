@@ -318,7 +318,7 @@ All cognitive parameters live in `cdms/config.py` and are overridable via
 | `CDMS_RECALL_EXEMPLARS` | `true` | Attach a verbatim `e.g.` quote to surfaced gists. |
 | `CDMS_RECALL_EXEMPLAR_TOP_N` | `6` | How many top-support gists carry an exemplar (`0` = terse). |
 | `CDMS_FLASHBULB_FLOOR_CATASTROPHES` | `true` | Floor a genuine catastrophe's S0 to the crisis gate. |
-| `CDMS_ENFORCE_PROVENANCE` | `true` | Block untrusted-origin content from forming gists/scars. |
+| `CDMS_ENFORCE_PROVENANCE` | `true` | Block untrusted-origin content from forming gists/scars **and** from surfacing on model-facing reads (recall / history / preamble). Operator paths keep full visibility. |
 | `CDMS_EMBED_BACKEND` | _(unset)_ | Set to `hash` to force the offline deterministic embedder (tests/CI). |
 
 ---
@@ -414,9 +414,11 @@ external review had blessed a stale revision) — see
 * **Trust boundary + capture-time provenance.** Stored memory is partially
   untrusted; it is sanitized and fenced as `<memory:*>` DATA at injection, never as
   instructions. Each episode also carries an origin label (`trusted` /
-  `untrusted` / `synthetic`); **untrusted-origin content can never form a gist
-  trait, and only trusted-origin content can mint a scar guardrail** — so
-  external/quoted text can never poison the persona's identity layer.
+  `untrusted` / `ambiguous`); **untrusted-origin content can never form a gist
+  trait, can never mint a scar guardrail, and (read-side fence) is never surfaced
+  back to the model on recall / history / preamble** — so external/quoted text can
+  never poison *or* masquerade as the persona's identity layer. Operator tools see
+  everything.
 * **Crash/concurrency safe.** WAL + per-statement transactions, a cross-process lock
   serializing consolidation/forget, orphan-claim reclaim after a killed drain, a
   bounded spool, and a corrupt-DB quarantine that never fires on mere lock contention.

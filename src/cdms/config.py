@@ -179,11 +179,17 @@ class Config:
     # (e.g., trust the agent's own session against in-session prompt injection) or want
     # faithfulness-to-flashbulb over function. See docs/DEVIATIONS.md M3 for the tradeoff.
     flashbulb_immediate_elevation: bool = False
-    # Layer 3 (capture-time provenance): when True, only "trusted"-provenance episodes may elevate to
-    # an authoritative guardrail, and "untrusted" episodes (external reads — web fetch, foreign files,
-    # external MCP) are excluded from gist-trait formation. "ambiguous" content can gist but not
-    # elevate. Set False to ignore provenance (treat all content as trusted for gating). The hook
-    # capture path classifies provenance via classify_provenance(); manual/seeded turns are trusted.
+    # Layer 3 (capture-time provenance): a single switch over BOTH the write and read fences.
+    # WRITE side: only "trusted"-provenance episodes may elevate to an authoritative guardrail,
+    # and "untrusted" episodes (external reads — web fetch, foreign files, external MCP) are
+    # excluded from gist-trait formation ("ambiguous" content can gist but not elevate).
+    # READ side (2026-07-15): "untrusted" episodes are also filtered from every MODEL-facing
+    # episodic read — recall (retrieve), the MCP history timeline, and the self-layer preamble —
+    # so external content is never surfaced back to the model AS self (the CDMS-D Phase-2 recall
+    # gate). Operator/maintenance paths (cdms retrieve/history, viewport, consolidation) keep full
+    # visibility. Set False to ignore provenance entirely (both fences off; all content treated as
+    # trusted). The hook capture path classifies provenance via classify_provenance(); manual/
+    # seeded turns default to trusted. See docs/redteam/LAYER3_PROVENANCE_DESIGN.md.
     enforce_provenance: bool = True
 
     # ---- Input bounds ------------------------------------------------------
