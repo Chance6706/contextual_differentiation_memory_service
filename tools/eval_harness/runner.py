@@ -34,7 +34,8 @@ CONDITIONS: dict[str, Callable[[Reader | None], MemorySystem]] = {
 }
 
 
-def run_scenario(scenario: Scenario, adapter: MemorySystem, condition: str) -> dict[str, Any]:
+def run_scenario(scenario: Scenario, adapter: MemorySystem, condition: str,
+                 *, consolidate_now: str | None = None) -> dict[str, Any]:
     run_id = f"{condition}-{scenario.id}"
     t0 = time.perf_counter()
     adapter.reset(run_id)
@@ -52,6 +53,14 @@ def run_scenario(scenario: Scenario, adapter: MemorySystem, condition: str) -> d
             timestamp=t.get("timestamp", ""),
             provenance=t.get("provenance", ""),   # "" -> adapter falls back to scope.provenance
         )], scope=scope)
+
+    # Run a real consolidation pass if the scenario asks for it (forgetting / random-discard /
+    # differentiation axes). `consolidate_now` (ISO) ages the store so episodes cross the floor;
+    # without this the forgetting/discard toggles are inert (rule-12 M1).
+    cn = consolidate_now or getattr(scenario, "consolidate_now", None)
+    if cn:
+        from datetime import datetime
+        adapter.consolidate(now=datetime.fromisoformat(cn.replace("Z", "+00:00")))
 
     query_results = []
     for q in scenario.queries:

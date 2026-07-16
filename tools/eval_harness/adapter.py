@@ -65,6 +65,7 @@ def _passthrough_reader(question: str, context: str) -> str:
 class MemorySystem(Protocol):
     def reset(self, run_id: str) -> None: ...
     def ingest(self, turns: list[Turn], *, scope: Scope) -> None: ...
+    def consolidate(self, now=None) -> None: ...
     def query(self, question: str, *, scope: Scope) -> Answer: ...
     def forget(self, target: ForgetSpec) -> None: ...
     def health(self) -> dict: ...
@@ -144,6 +145,15 @@ class CdmsAdapter:
                 provenance=t.provenance or scope.provenance,
             ))
 
+    def consolidate(self, now=None) -> None:
+        """Run a real consolidation pass (dedup / gist / decay / EVICTION). REQUIRED for the
+        forgetting + random-discard ablations to do anything — MemoryService.ingest never
+        consolidates, so without this those toggles are inert (rule-12 M1). `now` lets a scenario
+        age the store so episodes fall below the retention floor. Blueprint: individuation_experiment.py."""
+        assert self._svc is not None, "reset() must precede consolidate()"
+        from cdms.consolidate import Consolidator
+        Consolidator(self._svc.cfg, db=self._svc.db, embedder=self._svc.embedder).run(now=now)
+
     def query(self, question: str, *, scope: Scope) -> Answer:
         assert self._svc is not None, "reset() must precede query()"
         t0 = time.perf_counter()
@@ -188,6 +198,9 @@ class NaiveDumpAdapter:
     def ingest(self, turns: list[Turn], *, scope: Scope) -> None:
         self._turns.extend(turns)
 
+    def consolidate(self, now=None) -> None:
+        pass   # a dump has no consolidation — that's the point of the ceiling bookend
+
     def query(self, question: str, *, scope: Scope) -> Answer:
         context = "\n".join(f"[{t.role}] {t.content}" for t in self._turns) or "(no memories)"
         return Answer(text=self._reader(question, context), tokens_injected=len(context) // 4)
@@ -205,6 +218,7 @@ class NoMemoryAdapter:
 
     def reset(self, run_id: str) -> None: ...
     def ingest(self, turns: list[Turn], *, scope: Scope) -> None: ...
+    def consolidate(self, now=None) -> None: ...
     def query(self, question: str, *, scope: Scope) -> Answer:
         return Answer(text="(no memory available)")
     def forget(self, target: ForgetSpec) -> None: ...
