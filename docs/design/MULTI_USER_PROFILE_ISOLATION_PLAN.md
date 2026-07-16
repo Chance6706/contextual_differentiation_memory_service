@@ -9,6 +9,24 @@ endpoint-login within one OS profile, and **NOT** MemoryBear's tenant/workspace/
 profile = a separate human = a separate identity kernel = a separate store. Do not build in-process
 tenancy.
 
+## Decisions — RESOLVED (Josh, 2026-07-16)
+1. **Single-user-at-a-time is enough.** Concurrent multi-profile use (Fast User Switching / RDP /
+   background service) is NOT a target → the cross-profile motivation for the port work (§2.1) **drops**.
+   Holds only while CDMS stays **hook-driven with no always-on daemon**; revisit §2.1 if a persistent
+   daemon mode is ever added (a fast-user-switch without logout could then leave two instances live).
+   NOTE: the 8765 Observer-vs-Viewport collision still exists **within** a profile — it stays on the
+   separate Laguna-kernel track, NOT part of multi-user.
+2. **Per-profile-fully-private is the PERMANENT stance.** No shared store across profiles, ever →
+   §3 (shared world-knowledge) and §6.5 are **DROPPED**. This strengthens the differentiation thesis
+   (each profile a wholly separate self, zero cross-contamination vector) and shrinks the attack
+   surface to just the OS ACL with no punched-through hole. NOTE: task #14's "world plane" is
+   world-vs-identity **within** a single profile — it is per-profile too, unaffected by this decision;
+   do not confuse it with cross-profile sharing (which is now permanently off).
+
+**Net effect:** #13 collapses to a very small change — (a) `doctor` warning on an out-of-profile /
+shared `CDMS_HOME` (§2.2), and (b) a lock test that no runtime path escapes `home` (§2.3), plus a docs
+section. No port work, no shared store. Likely a single small PR, not a large task.
+
 ---
 
 ## 1. Key finding: isolation is (almost) already correct by construction
@@ -26,7 +44,9 @@ should not) implement its own cross-profile access control; it just must not *we
 
 ## 2. What actually needs attention (grounded in current code)
 
-### 2.1 Concurrent-session port collision — the one real defect
+### 2.1 Concurrent-session port collision — DROPPED for multi-user (see Decision 1)
+*(Retained for context; the cross-profile motivation is out of scope per Decision 1. The within-profile
+8765 collision remains a separate Laguna-kernel item.)*
 `observe`/`viewport` bind `127.0.0.1:8765` (`cli.py:572/576`, `config.py:230`, `observer.py:249`,
 `viewport/server.py`). `127.0.0.1` is **machine-global, not per-profile**. If two profiles are logged
 in at once (Windows Fast User Switching, RDP, or a service + interactive user) and both launch an
@@ -56,21 +76,13 @@ spool/queue/lock files (all under `home` ✓), logs (under `home` ✓), the scra
 per-user temp, verify), and the render_base_url/http_port (localhost — §2.1). Grep at implementation
 time confirms none escape `home`; make it a lock test.
 
-## 3. Shared vs private across profiles
+## 3. Shared vs private across profiles — PERMANENTLY PRIVATE (see Decision 2)
 
-**Default: nothing is shared.** Each profile's autobiographical store (episodes/gists/scars/
-temperament) is private — separate self, separate history. This is correct and needs no work.
-
-**Optional, opt-in only, LATER:** a *shared WORLD-knowledge* store (task #14's world plane) that
-several profiles on one machine could read as evidence — e.g. shared project facts. If ever built:
-- Lives in a deliberately-shared location (an explicit path, ACL'd to the sharing group), NEVER the
-  default per-profile home.
-- Is **world plane only** — entities/claims/documents with provenance. **Never autobiographical, never
-  a persona/self tuple, never a scar.** A shared fact is evidence, not identity.
-- Read-mostly for consumers; writes carry the writing profile's provenance; the Bem firewall of each
-  consuming profile still forbids it from becoming that profile's self.
-- Strictly opt-in per profile; default off. This is a -D concern (the agent/interface layer), not an
-  -A kernel change.
+**Nothing is ever shared across profiles.** Each profile's store (autobiographical AND its own
+per-profile world plane) is fully private — separate self, separate history, no cross-profile
+substrate. There is no opt-in shared world store; the earlier proposal for one is DROPPED. The only
+cross-profile boundary is the OS ACL, with no deliberate hole punched through it. This is the permanent
+stance for a personal tool.
 
 ## 4. Security boundary (state it, don't reinvent it)
 
@@ -88,14 +100,16 @@ several profiles on one machine could read as evidence — e.g. shared project f
   Those are MemoryBear's enterprise model and are out of scope by design.
 
 ## 6. Implementation task list (for a LATER, separate impl task — not now)
-1. Per-profile default port derivation + `--port` override + loud "port in use" failure
-   (observe/viewport). *(closes the concurrent-session collision + the existing 8765 kernel)*
-2. `doctor` warning for a store home outside the current profile / on a shared path.
+*(Post-decision: items 1 and 5 are DROPPED. What remains is small.)*
+1. ~~Per-profile default port derivation~~ — DROPPED (Decision 1; the within-profile 8765 collision
+   is a separate Laguna-kernel item, not this task).
+2. `doctor` warning for a store home outside the current profile / on a shared path (identity-mixing
+   hazard).
 3. Lock test: assert every runtime path (store, spool, lock, log) resolves UNDER `home`; no absolute
    cross-profile path escapes.
 4. Docs: a "several accounts on one machine" section — each account runs its own CDMS in its own
    session; stores are isolated by the OS; keep `CDMS_HOME` within the profile.
-5. *(deferred, gated on task #14)* the opt-in shared world-plane store, if desired.
+5. ~~Opt-in shared world-plane store~~ — DROPPED (Decision 2; permanently private).
 
 ## 7. Acceptance (for the impl task)
 - Two simulated profiles (two `Path.home()` roots via env) produce two isolated stores; a cross-read
@@ -104,10 +118,8 @@ several profiles on one machine could read as evidence — e.g. shared project f
 - `doctor` warns on a shared/out-of-profile home.
 - Full suite green; one PR.
 
-## 8. Open questions for the maintainer
-- Is concurrent multi-profile use (Fast User Switching / RDP / a background service) actually in the
-  target usage, or is single-user-at-a-time enough that §2.1 is low-priority? (Changes the port work's
-  urgency.)
-- Do you want the opt-in shared world store (§3) in scope at all, or is per-profile-fully-private the
-  permanent stance for a personal tool? (If the latter, §3 + §6.5 drop entirely.)
-- Any macOS/Linux multi-user nuance beyond `$HOME` isolation worth pinning now.
+## 8. Open questions — RESOLVED
+- ~~Concurrent multi-profile use?~~ → NO, single-user-at-a-time (Decision 1).
+- ~~Opt-in shared world store?~~ → NO, per-profile-fully-private permanently (Decision 2).
+- macOS/Linux nuance beyond `$HOME` isolation: none load-bearing; `Path.home()` is per-account on all
+  three. The impl lock test (§6.3) covers it uniformly.
