@@ -18,7 +18,7 @@ from pathlib import Path
 from cdms.config import Config
 from cdms.embeddings import Embedder
 from tools.eval_harness.differentiation_experiment import (
-    run_subject, _shared_history, _shared_history_pair, _DISPOSITIONS)
+    run_subject, run_erasure_subject, _shared_history, _shared_history_pair, _DISPOSITIONS)
 from tools.eval_harness.provenance import assert_worktree_cdms, cdms_provenance
 
 DISPOS = ["A", "B", "C"]
@@ -272,6 +272,258 @@ def analyze(results: dict, cycles: int, fs: dict = None) -> dict:
 
 def _fmt(ci):
     return f"{ci['mean']:.3f} [{ci['lo']:.3f},{ci['hi']:.3f}]"
+
+
+# =================================================================================================
+# ERASURE ARM (CORE THESIS) — DIFFERENTIATION_ERASURE_PREREG.md (LOCKED). Identity = what SURVIVES
+# neglect. Disposition drives which topics keep getting lived; the forgetting POLICY (salience /
+# none / random) is the ablation. PRIMARY metric = raw surviving-gist ENTITY set (drop relation);
+# 500 cycles so even a support-capped gist (idle survival ~396) is deliberately cleared.
+# =================================================================================================
+ERASURE_DISPOS = ["A", "B", "C", "U"]
+ERASURE_CYCLES = 500
+SHARE_FRAC = 0.08
+
+
+def _ekey(policy: str, gf, dispo: str):
+    """Cube key: gate_floor is meaningful only for the salience policy (none/random ignore it)."""
+    return (policy, gf if policy == "salience" else None, dispo)
+
+
+def run_erasure_cube(seeds, cycles: int, base: Path, emb, share_frac: float = SHARE_FRAC,
+                     snapshot_every: int = 0) -> dict:
+    """results[seed][(policy, gf|None, dispo)] = erasure run dict. Per seed (13 runs):
+      salience@0.25 × {A,B,C,U}  +  {salience@0.0, none, random} × {A,B,C}.
+    U only under salience (the dispositionless null: no neglect -> keeps everything, any policy)."""
+    results = {}
+    for s in seeds:
+        r = {}
+        for d in ERASURE_DISPOS:                                  # salience@0.25, incl. the U null
+            r[_ekey("salience", 0.25, d)] = run_erasure_subject(
+                d, "salience", base / f"s{s}-sal25-{d}", s, emb, cycles, share_frac, 0.25, snapshot_every)
+        for d in ("A", "B", "C"):                                 # the ablations + the gf ceiling
+            r[_ekey("salience", 0.0, d)] = run_erasure_subject(
+                d, "salience", base / f"s{s}-sal00-{d}", s, emb, cycles, share_frac, 0.0, snapshot_every)
+            r[_ekey("none", None, d)] = run_erasure_subject(
+                d, "none", base / f"s{s}-none-{d}", s, emb, cycles, share_frac, 0.25, snapshot_every)
+            r[_ekey("random", None, d)] = run_erasure_subject(
+                d, "random", base / f"s{s}-rand-{d}", s, emb, cycles, share_frac, 0.25, snapshot_every)
+        results[s] = r
+    return results
+
+
+def _ent(run: dict) -> frozenset:
+    """Entity set behind a run's raw surviving-gist state (the PRIMARY, relation dropped)."""
+    return _entity_set(run["raw"])
+
+
+def erasure_entity_separation(results: dict, policy: str, gf) -> dict:
+    """CO-PRIMARY (M1): entity-set separation = jaccard(A,B) − jaccard(A,C), cluster-bootstrapped over
+    SEEDS (M4/F4). Under `salience` this should be strongly POSITIVE (similar keep-overlap > different);
+    under `none` it collapses to ~0 (nothing forgotten -> all keep all 8 -> both jaccards ~1)."""
+    seeds = sorted(results)
+
+    def per(rs):
+        out = []
+        for s in rs:
+            r = results[s]
+            A, B, C = (_ent(r[_ekey(policy, gf, d)]) for d in ("A", "B", "C"))
+            out.append(jaccard(A, B) - jaccard(A, C))
+        return out
+    return _cluster_ci(per, seeds)
+
+
+def erasure_divergence(results: dict, policy: str, gf, pair=("A", "C")) -> dict:
+    """Entity-set DIVERGENCE (1 − jaccard) for a disposition pair under a policy — the H1/H2 quantity.
+    H1: divergence(A,C) under salience > under none. H2: > under random."""
+    seeds = sorted(results)
+    d1, d2 = pair
+
+    def per(rs):
+        return [1.0 - jaccard(_ent(results[s][_ekey(policy, gf, d1)]),
+                              _ent(results[s][_ekey(policy, gf, d2)])) for s in rs]
+    return _cluster_ci(per, seeds)
+
+
+def erasure_same_disp_null(results: dict, gf=0.25, dispo="A") -> dict:
+    """H3: the SAME disposition across DIFFERENT histories (seeds) must stay HIGH-overlap under salience —
+    else the divergence is seed noise, not disposition (the frozen-cube failure mode). Cluster-boot over
+    the seed set; the pairwise mean is reported (dependent pairs, so CI is via seed resampling)."""
+    seeds = sorted(results)
+
+    def per(rs):
+        vals = []
+        for i in range(len(rs)):
+            for j in range(i + 1, len(rs)):
+                vals.append(jaccard(_ent(results[rs[i]][_ekey("salience", gf, dispo)]),
+                                    _ent(results[rs[j]][_ekey("salience", gf, dispo)])))
+        return vals
+    return _cluster_ci(per, seeds)
+
+
+def erasure_permutation_null(results: dict, gf=0.25, n_perm=2000) -> dict:
+    """M2 (tautology-killer): does surviving-entity overlap TRACK goal-set overlap beyond chance, under
+    salience? Correlate goal-overlap {A·B~.60, A·C 0, B·C~.14} vs entity-overlap across seeds, shuffle
+    the pairing for the null. r>0 & small p => the survivor is goal-STRUCTURED erasure, not construction."""
+    import random as _r
+    seeds = sorted(results)
+    pairs = [("A", "B"), ("A", "C"), ("B", "C")]
+    gov = [_goal_overlap(*p) for p in pairs]
+    xs, ys = [], []
+    for s in seeds:
+        for (d1, d2), g in zip(pairs, gov):
+            xs.append(g)
+            ys.append(jaccard(_ent(results[s][_ekey("salience", gf, d1)]),
+                              _ent(results[s][_ekey("salience", gf, d2)])))
+    obs = _pearson(xs, ys)
+    rng = _r.Random(0)
+    null = []
+    for _ in range(n_perm):
+        yp = ys[:]
+        rng.shuffle(yp)
+        null.append(_pearson(xs, yp))
+    p = (sum(1 for v in null if abs(v) >= abs(obs)) + 1) / (n_perm + 1)
+    return {"r": obs, "p": p, "n_points": len(xs)}
+
+
+def erasure_preconditions(results: dict) -> dict:
+    """F3 topic-disappearance gate (gist-level, NOT episode churn). Fail-loud HALT unless, under
+    salience: off-goal topics FORMED at the shared-past peak, then DROPPED materially by the end, with
+    real gist decay — and a HIGH-TIER off-goal gist was actually evicted (Josh: deliberately see one go).
+    `none` is checked as the negative control (off-goal must NOT drop there)."""
+    seeds = sorted(results)
+    sal = [results[s][_ekey("salience", 0.25, d)] for s in seeds for d in ("A", "B", "C")]
+    non = [results[s][_ekey("none", None, d)] for s in seeds for d in ("A", "B", "C")]
+    drop = [r["offgoal_peak_n"] - r["offgoal_final_n"] for r in sal]
+    decayed = [r["gists_decayed"] for r in sal]
+    none_drop = [r["offgoal_peak_n"] - r["offgoal_final_n"] for r in non]
+    top_evicted = [max(r["peak_offgoal_support"]) for r in sal
+                   if r["peak_offgoal_support"] and not r["final_offgoal_support"]]
+    med_drop = statistics.median(drop) if drop else 0
+    med_decay = statistics.median(decayed) if decayed else 0
+    min_final_ent = min((len(r["final_ents"]) for r in sal), default=0)
+    offgoal_formed = all(r["offgoal_peak_n"] >= 1 for r in sal) if sal else False
+    fired = med_drop >= 2 and med_decay >= 1 and offgoal_formed
+    return {
+        "median_offgoal_drop_salience": med_drop,
+        "median_gists_decayed_salience": med_decay,
+        "median_offgoal_drop_none": statistics.median(none_drop) if none_drop else 0,
+        "max_high_tier_gist_evicted": max(top_evicted) if top_evicted else 0,
+        "min_final_entities": min_final_ent,
+        "offgoal_formed_at_peak": offgoal_formed,
+        "erasure_fired": fired,
+        "HALT": not (fired and min_final_ent >= 2),
+    }
+
+
+def erasure_trajectory(results: dict, gf=0.25) -> dict:
+    """The 'how it differentiates over time' view: mean surviving-entity count per cycle-snapshot for
+    A (salience) vs A (none), across seeds. Requires the cube run with snapshot_every>0."""
+    seeds = sorted(results)
+    out = {}
+    for label, key in (("salience_A", _ekey("salience", gf, "A")), ("none_A", _ekey("none", None, "A"))):
+        by_cycle = {}
+        for s in seeds:
+            for snap in results[s][key].get("traj", []):
+                by_cycle.setdefault(snap["cycle"], []).append(snap["n_ents"])
+        out[label] = {c: (sum(v) / len(v)) for c, v in sorted(by_cycle.items())}
+    return out
+
+
+def erasure_analyze(results: dict) -> dict:
+    pc = erasure_preconditions(results)
+    sep = {pol_gf: erasure_entity_separation(results, *pol_gf)
+           for pol_gf in [("salience", 0.25), ("salience", 0.0), ("none", None), ("random", None)]}
+    div_AC = {pol_gf: erasure_divergence(results, *pol_gf, pair=("A", "C"))
+              for pol_gf in [("salience", 0.25), ("salience", 0.0), ("none", None), ("random", None)]}
+    return {
+        "preconditions": pc,
+        "entity_separation": sep,                                   # M1 co-primary (cluster-boot)
+        "divergence_AC": div_AC,                                    # H1/H2 magnitude
+        "same_disp_null": {gf: erasure_same_disp_null(results, gf) for gf in (0.25, 0.0)},  # H3
+        "permutation_null": {gf: erasure_permutation_null(results, gf) for gf in (0.25, 0.0)},  # M2
+        "trajectory": erasure_trajectory(results),                 # over-time
+    }
+
+
+def _erasure_verdict(an: dict) -> str:
+    pc = an["preconditions"]
+    if pc["HALT"]:
+        return (f"INVALID / NULL-by-inertness — erasure did not fire (median off-goal drop "
+                f"{pc['median_offgoal_drop_salience']} < 2 or no high-tier eviction); nothing to individuate.")
+    sal = an["entity_separation"][("salience", 0.25)]
+    non = an["entity_separation"][("none", None)]
+    rnd = an["entity_separation"][("random", None)]
+    pn = an["permutation_null"][0.25]
+    h3 = an["same_disp_null"][0.25]
+    h1 = sal["lo"] > max(0.0, non["hi"])          # salience separation strictly above none's CI
+    h2 = sal["lo"] > rnd["hi"]                     # ...and above random's CI
+    structured = pn["r"] > 0 and pn["p"] < 0.05
+    h3_ok = h3["lo"] > sal["hi"]                   # same-disp overlap exceeds cross-disp separation band
+    if not h3_ok:
+        return (f"INVALID — H3 fails: same-disposition overlap {_fmt(h3)} not clearly above the "
+                f"cross-disposition separation; divergence may be seed noise.")
+    if h1 and structured and h2:
+        return (f"DIFFERENTIATES (salience-specific) — entity-set separation salience={_fmt(sal)} > "
+                f"none={_fmt(non)} AND > random={_fmt(rnd)}; goal-structured (r={pn['r']:+.2f}, p={pn['p']:.3f}).")
+    if h1 and structured:
+        return (f"DIFFERENTIATES — salience separation {_fmt(sal)} > none {_fmt(non)}, goal-structured "
+                f"(r={pn['r']:+.2f}, p={pn['p']:.3f}); NOT distinguished from random ({_fmt(rnd)}) — H2 open.")
+    return (f"NULL — salience separation {_fmt(sal)} not clearly above none {_fmt(non)} "
+            f"(permutation r={pn['r']:+.2f}, p={pn['p']:.3f}).")
+
+
+def erasure_main(seeds=range(16), cycles=ERASURE_CYCLES, share_frac=SHARE_FRAC, snapshot_every=62,
+                 out="docs/validation/eval_harness/DIFFERENTIATION_ERASURE_RESULTS.md"):
+    import os
+    os.environ["CDMS_EVAL_MODE"] = "1"
+    os.environ["CDMS_EMBED_BACKEND"] = "fastembed"
+    assert_worktree_cdms()
+    import tempfile
+    base = Path(tempfile.mkdtemp(prefix="erasurecube-"))
+    emb = Embedder(Config(home=base))
+    assert emb.backend == "fastembed", emb.backend
+    seeds = list(seeds)
+    results = run_erasure_cube(seeds, cycles, base, emb, share_frac, snapshot_every)
+    an = erasure_analyze(results)
+    pc = an["preconditions"]
+    verdict = _erasure_verdict(an)
+
+    lines = ["# Differentiation via ERASURE — results (CORE THESIS)", "",
+             f"## VERDICT (as-shipped gf=0.25, raw entity set): {verdict}", "",
+             "## Run config", "```json",
+             json.dumps({**cdms_provenance(), "seeds": len(seeds), "cycles": cycles,
+                         "share_frac": share_frac, "embedder": emb.backend, "preconditions": pc}, indent=2),
+             "```", "",
+             "## Precondition — topic disappearance (F3, gist-level not episode churn)",
+             f"- off-goal entities DROP (salience, peak→end): median **{pc['median_offgoal_drop_salience']}**  "
+             f"(none control: {pc['median_offgoal_drop_none']})",
+             f"- gists decayed (salience): median **{pc['median_gists_decayed_salience']}**",
+             f"- **high-tier off-goal gist evicted**: support **{pc['max_high_tier_gist_evicted']}** "
+             f"(deliberately cleared a strong trait) · min surviving entities {pc['min_final_entities']}",
+             "",
+             "## CO-PRIMARY — entity-set separation (jaccard(A,B)−jaccard(A,C), cluster-boot over seeds)"]
+    for pol, gf in [("salience", 0.25), ("salience", 0.0), ("random", None), ("none", None)]:
+        lines.append(f"- {pol}" + (f"@{gf}" if gf is not None else "") + f": {_fmt(an['entity_separation'][(pol, gf)])}")
+    lines += ["", "## H1/H2 — divergence(A,C) = 1−jaccard (salience should exceed none AND random)"]
+    for pol, gf in [("salience", 0.25), ("salience", 0.0), ("random", None), ("none", None)]:
+        lines.append(f"- {pol}" + (f"@{gf}" if gf is not None else "") + f": {_fmt(an['divergence_AC'][(pol, gf)])}")
+    lines += ["", "## H3 — same-disposition-across-seeds overlap (must stay HIGH; else divergence is seed noise)"]
+    for gf in (0.25, 0.0):
+        lines.append(f"- gf={gf}: {_fmt(an['same_disp_null'][gf])}")
+    lines += ["", "## M2 — permutation null (entity-overlap tracks goal-overlap beyond chance?)"]
+    for gf in (0.25, 0.0):
+        v = an["permutation_null"][gf]
+        lines.append(f"- gf={gf}: r={v['r']:+.3f}  p={v['p']:.4f}  (n={v['n_points']})")
+    lines += ["", "## Trajectory — mean surviving-entity count over cycles (the 'differentiates over time' view)"]
+    for label, series in an["trajectory"].items():
+        row = "  ".join(f"c{c}:{v:.2f}" for c, v in series.items())
+        lines.append(f"- {label}: {row}")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    Path(out).write_text("\n".join(lines), encoding="utf-8")
+    print("\n".join(lines))
+    print(f"\nwrote {out}")
+    return an
 
 
 def main(seeds=range(16), cycles=250, out="docs/validation/eval_harness/DIFFERENTIATION_RESULTS.md"):

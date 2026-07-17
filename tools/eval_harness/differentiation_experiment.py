@@ -115,6 +115,23 @@ _POLICY = {
     "disposition-salience": {},
 }
 
+# --- ERASURE arm (CORE THESIS; DIFFERENTIATION_ERASURE_PREREG.md, LOCKED) --------------------------
+# The frozen-history cube fed ALL topics every cycle, so nothing ever went idle and nothing was
+# forgotten (committed NULL). Here the disposition drives BEHAVIOUR: after a SHARED PAST (all topics,
+# identical across dispositions), each self only keeps LIVING its goal topics; off-goal topics go idle,
+# their episodes age out, and their gists idle-decay (~137-396 cycles). Identity = what SURVIVES the
+# neglect. The forgetting-policy ablation (salience / none / random) is orthogonal to the behaviour.
+_ERASURE_POLICY = {
+    "salience": {},                        # shipped defaults: retention_floor=0.10, discard=salience
+    "none":     {"retention_floor": 0.0},  # episodes never evict -> off-goal gists reinforced forever -> no decay
+    "random":   {"discard_policy": "random"},  # rate-matched random episode eviction (goal-blind forgetting)
+}
+
+
+def _entities_of(idset: set) -> frozenset:
+    """The bare entity set behind a {(relation, entity)} identity (drops the noisy relation label)."""
+    return frozenset(e for (_, e) in idset)
+
 
 def _cfg_for(home: Path, condition: str, seed: int, gate_floor: float = 0.25) -> Config:
     cfg = Config(home=home)
@@ -182,5 +199,117 @@ def run_subject(dispo: str, condition: str, home: Path, seed: int, embedder, cyc
                          "raw": identity(svc), "surfaced": surfaced_identity(svc), "evicted": evicted})
     out = {"dispo": dispo, "condition": condition, "gate_floor": gate_floor, "seed": seed,
            "raw": identity(svc), "surfaced": surfaced_identity(svc), "evicted": evicted, "traj": traj}
+    svc.close()
+    return out
+
+
+# --- ERASURE arm implementation -------------------------------------------------------------------
+
+def _erasure_history(seed: int, dispo: str, cycles: int, share_frac: float) -> tuple[list, int]:
+    """Phased event stream for the erasure arm. Returns (history, n_shared).
+
+    Phase 1 SHARED PAST (first n_shared cycles): all 8 topics recur -> every topic forms a gist. The
+      stream is disposition-INDEPENDENT (seeded on `seed` only) so A/B/C/U share an IDENTICAL past.
+    Phase 2 DRIFT+TAIL (remaining cycles): only the disposition's goal topics recur (disposition-
+      specific stream); off-goal topics never reappear -> go idle -> age out -> gists decay. U
+      (dispositionless) keeps ALL topics through the tail (no selective neglect) — the within-salience
+      null: erasure needs a disposition to do the neglecting.
+    """
+    n_shared = max(1, int(round(share_frac * cycles)))
+    goalset = _DISPOSITIONS.get(dispo)                       # None for U
+    rng_shared = random.Random(f"erase-shared:{seed}")       # common past (all dispositions)
+    rng_drift = random.Random(f"erase-drift:{seed}:{dispo}")  # divergent life (per disposition)
+    hist = []
+    for c in range(1, cycles + 1):
+        if c <= n_shared:
+            pool, rng, phase = _ENTITIES, rng_shared, "shared"
+        elif goalset is None:                                # U keeps living everything
+            pool, rng, phase = _ENTITIES, rng_drift, "drift"
+        else:
+            pool, rng, phase = sorted(goalset), rng_drift, "drift"
+        batch = []
+        for _ in range(TURNS_PER_CYCLE):
+            ent = rng.choice(pool)
+            sub = rng.choice(_SUBTOPICS[ent])
+            success = rng.random() < _ENTITY_SUCCESS[ent]
+            verb = rng.choice(_GOOD if success else _BAD)
+            batch.append({"entity": ent, "sub": sub, "success": success, "verb": verb,
+                          "affect": (0.6 if success else -0.6), "phase": phase})
+        hist.append(batch)
+    return hist, n_shared
+
+
+def _erasure_goal_hint(entity: str, dispo: str):
+    """Disposition salience: on-goal HI (survives, gf-independent), off-goal LO (faded; gf gates HOW
+    hard the anti-amnesia floor protects it). U carries no disposition -> None (neutral goal ~0.9)."""
+    goalset = _DISPOSITIONS.get(dispo)
+    if goalset is None:
+        return None
+    return _GOAL_HI if entity in goalset else _GOAL_LO
+
+
+def _erasure_cfg_for(home: Path, policy: str, seed: int, gate_floor: float) -> Config:
+    cfg = Config(home=home)
+    for k, v in _ERASURE_POLICY[policy].items():
+        setattr(cfg, k, v)
+    if policy == "random":
+        cfg.discard_random_seed = seed
+    cfg.goal_gate_floor = gate_floor
+    cfg.ensure_home()
+    return cfg
+
+
+def run_erasure_subject(dispo: str, policy: str, home: Path, seed: int, embedder, cycles: int,
+                        share_frac: float = 0.12, gate_floor: float = 0.25,
+                        snapshot_every: int = 0) -> dict:
+    """Live the SHARED PAST then DRIFT under a forgetting policy; return the SURVIVING identity plus the
+    erasure telemetry the F3 precondition needs (gists_decayed, off-goal entity count at the shared-past
+    PEAK vs the end) and an optional per-cycle trajectory (the 'how it differentiates over time' view)."""
+    cfg = _erasure_cfg_for(home, policy, seed, gate_floor)
+    svc = MemoryService(cfg, embedder=embedder)
+    hist, n_shared = _erasure_history(seed, dispo, cycles, share_frac)
+    goalset = set(_DISPOSITIONS.get(dispo) or ())
+
+    def _offgoal_supports() -> list:
+        """Support_count of every OFF-goal gist right now (desc) — the 'tier' that neglect must erase.
+        Lets us verify a HIGH-tier gist (support near the decay cap) actually gets evicted by 500cy."""
+        return sorted((g.support_count for g in svc.db.all_gist() if _canonical_entity(g) not in goalset),
+                      reverse=True)
+
+    traj, gists_decayed_total = [], 0
+    peak_raw, peak_ents, peak_offgoal_support = set(), frozenset(), []
+    for c, batch in enumerate(hist, start=1):
+        now = _EPOCH + timedelta(days=(c - 1) * _DAYS_PER_CYCLE)
+        for i, ev in enumerate(batch):
+            ts = (now + timedelta(hours=i)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            svc.ingest(TurnEvent(
+                trigger_prompt=f"work on the {ev['entity']} {ev['sub']}",
+                action_taken=f"{ev['verb']} the {ev['entity']} {ev['sub']}",
+                outcome_feedback=("clean result" if ev["success"] else "broke, needed a fix"),
+                tool_name="Edit", success=ev["success"], valence_hint=ev["affect"],
+                goal_hint=_erasure_goal_hint(ev["entity"], dispo),
+                session_id=f"{dispo}-c{c}", project=_PROJECT, timestamp=ts))
+        rep = Consolidator(cfg, db=svc.db, embedder=embedder).run(now=now)
+        gists_decayed_total += rep.gists_decayed
+        if c == n_shared:                          # PEAK: end of the shared past, before neglect
+            peak_raw = identity(svc)
+            peak_ents = _entities_of(peak_raw)
+            peak_offgoal_support = _offgoal_supports()
+        if snapshot_every and (c % snapshot_every == 0 or c == cycles):
+            r = identity(svc)
+            traj.append({"cycle": c, "phase": batch[0]["phase"], "n_ents": len(_entities_of(r)),
+                         "gists_decayed": gists_decayed_total,
+                         "raw": r, "surfaced": surfaced_identity(svc)})
+    final_raw = identity(svc)
+    final_ents = _entities_of(final_raw)
+    out = {"dispo": dispo, "policy": policy, "gate_floor": gate_floor, "seed": seed,
+           "raw": final_raw, "surfaced": surfaced_identity(svc),
+           "peak_raw": peak_raw, "peak_ents": sorted(peak_ents), "final_ents": sorted(final_ents),
+           "goalset": sorted(goalset), "n_shared": n_shared, "gists_decayed": gists_decayed_total,
+           # F3 topic-disappearance telemetry: off-goal entities present at the peak vs the end.
+           "offgoal_peak_n": len(peak_ents - goalset), "offgoal_final_n": len(final_ents - goalset),
+           # High-tier-eviction evidence: off-goal gist support at the peak (max = the top tier neglect erased).
+           "peak_offgoal_support": peak_offgoal_support, "final_offgoal_support": _offgoal_supports(),
+           "traj": traj}
     svc.close()
     return out
