@@ -1,9 +1,18 @@
 """Ablation-delta analysis — the v2 primary endpoints.
 
-For each (axis, metric), report each condition's rate and the DELTA vs the reference
-(cdms-full) with a PAIRED bootstrap 95% CI (paired by query id, since every condition
-runs the same queries). A mechanism "resolves" when its delta CI excludes 0. This is
-the whole point: we read ablation contrasts (Δ = ablation − full), not a leaderboard.
+For each (axis, metric): each condition's rate, and the DELTA vs the reference (cdms-full).
+
+CLUSTERING (rule-12 fix): the unit of independence is the SCENARIO/store, NOT the query.
+N queries against one ~6-episode store are N reads of one binary mechanism decision, not N
+independent trials — bootstrapping over queries manufactures a false-tight CI (e.g. a
+degenerate [+1,+1] "RESOLVED"). So we aggregate to per-scenario rates first, pair by
+scenario, and cluster-bootstrap the delta over SCENARIOS. Honest edge cases:
+  * < 2 paired scenarios     -> CI UNDEFINED (a single-scenario mechanism outcome, not a
+                                sampled estimate);
+  * zero variance across ≥2  -> DETERMINISTIC (consistent effect; CI degenerate but reported
+                                as a deterministic finding, not a probabilistic one).
+Multiplicity: each (axis, metric, condition) is a separate contrast at 95%; correct/flag for
+the noisy paid-panel axes when many are tested.
 """
 from __future__ import annotations
 
@@ -12,11 +21,8 @@ from collections import defaultdict
 
 REFERENCE = "cdms-full"
 
-# Per (axis, metric): does a HIGHER metric value mean the mechanism is FAILING (a leak /
-# obedience / cross-contamination) or WORKING? Used only to annotate the "protective
-# direction" of a resolved delta — never to change the numbers.
-#   "harm"    : higher = worse (injection obeyed, isolation leak, self-attribution)
-#   "benefit" : higher = better (forget-complete, differentiation, recall)
+# Per (axis, metric): does a HIGHER value mean the mechanism is FAILING or WORKING? Annotation
+# of the protective direction only — never changes the numbers.
 METRIC_SENSE = {
     ("injection", "obeyed"): "harm",
     ("injection", "surfaced"): "harm",   # $0 retrieval-layer proxy: higher = fence let it through
@@ -27,32 +33,34 @@ METRIC_SENSE = {
 }
 
 
-def paired_bootstrap_delta(a: list[float], b: list[float], n_boot: int = 2000, seed: int = 0):
-    """Δ = mean(a) − mean(b), paired by index (a,b same queries, same length). Percentile
-    95% CI over n_boot paired resamples. Deterministic (seeded)."""
-    n = len(a)
-    if n == 0 or len(b) != n:
-        return float("nan"), float("nan"), float("nan")
+def _mean(xs):
+    return sum(xs) / len(xs) if xs else float("nan")
+
+
+def cluster_bootstrap_ci(per_scenario_diffs: list[float], n_boot: int = 2000, seed: int = 0):
+    """95% CI for the mean of per-scenario deltas, resampling SCENARIOS with replacement."""
+    m = len(per_scenario_diffs)
+    if m < 2:
+        return None, None
     rng = random.Random(seed)
-    point = sum(a) / n - sum(b) / n
-    deltas = []
+    means = []
     for _ in range(n_boot):
-        idx = [rng.randrange(n) for _ in range(n)]
-        deltas.append(sum(a[i] for i in idx) / n - sum(b[i] for i in idx) / n)
-    deltas.sort()
-    lo = deltas[int(0.025 * n_boot)]
-    hi = deltas[min(int(0.975 * n_boot), n_boot - 1)]
-    return point, lo, hi
+        idx = [rng.randrange(m) for _ in range(m)]
+        means.append(_mean([per_scenario_diffs[i] for i in idx]))
+    means.sort()
+    return means[int(0.025 * n_boot)], means[min(int(0.975 * n_boot), n_boot - 1)]
 
 
 def ablation_deltas(observations: list[dict], *, reference: str = REFERENCE,
                     n_boot: int = 2000, seed: int = 0) -> list[dict]:
-    """observations = [{condition, axis, metric, qid, value}, ...]. Returns one row per
-    (axis, metric, condition): its rate + (for non-reference conditions) Δ vs reference
-    with a paired bootstrap CI aligned on shared query ids."""
-    by: dict[tuple, dict] = defaultdict(dict)   # (axis, metric, condition) -> {qid: value}
+    """observations = [{condition, axis, metric, scenario, qid, value}, ...]. Returns one row per
+    (axis, metric, condition): rate + n_queries + n_scenarios, and for non-reference conditions the
+    scenario-clustered Δ vs reference with a status of RESOLVED / null / deterministic / CI-undefined."""
+    # (axis, metric, condition) -> {scenario -> [values]}
+    by: dict[tuple, dict] = defaultdict(lambda: defaultdict(list))
     for o in observations:
-        by[(o["axis"], o["metric"], o["condition"])][o["qid"]] = float(o["value"])
+        scen = o.get("scenario") or str(o.get("qid", "?")).split("#")[0]
+        by[(o["axis"], o["metric"], o["condition"])][scen].append(float(o["value"]))
 
     axes_metrics = sorted({(a, m) for (a, m, _c) in by})
     out: list[dict] = []
@@ -60,37 +68,50 @@ def ablation_deltas(observations: list[dict], *, reference: str = REFERENCE,
         ref = by.get((axis, metric, reference))
         conds = sorted({c for (a, m, c) in by if a == axis and m == metric})
         for cond in conds:
-            vals = by[(axis, metric, cond)]
-            rate = sum(vals.values()) / len(vals) if vals else float("nan")
+            per_scen = by[(axis, metric, cond)]
+            all_vals = [v for lst in per_scen.values() for v in lst]
             row = {"axis": axis, "metric": metric, "condition": cond,
-                   "n": len(vals), "rate": rate, "sense": METRIC_SENSE.get((axis, metric), "?")}
+                   "n_queries": len(all_vals), "n_scenarios": len(per_scen),
+                   "rate": _mean(all_vals), "sense": METRIC_SENSE.get((axis, metric), "?")}
             if ref and cond != reference:
-                shared = sorted(set(vals) & set(ref))
-                if shared:
-                    a = [vals[q] for q in shared]
-                    b = [ref[q] for q in shared]
-                    d, lo, hi = paired_bootstrap_delta(a, b, n_boot, seed)
-                    row.update({"delta_vs_ref": d, "ci_lo": lo, "ci_hi": hi,
-                                "n_paired": len(shared), "resolved": (lo > 0 or hi < 0)})
+                shared = sorted(set(per_scen) & set(ref))
+                diffs = [_mean(per_scen[s]) - _mean(ref[s]) for s in shared]
+                point = _mean(diffs)
+                row["delta_vs_ref"] = point
+                row["n_paired_scenarios"] = len(shared)
+                if len(shared) < 2:
+                    row["status"] = "CI-undefined (single scenario — mechanism outcome, not sampled)"
+                    row["resolved"] = None
+                elif all(abs(d - diffs[0]) < 1e-12 for d in diffs):
+                    row["status"] = f"deterministic across {len(shared)} scenarios (Δ={point:+.3f})"
+                    row["resolved"] = (abs(point) > 1e-12)
+                else:
+                    lo, hi = cluster_bootstrap_ci(diffs, n_boot, seed)
+                    row["ci_lo"], row["ci_hi"] = lo, hi
+                    row["resolved"] = (lo > 0 or hi < 0)
+                    row["status"] = "RESOLVED" if row["resolved"] else "null (CI straddles 0)"
             out.append(row)
     return out
 
 
 def format_table(rows: list[dict]) -> str:
-    """Human-readable ablation-delta table grouped by (axis, metric)."""
-    lines = []
+    lines = ["(CI = cluster-bootstrap over SCENARIOS; single-scenario deltas are mechanism outcomes, "
+             "CI undefined; multiplicity uncorrected across contrasts)"]
     cur = None
     for r in sorted(rows, key=lambda r: (r["axis"], r["metric"], r["condition"] != REFERENCE, r["condition"])):
         key = (r["axis"], r["metric"])
         if key != cur:
             cur = key
-            lines.append(f"\n== {r['axis']} / {r['metric']} ({r['sense']}: higher = "
-                         f"{'worse' if r['sense']=='harm' else 'better' if r['sense']=='benefit' else '?'}) ==")
-            lines.append(f"  {'condition':20} {'n':>4} {'rate':>7}   Δ vs cdms-full [95% CI]")
-        base = f"  {r['condition']:20} {r['n']:>4} {r['rate']:>7.3f}"
+            worse = {"harm": "worse", "benefit": "better"}.get(r["sense"], "?")
+            lines.append(f"\n== {r['axis']} / {r['metric']} (higher = {worse}) ==")
+            lines.append(f"  {'condition':20} {'nq':>4} {'nsc':>3} {'rate':>7}   Δ vs cdms-full / status")
+        base = f"  {r['condition']:20} {r['n_queries']:>4} {r['n_scenarios']:>3} {r['rate']:>7.3f}"
         if "delta_vs_ref" in r:
-            mark = "  RESOLVED" if r["resolved"] else ""
-            base += f"   {r['delta_vs_ref']:+.3f} [{r['ci_lo']:+.3f}, {r['ci_hi']:+.3f}]{mark}"
+            d = f"   {r['delta_vs_ref']:+.3f}"
+            if "ci_lo" in r and r["ci_lo"] is not None:
+                d += f" [{r['ci_lo']:+.3f}, {r['ci_hi']:+.3f}]"
+            d += f"  {r.get('status','')}"
+            base += d
         elif r["condition"] == REFERENCE:
             base += "   (reference)"
         lines.append(base)
