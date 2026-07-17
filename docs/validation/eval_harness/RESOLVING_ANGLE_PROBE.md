@@ -33,9 +33,15 @@ angle.
 - **Increment ladder:** graded interpolation of the goal-set from 100% A → 75/25 → 50/50 → 25/75 → 100% B (≥5
   rungs). Secondary axis (optional, per Josh): sweep a **temperament dial** across its range (does the salience
   *genotype*, not just what you work on, move the projection?).
-- **Identity representation** per (seed, disposition, cycle): the **support-weighted mean of surviving-gist
-  centroids** (one vector). Computed on **both raw and isotropy-corrected** embeddings (mean-centering the
-  artifact-vs-real diagnostic). Richer poolings (per-canonical-topic concatenation) are a pre-registered option.
+- **Identity representation** per (seed, disposition, cycle): the **support-weighted mean of the FULL
+  surviving-gist state** (one vector) — **not** the top-12 SURFACED set. NB (Jung): what CDMS surfaces AS the
+  identity is literally the **PersonaTree** (`<memory:persona>`), and in Jung's terms the **persona is the mask,
+  not the individuated self** ("divest the self of the false wrappings of the persona"). Reading the surfaced
+  layer measures the *wrapping*; the self, if anywhere in the state, is in the full (incl. un-surfaced "shadow")
+  gist set. Computed on **both raw and isotropy-corrected** embeddings (mean-centering = the artifact-vs-real
+  diagnostic). Richer poolings (per-canonical-topic concatenation) are a pre-registered option. (Consolidation
+  cycles are framed as **deintegration→reintegration**, Fordham — decay/eviction then re-clustering — so the
+  trajectory is a sequence of these, not a monotone accumulation.)
 - Seeds ≥ 16 (disjoint train/test folds); cycles long enough to reach steady survivor state.
 
 ## 3. Pipeline
@@ -48,10 +54,22 @@ angle.
 3. **Dose-response (guard #2 + the measurement):** project the **increment** identities onto the direction; do
    they order **monotonically** A→B with the rung? Report the curve + a monotonicity test. A spurious direction
    won't order graded increments.
-4. **Convergence/divergence over cycles (Josh's temporal question):** for **adjacent** rungs, plot
-   projection-distance (and full identity-repr distance) vs **cycle** — do near dispositions *diverge*
-   (individuation grows) or *converge* (collapse)? This is the differentiation-over-time curve at the resolving
-   angle.
+4. **Trajectory as the PRIMARY object (STANDING OUTPUT CONTRACT — applies to EVERY run, not just this probe).**
+   The end-state is *one point on a curve*; measuring only it has been a recurring root cause of the negatives
+   (the erasure ENDPOINT was degenerate while the mid-trajectory PARTIAL regime was not — same run). So:
+   - **Every run — single OR multi disposition — emits the full per-cycle trajectory of the measured quantity**
+     (the projection, and the identity-repr distances), as DATA **and** PLOTS (point plots + line graphs).
+   - **Single-disposition trajectory = the self's own dynamics + the WITHIN-SELF NULL.** Plot drift-against-self
+     (distance from its own baseline / earlier states) vs cycle, and test the trajectory SHAPE for
+     **circumambulation** (orbit / oscillation) — NOT assumed linear convergence (Jung: "no linear evolution;
+     only circumambulation of the self"). A single self already wobbles over cycles; that wobble is the noise
+     floor for the multi.
+   - **Multi-disposition trajectory = the direct AT-TIME between-comparison.** Pairwise divergence at matched
+     cycles vs cycle. **It only counts where it EXCEEDS the within-self trajectory variance** (the single-disp
+     null above) — the trajectory version of the seed-noise null.
+   - Beware: a trajectory has more points → MORE apophenia-prone (an orbit is easy to see in noise). A
+     trajectory-shape difference must beat the within-self null AND generalize held-out. More curve = more
+     chances to fool ourselves, not fewer.
 
 ## 4. Overfitting bar (LOAD-BEARING — the highest apophenia risk we've faced; a discriminative learner will
 carve A from B from pure noise given enough dims + few seeds)
