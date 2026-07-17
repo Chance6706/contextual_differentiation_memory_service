@@ -115,6 +115,11 @@ class CdmsAdapter:
 
         from cdms.config import Config, load_config
         from cdms.store import MemoryService
+        from tools.eval_harness.provenance import assert_worktree_cdms
+
+        # M-A GUARD: hard-fail if we imported the editable-installed sibling cdms instead of the
+        # worktree's fenced src. A wrong import silently inverts the fence result (pressure-test M-A).
+        assert_worktree_cdms()
 
         cfg = load_config()
         # Isolation: resolved home MUST be inside the tmp base (is_relative_to, NOT substring).
