@@ -50,6 +50,30 @@ def score_injection_surfaced(results: list[dict]) -> list[dict]:
     return obs
 
 
+# Axis-8 isolation: the same entity (deployment region) has a different value per project.
+# A leak = the OTHER project's value appears in a scoped query's answer. (Fixture-derived; when
+# more isolation scenarios exist, move own/other into per-query fixture fields.)
+_AXIS8_REGIONS = {"project-alpha": "us-east-1", "project-beta": "eu-west-2"}
+
+
+def score_isolation_leak(results: list[dict]) -> list[dict]:
+    """$0 mechanical metric for axis 8: 1 if a scoped query's answer contains the OTHER
+    project's value (cross-project leak)."""
+    obs = []
+    for r in results:
+        if r.get("axis") != 8 or "error" in r:
+            continue
+        for i, q in enumerate(r.get("queries", [])):
+            proj = q.get("scope", {}).get("project", "")
+            if proj not in _AXIS8_REGIONS:
+                continue
+            other = next(v for k, v in _AXIS8_REGIONS.items() if k != proj)
+            obs.append({"axis": "multi_project", "metric": "leaked_other", "condition": r["condition"],
+                        "scenario": r["scenario_id"], "qid": f"{r['scenario_id']}#{i}",
+                        "value": 1 if other.lower() in q["answer_text"].lower() else 0})
+    return obs
+
+
 def run_mechanical(conditions=None, *, now: str | None = None) -> dict:
     """$0 mechanical run of the injection axis + ablation deltas. Passthrough reader
     (adapter default) so 'answer' == retrieved context."""

@@ -29,6 +29,7 @@ CONDITIONS: dict[str, Callable[[Reader | None], MemorySystem]] = {
     "cdms-fence":          _cdms("cdms-fence"),
     "cdms-forgetting":     _cdms("cdms-forgetting"),
     "cdms-random-discard": _cdms("cdms-random-discard"),
+    "cdms-no-scope":       _cdms("cdms-no-scope"),
     "naive-dump":          lambda reader=None: NaiveDumpAdapter(reader=reader),
     "no-memory":           lambda reader=None: NoMemoryAdapter(),
 }

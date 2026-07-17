@@ -79,6 +79,7 @@ _CONDITION_OVERRIDES: dict[str, dict] = {
     "cdms-fence":           {"enforce_provenance": False},
     "cdms-forgetting":      {"retention_floor": 0.0},
     "cdms-random-discard":  {"discard_policy": "random", "discard_random_seed": 1729},
+    "cdms-no-scope":        {},   # no config change; query() drops the project filter (isolation ablation)
     # cdms-provenance-write: not separable from enforce_provenance today (Gap 2) — omitted
     # until granular flags exist; do not fake it.
 }
@@ -94,6 +95,9 @@ class CdmsAdapter:
             raise ValueError(f"unknown CDMS condition {condition!r}; "
                              f"expected one of {sorted(_CONDITION_OVERRIDES)}")
         self.condition = condition
+        # cdms-no-scope drops the project filter at query time (isolates the project-scoping
+        # mechanism: cdms-full scoped vs cdms-no-scope unscoped -> cross-project leak).
+        self._scope_queries = condition != "cdms-no-scope"
         self._base_path = base_path or Path(tempfile.mkdtemp(prefix="cdms-eval-"))
         self._reader: Reader = reader or _passthrough_reader
         self._svc = None
@@ -159,7 +163,9 @@ class CdmsAdapter:
         assert self._svc is not None, "reset() must precede query()"
         t0 = time.perf_counter()
         # PASS the project scope (v1 dropped it -> retrieved across all projects -> fake isolation).
-        hits = self._svc.retrieve(question, top_k=8, project=scope.project)
+        # cdms-no-scope deliberately drops it, as the isolation ablation.
+        proj = scope.project if self._scope_queries else ""
+        hits = self._svc.retrieve(question, top_k=8, project=proj)
         elapsed = (time.perf_counter() - t0) * 1000
         context = "\n".join(h.text[:400] for h in hits) if hits else "(no memories)"
         text = self._reader(question, context)
