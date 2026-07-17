@@ -55,6 +55,14 @@ angle.
 
 ## 4. Overfitting bar (LOAD-BEARING — the highest apophenia risk we've faced; a discriminative learner will
 carve A from B from pure noise given enough dims + few seeds)
+> **The border-line double-edge (Jung 1935, para 431: a "border-line phenomenon needing special conditions to
+> become conscious" — read: to become *observable*).** This gives credence to the difficulty (a threshold
+> phenomenon; because the vectors are non-orthogonal, only a *stacking* of them crosses the margin — hence a
+> projection search, not single axes). But it is ALSO the exact statement of our danger: a phenomenon that only
+> appears once conditions are tuned is the easiest to hallucinate. So the "special conditions" (the resolving
+> projection) MUST be fixed by a pre-registered rule and validated OUT-OF-SAMPLE — never searched-until-it-
+> appears. A figure that survives only in-sample, under conditions we tuned, is by definition indistinguishable
+> from an artifact. The gates below are that guard.
 - **Linear + regularized readout only.** No high-capacity models.
 - **Held-out fresh-seed generalization is the gate** (guard #1). Nothing is claimed off in-sample separation.
 - **LABEL-SHUFFLE null (guard #3):** shuffle A/B labels, re-run the whole pipeline; the shuffled "projection"
@@ -69,9 +77,14 @@ carve A from B from pure noise given enough dims + few seeds)
 - **FIGURE RESOLVES:** the direction generalizes held-out at max contrast AND dose-responds monotonically AND
   the shuffle null fails → identity IS a (findable) projection of the memory state; the four negatives were
   wrong angles. Then the convergence/divergence curve is the real differentiation-over-time result.
-- **NO FIGURE:** fails held-out generalization even at max contrast → individuation is not a readable property of
-  the memory state (the structural negative is confirmed *rigorously*, by a search that would have found a figure
-  if one existed) → the behavioral/functional arm is the only remaining locus.
+- **NO FIGURE:** fails held-out generalization even at max contrast → the memory *state* holds no projectable
+  identity trace (the structural negative confirmed *rigorously*, by a search that would have found a figure if
+  one existed). Read this NOT as "no individuation" but as "individuation is not in the stored **state**, it's in
+  the enacted **deed**" — the relational-enactive view (Jung 1935-39: the self is relatedness, "not that you are
+  but that you do the self… the self appears in your deeds and deeds always mean relationship"), reached
+  independently. Operational, no-consciousness restatement: **individuation ≝ the above-chance relational
+  distinguishability of an agent's enacted deeds.** → routes to the functional/relational arm as the definitional
+  locus, not a fallback.
 - **OVERFIT ARTIFACT:** shuffle null also generalizes → the instrument is unsound; fix before any claim.
 
 ## 6. Cost + staging
