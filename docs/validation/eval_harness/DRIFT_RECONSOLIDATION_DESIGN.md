@@ -59,8 +59,12 @@ Reuse `PT2-nondeg`'s clean **frequency-driven gradient** fixture (uniform goal, 
 disposition; frequency⊥goalset, so non-circular) + the goal_hint-fixed `history_effect` + the **seed-shuffle
 null**. Run drift-ON and drift-OFF, ≥16 seeds.
 - **PRIMARY:** does `history_effect` beat the seed-shuffle null under drift-ON (it did NOT under OFF)? (H-drift)
-- **CO-PRIMARY:** is the drift-induced structure disposition-specific vs recency-only? (H-disp — same-disp vs
-  diff-disp similarity, with a recency-matched control).
+- **CO-PRIMARY:** is the drift-induced structure **disposition-specific** (H-disp — same-disp-across-seeds more
+  similar than diff-disp), tested against a **disposition-BLIND recency null** (a recency drift with disposition
+  labels shuffled)? NOTE: recency is NOT a nuisance to control out — the disposition *acts through* recency (you
+  live your goals → they're recent), so they are entangled by design and that is fine. The question is only
+  whether the disposition's *characteristic* activity pattern is needed, or whether disposition-blind recency
+  reproduces the structure.
 - **SECONDARY:** the §3 instrumentation map (direction, magnitude, coherence).
 - **Discipline (EXPLORATORY, same bar):** a null on every probe; generate-not-confirm; a candidate graduates
   only if it beats its null AND survives a fresh-seed pre-registered replication. Pre-register the `α_drift`
@@ -80,6 +84,10 @@ Reconsolidation-drift makes -A memory **more mutable than pure eviction** — a 
 mechanical eviction" (Josh). Bounded, NOT full human mutability (full mutability is the confabulation surface we
 **refuse**). Framed as **representation-not-reproduction**: an optional enrichment, disclosed; the mechanism
 emulates reconsolidation's *function* (present-integrating drift) while refusing its *failure modes*.
+**Recency-homogenization is an INTENDED brain-like property, not a defect** (six months on one thing dims the
+rest): safe because the SRO fact never drifts (recency reshapes the *gestalt*, not the *record*, and the record
+stays -D-retrievable) and because -A recency-shaped accessibility is backstopped by -D effortful explicit
+retrieval — the human top-of-mind / sit-and-recall division.
 
 ## 7. Staging + gates
 1. This DRAFT → **rule-12 double pressure-test** → fold → **build** (eval harness, $0).
@@ -89,9 +97,13 @@ emulates reconsolidation's *function* (present-integrating drift) while refusing
    temperament-vector target, bound the runaway surfaced-gestalt target.
 
 ## 8. Pressure-test record (rule-12) — RESERVED. Attack these hardest:
-- **THE key risk — disposition-structure vs recency-homogenization.** Both beat the shuffle null. Does the
-  drift create *disposition-specific* coherence (H-disp), or just pull everything toward recent activity? The
-  recency-matched control must actually separate them.
+- **THE key risk — disposition-SPECIFICITY, not "recency vs disposition".** Recency-homogenization is an
+  INTENDED brain-like property (Josh), safe because (a) drift moves centroid/emphasis, NEVER the SRO fact — the
+  fact stays -D-retrievable, so recency reshapes the gestalt not the record; and (b) -A recency-shaped
+  accessibility + -D effortful explicit retrieval = the human top-of-mind/sit-and-recall split. So we do NOT
+  try to remove recency. The risk is only: does the drift-structure require the disposition's *characteristic*
+  pattern (H-disp), or does a disposition-BLIND recency null reproduce it? The disposition-blind null must be a
+  fair reproduction of the recency dynamics with only the disposition identity removed.
 - **Circularity check on the attractor.** Is "current-activity centroid" truly indirect, or does it smuggle the
   disposition back in (if activity ≡ goalset, is this the tautology again)? Show the coupling is *emergent*,
   not injected. (The frequency-driven fixture's frequency⊥goalset property is the defense — verify it holds.)
