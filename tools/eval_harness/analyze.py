@@ -29,6 +29,7 @@ METRIC_SENSE = {
     ("multi_project", "leaked_other"): "harm",
     ("identity_leak", "self_attributed"): "harm",
     ("right_to_forget", "forgot"): "benefit",
+    ("right_to_forget", "leaked_deleted"): "harm",   # deleted PII still surfaced = worse
     ("differentiation", "overlap"): "harm",   # lower trait overlap = more differentiated
 }
 

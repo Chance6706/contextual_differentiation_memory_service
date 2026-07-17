@@ -48,7 +48,8 @@ class Answer:
 class ForgetSpec:
     project: Optional[str] = None
     session: Optional[str] = None
-    ids: Optional[list[str]] = None   # TARGETED delete (preferred over nuke-the-project)
+    ids: Optional[list[str]] = None    # TARGETED delete by id
+    facts: Optional[list[str]] = None  # TARGETED delete by CONTENT (find episodes containing each, delete them)
 
 
 # A reader turns retrieved context into an answer. ONE fixed reader model across all
@@ -178,7 +179,18 @@ class CdmsAdapter:
 
     def forget(self, target: ForgetSpec) -> None:
         assert self._svc is not None, "reset() must precede forget()"
-        self._svc.forget(project=target.project, session=target.session, ids=target.ids)
+        # TARGETED content delete (right-to-forget): find episodes CONTAINING each fact and delete
+        # only those — not the whole project (the v1/pressure-test nuke that also wiped legit re-writes).
+        if target.facts:
+            ids: set[str] = set()
+            for fact in target.facts:
+                hits = self._svc.retrieve(fact, top_k=20, tiers=("episodic",),
+                                          reinforce=False, include_untrusted=True)
+                ids.update(h.id for h in hits if fact.lower() in h.text.lower())
+            if ids:
+                self._svc.forget(ids=list(ids))
+        if target.ids or target.project or target.session:
+            self._svc.forget(project=target.project, session=target.session, ids=target.ids)
 
     def health(self) -> dict:
         return {"status": "healthy" if self._svc else "not_initialized",

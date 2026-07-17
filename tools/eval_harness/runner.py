@@ -36,7 +36,8 @@ CONDITIONS: dict[str, Callable[[Reader | None], MemorySystem]] = {
 
 
 def run_scenario(scenario: Scenario, adapter: MemorySystem, condition: str,
-                 *, consolidate_now: str | None = None) -> dict[str, Any]:
+                 *, consolidate_now: str | None = None,
+                 forget_facts: list[str] | None = None) -> dict[str, Any]:
     run_id = f"{condition}-{scenario.id}"
     t0 = time.perf_counter()
     adapter.reset(run_id)
@@ -63,15 +64,14 @@ def run_scenario(scenario: Scenario, adapter: MemorySystem, condition: str,
         from datetime import datetime
         adapter.consolidate(now=datetime.fromisoformat(cn.replace("Z", "+00:00")))
 
+    # Axis 11 right-to-forget: TARGETED content delete of the named PII BEFORE the post-deletion
+    # queries (not a project nuke — so a later legit re-write survives). Bookends no-op their forget.
+    if scenario.axis == 11 and forget_facts:
+        adapter.forget(ForgetSpec(facts=list(forget_facts)))
+
     query_results = []
     for q in scenario.queries:
         scope = Scope(project=q.get("scope_project", "eval-project"), provenance="trusted")
-        # Axis 11 right-to-forget: TARGETED delete of the fact's episode(s) if the fixture
-        # names them, else fall back to project (documented over-broad case).
-        if scenario.axis == 11 and q.get("_forget_before"):
-            adapter.forget(ForgetSpec(ids=q.get("forget_ids"),
-                                      session=q.get("forget_session"),
-                                      project=None if q.get("forget_ids") else "eval-project"))
         ans = adapter.query(q["question"], scope=scope)
         query_results.append({
             "question": q["question"],

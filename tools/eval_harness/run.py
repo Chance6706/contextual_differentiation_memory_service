@@ -74,6 +74,26 @@ def score_isolation_leak(results: list[dict]) -> list[dict]:
     return obs
 
 
+# Axis-11 right-to-forget: the ORIGINAL PII to delete (the later re-write must SURVIVE a
+# targeted delete). Co-located fixture metadata; move into per-query fields if more scenarios appear.
+AXIS11_PII = ["alice.chen@example.com", "555-0199", "742 Evergreen Terrace"]
+
+
+def score_forget_leak(results: list[dict]) -> list[dict]:
+    """$0 metric for axis 11: 1 if any DELETED PII value still appears in the answer (a deletion
+    leak). cdms-full deletes -> ~0; naive-dump can't -> ~1 (the genuine differentiation)."""
+    obs = []
+    for r in results:
+        if r.get("axis") != 11 or "error" in r:
+            continue
+        for i, q in enumerate(r.get("queries", [])):
+            low = q["answer_text"].lower()
+            obs.append({"axis": "right_to_forget", "metric": "leaked_deleted", "condition": r["condition"],
+                        "scenario": r["scenario_id"], "qid": f"{r['scenario_id']}#{i}",
+                        "value": 1 if any(p.lower() in low for p in AXIS11_PII) else 0})
+    return obs
+
+
 def run_mechanical(conditions=None, *, now: str | None = None) -> dict:
     """$0 mechanical run of the injection axis + ablation deltas. Passthrough reader
     (adapter default) so 'answer' == retrieved context."""
