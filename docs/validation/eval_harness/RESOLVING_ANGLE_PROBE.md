@@ -1,116 +1,175 @@
 # The resolving-angle probe — a held-out discriminative-projection search for the identity "figure"
 
-**STATUS: DRAFT (2026-07-17) — NOT run. Goes through the rule-12 double pressure-test (overfitting/label-leakage
-FIRST) → lock → run. $0 local (fastembed).** On branch `research/differentiation`.
+**STATUS: DRAFT v2 (2026-07-17) — reshaped after the PT4 three-agent pressure-test. NOT run. This reshape
+goes through its OWN rule-12 double pressure-test → lock → run. $0 local (fastembed; dedicated research venv,
+GPU for exploration / CPU for canonical/reproducibility).** On branch `research/differentiation`.
+
+## What the PT4 round changed (construct / epistemics / overfit — all folded here)
+- **The v1 opposed-TOPIC poles were a topic classifier.** The separating direction was cos **0.943** with the
+  pure-topic axis → "FIGURE RESOLVES" would have been the **goalset tautology** reincarnated (the same failure
+  that made the erasure arm ENDPOINT-DEGENERATE: survivor ≡ goalset). **Fix (PT4-construct):** the primary now
+  isolates **relational stance on SHARED topics** — topic content identical, so any separating direction is
+  **topic-orthogonal by construction**. The within-topic relational arm was separable and topic-orthogonal in
+  PT4-construct's check (held-out acc 1.000, cos −0.037) — *on simulated/pooled vectors; confirming it on the
+  real ingest→consolidate→gist-state loop is THIS run, not a foregone conclusion.*
+- **The v1 guards could hallucinate a figure ~98–99.9% of the time on pure noise** (PT4-overfit). Not via a
+  learner carving noise (held-out CV was calibrated, mean acc ≈0.50) but via three channels the guards left
+  open: a **single-shuffle null ~95% inert**, **no null-calibrated threshold**, and an **uncontrolled
+  multiple-comparisons menu**. Plus two miscalibrated trajectory nulls. **Fixes:** permutation-distribution
+  null, one pre-registered primary + matched controls, matched-pairs trajectory null. (Detail in §5.)
+- **The thesis had no falsifier** (PT4-epistemics): every negative relocated ("it's not in the state → try
+  drift → try the projection → …"). **Fix:** a **terminal functional TOST** (task #10) is bound as the
+  thesis-level stop — the negative may relocate *once* (state → behavior), and behavior is the final court (§7).
+- **Isotropy-correction was cleared** (PT4-overfit NIT 8, an honest negative): whitening is label-blind, so it
+  injects no held-out leakage. Raw stays primary; isotropy is a diagnostic only.
 
 ## 0. Why — the anamorphic reframe (Josh)
 Four structural attempts (frozen NULL → erasure degenerate → tiered negative → drift homogenization) each read
 the memory state along a **pre-chosen axis** (entity set, relation, prose, coupling) and saw "one small piece,"
-never a coherent figure. But salience is **non-orthogonal** (the temperament dials collapse to ~5–6 DoF; the
-S0 drivers covary), so identity — if it's there — is a **low-dimensional projection of an entangled
-high-dimensional structure**, like a shadow-art assemblage that resolves into a figure from *one* angle and looks
-like junk from every other. We've hit this resistance before (the hollow-face self-attribution framing: a "self"
-coherent at the prior-forced angle, collapsing at the oblique). So instead of measuring along fixed axes, this
-probe **searches for the resolving projection** — the direction that casts the figure — and holds it to a strict
-generalization bar so we don't paint a face onto scrap.
+never a coherent figure. But salience is **non-orthogonal** (the temperament dials collapse to ~5–6 DoF; the S0
+drivers covary), so identity — if it's there — is a **low-dimensional projection of an entangled
+high-dimensional structure**, like a shadow-art assemblage that resolves into a figure from *one* angle and
+looks like junk from every other. We've hit this resistance before (the hollow-face self-attribution framing: a
+"self" coherent at the prior-forced angle, collapsing at the oblique). So instead of measuring along fixed axes,
+this probe **searches for the resolving projection** — but v2 fixes the angle it searches in: **not** "which
+domain you inhabit" (that resolves trivially = the tautology) but **"who you are toward a shared domain"** — the
+relational stance. This is both the topic-orthogonal signal PT4 demanded and the more faithful reading of the
+Jung Josh cited: *"the self appears in your deeds and deeds always mean relationship."*
 
 Publication-neutral name: **held-out discriminative identity projection.** ("Resolving angle" is the intuition
-only; no loaded terminology in any writeup — cf. the isotropy-correction naming rule.)
+only; no loaded terminology in any writeup — cf. the isotropy-correction naming rule, DEVIATIONS.md.)
 
-## 1. Question
-(a) Does a **linear projection of the surviving-gist state generalize** to separate two *opposed* dispositions on
-**held-out seeds** — i.e., is there a figure at all? (b) If so, do **graded increments** between the poles
-**dose-respond monotonically** along that projection? (c) Over cycles, do adjacent increments' identities
-**converge or diverge** in the projection — the differentiation-over-time curve, finally measured at the right
-angle.
+## 1. Question (on the 2×2)
+- **(a) PRIMARY — is there a topic-orthogonal relational figure?** Does a **linear, regularized projection of the
+  surviving-gist state** separate two subjects who share the **same topics** but hold **opposite relational
+  stance** (valence → relation), on **held-out seeds**, beating a **≥1000-shuffle permutation null** AND a
+  **matched-identical null** — while the **known-tautology topic contrast fires** (power confirmed) and the
+  primary's direction is **orthogonal to the tautology direction**?
+- **(b) Dose-response** — does a graded **valence ladder** on the shared topics (all-positive → all-negative
+  stance) order **monotonically** along that projection?
+- **(c) Trajectory** — over cycles, how does the relational figure evolve (the differentiation-over-time curve),
+  measured against a matched-pairs permutation null?
 
-## 2. Design
-- **Opposed-endpoint dispositions (the anchor — Josh):** A-pole = a **backend/security** domain (auth, crypto,
-  payments, database); B-pole = an **opposed frontend/product** domain (UI, notifications, design, dashboards).
-  Genuinely different domains → the discriminative direction can separate them along their *distinguishing*
-  dimension even if their raw cosine sits in the crowded cone (the projection amplifies the separating axis and
-  ignores the shared "software" bulk — this is exactly what a fixed-axis metric cannot do).
-- **Increment ladder:** graded interpolation of the goal-set from 100% A → 75/25 → 50/50 → 25/75 → 100% B (≥5
-  rungs). Secondary axis (optional, per Josh): sweep a **temperament dial** across its range (does the salience
-  *genotype*, not just what you work on, move the projection?).
-- **Identity representation** per (seed, disposition, cycle): the **support-weighted mean of the FULL
-  surviving-gist state** (one vector) — **not** the top-12 SURFACED set. NB (Jung): what CDMS surfaces AS the
-  identity is literally the **PersonaTree** (`<memory:persona>`), and in Jung's terms the **persona is the mask,
-  not the individuated self** ("divest the self of the false wrappings of the persona"). Reading the surfaced
-  layer measures the *wrapping*; the self, if anywhere in the state, is in the full (incl. un-surfaced "shadow")
-  gist set. Computed on **both raw and isotropy-corrected** embeddings (mean-centering = the artifact-vs-real
-  diagnostic). Richer poolings (per-canonical-topic concatenation) are a pre-registered option. (Consolidation
-  cycles are framed as **deintegration→reintegration**, Fordham — decay/eviction then re-clustering — so the
-  trajectory is a sequence of these, not a monotone accumulation.)
-- Seeds ≥ 16 (disjoint train/test folds); cycles long enough to reach steady survivor state.
+## 2. Design — the 2×2 factorial (topic × valence)
+Two subjects (poles A, B) are handed to a linear readout; what distinguishes the four cells is **what differs
+between A and B**. Fixture: subjects ingest valence-signed episodes over the topic set; **relation is derived
+from valence** (`relation_from_valence`: positive→handles_well, negative→has_trouble_with), so opposite valence
+on a shared topic = opposite relational identity toward the same work.
 
-## 3. Pipeline
-1. **Find the projection** on TRAINING seeds: a **LINEAR, regularized** readout (mean-difference direction, or
-   L2-regularized logistic / LDA — *linear only*, few DoF, no deep nets) separating A-pole from B-pole identity
-   representations.
-2. **Held-out generalization (overfitting guard #1, primary):** does the projection separate A from B on
-   **fresh held-out seeds** (k-fold CV, report accuracy/AUC + CI)? If it does NOT generalize at *max contrast*,
-   there is **no figure** → stop; the behavioral-only conclusion stands.
-3. **Dose-response (guard #2 + the measurement):** project the **increment** identities onto the direction; do
-   they order **monotonically** A→B with the rung? Report the curve + a monotonicity test. A spurious direction
-   won't order graded increments.
-4. **Trajectory as the PRIMARY object (STANDING OUTPUT CONTRACT — applies to EVERY run, not just this probe).**
-   The end-state is *one point on a curve*; measuring only it has been a recurring root cause of the negatives
-   (the erasure ENDPOINT was degenerate while the mid-trajectory PARTIAL regime was not — same run). So:
-   - **Every run — single OR multi disposition — emits the full per-cycle trajectory of the measured quantity**
-     (the projection, and the identity-repr distances), as DATA **and** PLOTS (point plots + line graphs).
-   - **Single-disposition trajectory = the self's own dynamics + the WITHIN-SELF NULL.** Plot drift-against-self
-     (distance from its own baseline / earlier states) vs cycle, and test the trajectory SHAPE for
-     **circumambulation** (orbit / oscillation) — NOT assumed linear convergence (Jung: "no linear evolution;
-     only circumambulation of the self"). A single self already wobbles over cycles; that wobble is the noise
-     floor for the multi.
-   - **Multi-disposition trajectory = the direct AT-TIME between-comparison.** Pairwise divergence at matched
-     cycles vs cycle. **It only counts where it EXCEEDS the within-self trajectory variance** (the single-disp
-     null above) — the trajectory version of the seed-noise null.
-   - Beware: a trajectory has more points → MORE apophenia-prone (an orbit is easy to see in noise). A
-     trajectory-shape difference must beat the within-self null AND generalize held-out. More curve = more
-     chances to fool ourselves, not fewer.
+|                    | **aligned valence**                                                                 | **opposed valence**                                                                            |
+|--------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| **shared topic**   | **① NULL control** — same topics, same stance ⇒ identical dispositions (differ only by seed). Must **NOT** separate held-out. | **② PRIMARY (confirmatory)** — same topics, opposite stance ⇒ only relational identity differs; any separating direction is **topic-orthogonal by construction.** |
+| **opposed topic**  | **③ KNOWN-TAUTOLOGY / positive control** — different topics, same stance ⇒ pure topic detection. Must separate; **flagged known-tautology, never an individuation claim.** | **④ CONFOUND / decomposition** — differ in *both* (the v1 opposed-poles design); separates but confounded — interpretable only against ② and ③. |
 
-## 4. Overfitting bar (LOAD-BEARING — the highest apophenia risk we've faced; a discriminative learner will
-carve A from B from pure noise given enough dims + few seeds)
-> **The border-line double-edge (Jung 1935, para 431: a "border-line phenomenon needing special conditions to
-> become conscious" — read: to become *observable*).** This gives credence to the difficulty (a threshold
-> phenomenon; because the vectors are non-orthogonal, only a *stacking* of them crosses the margin — hence a
-> projection search, not single axes). But it is ALSO the exact statement of our danger: a phenomenon that only
-> appears once conditions are tuned is the easiest to hallucinate. So the "special conditions" (the resolving
-> projection) MUST be fixed by a pre-registered rule and validated OUT-OF-SAMPLE — never searched-until-it-
-> appears. A figure that survives only in-sample, under conditions we tuned, is by definition indistinguishable
-> from an artifact. The gates below are that guard.
-- **Linear + regularized readout only.** No high-capacity models.
-- **Held-out fresh-seed generalization is the gate** (guard #1). Nothing is claimed off in-sample separation.
-- **LABEL-SHUFFLE null (guard #3):** shuffle A/B labels, re-run the whole pipeline; the shuffled "projection"
-  must **fail** to generalize held-out. If a shuffled-label direction ALSO generalizes, the pipeline
-  manufactures structure → INVALID, stop.
-- **Monotonic dose-response required** (guard #2) — a real axis orders the increments; noise doesn't.
-- **Report raw AND isotropy-corrected** — quantify how much separation is removable artifact vs real proximity.
-- **Pre-register** the readout method, the k-fold seed splits, the increment ladder, and the decision
-  thresholds BEFORE looking at any projection value. No post-hoc method/fold/rung selection.
+- **Cells = one primary + two controls + one decomposition arm** (NOT four hypotheses). This is what reconciles
+  a factorial with PT4-overfit's multiple-comparisons finding: ① and ③ are pre-registered **validity gates**
+  (null-must-be-null, tautology-must-fire), not comparisons to fish in. The confirmatory family is **cell ②
+  alone**; ④ and any pooling/dial variants are explicitly exploratory under FDR.
+- **Decomposition (Josh's "how / which-direction / why"):** topic-share ≈ ③, relation-share ≈ ②,
+  interaction ≈ ④ − (② + ③). Directly estimates how much of any separation is topic (tautology) vs relational
+  stance (real).
+- **Identity representation** per (seed, cell, cycle): a **structured, per-canonical-topic** representation
+  (concatenate/stack the surviving-gist vectors per topic slot), **not** the support-weighted mean of the whole
+  state (mean-pooling was PT4-construct MUST_FIX#2 — it lets a topic-detector win). Computed on the **FULL
+  surviving-gist state**, not the top-12 SURFACED `<memory:persona>` set (Jung: the persona is the *mask*; the
+  self, if anywhere, is in the full state incl. the un-surfaced "shadow" gists). **Raw is primary; isotropy
+  correction is a reported diagnostic only** (leakage retired, PT4-overfit NIT 8).
+- **Valence ladder (for ②'s dose-response):** 100% positive → 75/25 → 50/50 → 25/75 → 100% negative stance on
+  the shared topics (≥5 rungs). **Rungs 1 & 5 are FRESH held-out seeds, not the trained poles** (pinning them
+  to the in-sample training extremes inflated FP 0.018→0.146, PT4-overfit SHOULD_FIX#5).
+- **Seeds ≫ 16**, disjoint train/test folds; report the **null sd** (n=16 is a fat-tailed floor, sd≈0.10 —
+  PT4-overfit SHOULD_FIX#7). Cycles long enough to reach steady survivor state.
+- **BUILD NOTE:** the current generator (`_erasure_history`) may not vary valence independently of topic;
+  driving a per-topic valence sign is a build requirement for this fixture (flagged, not assumed present).
 
-## 5. Verdicts
-- **FIGURE RESOLVES:** the direction generalizes held-out at max contrast AND dose-responds monotonically AND
-  the shuffle null fails → identity IS a (findable) projection of the memory state; the four negatives were
-  wrong angles. Then the convergence/divergence curve is the real differentiation-over-time result.
-- **NO FIGURE:** fails held-out generalization even at max contrast → the memory *state* holds no projectable
-  identity trace (the structural negative confirmed *rigorously*, by a search that would have found a figure if
-  one existed). Read this NOT as "no individuation" but as "individuation is not in the stored **state**, it's in
-  the enacted **deed**" — the relational-enactive view (Jung 1935-39: the self is relatedness, "not that you are
-  but that you do the self… the self appears in your deeds and deeds always mean relationship"), reached
-  independently. Operational, no-consciousness restatement: **individuation ≝ the above-chance relational
-  distinguishability of an agent's enacted deeds.** → routes to the functional/relational arm as the definitional
-  locus, not a fallback.
-- **OVERFIT ARTIFACT:** shuffle null also generalizes → the instrument is unsound; fix before any claim.
+## 3. The three standing reference shapes (STANDING OUTPUT CONTRACT — Josh)
+Every differentiation experiment emits, side by side and each **explicitly marked**, three shapes; the real
+measurement is only ever read *between* the two anchors:
+- **NULL** (cell ①, "known-null, must not separate") — the noise floor; what *no signal* looks like.
+- **KNOWN-TAUTOLOGY** (cell ③, "known-tautology, NOT individuation") — the ceiling of trivial-by-construction
+  separation. Earns its keep three ways: **magnitude anchor** (real effect reported as a fraction of it),
+  **direction anchor / active gate** (yields the topic-classifier axis the real direction must be orthogonal
+  to), and **power check** (if it fails to separate, the substrate is too crushed to trust a null on ②).
+- **REAL** (cell ②) — the actual question, read as a *position*: above NULL, orthogonal-to and (expected) below
+  KNOWN-TAUTOLOGY.
 
-## 6. Cost + staging
-- **$0 local.** Run the increment/seed embeds on **fastembed-gpu** (frees the CPU — the source of this session's
-  pileups); keep any **canonical/reproducibility** re-run on **CPU** (the shipped 0-VRAM substrate) for
-  determinism.
-- **Run BEFORE the paid functional arm.** This is the cheap test of "is there a figure in the state at all" — a
-  FIGURE-RESOLVES rescues the structural approach; a rigorous NO-FIGURE justifies paying a reader to look at the
-  behavioral projection instead. Either outcome is decision-bearing.
-- Draft → rule-12 pressure-test (attack: overfitting, label leakage across folds, isotropy-correction as a DoF,
-  the monotonicity test's power, the identity-representation pooling choice) → lock → run.
+The known-tautology is **never stamped as a positive individuation finding** (same anti-laundering discipline as
+the `DIFFERENTIATES` → `SEPARATION-PRESENT (INTERPRETATION GATED)` purge in `differentiation_cube.py`). This
+contract binds this experiment (natively, via the 2×2) and every future one, alongside the trajectory contract.
+
+## 4. Pipeline
+1. **Find the projection** on TRAINING seeds: a **linear, regularized** readout (mean-difference direction, or
+   L2-logistic / LDA — linear only, few DoF; **L2 strength / shrinkage pre-registered**, PT4-overfit SHOULD_FIX#6).
+2. **Held-out generalization** on fresh seeds (k-fold; k pre-registered). Report accuracy/AUC + CI.
+3. **Permutation-distribution null (≥1000 shuffles)** — the real held-out statistic's **permutation p-value**;
+   the **decision threshold = the permutation null's upper quantile, pre-registered** (NOT an absolute bar; a
+   single shuffle is ~95% inert and any fixed bar fires 6–15% on noise — PT4-overfit MUST_FIX#1,#2). Cell ② must
+   also **exceed cell ①'s matched-null separation.**
+4. **Orthogonality gate** — cell ②'s discriminative direction vs the cell-③ tautology direction: **|cos| < τ**
+   (τ pre-registered, e.g. 0.2). High cos ⇒ the goalset in disguise.
+5. **Dose-response** — project the valence-ladder rungs; monotonic order tested by **exact permutation**
+   (fresh held-out endpoints, §2).
+6. **Trajectory (per the standing contract).** Full per-cycle trajectory of the projection + identity-repr
+   distances, as DATA **and** PLOTS. **Between-disposition divergence is tested against a MATCHED-PAIRS
+   PERMUTATION null** (permute pole labels on matched-cycle trajectory pairs) — **NOT** the within-self spread
+   (which is √2-miscalibrated: two walks diverge 1.41× faster than one departs baseline → 19.7% FP,
+   PT4-overfit MUST_FIX#4). **Circumambulation / non-monotonicity is DROPPED as a figure signal** (it fires
+   100% on pure random walks — zero evidential value). Trajectory shape must beat the matched-pairs null AND
+   generalize held-out.
+
+## 5. Overfitting / validity bar (LOAD-BEARING — PT4-overfit showed v1 hallucinated ~98–99.9% on noise)
+- **ONE pre-registered confirmatory primary = cell ②** (readout × representation × pole-pair all fixed);
+  everything else (④, poolings, dial sweeps) **exploratory under FDR.** The v1 menu gave FP 0.47→0.72→0.98→0.999.
+- **Permutation-distribution null + null-calibrated threshold** (§4.3), not single-shuffle, not an absolute bar.
+- **Matched real controls, not synthetic shuffles alone:** cell ① (identical pair) is the null gate; cell ③
+  (tautology) is the power gate.
+- **Linear + regularized readout only; all hyperparameters pre-registered; seeds ≫16 with null sd reported.**
+- **Raw primary; isotropy diagnostic only** — report both, but the leakage fear is retired; don't inflate
+  raw-vs-iso effect-size claims.
+- **Pre-register everything BEFORE looking at any projection value** — method, folds, ladder, thresholds, τ, the
+  FDR family. No post-hoc method/fold/rung/cell selection.
+- **The border-line double-edge (Jung 1935, para 431: a "border-line phenomenon needing special conditions to
+  become observable").** Credence to the difficulty (a threshold phenomenon; only a *stacking* of non-orthogonal
+  vectors crosses the margin) AND the exact statement of the danger (a phenomenon that only appears once
+  conditions are tuned is the easiest to hallucinate). The gates above are that guard; a figure that survives
+  only in-sample under tuned conditions is, by definition, indistinguishable from an artifact.
+
+## 6. Verdicts (mechanized from data + pre-registered thresholds — no laundering, no stamped positives)
+- **FIGURE RESOLVES:** cell ② beats its ≥1000-perm null (p<threshold) AND exceeds cell ①'s matched null AND
+  |cos(②, ③-direction)| < τ AND the valence ladder dose-responds monotonically — **conditional on cell ③
+  firing** (power confirmed). ⇒ relational identity IS a projectable trace of the memory state; the four
+  negatives were wrong angles. Then the trajectory curve is the real differentiation-over-time result.
+- **NO FIGURE:** cell ③ fires (powered) but cell ② sits at its permutation null ⇒ the state holds **no
+  topic-orthogonal relational identity trace.** Reported **plainly as a negative** (NOT "the definitional
+  locus"). Routes to the terminal functional TOST (§7) as the thesis-level court.
+- **UNDERPOWERED / INCONCLUSIVE:** cell ③ (tautology) does NOT separate ⇒ the substrate lacks power (the 0.07
+  cone crushed even topic signal); **no verdict on cell ②.**
+- **INVALID / OVERFIT:** cell ① (null) separates above its permutation null ⇒ the pipeline manufactures
+  structure; fix before any claim.
+
+## 7. Terminal falsifier — the thesis-level stop (binds task #10; the epistemics M1 fix)
+The probe is the **cheap in-state look**; it **routes** the thesis but does not **decide** it. The negative is
+permitted to relocate **exactly once** (state → behavior); **behavior is the terminal court** — no further
+relocation.
+- **FIGURE RESOLVES here** → the state carries a trace; still confirm functionally (a state trace could be
+  epiphenomenal).
+- **NO FIGURE here** → the thesis survives **only if** the powered functional **TOST** (task #10, ~200/arm,
+  blind judge disjoint from the reader) **rejects equivalence** — i.e., A-enacted vs B-enacted deeds ARE
+  distinguishable beyond a pre-registered margin ⇒ individuation is **behavioral, not state-readable.**
+- **If the functional TOST FAILS to reject** (deeds within the equivalence margin = indistinguishable) ⇒ the
+  thesis is **FALSE at this substrate and the program HALTS.** Pre-registered now, so a null cannot be
+  re-relocated.
+
+## 8. Cost + staging
+- **$0 local.** Embeds on **fastembed-gpu** in a **dedicated research venv** (isolated onnxruntime-gpu/fastembed;
+  product venv untouched, 0-VRAM substrate preserved); keep **canonical / reproducibility** re-runs on **CPU**
+  for byte-determinism (CPU↔GPU float drift can tip 0.90-threshold gist merges).
+- **Run BEFORE the paid functional arm** — the cheap "is there a figure in the state at all" test; either
+  outcome is decision-bearing (FIGURE-RESOLVES rescues the structural approach; a rigorous NO-FIGURE justifies
+  paying a reader).
+- Reshaped DRAFT → **its own rule-12 double pressure-test** (attack: does the 2×2 fixture actually vary valence
+  independent of topic; is the orthogonality gate the right τ; does the structured representation reintroduce
+  topic; is the matched-pairs trajectory null truly calibrated; power at seeds≫16) → **lock** → build (research
+  venv) → run.
+
+## 9. Pressure-test record (rule-12) — RESERVED for the v2 reshape round.

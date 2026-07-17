@@ -614,12 +614,18 @@ def _erasure_verdict(an: dict) -> str:
     if not h3_ok:
         return (f"INVALID — H3 fails: same-disposition overlap {_fmt(h3)} not above diff-disposition "
                 f"overlap {diff_overlap:.3f}; divergence may be seed noise.")
+    # NB: this runner reports SEPARATION, never "differentiation" — the word was a laundering vector
+    # (flagged 3× across the arc). Structural separation at this substrate is topic-driven until proven
+    # otherwise; interpretation is GATED on tautology-exclusion + a permutation null + the functional H4.
     if h1 and h2:
-        return (f"DIFFERENTIATES (salience-specific, partial erasure) — separation salience={_fmt(sal)} > "
-                f"none={_fmt(non)} AND > random={_fmt(rnd)}; H3 holds.")
+        return (f"SEPARATION-PRESENT (salience-specific) — INTERPRETATION GATED, not an individuation "
+                f"claim. salience={_fmt(sal)} > none={_fmt(non)} AND > random={_fmt(rnd)}; H3 holds. "
+                "Not individuation until survivor ⊄ goalset (endpoint-tautology excluded), a ≥1000-shuffle "
+                "permutation null is beaten, and the functional H4 confirms — see the RESULTS doc.")
     if h1:
-        return (f"DIFFERENTIATES (forgetting, NOT salience-specific) — salience {_fmt(sal)} > none "
-                f"{_fmt(non)} but NOT above random {_fmt(rnd)} — H2 open.")
+        return (f"SEPARATION-PRESENT (forgetting, NOT salience-specific) — INTERPRETATION GATED. "
+                f"salience {_fmt(sal)} > none {_fmt(non)} but NOT above random {_fmt(rnd)} — H2 open. "
+                "Same gating as above; not an individuation claim.")
     return f"NULL — salience separation {_fmt(sal)} not clearly above none {_fmt(non)}."
 
 
