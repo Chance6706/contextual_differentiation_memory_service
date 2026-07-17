@@ -277,8 +277,8 @@ def _erasure_cfg_for(home: Path, policy: str, seed: int, gate_floor: float) -> C
 
 
 def run_erasure_subject(dispo: str, policy: str, home: Path, seed: int, embedder, cycles: int,
-                        share_frac: float = 0.12, gate_floor: float = 0.25,
-                        snapshot_every: int = 0) -> dict:
+                        share_frac: float = 0.08, gate_floor: float = 0.25,
+                        snapshot_every: int = 0) -> dict:   # default matches the locked cube SHARE_FRAC (A1 NIT)
     """Live the SHARED PAST then DRIFT under a forgetting policy; return the SURVIVING identity plus the
     erasure telemetry the F3 precondition needs (gists_decayed, off-goal entity count at the shared-past
     PEAK vs the end) and an optional per-cycle trajectory (the 'how it differentiates over time' view)."""

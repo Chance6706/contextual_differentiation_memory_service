@@ -127,4 +127,26 @@ judge is disjoint from every reader (reader≠judge). Report distinguishability 
 so "does an identity move the loaded agent, and by how much" is answered across capability, not at one point.
 The local arm is $0 and ungated; only the frontier cloud arm needs the spend authorization (given).
 
-## Results — PENDING (structural first, $0; functional secondary gated on Josh + its own pressure-test)
+## Results — see DIFFERENTIATION_ERASURE_RESULTS.md
+
+## POST-LOCK ADDENDUM (2026-07-17) — the entity-set PRIMARY is SUPERSEDED (found degenerate)
+
+A four-agent rule-12 pressure-test (post-lock, on the built arm + a 3–4 seed × 500cy preview) found the
+**entity-set structural PRIMARY (§3) is TRUE-BY-CONSTRUCTION at the locked full-erasure endpoint**: at
+`cycles=500`/`share_frac=0.08` every off-goal topic decays out, so the surviving entity set ≡ the
+disposition's goalset and the separation is pure `_DISPOSITIONS` arithmetic (zero-variance CIs; the three
+entity-overlaps equal the three goal-overlaps to the digit). Consequences, all CONFIRMED: `history_effect ≡ 0`
+by construction (Identity=f(History) unmeasurable at this metric); the M2 permutation null is CIRCULAR
+(entity-overlap ≡ goal-overlap) + pseudo-replicated; H2 (salience vs random) is UNREACHABLE at the endpoint
+(both ≡ goalset — though salience ≠ random appears at *partial* erasure, suggestive); H1 (salience > none) is
+CONFOUNDED (none = forgetting-off-entirely). The prose add-on is EXPLORATORY / non-pre-registered and below
+its own ~0.03 floor with a self-pairing CI at n=3.
+
+**Therefore:** the §3 entity-set PRIMARY is demoted to a *mechanism-fired sanity check*; the real content is
+the decay TRAJECTORY (a mechanism result). The individuation claim requires a NEW pre-registration built for
+**PARTIAL erasure** (overlapping/graded goalsets + off-goal topics re-lived at differing frequency so history
+and salience determine *which* survive — this also makes H2 testable), the **fulcrum** as the history null,
+and the **functional H4** as the load-bearing arm (organized on the substrate × disposition × history
+tier-decomposition, each tier/interaction vs a null). **The powered 16-seed × 500 run is CANCELLED as
+degenerate.** Code fixes folded (verdict honesty + H3 unit bug + self-pairing CI + share_frac default +
+circular-null annotation). Full record: DIFFERENTIATION_ERASURE_RESULTS.md.

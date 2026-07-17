@@ -380,6 +380,8 @@ def erasure_same_disp_null(results: dict, gf=0.25, dispo="A") -> dict:
         vals = []
         for i in range(len(rs)):
             for j in range(i + 1, len(rs)):
+                if rs[i] == rs[j]:          # skip self-pairs: a seed vs itself = overlap 1.0 (degenerate;
+                    continue                # A3/A4 — self-pairing pins the bootstrap CI lower bound)
                 vals.append(jaccard(_ent(results[rs[i]][_ekey("salience", gf, dispo)]),
                                     _ent(results[rs[j]][_ekey("salience", gf, dispo)])))
         return vals
@@ -387,9 +389,12 @@ def erasure_same_disp_null(results: dict, gf=0.25, dispo="A") -> dict:
 
 
 def erasure_permutation_null(results: dict, gf=0.25, n_perm=2000) -> dict:
-    """M2 (tautology-killer): does surviving-entity overlap TRACK goal-set overlap beyond chance, under
-    salience? Correlate goal-overlap {A·B~.60, A·C 0, B·C~.14} vs entity-overlap across seeds, shuffle
-    the pairing for the null. r>0 & small p => the survivor is goal-STRUCTURED erasure, not construction."""
+    """M2 permutation null on the ENTITY arm. WARNING (A2/A1/A3 CONFIRMED): at full erasure this is
+    CIRCULAR and DEGENERATE — survivor ≡ goalset, so entity-overlap is DEFINITIONALLY EQUAL to the
+    goal-overlap it is correlated against ⇒ r=+1.0 and tiny p trivially, and the n=seed×3 pooling is
+    pseudo-replicated (violates M4). It does NOT provide independent corroboration in this arm and is
+    NOT cited by the verdict. Retained only for the PROSE arm (where measured ≠ predictor) and for a
+    future PARTIAL-erasure design (where the survivor is not the goalset)."""
     import random as _r
     seeds = sorted(results)
     pairs = [("A", "B"), ("A", "C"), ("B", "C")]
@@ -441,11 +446,16 @@ def erasure_preconditions(results: dict) -> dict:
     }
 
 
-# --- PROSE-space (the finer grain: does the individuation live in the rendered text?) -------------
-# The tuple metric saturates (disposition owns the topic set, history washes out). These probe the
-# STRATUM BOUNDARY: render each self's real preamble prose, compare by semantic cosine. Every prose
-# probe carries its own null (permutation / same-disposition) so 'more entropy' can't masquerade as
-# 'more identity'.
+# --- PROSE-space (EXPLORATORY / NON-PRE-REGISTERED — NOT in the locked prereg §3) -----------------
+# A $0 upstream SCREEN, necessary-not-sufficient for the functional H4; NOT evidence of behavioral
+# individuation (A4). The tuple metric saturates (disposition owns the topic set, history washes out);
+# these render each self's real preamble prose and compare by semantic cosine. CAVEATS the 4-agent
+# pressure-test CONFIRMED, to carry into any interpretation: (1) different zero-points — set-Jaccard is
+# a hard 0, cosine is never 0, so "topic 0 vs prose >0" is partly manufactured; the real floor is the
+# `none` prose separation (~0.03). (2) history_effect needs n>=16 + the self-pair-free CI (fixed above)
+# + cosmetics (integer counts, gist ordering) stripped before it reflects semantic content. (3) the
+# prose permutation null tests DISPOSITION (topic words), not the HISTORY axis — it is NOT a history null;
+# the real history null is the fulcrum (does same-disposition distance scale with shared-history f).
 
 def _prose_cos(ra: dict, rb: dict):
     va, vb = ra.get("prose_vec"), rb.get("prose_vec")
@@ -480,6 +490,8 @@ def erasure_prose_history_effect(results: dict, gf=0.25, dispo="A") -> dict:
         vals = []
         for i in range(len(rs)):
             for j in range(i + 1, len(rs)):
+                if rs[i] == rs[j]:          # skip self-pairs: same store -> cos 1.0 -> distance 0 (degenerate;
+                    continue                # A3 CONFIRMED this pins lo at 0, so mean==hi at low n)
                 c = _prose_cos(results[rs[i]][_ekey("salience", gf, dispo)],
                                results[rs[j]][_ekey("salience", gf, dispo)])
                 if c is not None:
@@ -569,6 +581,12 @@ def erasure_analyze(results: dict) -> dict:
 
 
 def _erasure_verdict(an: dict) -> str:
+    """Honest verdict. FOUR-AGENT PRESSURE-TEST 2026-07-17: at the LOCKED full-erasure endpoint
+    (cycles=500) the surviving entity set == the disposition's goalset BY CONSTRUCTION, so entity-set
+    separation is TRUE-BY-CONSTRUCTION (zero-variance CIs), the M2 entity permutation null is CIRCULAR
+    (entity-overlap ≡ goal-overlap → r=1 trivially — NOT cited here), and H2 (salience vs random) is
+    unreachable (both ≡ goalset). The empirical content is the DECAY TRAJECTORY (preconditions).
+    Individuation must be tested at PARTIAL erasure and/or the functional H4 — see the RESULTS doc."""
     pc = an["preconditions"]
     if pc["HALT"]:
         return (f"INVALID / NULL-by-inertness — erasure did not fire (median off-goal drop "
@@ -576,23 +594,33 @@ def _erasure_verdict(an: dict) -> str:
     sal = an["entity_separation"][("salience", 0.25)]
     non = an["entity_separation"][("none", None)]
     rnd = an["entity_separation"][("random", None)]
-    pn = an["permutation_null"][0.25]
+    he = an["factorial"]["history_effect"]
+    # Endpoint-tautology detector: a zero-variance separation CI or ~0 history effect ⇒ survivor ≡ goalset.
+    degenerate = (abs(sal["hi"] - sal["lo"]) < 1e-9) or (abs(he["mean"]) < 1e-9)
+    if degenerate:
+        return ("ENDPOINT-DEGENERATE — NOT an individuation result. At full erasure survivor ≡ goalset by "
+                f"construction: separation {_fmt(sal)} is true-by-construction (zero-variance), "
+                f"history_effect {_fmt(he)} ≈ 0, and salience {_fmt(sal)} == random {_fmt(rnd)} so H2 is "
+                "unreachable here. Real content = the decay TRAJECTORY; test individuation at PARTIAL "
+                "erasure + functional H4 (see DIFFERENTIATION_ERASURE_RESULTS.md).")
+    # Non-degenerate (partial-erasure) regime: real comparisons with the CORRECTED H3 unit test
+    # (same-disp OVERLAP vs diff-disp OVERLAP — both jaccards; the old code compared overlap to a
+    # separation-DIFFERENCE, a scale mismatch that could flip the verdict — A1 MUST_FIX #3).
+    diff_overlap = 1.0 - an["divergence_AC"][("salience", 0.25)]["mean"]
     h3 = an["same_disp_null"][0.25]
-    h1 = sal["lo"] > max(0.0, non["hi"])          # salience separation strictly above none's CI
-    h2 = sal["lo"] > rnd["hi"]                     # ...and above random's CI
-    structured = pn["r"] > 0 and pn["p"] < 0.05
-    h3_ok = h3["lo"] > sal["hi"]                   # same-disp overlap exceeds cross-disp separation band
+    h3_ok = h3["lo"] > diff_overlap
+    h1 = sal["lo"] > max(0.0, non["hi"])
+    h2 = sal["lo"] > rnd["hi"]
     if not h3_ok:
-        return (f"INVALID — H3 fails: same-disposition overlap {_fmt(h3)} not clearly above the "
-                f"cross-disposition separation; divergence may be seed noise.")
-    if h1 and structured and h2:
-        return (f"DIFFERENTIATES (salience-specific) — entity-set separation salience={_fmt(sal)} > "
-                f"none={_fmt(non)} AND > random={_fmt(rnd)}; goal-structured (r={pn['r']:+.2f}, p={pn['p']:.3f}).")
-    if h1 and structured:
-        return (f"DIFFERENTIATES — salience separation {_fmt(sal)} > none {_fmt(non)}, goal-structured "
-                f"(r={pn['r']:+.2f}, p={pn['p']:.3f}); NOT distinguished from random ({_fmt(rnd)}) — H2 open.")
-    return (f"NULL — salience separation {_fmt(sal)} not clearly above none {_fmt(non)} "
-            f"(permutation r={pn['r']:+.2f}, p={pn['p']:.3f}).")
+        return (f"INVALID — H3 fails: same-disposition overlap {_fmt(h3)} not above diff-disposition "
+                f"overlap {diff_overlap:.3f}; divergence may be seed noise.")
+    if h1 and h2:
+        return (f"DIFFERENTIATES (salience-specific, partial erasure) — separation salience={_fmt(sal)} > "
+                f"none={_fmt(non)} AND > random={_fmt(rnd)}; H3 holds.")
+    if h1:
+        return (f"DIFFERENTIATES (forgetting, NOT salience-specific) — salience {_fmt(sal)} > none "
+                f"{_fmt(non)} but NOT above random {_fmt(rnd)} — H2 open.")
+    return f"NULL — salience separation {_fmt(sal)} not clearly above none {_fmt(non)}."
 
 
 def erasure_main(seeds=range(16), cycles=ERASURE_CYCLES, share_frac=SHARE_FRAC, snapshot_every=62,
