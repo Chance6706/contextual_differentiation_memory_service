@@ -16,7 +16,7 @@ import statistics
 from pathlib import Path
 
 from cdms.config import Config
-from cdms.embeddings import Embedder
+from cdms.embeddings import Embedder, cosine
 from tools.eval_harness.differentiation_experiment import (
     run_subject, run_erasure_subject, _shared_history, _shared_history_pair, _DISPOSITIONS)
 from tools.eval_harness.provenance import assert_worktree_cdms, cdms_provenance
@@ -292,16 +292,16 @@ def _ekey(policy: str, gf, dispo: str):
 
 def run_erasure_cube(seeds, cycles: int, base: Path, emb, share_frac: float = SHARE_FRAC,
                      snapshot_every: int = 0) -> dict:
-    """results[seed][(policy, gf|None, dispo)] = erasure run dict. Per seed (13 runs):
-      salience@0.25 × {A,B,C,U}  +  {salience@0.0, none, random} × {A,B,C}.
-    U only under salience (the dispositionless null: no neglect -> keeps everything, any policy)."""
+    """results[seed][(policy, gf|None, dispo)] = erasure run dict. Per seed (16 runs): the full
+    {A,B,C,U} × {salience@0.25, salience@0.0, none, random} grid (Josh: all four dispositions under
+    every policy so disposition-vs-uniform is visible in each). U is the dispositionless null (no
+    neglect -> keeps everything under any policy)."""
     results = {}
     for s in seeds:
         r = {}
-        for d in ERASURE_DISPOS:                                  # salience@0.25, incl. the U null
+        for d in ERASURE_DISPOS:
             r[_ekey("salience", 0.25, d)] = run_erasure_subject(
                 d, "salience", base / f"s{s}-sal25-{d}", s, emb, cycles, share_frac, 0.25, snapshot_every)
-        for d in ("A", "B", "C"):                                 # the ablations + the gf ceiling
             r[_ekey("salience", 0.0, d)] = run_erasure_subject(
                 d, "salience", base / f"s{s}-sal00-{d}", s, emb, cycles, share_frac, 0.0, snapshot_every)
             r[_ekey("none", None, d)] = run_erasure_subject(
@@ -310,6 +310,31 @@ def run_erasure_cube(seeds, cycles: int, base: Path, emb, share_frac: float = SH
                 d, "random", base / f"s{s}-rand-{d}", s, emb, cycles, share_frac, 0.25, snapshot_every)
         results[s] = r
     return results
+
+
+def erasure_null_AU(results: dict, gf=0.25) -> dict:
+    """Disposition vs UNIFORM (dispositionless): entity jaccard(A, U) per policy. U keeps everything,
+    so this is how far a disposition's survivor sits from 'no selective neglect': ~0.5 under salience
+    (A's goal topics inside U's 8), ~1.0 under none (nothing forgotten -> A also keeps all 8)."""
+    seeds = sorted(results)
+    out = {}
+    for policy, g in [("salience", gf), ("none", None), ("random", None)]:
+        def per(rs, policy=policy, g=g):
+            return [jaccard(_ent(results[s][_ekey(policy, g, "A")]), _ent(results[s][_ekey(policy, g, "U")]))
+                    for s in rs if _ekey(policy, g, "U") in results[s]]
+        out[policy] = _cluster_ci(per, seeds)
+    return out
+
+
+def erasure_factorial(results: dict, gf=0.25) -> dict:
+    """Disposition-effect (1 − jaccard(A,C), same past, different disposition) vs history-effect
+    (1 − same-disposition overlap across seeds). In the erasure arm disposition_effect should dominate
+    at the topic level; whether history_effect is truly 0 is the question the PROSE probe re-asks."""
+    disp = erasure_divergence(results, "salience", gf, pair=("A", "C"))
+    same = erasure_same_disp_null(results, gf)
+    return {"disposition_effect": disp,
+            "history_effect": {"mean": 1.0 - same["mean"], "lo": 1.0 - same["hi"],
+                               "hi": 1.0 - same["lo"], "k": same["k"]}}
 
 
 def _ent(run: dict) -> frozenset:
@@ -416,6 +441,95 @@ def erasure_preconditions(results: dict) -> dict:
     }
 
 
+# --- PROSE-space (the finer grain: does the individuation live in the rendered text?) -------------
+# The tuple metric saturates (disposition owns the topic set, history washes out). These probe the
+# STRATUM BOUNDARY: render each self's real preamble prose, compare by semantic cosine. Every prose
+# probe carries its own null (permutation / same-disposition) so 'more entropy' can't masquerade as
+# 'more identity'.
+
+def _prose_cos(ra: dict, rb: dict):
+    va, vb = ra.get("prose_vec"), rb.get("prose_vec")
+    if va is None or vb is None:
+        return None
+    return cosine(va, vb)
+
+
+def erasure_prose_separation(results: dict, policy: str, gf) -> dict:
+    """PROSE co-primary: cos(A,B) − cos(A,C) on the rendered preamble, cluster-boot over seeds."""
+    seeds = sorted(results)
+
+    def per(rs):
+        out = []
+        for s in rs:
+            r = results[s]
+            ab = _prose_cos(r[_ekey(policy, gf, "A")], r[_ekey(policy, gf, "B")])
+            ac = _prose_cos(r[_ekey(policy, gf, "A")], r[_ekey(policy, gf, "C")])
+            if ab is not None and ac is not None:
+                out.append(ab - ac)
+        return out
+    return _cluster_ci(per, seeds)
+
+
+def erasure_prose_history_effect(results: dict, gf=0.25, dispo="A") -> dict:
+    """THE stratum test. Same disposition, DIFFERENT seeds. Topic-space history_effect = 0 (identical
+    topic set). Prose-space = 1 − mean cos(A_i, A_j). If > 0, history lives in the PROSE though it is
+    invisible in the tuples — the boundary where the owner flips from disposition to history."""
+    seeds = sorted(results)
+
+    def per(rs):
+        vals = []
+        for i in range(len(rs)):
+            for j in range(i + 1, len(rs)):
+                c = _prose_cos(results[rs[i]][_ekey("salience", gf, dispo)],
+                               results[rs[j]][_ekey("salience", gf, dispo)])
+                if c is not None:
+                    vals.append(1.0 - c)
+        return vals
+    return _cluster_ci(per, seeds)
+
+
+def erasure_prose_disposition_effect(results: dict, gf=0.25, pair=("A", "C")) -> dict:
+    """Prose-space disposition_effect = 1 − cos(A,C): the coarse cause seen in the fine medium."""
+    seeds = sorted(results)
+    d1, d2 = pair
+
+    def per(rs):
+        out = []
+        for s in rs:
+            c = _prose_cos(results[s][_ekey("salience", gf, d1)], results[s][_ekey("salience", gf, d2)])
+            if c is not None:
+                out.append(1.0 - c)
+        return out
+    return _cluster_ci(per, seeds)
+
+
+def erasure_prose_permutation_null(results: dict, gf=0.25, n_perm=2000) -> dict:
+    """Null for the prose probe: does prose SIMILARITY track goal-overlap beyond chance? Correlate
+    goal-overlap {A·B~.60, A·C 0, B·C~.14} vs prose cosine across seeds, shuffle the pairing."""
+    import random as _r
+    seeds = sorted(results)
+    pairs = [("A", "B"), ("A", "C"), ("B", "C")]
+    gov = [_goal_overlap(*p) for p in pairs]
+    xs, ys = [], []
+    for s in seeds:
+        for (d1, d2), g in zip(pairs, gov):
+            c = _prose_cos(results[s][_ekey("salience", gf, d1)], results[s][_ekey("salience", gf, d2)])
+            if c is not None:
+                xs.append(g)
+                ys.append(c)
+    if len(xs) < 3:
+        return {"r": float("nan"), "p": float("nan"), "n_points": len(xs)}
+    obs = _pearson(xs, ys)
+    rng = _r.Random(0)
+    null = []
+    for _ in range(n_perm):
+        yp = ys[:]
+        rng.shuffle(yp)
+        null.append(_pearson(xs, yp))
+    p = (sum(1 for v in null if abs(v) >= abs(obs)) + 1) / (n_perm + 1)
+    return {"r": obs, "p": p, "n_points": len(xs)}
+
+
 def erasure_trajectory(results: dict, gf=0.25) -> dict:
     """The 'how it differentiates over time' view: mean surviving-entity count per cycle-snapshot for
     A (salience) vs A (none), across seeds. Requires the cube run with snapshot_every>0."""
@@ -440,9 +554,17 @@ def erasure_analyze(results: dict) -> dict:
         "preconditions": pc,
         "entity_separation": sep,                                   # M1 co-primary (cluster-boot)
         "divergence_AC": div_AC,                                    # H1/H2 magnitude
+        "null_AU": erasure_null_AU(results),                        # disposition vs uniform (per policy)
+        "factorial": erasure_factorial(results),                   # disposition-effect vs history-effect
         "same_disp_null": {gf: erasure_same_disp_null(results, gf) for gf in (0.25, 0.0)},  # H3
         "permutation_null": {gf: erasure_permutation_null(results, gf) for gf in (0.25, 0.0)},  # M2
         "trajectory": erasure_trajectory(results),                 # over-time
+        # PROSE-space (the stratum boundary): does history/individuation live in the rendered text?
+        "prose_separation": {pol_gf: erasure_prose_separation(results, *pol_gf)
+                             for pol_gf in [("salience", 0.25), ("none", None), ("random", None)]},
+        "prose_history_effect": erasure_prose_history_effect(results),   # headline: history in the prose?
+        "prose_disposition_effect": erasure_prose_disposition_effect(results),
+        "prose_permutation_null": erasure_prose_permutation_null(results),
     }
 
 
@@ -515,6 +637,22 @@ def erasure_main(seeds=range(16), cycles=ERASURE_CYCLES, share_frac=SHARE_FRAC, 
     for gf in (0.25, 0.0):
         v = an["permutation_null"][gf]
         lines.append(f"- gf={gf}: r={v['r']:+.3f}  p={v['p']:.4f}  (n={v['n_points']})")
+    lines += ["", "## Disposition vs UNIFORM (dispositionless U) — entity jaccard(A,U) per policy"]
+    for pol in ("salience", "none", "random"):
+        lines.append(f"- {pol}: {_fmt(an['null_AU'][pol])}")
+    fac = an["factorial"]
+    lines += ["", "## Factorial (entity/topic level) — disposition dominates, history washes out?",
+              f"- disposition_effect (1−A·C): {_fmt(fac['disposition_effect'])}",
+              f"- history_effect (1−same-disp across seeds): {_fmt(fac['history_effect'])}"]
+    ph, pd, pp = an["prose_history_effect"], an["prose_disposition_effect"], an["prose_permutation_null"]
+    lines += ["", "## PROSE-space (the stratum boundary — is the finer signal in the rendered text?)",
+              f"- **history_effect: topic={fac['history_effect']['mean']:.3f} vs PROSE={_fmt(ph)}**  "
+              "(> 0 in prose while ~0 in topic ⇒ history lives in the prose)",
+              f"- disposition_effect (prose, 1−cos(A,C)): {_fmt(pd)}",
+              "- prose separation cos(A,B)−cos(A,C): " +
+              "  ".join(f"{pol}={_fmt(an['prose_separation'][(pol, gf)])}"
+                        for pol, gf in [("salience", 0.25), ("none", None), ("random", None)]),
+              f"- prose permutation null (cos tracks goal-overlap?): r={pp['r']:+.3f}  p={pp['p']:.4f}  (n={pp['n_points']})"]
     lines += ["", "## Trajectory — mean surviving-entity count over cycles (the 'differentiates over time' view)"]
     for label, series in an["trajectory"].items():
         row = "  ".join(f"c{c}:{v:.2f}" for c, v in series.items())

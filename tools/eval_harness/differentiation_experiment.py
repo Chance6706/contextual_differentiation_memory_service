@@ -133,6 +133,23 @@ def _entities_of(idset: set) -> frozenset:
     return frozenset(e for (_, e) in idset)
 
 
+def _persona_block(preamble: str) -> str:
+    """Extract the identity-carrying persona bullets from a rendered preamble, dropping the identical
+    header/disclaimer boilerplate so an embedding reflects the SELF, not the shared frame."""
+    if "<memory:persona>" not in preamble:
+        return ""
+    return preamble.split("<memory:persona>", 1)[1].split("</memory:persona>", 1)[0].strip()
+
+
+def _capture_prose(cfg: Config) -> str:
+    """Render the REAL SessionStart preamble (the shipped v1 builder) from the persisted store and
+    return the persona prose a model would actually read — `render()` + support + verbatim EXEMPLARS +
+    ordering. This is the finer-grained identity object the {(relation, entity)} tuple set discards; the
+    'is the differentiation in the prose?' probe embeds THIS, not the tuples."""
+    from cdms.hooks import _session_start_context
+    return _persona_block(_session_start_context(cfg, {"cwd": _PROJECT}))
+
+
 def _cfg_for(home: Path, condition: str, seed: int, gate_floor: float = 0.25) -> Config:
     cfg = Config(home=home)
     for k, v in _POLICY[condition].items():
@@ -302,14 +319,22 @@ def run_erasure_subject(dispo: str, policy: str, home: Path, seed: int, embedder
                          "raw": r, "surfaced": surfaced_identity(svc)})
     final_raw = identity(svc)
     final_ents = _entities_of(final_raw)
+    final_surfaced = surfaced_identity(svc)              # all DB reads WHILE the connection is open
+    final_offgoal_support = _offgoal_supports()
+    svc.close()
+    # Render the real preamble prose (the finer grain) and embed it, so selves can be compared in
+    # PROSE-space (semantic cosine), not just by tuple overlap. Done after close: pure DB reads.
+    prose = _capture_prose(cfg)
+    prose_vec = embedder.embed_one(prose) if prose.strip() else None
     out = {"dispo": dispo, "policy": policy, "gate_floor": gate_floor, "seed": seed,
-           "raw": final_raw, "surfaced": surfaced_identity(svc),
+           "raw": final_raw, "surfaced": final_surfaced,
            "peak_raw": peak_raw, "peak_ents": sorted(peak_ents), "final_ents": sorted(final_ents),
            "goalset": sorted(goalset), "n_shared": n_shared, "gists_decayed": gists_decayed_total,
            # F3 topic-disappearance telemetry: off-goal entities present at the peak vs the end.
            "offgoal_peak_n": len(peak_ents - goalset), "offgoal_final_n": len(final_ents - goalset),
            # High-tier-eviction evidence: off-goal gist support at the peak (max = the top tier neglect erased).
-           "peak_offgoal_support": peak_offgoal_support, "final_offgoal_support": _offgoal_supports(),
+           "peak_offgoal_support": peak_offgoal_support, "final_offgoal_support": final_offgoal_support,
+           # PROSE-space identity: the rendered preamble text a model reads + its embedding (finer grain).
+           "prose": prose, "prose_vec": prose_vec,
            "traj": traj}
-    svc.close()
     return out
