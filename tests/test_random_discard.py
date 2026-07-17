@@ -11,6 +11,7 @@ import os
 from datetime import datetime, timezone
 
 os.environ["CDMS_EMBED_BACKEND"] = "hash"
+os.environ["CDMS_EVAL_MODE"] = "1"   # random-discard is eval-gated; these tests drive it directly
 
 from cdms.config import Config
 from cdms.consolidate import ConsolidationReport, Consolidator
@@ -56,6 +57,16 @@ def test_random_is_deterministic(tmp_path):
     a = con._random_victims(eps, n=3)
     b = con._random_victims(eps, n=3)
     assert a == b and len(a) == 3
+    svc.close()
+
+
+def test_random_refuses_outside_eval_mode(tmp_path, monkeypatch):
+    # Eval-gate (rule-12 S2): random discard must REFUSE in a non-eval context (production).
+    import pytest
+    monkeypatch.delenv("CDMS_EVAL_MODE", raising=False)
+    svc, cfg, ids = _make(tmp_path / "gate", discard_policy="random", discard_random_seed=1)
+    with pytest.raises(RuntimeError):
+        _con(svc, cfg)._evict(svc.db.all_episodic(), datetime.now(timezone.utc), ConsolidationReport())
     svc.close()
 
 

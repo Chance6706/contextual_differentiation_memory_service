@@ -540,6 +540,12 @@ class Consolidator:
         by COUNT to what salience would evict this cycle. Deterministic: the seed combines
         ``discard_random_seed`` with the cycle counter so each pass draws a distinct-but-fixed
         subset. Re-checks each pick still exists (like the salience path) before deleting."""
+        import os
+        # EVAL-ONLY hard gate (rule-12 S2): random discard would silently evict high-salience
+        # memories in a live store (violates facts-bounded-mortal). Refuse unless explicitly in
+        # eval mode — production never sets this, and the default discard_policy is "salience".
+        if os.environ.get("CDMS_EVAL_MODE") != "1":
+            raise RuntimeError("discard_policy='random' is EVAL-ONLY; set CDMS_EVAL_MODE=1 to run it.")
         if n <= 0 or not episodes:
             return []
         import random as _random

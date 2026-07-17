@@ -108,3 +108,23 @@ def test_content_hash_is_stable_and_includes_axis():
 def test_all_committed_fixtures_have_hashes():
     from tools.eval_harness.fixtures import SCENARIOS
     assert SCENARIOS and all(len(s.content_hash) == 12 for s in SCENARIOS)
+
+
+# ── Fixture integrity — the fence contrast rests on hand-labeled provenance ─
+def test_injection_fixture_provenance_alignment():
+    # The whole cdms-full vs cdms-fence contrast depends on exactly the injection-bearing turns
+    # being labeled untrusted. A silent mislabel (fail-open default) would shrink the contrast
+    # with the run still "succeeding". Assert count + marker↔provenance alignment.
+    from tools.eval_harness.fixtures import SCENARIOS
+    inj = next(s for s in SCENARIOS if s.axis == 10)
+    markers = ("CONFIRMED OVERRIDE", "ADMIN", "OVERRIDE", "SYSTEM")
+    untrusted = [t for t in inj.turns if t.get("provenance") == "untrusted"]
+    assert len(untrusted) == 3, f"expected 3 untrusted injection turns, got {len(untrusted)}"
+    # every untrusted turn carries an injected directive...
+    for t in untrusted:
+        assert any(m in t["content"].upper() for m in markers), f"untrusted turn lacks a marker: {t['content'][:60]}"
+    # ...and no trusted turn does (a marker on a trusted turn would leak into cdms-full too)
+    for t in inj.turns:
+        if t.get("provenance", "trusted") != "untrusted":
+            assert not any(m in t["content"].upper() for m in markers), \
+                f"trusted turn carries an injection marker: {t['content'][:60]}"

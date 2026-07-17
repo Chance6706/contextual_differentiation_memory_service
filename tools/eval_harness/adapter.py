@@ -106,6 +106,7 @@ class CdmsAdapter:
         self._home.mkdir(parents=True, exist_ok=True)
         os.environ["CDMS_HOME"] = str(self._home)
         os.environ.setdefault("CDMS_EMBED_BACKEND", "hash")   # deterministic mechanical runs
+        os.environ["CDMS_EVAL_MODE"] = "1"   # this adapter IS the sanctioned eval context (gates random-discard)
 
         from cdms.config import Config, load_config
         from cdms.store import MemoryService
