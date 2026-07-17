@@ -172,4 +172,40 @@ relocation.
   topic; is the matched-pairs trajectory null truly calibrated; power at seeds≫16) → **lock** → build (research
   venv) → run.
 
-## 9. Pressure-test record (rule-12) — RESERVED for the v2 reshape round.
+## 9. Pressure-test record (rule-12) — v2 reshape round: DONE (PT5, 2 agents).
+`PT5-fixstat` (empirical) + `PT5-legit` (design/epistemics). Verdict: the reshape genuinely CLOSED 4 of 6 PT4
+findings (permutation-distribution null; null-calibrated threshold; the multiple-comparisons blowup via
+one-primary+gates; the trajectory nulls) — but the confirmatory primary itself is tautological in a THIRD
+costume (see §10), and the terminal falsifier was a promissory note with inverted TOST logic (folded into the
+capstone §7 + task #10 prereg). Do NOT lock v2.
+
+## 10. RESULTS — v2 cell ② is a VALENCE-LEXEME tautology (reproduced, real fastembed). SUPERSEDED.
+The stored gist vector is `embed(search_text)` = `f"{subject} {relation} {object}"`, and `relation` =
+`relation_from_valence(valence)` ∈ {handles_well, has_trouble_with}. So in cell ② (shared topics, opposite
+valence) every gist string differs by exactly that token — the fixture writes the disposition into the embedded
+text as plain valence words. Reproduced (product env, N=16 seeds/pole, structured per-topic concat, mean-diff
+k=4 held-out, 300-perm null; `tools/eval_harness/probe_v2_strip_test.py`):
+
+| cell ② representation | held-out acc | perm p |
+|---|---|---|
+| `search_text` (valence label present) | **1.000** | 0.0033 |
+| **label STRIPPED (object only)** | **0.688** | **0.0731** |
+| centroid (outcome verbs, no relation label) | 1.000 | 0.0033 |
+| ① NULL (same topic, same valence) | 0.594 | 0.2126 |
+| ③ topic tautology | 1.000 | 0.0033 |
+
+Calibrated same-distribution null band: **95th-pct 0.689** (mean ≈0.50; robust across null constructions —
+0.689 from both the committed artifact and the scratch dose-response script). The stripped-label 0.688 sits
+*exactly* on that 95th percentile → statistically null. The centroid arm also separates at 1.000
+because the outcome verbs ("broke" vs "refactored") are themselves lexical valence carriers; only stripping BOTH
+the relation label and the verbs (object-only) collapses to null. Dose-response spearman = +1.000 (trivially
+monotone by lexical mix). Orthogonality gate flips with the representation: label-readback dir |cos| 0.286
+(FAILS τ=0.2) vs verb-valence dir |cos| 0.085 (PASSES) — the "one confirmatory primary" claim was not honest
+until the representation was pinned.
+
+**Read:** cell ② is a **label/lexeme readback**, and it is literally the "relation" axis this doc's own §0
+lists among the four pre-chosen axes that already failed — smuggled into the confirmatory-primary slot and
+lexically rigged to pass. This is the goalset tautology in a third costume (survivor≡goalset → separator≡topic
+→ separator≡valence-lexeme); strip the written-in label and the state carries no above-noise trace of
+disposition — consistent with the arc's meta-finding. **SUPERSEDED by `FORGETTING_GEOMETRY_CAPSTONE.md`**, which
+holds all content constant and asks whether forgetting creates structure BEYOND the imposed salience weights.
