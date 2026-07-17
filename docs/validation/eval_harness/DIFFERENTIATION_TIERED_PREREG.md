@@ -1,8 +1,12 @@
 # Differentiation — the TIERED EXPLORATION (pre-registered EXPLORATORY analysis plan)
 
-**STATUS: DRAFT (2026-07-17) — EXPLORATORY, not confirmatory. NOT LOCKED.** Goes through the rule-12 double
-pressure-test → fold MUST/SHOULD → LOCK before any run. Supersedes the entity-set PRIMARY of both prior
-preregs (frozen-history NULL; erasure ENDPOINT-DEGENERATE).
+**STATUS: NOT LOCKED — structural arm resolved NEGATIVE during the rule-12 pressure-test; see
+DIFFERENTIATION_TIERED_RESULTS.md.** The empirical pressure-test probe was decisive before lock: at
+single-pass consolidation the non-degenerate survivor carries **stochastic per-topic recency, not
+disposition-structured** individuation (history_effect sits AT its seed-shuffle null), and **salience is
+inert** at the forgetting boundary. Per Josh's call the negative is reported and the individuation question
+**pivots to the DRIFT / recall-reconsolidation mechanism** ([[project-cdms-recall-reconsolidation]]). This
+DRAFT is retained for its design/pressure-test record; it is NOT run as-is. (Original draft header below.)
 
 > **Mode (read first).** This run does **not** test a thesis. It **maps where interaction structure lies**
 > across the tiers and their projections. It is EXPLORATORY by design. The disciplines that keep exploration
