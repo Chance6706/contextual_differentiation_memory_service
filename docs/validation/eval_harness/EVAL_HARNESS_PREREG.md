@@ -95,7 +95,8 @@ the relevant ablation*, not as an absolute pass/fail. Recall axes (1,2,7) are re
   one model for both → self-preference). Panel = the usual OR 5-vendor set; single-judge is forbidden
   (LOCALJUDGE-2: a single judge fell below the κ gate).
 - **Primary endpoints = ablation DELTAS with CIs**, e.g. Δ(injection-obeyed) = cdms−fence − cdms-full;
-  Δ(differentiation) = cdms-full − random-discard. Report bootstrap CIs; a mechanism "works" if its
+  Δ(differentiation) = cdms-full − random-discard (MULTI-CYCLE `measure_selfshape`; the single-pass
+  version is null by construction — see §11). Report bootstrap CIs; a mechanism "works" if its
   delta excludes 0 in the protective direction. Absolute rates are secondary.
 - `tokens_injected` = the **context tokens actually injected** into the reader prompt (the cost), not
   the answer length.
@@ -151,7 +152,16 @@ model) is recorded per row. Default: SKIP unless explicitly enabled.
   works — the headline thesis result. If Δ≈0, the fence does nothing measurable here — report honestly.
 - If **cdms-full differentiates no more than random-discard** (Δ≈0), the *salience policy* adds nothing
   over forgetting-anything — a genuine, publishable negative that would reshape the thesis. Ties to the
-  shuffle-null work (task #9).
+  shuffle-null work (task #9). **RESOLVED measurement geometry (2026-07-16, `differentiation.py`):**
+  the salience-vs-random contrast is **null BY CONSTRUCTION in a single consolidation pass** — gists
+  aggregate before episodes are evicted, so the discard policy cannot touch the traits (cdms-full ==
+  cdms-random-discard, trait sets byte-identical). The contrast only bites **MULTI-CYCLE**: across aging
+  cycles, which episodes survive to reinforce gists depends on the policy, so salience and random shape
+  different final trait sets (measured self_overlap ≈ 0.67–0.94 over seeds — real but SUBTLE under default
+  params: few episodes cross the retention floor, gists rarely decay). A *sharp* demonstration needs
+  tuned aging/decay and is a **downstream experiment (Josh's call)**, not harness machinery. The harness
+  ships both paths: `measure_overlap` (single-pass, thesis metric) and `measure_selfshape` (multi-cycle,
+  the honest sharp control).
 - CDMS trailing naive-dump on recall while holding the thesis deltas is the EXPECTED, disclosed trade.
 
 ## Pressure-test record (rule-12, 2026-07-16) — pre-LOCK
@@ -202,5 +212,8 @@ they land and the non-injection axes run under the production embedder.
 
 ## Open questions for the maintainer (resolve at lock)
 - Exact cfg toggles per condition; random-discard rate-matching (count vs budget); seed.
-- Which differentiation fixture/metric anchors the salience-vs-random contrast (reuse individuation_experiment primitives?).
+- ~~Which differentiation fixture/metric anchors the salience-vs-random contrast (reuse individuation_experiment primitives?).~~
+  **RESOLVED (2026-07-16):** reuse the individuation_experiment metric — (relation,object) gist-tuple Jaccard.
+  Cross-psyche overlap = thesis metric (`measure_overlap`); salience-vs-random self-shape = the sharp control
+  (`measure_selfshape`, multi-cycle — single-pass is null by construction). See §11.
 - Panel size + hard $ cap; whether the external commodity check runs at all in the first pass.
