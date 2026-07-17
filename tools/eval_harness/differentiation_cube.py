@@ -158,26 +158,116 @@ def fsweep_analysis(fs: dict) -> dict:
     return out
 
 
-def analyze(results: dict, fs: dict = None) -> dict:
+def _entity_set(idset):
+    return frozenset(e for (_, e) in idset)
+
+
+def _goal_overlap(d1, d2):
+    a, b = _DISPOSITIONS[d1], _DISPOSITIONS[d2]
+    return len(a & b) / len(a | b) if (a | b) else 1.0
+
+
+def _pearson(x, y):
+    n = len(x)
+    if n < 2:
+        return 0.0
+    mx, my = sum(x) / n, sum(y) / n
+    cov = sum((a - mx) * (b - my) for a, b in zip(x, y))
+    vx = sum((a - mx) ** 2 for a in x)
+    vy = sum((b - my) ** 2 for b in y)
+    return cov / ((vx * vy) ** 0.5) if vx > 0 and vy > 0 else 0.0
+
+
+def entity_separation(results: dict) -> dict:
+    """CO-PRIMARY (M1): separation on ENTITY sets (drop the noisy relation label). ~0 => NO entity-level
+    individuation, stated plainly regardless of the tuple-metric numbers."""
+    seeds = sorted(results)
+    out = {}
+    for gf in GATE_FLOORS:
+        for m in METRICS:
+            sim = [jaccard(_entity_set(results[s][("disposition-salience", gf, "A")][m]),
+                           _entity_set(results[s][("disposition-salience", gf, "B")][m])) for s in seeds]
+            dif = [jaccard(_entity_set(results[s][("disposition-salience", gf, "A")][m]),
+                           _entity_set(results[s][("disposition-salience", gf, "C")][m])) for s in seeds]
+            out[(gf, m)] = _ci([a - b for a, b in zip(sim, dif)])
+    return out
+
+
+def permutation_null(results: dict, n_perm=2000) -> dict:
+    """M2 (kills the tautology): does identity-overlap TRACK goal-set overlap beyond chance? The 3 pairs
+    have fixed goal-overlaps {A·B~.60, A·C 0, B·C~.14}; correlate goal-overlap vs identity-overlap across
+    seeds, then SHUFFLE the pairing for the null. r>0 & small p => disposition individuates in a
+    goal-STRUCTURED way (not a construction artifact); r~0 => the separation is noise."""
+    import random as _r
+    seeds = sorted(results)
+    pairs = [("A", "B"), ("A", "C"), ("B", "C")]
+    gov = [_goal_overlap(*p) for p in pairs]
+    out = {}
+    for gf in GATE_FLOORS:
+        for m in METRICS:
+            xs, ys = [], []
+            for s in seeds:
+                for (d1, d2), g in zip(pairs, gov):
+                    xs.append(g)
+                    ys.append(jaccard(results[s][("disposition-salience", gf, d1)][m],
+                                      results[s][("disposition-salience", gf, d2)][m]))
+            obs = _pearson(xs, ys)
+            rng = _r.Random(0)
+            null = []
+            for _ in range(n_perm):
+                yp = ys[:]; rng.shuffle(yp)
+                null.append(_pearson(xs, yp))
+            p = (sum(1 for v in null if abs(v) >= abs(obs)) + 1) / (n_perm + 1)
+            out[(gf, m)] = {"r": obs, "p": p, "n_points": len(xs)}
+    return out
+
+
+def _cluster_ci(per_seed_pairs_fn, seeds, n=2000, seed=0):
+    """Cluster-bootstrap over SEEDS (M4): resample seeds, recompute the pairwise statistic on the resampled
+    seed set — not over dependent seed-pairs. per_seed_pairs_fn(resampled_seeds) -> list of pair values."""
+    import random as _r
+    base = per_seed_pairs_fn(seeds)
+    if not base:
+        return {"mean": float("nan"), "lo": float("nan"), "hi": float("nan"), "k": 0}
+    rng = _r.Random(seed)
+    means = []
+    for _ in range(n):
+        rs = [seeds[rng.randrange(len(seeds))] for _ in seeds]
+        vals = per_seed_pairs_fn(rs)
+        if vals:
+            means.append(sum(vals) / len(vals))
+    means.sort()
+    return {"mean": sum(base) / len(base), "lo": means[int(0.025 * len(means))],
+            "hi": means[int(0.975 * len(means))], "k": len(seeds)}
+
+
+def _preconditions(results: dict, cycles: int) -> dict:
+    """Fail-loud (M5): eviction fraction correctly scaled (evicted / (cycles*TURNS_PER_CYCLE)); traits
+    formed; whether forgetting actually fired. HALT flag for the caller to enforce."""
+    from tools.eval_harness.differentiation_experiment import TURNS_PER_CYCLE
+    ingested = max(1, cycles * TURNS_PER_CYCLE)
+    ev, ntr = [], []
+    for s in results:
+        for run in results[s].values():
+            ev.append(run["evicted"] / ingested)
+            ntr.append(len(run["raw"]))
+    med_ev = statistics.median(ev) if ev else 0.0
+    min_ntr = min(ntr) if ntr else 0
+    return {"median_evicted_frac": med_ev, "median_n_traits": statistics.median(ntr) if ntr else 0,
+            "min_n_traits": min_ntr, "erasure_fired": med_ev >= 0.20,
+            "HALT": (med_ev < 0.20 or min_ntr < 3)}
+
+
+def analyze(results: dict, cycles: int, fs: dict = None) -> dict:
     a = {"cross_disposition": cross_disposition(results),
+         "entity_separation": entity_separation(results),        # CO-PRIMARY (M1)
+         "permutation_null": permutation_null(results),          # M2 — the tautology-killer
          "drift_against_self": drift_against_self(results),
          "factorial_decomposition": {gf: factorial_decomposition(results, gf) for gf in GATE_FLOORS},
-         "preconditions": _preconditions(results)}
+         "preconditions": _preconditions(results, cycles)}
     if fs is not None:
         a["fsweep"] = fsweep_analysis(fs)
     return a
-
-
-def _preconditions(results: dict) -> dict:
-    """Fail-loud telemetry: eviction actually bit; traits formed; backend right."""
-    ev, ntr = [], []
-    for s in results:
-        for key, run in results[s].items():
-            ev.append(run["evicted"] / max(1, 250))     # rough frac vs a nominal ingest
-            ntr.append(len(run["raw"]))
-    return {"median_evicted": statistics.median(ev) if ev else 0,
-            "median_n_traits": statistics.median(ntr) if ntr else 0,
-            "min_n_traits": min(ntr) if ntr else 0}
 
 
 def _fmt(ci):
@@ -196,13 +286,38 @@ def main(seeds=range(16), cycles=250, out="docs/validation/eval_harness/DIFFEREN
     seeds = list(seeds)
     results = run_cube(seeds, cycles, base, emb)
     fs = fsweep(seeds, cycles, base, emb)
-    an = analyze(results, fs)
+    an = analyze(results, cycles, fs)
+    pc = an["preconditions"]
+
+    # Verdict from the CO-PRIMARY (entity-set) + permutation null, per the pre-registered decision rule.
+    es = an["entity_separation"][(0.25, "surfaced")]
+    pn = an["permutation_null"][(0.25, "surfaced")]
+    if pc["HALT"]:
+        verdict = ("INVALID / NULL-by-inertness — forgetting did not fire "
+                   f"(median evicted {pc['median_evicted_frac']:.2f} < 0.20); nothing to individuate.")
+    elif es["lo"] <= 0 and pn["p"] > 0.05:
+        verdict = ("NULL — no entity-level individuation (entity-set sep CI includes 0) AND identity-overlap "
+                   f"does not track goal-overlap (permutation r={pn['r']:+.2f}, p={pn['p']:.3f}).")
+    else:
+        verdict = (f"SIGNAL — entity-set sep={_fmt(es)}, permutation r={pn['r']:+.2f} p={pn['p']:.3f} "
+                   "(check H3 same-disp vs diff-disp before claiming).")
 
     lines = ["# Differentiation experiment — results", "",
+             f"## VERDICT (as-shipped gf=0.25, surfaced): {verdict}", "",
              "## Run config", "```json",
              json.dumps({**cdms_provenance(), "seeds": len(seeds), "cycles": cycles,
-                         "embedder": emb.backend, "preconditions": an["preconditions"]}, indent=2), "```",
-             "", "## Cross-disposition (disposition-salience; expect similar > different; null_AU reference)"]
+                         "embedder": emb.backend, "preconditions": pc}, indent=2), "```",
+             "", "## CO-PRIMARY — entity-set separation (drop relation; ~0 => NO entity-level individuation)"]
+    for gf in GATE_FLOORS:
+        for m in METRICS:
+            lines.append(f"- gate_floor={gf} [{m}]: entity-set sep={_fmt(an['entity_separation'][(gf, m)])}")
+    lines += ["", "## Permutation null (M2) — does identity-overlap TRACK goal-overlap beyond chance?"]
+    for gf in GATE_FLOORS:
+        for m in METRICS:
+            v = an["permutation_null"][(gf, m)]
+            lines.append(f"- gate_floor={gf} [{m}]: r={v['r']:+.3f}  p={v['p']:.4f}  (n={v['n_points']})")
+    lines += ["", "## Cross-disposition tuple metric (similar > different; NOTE: separation lives in the "
+              "relation label — see co-primary above)"]
     cd = an["cross_disposition"]
     for gf in GATE_FLOORS:
         for m in METRICS:

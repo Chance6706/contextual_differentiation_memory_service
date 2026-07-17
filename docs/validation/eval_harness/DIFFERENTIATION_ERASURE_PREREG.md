@@ -119,4 +119,12 @@ Both reviews (validity-diff, redteam-diff) on the frozen-history cube. MUST_FIX 
   authors what you keep living) — that IS Identity=f(History); the `none` ablation isolates forgetting's
   contribution.
 
+## Amendment A1 (disclosed, pre-run — 2026-07-17, Josh)
+The FUNCTIONAL secondary (H4/§3) runs as a **reader-tier sweep**, not a single reader: (a) a **LOCAL** reader
+via ollama ($0, breadth + reproducibility across the salience-matrix's runtime/FT/quant axis) AND (b) a
+**frontier cloud** reader (the ≤$15 paid arm, the capability-tier check). Same fixed probe set; the blind
+judge is disjoint from every reader (reader≠judge). Report distinguishability + effect size PER reader tier,
+so "does an identity move the loaded agent, and by how much" is answered across capability, not at one point.
+The local arm is $0 and ungated; only the frontier cloud arm needs the spend authorization (given).
+
 ## Results — PENDING (structural first, $0; functional secondary gated on Josh + its own pressure-test)
