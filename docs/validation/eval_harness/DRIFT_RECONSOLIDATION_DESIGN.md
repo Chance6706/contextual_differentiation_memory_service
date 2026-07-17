@@ -1,8 +1,11 @@
 # Stage-1 bounded recall-drift (reconsolidation) — design + safety review
 
-**STATUS: DRAFT (2026-07-17) — NOT built. Goes through the rule-12 double pressure-test → fold MUST/SHOULD →
-then build.** Safety-sensitive: recall-drift is a confabulation/poisoning surface, so §5 (safety review) is
-load-bearing, not an afterthought. Follows the STRUCTURAL NEGATIVE (`DIFFERENTIATION_TIERED_RESULTS.md`).
+**STATUS: PRESSURE-TESTED → NO (this substrate) → PARKED. See DRIFT_RECONSOLIDATION_RESULTS.md.** The rule-12
+three-agent pressure-test was decisive before build: bounded drift produces recency-HOMOGENIZATION, not
+disposition-specific structure (same-disp corr 0.075 < diff-disp 0.178); safety and effect are in tension (the
+plasticity bounding that makes it safe starves the coupling); "fact never drifts" was false (centroid = match
+key); and fastembed's ~0.07 cone gives the discrete metric no SNR to see drift. Individuation pivots to the
+FUNCTIONAL/behavioral arm. This draft is retained as the design + pressure-test record. (Original draft below.)
 
 **Cost:** build + run are **$0 local** (eval harness). No real-CDMS wiring until (a) the experiment shows drift
 creates disposition-structure AND (b) a dedicated safety review of the real-CDMS integration.
