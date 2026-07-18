@@ -188,4 +188,45 @@ support-resistance (0.6/√support > 0.1 for support < 36), so removing resistan
 no-op. A real guardrail-redundancy characterization: at high drive the CAP is the binding guardrail. The
 dose ladder is unaffected (R2→R3, cap removal, is the operative step).
 
-## 10. RESULTS — see `plasticity_ladder_metrics.json` + the results section appended after the run.
+## 10. RESULTS (2026-07-17, two full runs) — **UNCONDITIONAL-over-plasticity STRUCTURAL NEGATIVE.**
+**Verdict (pre-registered §7 logic): no plasticity setting buys state individuation — and the unguarded
+endpoint actively AMPLIFIES the tautology instead.** The state arc is closed; the behavioral TOST (task #10)
+is the sole open court. (Scope per the status header: unconditional over THIS reconsolidation-drift
+mechanism's plasticity axis.)
+
+Run: 16 seeds × 40 cycles × 5 rungs × 2 dispositions (160 subjects), guarded sandbox, ~24 min CPU, burn
+verified both runs (zero surviving stores). Full aggregates: `plasticity_ladder_metrics.json`.
+
+| rung | T (raw) | T_resid | T_supp | offdiag_std | relabels/subj | inj gate |
+|---|---|---|---|---|---|---|
+| R0 frozen | −0.012 | +0.004 | −0.019 | 0.0319 | 1.4 | PASS |
+| R1 bounded | −0.014 | −0.001 | −0.009 | 0.0319 | 1.5 | PASS |
+| R2 −resistance | −0.014 | −0.001 | −0.009 | 0.0319 | 1.5 | PASS |
+| R3 −cap | −0.008 | −0.007 | −0.039 | 0.0396 | 7.1 | PASS |
+| R4 unguarded | **+0.362** | **+0.009** | +0.039 | **0.0030** | **292.1** | PASS |
+
+- **PRIMARY (spec, residualized beyond-imposed): max-T = +0.009, p = 0.945** (perm null 95q +0.061,
+  B=1000 shared label perms, re-residualized under permuted labels). **NULL at every rung, with the
+  OFF-pattern injection power gate passing at every rung** → the null is interpretable, not underpowered.
+- **KNOWN-TAUTOLOGY (raw coupling): max-T = +0.362 at R4, p = 0.001.** The one "hit" of the entire five-arm
+  program — and the tri-reference decomposition shows it is the **imposed-weight readback, amplified by
+  collapse**: at R4 the geometry homogenizes (offdiag_std 0.032 → 0.003, ~10×; 292 live relabels/subject),
+  destroying all variance EXCEPT the weight-driven structure, so same-disposition states correlate strongly
+  on exactly the w⊗w pattern and on nothing else (T_resid +0.009). **Unguarded plasticity does not create a
+  fourth term; it burns away everything BUT the tautology.**
+- **Bounded drift ≈ frozen** (R0 ≈ R1 ≈ R2 on every measure) — PT3's SAFETY⊥EFFECT at full scale: the
+  shipped guardrails make drift a near-no-op on coupling geometry. **R1 ≡ R2 exactly** — the magnitude cap
+  binds before support-resistance at this drive (guardrail redundancy, §9 build addendum). R3 (cap removed,
+  touched-only) adds variance (0.0396) without disposition structure.
+- **Determinism:** run 2 (analysis-corrected) reproduced run 1's entire table **to the digit** — the guarded
+  pipeline is byte-replicable end-to-end (seeded history + consolidator + CPU embeds).
+- **Analysis provenance (disclosed):** run 1's printed "primary" was implemented on the RAW statistic
+  (spec-mismatch caught on read-out; the raw p=0.001 is the tautology channel). The runner was corrected —
+  primary = residualized max-T with its own permutation null — and fully re-run; burned per protocol both
+  times. The correction changed no per-rung number (determinism above).
+
+**Reading (the arc's final state-level sentence):** across frozen → bounded → unguarded, the memory state
+offers disposition individuation exactly ONE way to appear — as a readback of the salience weights we
+imposed — and the more plasticity is unleashed, the MORE purely tautological the state becomes. State =
+f(imposed) ⊕ noise at every plasticity setting; the emergent term does not exist here. Individuation, if
+CDMS-A has it, is enacted, not stored. → task #10.

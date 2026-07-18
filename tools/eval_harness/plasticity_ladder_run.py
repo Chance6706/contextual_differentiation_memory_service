@@ -184,8 +184,14 @@ def main():
     labels = [d for d in DISPOS for _ in SEEDS]
     rng = np.random.default_rng(20260717)
     perms = [rng.permutation(len(labels)) for _ in range(N_PERM)]  # SHARED across rungs
-    rows, maxT_null = {}, np.full(N_PERM, -np.inf)
-    obs_maxT = -np.inf
+    rows = {}
+    # PRIMARY (per the locked spec) = the RESIDUALIZED (beyond-imposed) max-T; the raw max-T is the
+    # KNOWN-TAUTOLOGY channel and is reported alongside, never as the confirmatory result. First-run
+    # lesson (2026-07-17): the raw channel FIRES at R4 (+0.362, p .001) precisely because collapse
+    # concentrates the surviving variance onto the imposed-weight structure — the tautology, amplified.
+    maxT_raw_null = np.full(N_PERM, -np.inf)
+    maxT_res_null = np.full(N_PERM, -np.inf)
+    obs_maxT_raw, obs_maxT_res = -np.inf, -np.inf
     for rung in RUNGS:
         vecs = [data[(rung, d, s)]["offdiag"] for d in DISPOS for s in SEEDS]
         supps = [data[(rung, d, s)]["support"] for d in DISPOS for s in SEEDS]
@@ -196,10 +202,14 @@ def main():
         offstd = float(np.nanmean([np.nanstd(v) for v in vecs]))
         rel = float(np.mean([data[(rung, d, s)]["relabels"] for d in DISPOS for s in SEEDS]))
         traj = np.array([data[(rung, d, s)]["spread_traj"] for d in DISPOS for s in SEEDS])
-        obs_maxT = max(obs_maxT, T)
+        obs_maxT_raw = max(obs_maxT_raw, T)
+        obs_maxT_res = max(obs_maxT_res, Tr)
         for k, p in enumerate(perms):
             pl = [labels[i] for i in p]
-            maxT_null[k] = max(maxT_null[k], T_stat(vecs, pl))
+            maxT_raw_null[k] = max(maxT_raw_null[k], T_stat(vecs, pl))
+            # residualize UNDER THE PERMUTED LABELS (the exchangeable null for beyond-imposed)
+            prv = [resid(v, l) for v, l in zip(vecs, pl)]
+            maxT_res_null[k] = max(maxT_res_null[k], T_stat(prv, pl))
         # OFF-pattern injection recovery (power gate, statistic-level): add delta to CROSS-block
         # pairs for A-labeled subjects, re-test residualized T.
         cross = np.array([(ENTS[i] in _DISPOSITIONS["A"]) != (ENTS[j] in _DISPOSITIONS["A"])
@@ -211,10 +221,16 @@ def main():
                           spread_final_mean=float(traj[:, -1].mean()),
                           spread_traj_mean=traj.mean(axis=0).round(4).tolist(),
                           inj_T_resid=Ti, inj_recovered=bool(Ti > Tr + INJ_DELTA / 2))
-    p_max = float((1 + np.sum(maxT_null >= obs_maxT)) / (1 + N_PERM))
+    p_res = float((1 + np.sum(maxT_res_null >= obs_maxT_res)) / (1 + N_PERM))
+    p_raw = float((1 + np.sum(maxT_raw_null >= obs_maxT_raw)) / (1 + N_PERM))
     out["rungs_result"] = rows
-    out["primary"] = dict(obs_maxT=obs_maxT, p_max=p_max,
-                          null_q95=float(np.quantile(maxT_null, 0.95)))
+    out["primary"] = dict(
+        spec_primary="residualized (beyond-imposed) max-T across rungs",
+        obs_maxT_resid=obs_maxT_res, p_resid=p_res,
+        resid_null_q95=float(np.quantile(maxT_res_null, 0.95)),
+        obs_maxT_raw=obs_maxT_raw, p_raw=p_raw,
+        raw_null_q95=float(np.quantile(maxT_raw_null, 0.95)),
+        note="raw channel = KNOWN-TAUTOLOGY (imposed-weight readback); never confirmatory")
     dst = REPO / "docs/validation/eval_harness/plasticity_ladder_metrics.json"
     dst.write_text(json.dumps(out, indent=1))
     print(f"\n{'rung':4} {'T':>8} {'T_resid':>8} {'T_supp':>8} {'offdiag_std':>11} "
@@ -222,7 +238,10 @@ def main():
     for rung, r in rows.items():
         print(f"{rung:4} {r['T']:+8.3f} {r['T_resid']:+8.3f} {r['T_supp']:+8.3f} "
               f"{r['offdiag_std']:11.4f} {r['relabel_mean']:8.1f} {str(r['inj_recovered']):>6}")
-    print(f"\nPRIMARY max-T={obs_maxT:+.3f}  p={p_max:.4f}  (null 95q {out['primary']['null_q95']:+.3f})")
+    print(f"\nPRIMARY (resid, spec) max-T={obs_maxT_res:+.3f}  p={p_res:.4f}  "
+          f"(null 95q {out['primary']['resid_null_q95']:+.3f})")
+    print(f"TAUTOLOGY (raw)       max-T={obs_maxT_raw:+.3f}  p={p_raw:.4f}  "
+          f"(null 95q {out['primary']['raw_null_q95']:+.3f})")
     print(f"[total {time.time()-t0:.0f}s] metrics -> {dst}")
 
 
