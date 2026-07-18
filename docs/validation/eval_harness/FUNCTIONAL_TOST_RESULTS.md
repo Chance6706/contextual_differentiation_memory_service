@@ -19,7 +19,7 @@ as operationally defined.*
 | EXPRESSION gate (same-seed, unstripped) | 48 | **0.958** (90% LB 0.917 ≥ 0.80) — **PASS**: the reader richly enacts its loaded payload |
 | POOLED-UNSTRIPPED (content-included anchor) | 100 | 0.520 [0.44, 0.60] — even with topic content visible, dispositions are ~indistinguishable under the honest (pooled-reference) protocol |
 | NULL (A-vs-A, stripped, pooled) | 96 | X-rate 0.510, inside the permutation band (95%: ~[0.42, 0.58]) — no manufacture |
-| PRO judge subset (robustness) | 100 | 0.520 [0.44, 0.60] — corroborates the primary judge |
+| PRO judge subset (robustness) | 100 | 0.520 [0.44, 0.60] — NOT independent corroboration: the pro judge was DEGENERATE (96/100 "X", a near-constant responder; PT9-audit D3). Exploratory, non-verdict-bearing. |
 | NEUTRAL secondary (passive leak) | 48 | 0.521 [0.40, 0.64] — ~chance, as pilot-measured (scope boundary) |
 | BOW stylometric diagnostic (LOSO) | 40 items | **0.75** (point diagnostic, non-prereg variant — see D1) — a linear word-count trace persists (diagnostic, never verdict, per §7) |
 
@@ -97,6 +97,24 @@ was the terminal court, and the court has ruled. **The program HALTS on its pre-
   the residual structure is judge-side, not disposition); task-10 significantly BELOW chance (an
   anti-signal); no task survives BH-FDR; the mixture check bounds any subpopulation at <0.59 (no masked
   strong effect); seed-side sd 0.074/0.036 (not quite the assumed 0 — absorbed by the 3-way estimator).
-- **PT9-audit (mechanization/conformance): [pending at this commit; folded on receipt].**
+- **PT9-audit (mechanization/conformance): CONFIRMED — could not overturn.** Reproduces to 16
+  digits from the JSONL; EQUIVALENT fires 25/25 fresh bootstrap seeds; every gate passes on recompute;
+  the power-sim gate re-ran and PASSES (a POWERED null). **The prereg's own leak-gate variant, run
+  properly on 900 reconstructed deeds: PASSES** (unstripped-trained domain recovery on stripped deeds
+  0.520, CI [0.480, 0.559] includes 0.5) — the strip removes domain recoverability; the residual
+  paired-2AFC separability is content-correlated STYLE (the registered S6 limitation). Conformance:
+  balance booleans exactly balanced (400/400 everywhere), zero accidental same-seed, K=5 always, refs
+  exclude probe seeds+task, fixture valence-equalized at 0.625 with committed constants untouched.
+  New minor deviations recorded: D3 (PRO subset = diagonal sample with fresh refs, NOT first-100
+  re-judged; pro judge degenerate — table corrected), D4 (NULL band = Binomial coin-flip, not the
+  within-item shuffle; result dead-center, immaterial), D5 (unparse gate computed on REAL only; no arm
+  breached), D6 (judge n_predict 500; v3 doc silent). **Two precision notes for the record:** (a) the
+  equivalence is CONTINGENT on the pre-registered clustered estimator — an iid analysis reads the point
+  0.532 as a weak signal (LB 0.503) and would land INCONCLUSIVE; the dependence model (locked pre-run,
+  PT8-stats-justified, deed-reuse-correct) is load-bearing. (b) a real but NON-GENERALIZING signal
+  persists on the 6 development tasks (0.604, LB 0.511) that the pre-registered fresh-14 gate correctly
+  filters (0.501, LB 0.440) — the precise sentence is *"no signal survives on held-out tasks under the
+  pre-registered analysis,"* not *"zero signal anywhere."* δ-sensitivity: 0.05 → INCONCLUSIVE;
+  0.10/0.15 → EQUIVALENT (secondary, as pre-registered).
 
 **What HALT binds:** no further paid runs and no new thesis on this substrate without a new pre-registration and Josh's decision; the pre-authorized $0 worktree exploration is INCONCLUSIVE-scoped and does not apply (this is branch-2). HALT does not bind the PT9 results audit or the publication write-up.
