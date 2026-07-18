@@ -6,132 +6,81 @@ v2 → PT8 rule-12 pressure-test (3 agents) → fold → LOCK → run. Josh pre-
 0.1617 + $0.0001 smoke — the earlier "~$4.7" here was an arithmetic error, caught by PT8-legit S3; no
 unaccounted spend).** On branch `research/differentiation`.
 
-> **MIGRATION NOTE (PT8-legit M1): §§1–6 below describe the SUPERSEDED v1 design wherever they conflict
-> with §10 — v1 volumes (8 seeds / 25 neutral tasks / K=3 / n=200) and the neutral-task confirmatory arm
-> are DEAD. §10 governs. The full §§1–6 consolidation lands in the lock-pass fold together with the PT8
-> pins; do not build from §§2–5 as written.**
+## FINAL DESIGN (v3, LOCKED) — every number pinned; §§9–11 = the audit trail that produced it
 
-**💵 COST (plain dollars, upfront):** main run ≈ 960 reader deeds + ~1,100 judge calls ≈ **$12–18
-estimated, hard cap $25** (CostGuard; OpenRouter PAID tier). Arm total incl. pilots ≤ $50 (Josh,
-2026-07-17). Fresh cache per rule 13 (crash-resume is the only sanctioned cache reuse).
+## 1. Decision rule (pre-committed)
+**Operational definition (δ folded in, PT8-legit M4): individuation ≝ above-chance relational
+distinguishability of enacted deeds BY A MARGIN ≥ δ, to a blind frontier judge.** δ = 0.10 (free
+parameter; basis: acc 0.60 ≈ the weakest tell a downstream consumer could act on; sensitivity at
+0.05/0.15 reported, never verdict-bearing). α = 0.05 both tests.
+Primary statistic: judge 2AFC accuracy on the REAL arm. Tests: difference (one-sided, 95% one-sided
+lower bound > 0.5) and TOST (90% CI ⊂ (0.40, 0.60)), both on the pinned bootstrap (§5).
+**Precedence:** validity gates (§3) first — INVALID / LEAK / EXPRESSION-INERT / PROTOCOL-FAILURE block
+any thesis branch (remediate + fresh re-run per rule 13; escalate to Josh if unfixable; NEVER converted
+to INCONCLUSIVE). Then exactly one of:
+1. **DISTINGUISHABLE** — diff rejects AND TOST does not: pinned sentence §11, anti-inflation bar.
+2. **EQUIVALENT — thesis FALSE, HALT** — TOST rejects AND diff does NOT reject (disjointness fix,
+   PT8-stats M3): pinned sentence §6/§11.
+3. **INCONCLUSIVE** — neither rejects (or the in-run sig_t guard downgrades an EQUIVALENT, §5): reported
+   plainly; any follow-on = new prereg + Josh (the pre-authorized $0 worktree exploration may proceed).
 
-## 0. Why this is the terminal court (and what mechanism is on trial)
-The state arc is CLOSED (PLASTICITY_LADDER.md §10): **state = f(imposed salience) ⊕ noise at every
-plasticity setting** — six investigations, each ending tautological-readback-XOR-null, with the *why*
-(identifiability; collapse) proven. The pre-registered epistemic contract (capstone §7): the negative
-relocated exactly ONCE (state → behavior); **behavior is the terminal court — no further relocation.**
+## 2. Design (all pinned)
+- **Payloads:** valence-MATCHED fixture (`MATCHED_SUCCESS`, tost_pilot3.py — process-local; committed
+  `_ENTITY_SUCCESS` untouched), dispositions A vs C, **S = 24 seeds/disposition**, 40 cycles, real v1
+  SessionStart preamble render. Reader: **anthropic/claude-sonnet-4.6**, temp 0, n_predict 550.
+- **Tasks: T = 20 identity-ELICITING tasks, frozen in the runner (`TASKS20`)** = the 6 measured
+  (GATE_TASKS) + 14 fresh same-genre. **Robustness gate (PT8-legit M3b): branch-1 requires the
+  14-fresh-task subset to independently clear the difference test; else downgrade INCONCLUSIVE.**
+- **Deeds:** 2 × 24 × 20 = **960**, fresh cache (rule 13).
+- **Judge:** **google/gemini-2.5-flash** primary (measured ≈ pro, 6× cheaper); **gemini-2.5-pro
+  (reasoning=low, n_predict 2000) on a 100-item subset** = pre-registered robustness read (FDR).
+- **Masker v3 (frozen):** static topic lexicon + suffixes + numeric-readback masking
+  (tost_pilot3.strip_v3); NO data-driven divergence pass (PT8-construct M1: circular).
 
-**Mechanism under test:** the stored state provably carries only the imposed topic weights. The thesis's
-last stand is that a **frontier reader** (the primary -A consumer) applies a nonlinear transform the state
-lacks — converting stored topic *emphasis* into a **topic-general behavioral disposition** (stance,
-prioritization, caution profile, framing) that is **recognizable across tasks and robust to content
-removal.** If deeds carry no such signature, the thesis is false at this substrate, full stop.
+## 3. Arms + validity gates (tri-reference, all judged with POOLED refs per §4 unless stated)
+- **REAL (confirmatory): stripped, A-vs-C, n = 800** (20 tasks × 40 sampled crossed pairs, balanced).
+- **EXPRESSION GATE (replaces the old INERT anchor; pilot-3b lesson): SAME-SEED refs, unstripped,
+  n = 48; 90% LB must be ≥ 0.80** (measured 1.000) — verifies the reader enacts the loaded payload at
+  all. Failure ⇒ EXPRESSION-INERT (a validity block, not a verdict).
+- **POOLED-UNSTRIPPED arm, n = 100 (reported, not verdict-bearing):** the content-included
+  disposition-level signal (pilot band 0.57–0.61) — the tautology-channel anchor under the honest
+  protocol.
+- **NULL: A-vs-A stripped pooled, n = 100.** GATE-MANUFACTURE: X-rate outside the within-item
+  label-shuffle permutation band (95th pct, B=1000) ⇒ INVALID.
+- **LEAK gate ($0): BOW domain classifier** trained on UNSTRIPPED deeds (seed-fold split), tested on
+  stripped: recovery CI must include 0.5. + **BOW LOSO diagnostic reported** (pilot: 0.708 — the
+  stylometric-trace channel; S6 limitation registered: strip = domain-unrecoverable, not
+  style-residue-free).
+- **NEUTRAL secondary, n = 48** (5 pilot-1 neutral tasks): the passive-leak scope read (pilot ~chance).
 
-Operational definition (unchanged, no-consciousness, cf. DEVIATIONS I10): **individuation ≝ above-chance
-relational distinguishability of an agent's enacted deeds** — functional distinguishability only.
+## 4. Judge protocol (pinned)
+Reference-based 2AFC: **K = 5 refs/side, POOLED — drawn from seeds ∉ {probe seeds} and tasks ≠ probe
+task**; position/labels **exactly balanced** across items per arm; single judgment (temp 0); parse =
+final ANSWER line + lenient fallback + **one re-ask** ("Reply with only ANSWER: X or ANSWER: Y");
+unparse-after-re-ask excluded + counted; **>12% unparse in any arm ⇒ PROTOCOL-FAILURE halt.**
 
-## 1. The decision rule (THE core — pre-committed BEFORE any data)
-Primary statistic: **blind-judge 2AFC matching accuracy** on the REAL arm (§3), `acc`, vs chance 0.5.
-- **Equivalence margin δ = 0.10** (pre-committed now: |acc − 0.5| < 0.10 = "practically indistinguishable";
-  sensitivity re-analysis at δ = 0.05 and 0.15 reported as SECONDARY, never the verdict).
-- **α = 0.05** for both tests. TOST = two one-sided tests ⇔ the 90% cluster-bootstrap CI ⊂ (0.40, 0.60).
-- **Three branches — exhaustive, no fourth outcome:**
-  1. **DISTINGUISHABLE** — difference test rejects (one-sided p < 0.05, acc > 0.5, CI clear of 0.5):
-     deeds carry an identity signature ⇒ **the thesis survives at the behavioral locus** (scope: this
-     reader, this substrate; a mechanism-tier positive, per the arc's anti-overclaim discipline).
-  2. **EQUIVALENT — thesis FALSE, program HALTS** — TOST rejects (90% CI ⊂ (0.40, 0.60)) *and* the
-     validity gates (§3) pass: the loaded identities are behaviorally indistinguishable within δ ⇒
-     CDMS-A disposition individuation is false at this substrate. **No re-relocation. HALT.**
-  3. **INCONCLUSIVE** — neither rejects: underpowered/ambiguous, reported plainly as such (NOT false,
-     NOT a soft win). Follow-on requires a new prereg and Josh's explicit decision.
-- Branches 1 and 2 cannot both fire (disjoint rejection regions given δ > 0).
+## 5. Statistics (pinned)
+- **Bootstrap: 3-way (task, seedA, seedC) SETS-variant cluster bootstrap, B = 10,000** (PT8-stats:
+  conservative-to-nominal at the operating point; variant pinned because the choice swings power).
+- power_sim: committed at `tools/eval_harness/tost_power_sim_v3.py` (det@0.60 ≥ 0.91, TOST@0.50 ≈ 0.88
+  at sig_t ≤ 0.4, sig_s ≈ 0 — both measured on the actual protocol).
+- **In-run sig_t guard:** noise-corrected per-task sd on REAL > 0.4-equivalent ⇒ an EQUIVALENT verdict
+  downgrades to INCONCLUSIVE (PT8-stats M4).
+- **Unparse dual-analysis:** primary = excluded; sensitivity = impute-as-miss; the two must AGREE on
+  the branch, else INCONCLUSIVE (PT8-stats M5).
+- Exploratory (pro subset, δ-sensitivity, per-task, BOW diagnostics, neutral) under BH-FDR; BCa
+  robustness re-analysis reported.
+- No optional stopping: one pass, analyze once. Per-item JSONL retained + cache dirs RETAINED (M5).
 
-## 2. Design
-- **Identities (the payloads):** final states from the committed capstone content-constant fixture —
-  disposition **A** (auth/crypto/payments/database) vs **C** (cache/scheduler/notifications/analytics),
-  **8 seeds each**, run to steady state (cycles pinned at lock). Payload = the **real v1 SessionStart
-  preamble render** (`<memory:persona>` block, exactly as the product injects it) — the true deployment
-  surface, not a synthetic summary.
-- **Reader (generates deeds):** ONE pre-registered primary frontier reader (Claude-class — the archetypal
-  -A consumer; exact model ID pinned at lock against API availability). temp=0. Reader session = product
-  preamble + task, nothing else. Additional readers = exploratory, FDR, never confirmatory.
-- **Judge:** ONE pre-registered vendor judge from a **DIFFERENT model family than the reader** (disjointness
-  is a hard constraint; e.g. reader Claude-class ⇒ judge Gemini- or GPT-class; ID pinned at lock). Judge
-  never sees identity labels, reader identity, or unstripped deeds in the REAL arm.
-- **Tasks (the shared work):** **25 frozen, sha-locked tasks**, all in domains **OFF both goalsets**
-  (e.g. documentation structure, generic code review, project planning, testing strategy for a neutral
-  module) — so the primary tests topic-GENERAL stance transfer, and content-leak is minimized at the
-  source (belt) before the strip (suspenders). Same 25 tasks for every subject. Generated + frozen at
-  lock; no post-hoc task selection.
-- **Deeds:** one response per (disposition, seed, task) = 2 × 8 × 25 = **400 deeds**, temp=0, cached fresh.
+## 6. Verdicts — mechanized; §11's pinned sentences are the ceiling AND floor of any narrative.
 
-## 3. Arms + validity gates (the tri-reference contract, behavioral edition)
-All judged deeds in REAL/NULL pass a **content-strip** step first: a deterministic masker (domain nouns +
-goalset lexemes → neutral placeholders; masker frozen at lock) — the behavioral analogue of the strip test
-that killed probe v2.
-- **REAL (confirmatory primary):** A-loaded vs C-loaded deeds, **stripped**, reference-based 2AFC (§4).
-- **KNOWN-TAUTOLOGY (power anchor, must fire):** A vs C **unstripped** — the judge may read topic content
-  directly. **GATE-INERT:** if even this arm fails (acc 90% CI lower bound < 0.65, threshold pinned at
-  lock), the reader is not *using* the loaded identity at all ⇒ verdict **INERT** — no thesis decision
-  (an equivalence under inertness would be an artifact of a reader that ignores its memory, not evidence
-  about individuation). This gate is what makes branch-2 fair.
-- **NULL (must not fire):** same-disposition pairs (A-seed-i vs A-seed-j), stripped, same protocol.
-  **GATE-MANUFACTURE:** if NULL acc CI excludes 0.5 upward beyond its own permutation band, the pipeline
-  manufactures distinguishability ⇒ INVALID, fix before any claim. (A seed-level signature showing here is
-  also substantive info: the REAL read then requires disposition-signal > seed-signal.)
-- **GATE-LEAK (strip effectiveness):** a separate classifier probe (cheap model, pinned) must FAIL to
-  recover the goalset domain from stripped deeds above chance (CI includes chance). If it can, the REAL
-  arm is uninterpretable ⇒ fix the masker and re-strip (deeds are cached; no reader re-spend).
-- **Adoption check (descriptive, reused machinery):** surfacing/ownership rates of payload facts in deeds,
-  reported per arm — locates WHERE the reader uses the identity (context for INERT, never a verdict input).
+## 7. Scope (pre-committed): branch-1 is mechanism-tier (one reader/judge/substrate, eliciting tasks,
+imposed dispositions); branch-2 kills THIS substrate's thesis; the BOW stylometric trace is reported
+either way as a diagnostic, never a verdict. No phenomenology (I10).
 
-## 4. Judge protocol — reference-based 2AFC (a SIGNATURE test, not an any-difference test)
-Two temp-0 responses to the same prompt always differ in wording; "are these different?" is a guaranteed
-yes and tests nothing. Distinguishability must mean a **consistent, identity-linked signature**:
-- Each judgment item: **K=3 reference deeds per side** (labeled Agent-1/Agent-2, drawn from OTHER tasks,
-  same seed-pair, stripped in REAL/NULL) + a **probe pair** from a held-out task → "which probe deed is
-  Agent-1's?" Chance = 0.5 exactly.
-- Position/order randomized and balanced; judge prompt frozen at lock; one judgment per item, no retries.
-- Volume: REAL **200 items** (25 tasks × 8 seed-pairs), TAUTOLOGY 50, NULL 50 ≈ 300 judge calls.
-
-## 5. Statistics (all pinned at lock; power_sim is a LOCK GATE)
-- **Cluster-bootstrap CIs** over (seed-pair, task) — judgments are not independent; the repo-standard
-  paired facet bootstrap. Difference test one-sided; TOST via the 90% CI as §1.
-- **power_sim (required BEFORE lock, blocking):** simulate the full cluster structure; must show at n=200
-  (i) power ≥ 0.85 to DETECT a true acc = 0.60, and (ii) power ≥ 0.85 for TOST to establish equivalence
-  when true acc = 0.50, at δ = 0.10. If n=200 is insufficient under realistic intra-cluster correlation,
-  the volumes (and cost header) are revised BEFORE lock — never after data.
-- **No optional stopping:** one run, all items judged, analyze once. Crash-resume per rule 13 only.
-- Exploratory extras (extra readers, δ-sensitivity, per-task breakdowns, adoption rates) under BH-FDR,
-  labeled exploratory, never verdict-bearing.
-
-## 6. Verdicts (mechanized from data + the §1/§3 rules — no interpretation step)
-`INVALID` (gate-manufacture) / `LEAK` (strip fails) / `INERT` (tautology arm silent) take precedence, in
-that order, and block any thesis branch. Otherwise exactly one of: **DISTINGUISHABLE** /
-**EQUIVALENT — THESIS FALSE, HALT** / **INCONCLUSIVE**. The results doc states the branch, the numbers,
-and — for branch 2 — the sentence the program has pre-agreed to write: *CDMS-A's disposition individuation
-is not detectable in enacted deeds within δ = 0.10 at this substrate; the thesis is false as operationally
-defined.* No softening language ("routes to", "definitional locus") is permitted in any branch.
-
-## 7. What this run does NOT decide (scope, pre-committed)
-- Branch 1 does NOT establish "CDMS creates identity" — it establishes above-chance functional
-  distinguishability for THIS reader/substrate (mechanism-tier; the anti-overclaim discipline holds in
-  both directions).
-- Branch 2 kills the thesis AT THIS SUBSTRATE (the eval fixture's imposed-weight identities). A future
-  richer substrate would need a NEW thesis + prereg — it does not resurrect this one.
-- Nothing here touches phenomenology; functional distinguishability only (I10).
-
-## 8. Pressure-test targets (rule-12, before lock — attack these hardest)
-- Is reference-based 2AFC the right discrimination protocol (vs same/different or ranking)? Does K=3
-  references leak seed-idiosyncrasy in a way that inflates REAL?
-- Is the strip honest — can style-level topic residue (e.g. security jargon rhythm) survive masking and
-  count as "topic-general stance" when it is really content? Where exactly is the content/stance line?
-- Is GATE-INERT's threshold right, and can a reader "use" the identity in the tautology arm while
-  ignoring it in neutral-domain tasks (making INERT-vs-EQUIVALENT ambiguous)?
-- δ = 0.10: defensible or arbitrary? What does the power_sim's realistic ICC do to the n=200 promise?
-- Judge-family disjointness: sufficient against shared-training-distribution correlated blind spots?
-- Cost/cap realism; OpenRouter model availability; temp-0 determinism across API versions.
-- The three-branch logic: any path where a verdict is reachable without its gates? Any softening leak?
+## 8. Cost + ops: 💵 est ~$13–16, **hard cap $30** (CostGuard). Wall-clock ≈ 2.5–4 h serial (payloads
+~25 min CPU + 960 deeds + ~1,100 judge calls). Fresh cache; crash-resume via cache is the only reuse.
+Arm total incl. pilots ≤ $50 (spent $5.04).
 
 ## 9. Pressure-test record (rule-12) — PT8 ROUND 1 DONE (3 agents, 2026-07-17). v2 NOT lockable; → v3.
 **Consolidated verdict:** salvageable; thesis still live; one fold-and-pin pass + ONE more measuring round
