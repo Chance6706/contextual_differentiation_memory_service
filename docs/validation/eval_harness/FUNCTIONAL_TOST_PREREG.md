@@ -2,8 +2,14 @@
 
 **STATUS: DRAFT v2 (2026-07-17) — revised on MEASURED pilot data (see §10); NOT locked, NOT run. Pipeline:
 v2 → PT8 rule-12 pressure-test (3 agents) → fold → LOCK → run. Josh pre-authorized the ARM at $50 total
-(thesis-breaker exception) with autonomous execution; spent through pilots: ~$4.7.** On branch
-`research/differentiation`.
+(thesis-breaker exception) with autonomous execution; spent through pilots: **$2.89** (0.8976 + 1.8318 +
+0.1617 + $0.0001 smoke — the earlier "~$4.7" here was an arithmetic error, caught by PT8-legit S3; no
+unaccounted spend).** On branch `research/differentiation`.
+
+> **MIGRATION NOTE (PT8-legit M1): §§1–6 below describe the SUPERSEDED v1 design wherever they conflict
+> with §10 — v1 volumes (8 seeds / 25 neutral tasks / K=3 / n=200) and the neutral-task confirmatory arm
+> are DEAD. §10 governs. The full §§1–6 consolidation lands in the lock-pass fold together with the PT8
+> pins; do not build from §§2–5 as written.**
 
 **💵 COST (plain dollars, upfront):** main run ≈ 960 reader deeds + ~1,100 judge calls ≈ **$12–18
 estimated, hard cap $25** (CostGuard; OpenRouter PAID tier). Arm total incl. pilots ≤ $50 (Josh,
