@@ -80,4 +80,23 @@ disposition signal that survives is machine-traceable but not functionally disti
 judge within the pre-committed margin.** The negative relocated exactly once (state → behavior), behavior
 was the terminal court, and the court has ruled. **The program HALTS on its pre-registered terms.**
 
+
+## Post-verdict audit (PT9 — the final agent round, 3 reviewers, $0 on the committed JSONL)
+- **PT9-narrative (scope/honesty): CONDITIONAL PASS → fixes A–G applied** (commit 34375a9): provenance
+  correction, the pinned neutral-demotion disclosure, CIs on all arms, the per-history framing replaced
+  with the honest localization, HALT-scope stated.
+- **PT9-robust (estimator battery): VERDICT STABLE.** The naive iid-binomial would have *spuriously*
+  rejected toward "distinguishable" (LB 0.503) — the clustering correction is load-bearing and correct
+  (measured sig_t 0.23). Every better-calibrated estimator is NARROWER than the pinned SETS and preserves
+  EQUIVALENT: CR-multiway [0.491, 0.573], studentized-t [0.489, 0.568], GLMM-MoM [0.486, 0.577]; the
+  over-conservative full-multiplicity bootstrap would only downgrade to INCONCLUSIVE — **no defensible
+  estimator supports the thesis.** Deed-jackknife: no single deed drives the result (max leverage 0.0013).
+  **Retro-power:** the design detects a true ≥0.56–0.59 at 0.85 power (≥0.60 at ≥0.90) — the absence of a
+  functionally-actionable signal is evidence FOR equivalence, not low power. Additional record: a judge
+  label-preference artifact (acc|Y 0.564 vs acc|X 0.500 — neutralized by exact balance; further evidence
+  the residual structure is judge-side, not disposition); task-10 significantly BELOW chance (an
+  anti-signal); no task survives BH-FDR; the mixture check bounds any subpopulation at <0.59 (no masked
+  strong effect); seed-side sd 0.074/0.036 (not quite the assumed 0 — absorbed by the 3-way estimator).
+- **PT9-audit (mechanization/conformance): [pending at this commit; folded on receipt].**
+
 **What HALT binds:** no further paid runs and no new thesis on this substrate without a new pre-registration and Josh's decision; the pre-authorized $0 worktree exploration is INCONCLUSIVE-scoped and does not apply (this is branch-2). HALT does not bind the PT9 results audit or the publication write-up.
