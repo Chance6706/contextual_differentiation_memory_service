@@ -1,0 +1,26 @@
+{
+ "round": 3,
+ "acc_real_stripped_pooled": 0.5,
+ "n_real": 46,
+ "acc_anchor_unstripped_pooled": 0.5,
+ "null_x_rate": 0.625,
+ "n_null": 16,
+ "per_task_real": {
+  "0": 0.0,
+  "1": 1.0,
+  "2": 0.5,
+  "3": 0.3333333333333333,
+  "4": 0.3333333333333333,
+  "5": 0.8333333333333334,
+  "6": 0.6666666666666666,
+  "7": 0.2
+ },
+ "sd_task_raw": 0.31269438398822863,
+ "sd_task_noise_corrected": 0.23302256737966937,
+ "bow_loso_2afc": 0.5208333333333334,
+ "bow_leak_heldout": 0.4583333333333333,
+ "unparsed": 2,
+ "payload_len": 1270,
+ "spent_usd": 0.8167,
+ "cache": "C:\\Users\\joshe\\cdms_cache\\tost_pilot3_20260717_235503"
+}

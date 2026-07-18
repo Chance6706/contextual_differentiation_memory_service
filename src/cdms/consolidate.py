@@ -525,8 +525,36 @@ class Consolidator:
                                 fresh.access_count, self.cfg)
             if acc < self.cfg.retention_floor:
                 doomed.append(fresh.id)
+
+        # EVAL-ONLY random-discard ablation (default "salience" is a no-op vs shipped behavior,
+        # asserted in tests): forget the SAME COUNT the salience policy chose, but from ALL
+        # episodes at seeded-random — the null for "does forgetting BY SALIENCE matter?".
+        if getattr(self.cfg, "discard_policy", "salience") == "random":
+            doomed = self._random_victims(episodes, n=len(doomed))
+
         rep.episodes_evicted = self.db.delete_episodic(doomed)
         return set(doomed)
+
+    def _random_victims(self, episodes: list[Episodic], n: int) -> list[str]:
+        """Pick n episodes uniformly at random (seeded) from the whole snapshot, rate-matched
+        by COUNT to what salience would evict this cycle. Deterministic: the seed combines
+        ``discard_random_seed`` with the cycle counter so each pass draws a distinct-but-fixed
+        subset. Re-checks each pick still exists (like the salience path) before deleting."""
+        import os
+        # EVAL-ONLY hard gate (rule-12 S2): random discard would silently evict high-salience
+        # memories in a live store (violates facts-bounded-mortal). Refuse unless explicitly in
+        # eval mode — production never sets this, and the default discard_policy is "salience".
+        if os.environ.get("CDMS_EVAL_MODE") != "1":
+            raise RuntimeError("discard_policy='random' is EVAL-ONLY; set CDMS_EVAL_MODE=1 to run it.")
+        if n <= 0 or not episodes:
+            return []
+        import random as _random
+        cycle = int(self.db.get_meta("cycle", "0") or "0")
+        rng = _random.Random(f"{int(self.cfg.discard_random_seed)}:{cycle}")
+        # Sort ids for an order-independent, deterministic sample.
+        ids = sorted(e.id for e in episodes)
+        picked = rng.sample(ids, min(n, len(ids)))
+        return [pid for pid in picked if self.db.get_episodic(pid) is not None]
 
     # -- Step 3 + 4: Competition then conserved-budget renormalization ----- #
     def _compete_and_renormalize(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:

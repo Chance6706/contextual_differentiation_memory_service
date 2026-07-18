@@ -70,6 +70,13 @@ class Config:
     reinforce_alpha: float = 1.15       # retrieval-induced strengthening base (testing effect)
     reinforce_cap: float = 2.0          # attentional ceiling on a single hot memory
     retention_floor: float = 0.10       # s_floor: below this accessibility, an episode is evictable
+    # Discard policy — WHICH episodes forgetting removes each cycle. "salience" (default, shipped)
+    # evicts those below the retention floor by accessibility. "random" is an EVAL-ONLY ablation
+    # control: it evicts the SAME COUNT the salience policy would, but chosen at seeded-random from
+    # ALL episodes — the null for "does forgetting BY SALIENCE differ from forgetting anything?".
+    # MUST be a no-op vs shipped behavior when "salience" (asserted in tests). Not for production.
+    discard_policy: str = "salience"    # "salience" | "random"
+    discard_random_seed: int = 0        # seed for "random" (combined with the cycle counter)
 
     # ---- Consolidation ("sleep") -------------------------------------------
     crisis_threshold: float = 3.0       # s_crisis: S0 >= this is a candidate for scar elevation
@@ -447,6 +454,8 @@ def _validate(cfg: "Config") -> None:
         ("gist_retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
         ("gist_support_decay_cap", lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 1),
         ("retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("discard_policy", lambda v: v in ("salience", "random")),
+        ("discard_random_seed", lambda v: isinstance(v, int) and not isinstance(v, bool)),
         ("reinforce_alpha", lambda v: _num(v) and 1.0 < v <= 1e3),
         ("reinforce_cap", lambda v: _num(v) and 1.0 <= v <= 1e6),
         ("decay_halflife_days", lambda v: _num(v) and 0 < v <= 1e6),

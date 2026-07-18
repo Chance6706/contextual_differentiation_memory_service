@@ -580,6 +580,62 @@ external review, 2026-06.)
   (P0 tool exits non-zero; analyzer requires an explicit approval flag; decision recorded in the
   prereg §9). The realized M is reported next to every verdict.
 
+### I8. Erasure-differentiation ceiling arm lifts `goal_gate_floor` to 0 (non-shipped)
+
+- **Standard form:** an experiment characterizing a product measures the product's shipped configuration.
+- **What we do:** `DIFFERENTIATION_ERASURE_PREREG.md` runs the ablation at BOTH `goal_gate_floor=0.25`
+  (as-shipped, the **primary**) and `goal_gate_floor=0.0` (a **ceiling** arm), the latter a non-default config.
+- **Why:** shipped CDMS floors off-goal salience at 0.25 to avoid *total* amnesia of memories outside the
+  current goal (a deliberate anti-erasure choice). The ceiling arm asks a distinct question — can the
+  mechanism individuate *at all* when that floor is removed — bracketing the shipped result with the
+  mechanism's potential.
+- **Disclaimed:** `gf=0.0` is **NOT the shipped product**; only the `gf=0.25` arm speaks to CDMS-as-shipped.
+  Every verdict states which floor produced it; the ceiling is reported as ceiling, never as headline.
+
+### I9. "Disposition" denotes a topic GOAL SET, not temperament
+
+- **Standard meaning:** *disposition/temperament* connotes a broad, multi-dimensional character (the repo's
+  own construct is the 8 temperament dials).
+- **What we do:** in the erasure experiment a "disposition" is operationalized narrowly as a **goal set over
+  ~8 engineering topics** — i.e. topic-interest, which drives what stays in front of the agent.
+- **Why:** topic-goal-relevance is the one facet that maps cleanly onto CDMS's `goal_hint`/`G_goal` lever and
+  onto what memory-evals actually measure; it makes the forgetting-driven individuation testable.
+- **Disclaimed:** results speak to **topic-selection individuation only**, not personality/temperament in
+  general. No claim that CDMS individuates *character* is made from this proxy.
+
+### I10. Functional-distinguishability secondary reaches into the -D/agent layer
+
+- **Standard scope:** a CDMS-**A** (memory core) experiment measures -A's state; retrieval/agent behavior is
+  the -D layer's concern.
+- **What we do:** the erasure experiment's **secondary** metric injects an identity into a real capable
+  reader and asks whether a blind judge can tell two identities apart by the reader's **behavior** — an
+  effect measured at the -A/-D boundary.
+- **Why:** the point of individuation is its effect on the loaded agent (Josh); we want to know *if and by how
+  much* an identity changes what a Claude/ChatGPT-class model does — which only shows at the behavioral layer.
+- **Disclaimed:** reported as **secondary**, not the -A structural primary; it is **functional/behavioral
+  distinguishability only** — an explicitly NON-phenomenal measure, no consciousness or "what-it's-like"
+  claim (companion to the simulacrum functional-not-faithful framing).
+
+### I11. Plasticity-ladder ablation removes product safety guardrails (sealed sandbox, non-shipped)
+
+- **Standard form:** the product's anti-poisoning / anti-confabulation plasticity guardrails
+  (support-weighted resistance `ema/√support`, drift magnitude cap, touched-only selectivity) and the BEM
+  provenance discipline are **inviolable in the product**; experiments measure shipped behavior.
+- **What we do:** the plasticity-ladder characterization (`PLASTICITY_LADDER.md`, task #16) deliberately
+  ABLATES those guardrails — cumulatively, to fully unguarded reconsolidation drift — inside a sealed
+  sandbox: eval-harness-only code (`tools/eval_harness/unguarded_sandbox.py`; nothing in `src/cdms`
+  references it, lock-tested), double-key arming (`CDMS_EVAL_MODE` + `CDMS_UNGUARDED_DRIFT` + minted
+  temp-home-only, asserted inside the drift function), synthetic corpus only, crash-safe burn (every
+  unguarded store deleted post-analysis; aggregated scalars are all that survives).
+- **Why:** the structural arc closed with "state = f(imposed) ⊕ noise" proven on the BOUNDED mechanism, and
+  PT3 showed safety and effect are in tension (the bounding starves the coupling). The ablation closes the
+  scope condition: does UNSAFE plasticity buy state individuation? (Pre-known from PT7: no — the ladder is
+  squeezed; the run commits the dose-response curve.)
+- **Disclaimed:** unguarded mode is **NOT shipped, not shippable, and unreachable from product code**; the
+  shipped defaults are unchanged and re-asserted by existing lock tests. Results are mechanism-tier
+  characterization only — no product behavior claim, and no individuation claim (the behavioral TOST is the
+  thesis's sole terminal court).
+
 ### N1. Component proper names use a Chinese (wuxia/Daoist/Buddhist) vocabulary
 
 - **Standard form:** components carry either bare technical identifiers or Western/classical project

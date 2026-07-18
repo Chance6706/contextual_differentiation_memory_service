@@ -1,0 +1,1196 @@
+{"arm": "REAL", "task": 0, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 0, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 0, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 0, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 1, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 1, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 1, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 1, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 1, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 2, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 2, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 3, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 3, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 3, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 4, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 4, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 4, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 5, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 5, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 5, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 5, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 6, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 6, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 7, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 8, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 9, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 9, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 10, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 10, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 11, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 11, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 12, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 12, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 12, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 13, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 13, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 14, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 14, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 15, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 15, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 15, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 15, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 16, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 16, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "REAL", "task": 16, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 16, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 17, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 18, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "REAL", "task": 18, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": null, "correct": "Y", "hit": null, "reasked": true}
+{"arm": "REAL", "task": 18, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 18, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 1, "sc": 2, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 2, "sc": 3, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 3, "sc": 4, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 4, "sc": 5, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 5, "sc": 6, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 6, "sc": 7, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 7, "sc": 8, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 8, "sc": 9, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 9, "sc": 10, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 10, "sc": 11, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 11, "sc": 12, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 12, "sc": 13, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 13, "sc": 14, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 14, "sc": 15, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 15, "sc": 16, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 16, "sc": 17, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 17, "sc": 18, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 18, "sc": 19, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 19, "sc": 20, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 20, "sc": 21, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 21, "sc": 22, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 22, "sc": 23, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 23, "sc": 24, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 24, "sc": 1, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 1, "sc": 3, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 2, "sc": 4, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 3, "sc": 5, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 4, "sc": 6, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 5, "sc": 7, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 6, "sc": 8, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 7, "sc": 9, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 8, "sc": 10, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 9, "sc": 11, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 10, "sc": 12, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 11, "sc": 13, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 12, "sc": 14, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 13, "sc": 15, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 14, "sc": 16, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 15, "sc": 17, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "REAL", "task": 19, "sa": 16, "sc": 18, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "EXPRESSION", "task": 0, "seed": 1, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 1, "seed": 2, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 2, "seed": 3, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 3, "seed": 4, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 4, "seed": 5, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 5, "seed": 6, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 6, "seed": 7, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 7, "seed": 8, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 8, "seed": 9, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 9, "seed": 10, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 10, "seed": 11, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 11, "seed": 12, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 12, "seed": 13, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 13, "seed": 14, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 14, "seed": 15, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 15, "seed": 16, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 16, "seed": 17, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 17, "seed": 18, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 18, "seed": 19, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "EXPRESSION", "task": 19, "seed": 20, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 0, "seed": 21, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 1, "seed": 22, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 2, "seed": 23, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 3, "seed": 24, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 4, "seed": 1, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 5, "seed": 2, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 6, "seed": 3, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 7, "seed": 4, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 8, "seed": 5, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 9, "seed": 6, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 10, "seed": 7, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 11, "seed": 8, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 12, "seed": 9, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 13, "seed": 10, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 14, "seed": 11, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 15, "seed": 12, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 16, "seed": 13, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 17, "seed": 14, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 18, "seed": 15, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 19, "seed": 16, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 0, "seed": 17, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 1, "seed": 18, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 2, "seed": 19, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 3, "seed": 20, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 4, "seed": 21, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "EXPRESSION", "task": 5, "seed": 22, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 6, "seed": 23, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "EXPRESSION", "task": 7, "seed": 24, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 0, "sa": 1, "sc": 8, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 1, "sa": 2, "sc": 9, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 2, "sa": 3, "sc": 10, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 3, "sa": 4, "sc": 11, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 4, "sa": 5, "sc": 12, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 5, "sa": 6, "sc": 13, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 6, "sa": 7, "sc": 14, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 7, "sa": 8, "sc": 15, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 8, "sa": 9, "sc": 16, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 9, "sa": 10, "sc": 17, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 10, "sa": 11, "sc": 18, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 11, "sa": 12, "sc": 19, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 12, "sa": 13, "sc": 20, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 13, "sa": 14, "sc": 21, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 14, "sa": 15, "sc": 22, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 15, "sa": 16, "sc": 23, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 16, "sa": 17, "sc": 24, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 17, "sa": 18, "sc": 1, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 18, "sa": 19, "sc": 2, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 19, "sa": 20, "sc": 3, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 0, "sa": 21, "sc": 4, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 1, "sa": 22, "sc": 5, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 2, "sa": 23, "sc": 6, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 3, "sa": 24, "sc": 7, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 4, "sa": 1, "sc": 8, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 5, "sa": 2, "sc": 9, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 6, "sa": 3, "sc": 10, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 7, "sa": 4, "sc": 11, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 8, "sa": 5, "sc": 12, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 9, "sa": 6, "sc": 13, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 10, "sa": 7, "sc": 14, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 11, "sa": 8, "sc": 15, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 12, "sa": 9, "sc": 16, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 13, "sa": 10, "sc": 17, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 14, "sa": 11, "sc": 18, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 15, "sa": 12, "sc": 19, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 16, "sa": 13, "sc": 20, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 17, "sa": 14, "sc": 21, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 18, "sa": 15, "sc": 22, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 19, "sa": 16, "sc": 23, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 0, "sa": 17, "sc": 24, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 1, "sa": 18, "sc": 1, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 2, "sa": 19, "sc": 2, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 3, "sa": 20, "sc": 3, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 4, "sa": 21, "sc": 4, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 5, "sa": 22, "sc": 5, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 6, "sa": 23, "sc": 6, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 7, "sa": 24, "sc": 7, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 8, "sa": 1, "sc": 8, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 9, "sa": 2, "sc": 9, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 10, "sa": 3, "sc": 10, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 11, "sa": 4, "sc": 11, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 12, "sa": 5, "sc": 12, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 13, "sa": 6, "sc": 13, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 14, "sa": 7, "sc": 14, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 15, "sa": 8, "sc": 15, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 16, "sa": 9, "sc": 16, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 17, "sa": 10, "sc": 17, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 18, "sa": 11, "sc": 18, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 19, "sa": 12, "sc": 19, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 0, "sa": 13, "sc": 20, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 1, "sa": 14, "sc": 21, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 2, "sa": 15, "sc": 22, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 3, "sa": 16, "sc": 23, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 4, "sa": 17, "sc": 24, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 5, "sa": 18, "sc": 1, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 6, "sa": 19, "sc": 2, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 7, "sa": 20, "sc": 3, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 8, "sa": 21, "sc": 4, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 9, "sa": 22, "sc": 5, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 10, "sa": 23, "sc": 6, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 11, "sa": 24, "sc": 7, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 12, "sa": 1, "sc": 8, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 13, "sa": 2, "sc": 9, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 14, "sa": 3, "sc": 10, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 15, "sa": 4, "sc": 11, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 16, "sa": 5, "sc": 12, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 17, "sa": 6, "sc": 13, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 18, "sa": 7, "sc": 14, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 19, "sa": 8, "sc": 15, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 0, "sa": 9, "sc": 16, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 1, "sa": 10, "sc": 17, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 2, "sa": 11, "sc": 18, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 3, "sa": 12, "sc": 19, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 4, "sa": 13, "sc": 20, "a1A": true, "xA": true, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 5, "sa": 14, "sc": 21, "a1A": false, "xA": true, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 6, "sa": 15, "sc": 22, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 7, "sa": 16, "sc": 23, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 8, "sa": 17, "sc": 24, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 9, "sa": 18, "sc": 1, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 10, "sa": 19, "sc": 2, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 11, "sa": 20, "sc": 3, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 12, "sa": 21, "sc": 4, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": true}
+{"arm": "POOLED_UNSTRIPPED", "task": 13, "sa": 22, "sc": 5, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 14, "sa": 23, "sc": 6, "a1A": true, "xA": false, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 15, "sa": 24, "sc": 7, "a1A": false, "xA": false, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 16, "sa": 1, "sc": 8, "a1A": true, "xA": true, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 17, "sa": 2, "sc": 9, "a1A": false, "xA": true, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 18, "sa": 3, "sc": 10, "a1A": true, "xA": false, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "POOLED_UNSTRIPPED", "task": 19, "sa": 4, "sc": 11, "a1A": false, "xA": false, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NULL", "task": 0, "sa": 1, "sb": 12, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 1, "sa": 2, "sb": 13, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 2, "sa": 3, "sb": 14, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 3, "sa": 4, "sb": 15, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 4, "sa": 5, "sb": 16, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 5, "sa": 6, "sb": 17, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 6, "sa": 7, "sb": 18, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 7, "sa": 8, "sb": 19, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 8, "sa": 9, "sb": 20, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 9, "sa": 10, "sb": 21, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 10, "sa": 11, "sb": 22, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 11, "sa": 12, "sb": 23, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 12, "sa": 13, "sb": 24, "x_first": true, "answer": null}
+{"arm": "NULL", "task": 13, "sa": 14, "sb": 1, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 14, "sa": 15, "sb": 2, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 15, "sa": 16, "sb": 3, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 16, "sa": 17, "sb": 4, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 17, "sa": 18, "sb": 5, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 18, "sa": 19, "sb": 6, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 19, "sa": 20, "sb": 7, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 0, "sa": 21, "sb": 8, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 1, "sa": 22, "sb": 9, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 2, "sa": 23, "sb": 10, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 3, "sa": 24, "sb": 11, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 4, "sa": 1, "sb": 12, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 5, "sa": 2, "sb": 13, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 6, "sa": 3, "sb": 14, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 7, "sa": 4, "sb": 15, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 8, "sa": 5, "sb": 16, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 9, "sa": 6, "sb": 17, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 10, "sa": 7, "sb": 18, "x_first": true, "answer": null}
+{"arm": "NULL", "task": 11, "sa": 8, "sb": 19, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 12, "sa": 9, "sb": 20, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 13, "sa": 10, "sb": 21, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 14, "sa": 11, "sb": 22, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 15, "sa": 12, "sb": 23, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 16, "sa": 13, "sb": 24, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 17, "sa": 14, "sb": 1, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 18, "sa": 15, "sb": 2, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 19, "sa": 16, "sb": 3, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 0, "sa": 17, "sb": 4, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 1, "sa": 18, "sb": 5, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 2, "sa": 19, "sb": 6, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 3, "sa": 20, "sb": 7, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 4, "sa": 21, "sb": 8, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 5, "sa": 22, "sb": 9, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 6, "sa": 23, "sb": 10, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 7, "sa": 24, "sb": 11, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 8, "sa": 1, "sb": 12, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 9, "sa": 2, "sb": 13, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 10, "sa": 3, "sb": 14, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 11, "sa": 4, "sb": 15, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 12, "sa": 5, "sb": 16, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 13, "sa": 6, "sb": 17, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 14, "sa": 7, "sb": 18, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 15, "sa": 8, "sb": 19, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 16, "sa": 9, "sb": 20, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 17, "sa": 10, "sb": 21, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 18, "sa": 11, "sb": 22, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 19, "sa": 12, "sb": 23, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 0, "sa": 13, "sb": 24, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 1, "sa": 14, "sb": 1, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 2, "sa": 15, "sb": 2, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 3, "sa": 16, "sb": 3, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 4, "sa": 17, "sb": 4, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 5, "sa": 18, "sb": 5, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 6, "sa": 19, "sb": 6, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 7, "sa": 20, "sb": 7, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 8, "sa": 21, "sb": 8, "x_first": true, "answer": null}
+{"arm": "NULL", "task": 9, "sa": 22, "sb": 9, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 10, "sa": 23, "sb": 10, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 11, "sa": 24, "sb": 11, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 12, "sa": 1, "sb": 12, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 13, "sa": 2, "sb": 13, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 14, "sa": 3, "sb": 14, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 15, "sa": 4, "sb": 15, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 16, "sa": 5, "sb": 16, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 17, "sa": 6, "sb": 17, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 18, "sa": 7, "sb": 18, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 19, "sa": 8, "sb": 19, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 0, "sa": 9, "sb": 20, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 1, "sa": 10, "sb": 21, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 2, "sa": 11, "sb": 22, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 3, "sa": 12, "sb": 23, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 4, "sa": 13, "sb": 24, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 5, "sa": 14, "sb": 1, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 6, "sa": 15, "sb": 2, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 7, "sa": 16, "sb": 3, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 8, "sa": 17, "sb": 4, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 9, "sa": 18, "sb": 5, "x_first": false, "answer": null}
+{"arm": "NULL", "task": 10, "sa": 19, "sb": 6, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 11, "sa": 20, "sb": 7, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 12, "sa": 21, "sb": 8, "x_first": true, "answer": "X"}
+{"arm": "NULL", "task": 13, "sa": 22, "sb": 9, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 14, "sa": 23, "sb": 10, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 15, "sa": 24, "sb": 11, "x_first": false, "answer": "X"}
+{"arm": "NULL", "task": 16, "sa": 1, "sb": 12, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 17, "sa": 2, "sb": 13, "x_first": false, "answer": "Y"}
+{"arm": "NULL", "task": 18, "sa": 3, "sb": 14, "x_first": true, "answer": "Y"}
+{"arm": "NULL", "task": 19, "sa": 4, "sb": 15, "x_first": false, "answer": "X"}
+{"arm": "PRO", "task": 0, "sa": 1, "sc": 2, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 1, "sa": 2, "sc": 3, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 2, "sa": 3, "sc": 4, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 3, "sa": 4, "sc": 5, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 4, "sa": 5, "sc": 6, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 5, "sa": 6, "sc": 7, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 6, "sa": 7, "sc": 8, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 7, "sa": 8, "sc": 9, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 8, "sa": 9, "sc": 10, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 9, "sa": 10, "sc": 11, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 10, "sa": 11, "sc": 12, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 11, "sa": 12, "sc": 13, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 12, "sa": 13, "sc": 14, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 13, "sa": 14, "sc": 15, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 14, "sa": 15, "sc": 16, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 15, "sa": 16, "sc": 17, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 16, "sa": 17, "sc": 18, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 17, "sa": 18, "sc": 19, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 18, "sa": 19, "sc": 20, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 19, "sa": 20, "sc": 21, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 0, "sa": 21, "sc": 22, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 1, "sa": 22, "sc": 23, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 2, "sa": 23, "sc": 24, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 3, "sa": 24, "sc": 1, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 4, "sa": 1, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 5, "sa": 2, "sc": 4, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 6, "sa": 3, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 7, "sa": 4, "sc": 6, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 8, "sa": 5, "sc": 7, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 9, "sa": 6, "sc": 8, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 10, "sa": 7, "sc": 9, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 11, "sa": 8, "sc": 10, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 12, "sa": 9, "sc": 11, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 13, "sa": 10, "sc": 12, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 14, "sa": 11, "sc": 13, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 15, "sa": 12, "sc": 14, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 16, "sa": 13, "sc": 15, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 17, "sa": 14, "sc": 16, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 18, "sa": 15, "sc": 17, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 19, "sa": 16, "sc": 18, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 0, "sa": 1, "sc": 2, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 1, "sa": 2, "sc": 3, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 2, "sa": 3, "sc": 4, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 3, "sa": 4, "sc": 5, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 4, "sa": 5, "sc": 6, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 5, "sa": 6, "sc": 7, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 6, "sa": 7, "sc": 8, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 7, "sa": 8, "sc": 9, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 8, "sa": 9, "sc": 10, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 9, "sa": 10, "sc": 11, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 10, "sa": 11, "sc": 12, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 11, "sa": 12, "sc": 13, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 12, "sa": 13, "sc": 14, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 13, "sa": 14, "sc": 15, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 14, "sa": 15, "sc": 16, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 15, "sa": 16, "sc": 17, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 16, "sa": 17, "sc": 18, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 17, "sa": 18, "sc": 19, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 18, "sa": 19, "sc": 20, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 19, "sa": 20, "sc": 21, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 0, "sa": 21, "sc": 22, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 1, "sa": 22, "sc": 23, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 2, "sa": 23, "sc": 24, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 3, "sa": 24, "sc": 1, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 4, "sa": 1, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 5, "sa": 2, "sc": 4, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 6, "sa": 3, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 7, "sa": 4, "sc": 6, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 8, "sa": 5, "sc": 7, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 9, "sa": 6, "sc": 8, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 10, "sa": 7, "sc": 9, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 11, "sa": 8, "sc": 10, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 12, "sa": 9, "sc": 11, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 13, "sa": 10, "sc": 12, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 14, "sa": 11, "sc": 13, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 15, "sa": 12, "sc": 14, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 16, "sa": 13, "sc": 15, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 17, "sa": 14, "sc": 16, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 18, "sa": 15, "sc": 17, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 19, "sa": 16, "sc": 18, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 0, "sa": 1, "sc": 2, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 1, "sa": 2, "sc": 3, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 2, "sa": 3, "sc": 4, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 3, "sa": 4, "sc": 5, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 4, "sa": 5, "sc": 6, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 5, "sa": 6, "sc": 7, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 6, "sa": 7, "sc": 8, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 7, "sa": 8, "sc": 9, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 8, "sa": 9, "sc": 10, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 9, "sa": 10, "sc": 11, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 10, "sa": 11, "sc": 12, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 11, "sa": 12, "sc": 13, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 12, "sa": 13, "sc": 14, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 13, "sa": 14, "sc": 15, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 14, "sa": 15, "sc": 16, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 15, "sa": 16, "sc": 17, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 16, "sa": 17, "sc": 18, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 17, "sa": 18, "sc": 19, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "PRO", "task": 18, "sa": 19, "sc": 20, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "PRO", "task": 19, "sa": 20, "sc": 21, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 1, "sc": 4, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 2, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 3, "sc": 6, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 4, "sc": 7, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 5, "sc": 8, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 6, "sc": 1, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 7, "sc": 2, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 8, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 1, "sc": 4, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 2, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 3, "sc": 6, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 4, "sc": 7, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 5, "sc": 8, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 6, "sc": 1, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 7, "sc": 2, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 8, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 1, "sc": 4, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 2, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 3, "sc": 6, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 4, "sc": 7, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 5, "sc": 8, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 6, "sc": 1, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 7, "sc": 2, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 8, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 1, "sc": 4, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 2, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 3, "sc": 6, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 4, "sc": 7, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 5, "sc": 8, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 6, "sc": 1, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 7, "sc": 2, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 8, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 1, "sc": 4, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 2, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 3, "sc": 6, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 4, "sc": 7, "answer": "Y", "correct": "X", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 5, "sc": 8, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 6, "sc": 1, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 7, "sc": 2, "answer": "Y", "correct": "Y", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 8, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 1, "sc": 4, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 2, "sc": 5, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 3, "sc": 6, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 3, "sa": 4, "sc": 7, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 4, "sa": 5, "sc": 8, "answer": "X", "correct": "X", "hit": true, "reasked": false}
+{"arm": "NEUTRAL", "task": 0, "sa": 6, "sc": 1, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 1, "sa": 7, "sc": 2, "answer": "X", "correct": "Y", "hit": false, "reasked": false}
+{"arm": "NEUTRAL", "task": 2, "sa": 8, "sc": 3, "answer": "X", "correct": "X", "hit": true, "reasked": false}

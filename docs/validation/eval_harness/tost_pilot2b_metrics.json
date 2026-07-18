@@ -1,0 +1,24 @@
+{
+ "round": "2b",
+ "stripped_acc": 0.8372093023255814,
+ "n": 43,
+ "per_task_stripped": {
+  "0": 1.0,
+  "1": 0.8333333333333334,
+  "2": 1.0,
+  "3": 0.625,
+  "4": 0.875,
+  "5": 0.75
+ },
+ "sd_task_raw": 0.1332175423142422,
+ "sd_task_noise_corrected": 0.0,
+ "sig_t_logit_approx": 0.0,
+ "rotation_agreement": 0.7647058823529411,
+ "n_rot": 17,
+ "leak_stripped": 0.52,
+ "leak_unstripped": 0.6875,
+ "n_leak": 25,
+ "unparsed": 10,
+ "spent_usd": 0.1617,
+ "cache": "C:\\Users\\joshe\\cdms_cache\\tost_pilot2b_20260717_232507"
+}
