@@ -1,13 +1,13 @@
 # The functional TOST — the terminal falsifier of the CDMS-A individuation thesis (task #10)
 
-**STATUS: DRAFT (2026-07-17) — NOT locked, NOT run. Pipeline: this draft → power_sim (a LOCK GATE, §5) →
-rule-12 double pressure-test → LOCK → run. The RUN is PAID and gated on Josh's explicit go at lock.**
-On branch `research/differentiation`.
+**STATUS: DRAFT v2 (2026-07-17) — revised on MEASURED pilot data (see §10); NOT locked, NOT run. Pipeline:
+v2 → PT8 rule-12 pressure-test (3 agents) → fold → LOCK → run. Josh pre-authorized the ARM at $50 total
+(thesis-breaker exception) with autonomous execution; spent through pilots: ~$4.7.** On branch
+`research/differentiation`.
 
-**💵 COST (plain dollars, upfront):** deed generation ~400 reader calls + ~300 judge calls ≈ **$10–20
-estimated, hard cap $30** (per-model caps in the runner; OpenRouter PAID tier — the :free limit is
-account-wide). $0 until Josh authorizes the run at lock. Fresh cache per rule 13 (crash-resume is the only
-sanctioned cache reuse; publication requires a fresh end-to-end pass).
+**💵 COST (plain dollars, upfront):** main run ≈ 960 reader deeds + ~1,100 judge calls ≈ **$12–18
+estimated, hard cap $25** (CostGuard; OpenRouter PAID tier). Arm total incl. pilots ≤ $50 (Josh,
+2026-07-17). Fresh cache per rule 13 (crash-resume is the only sanctioned cache reuse).
 
 ## 0. Why this is the terminal court (and what mechanism is on trial)
 The state arc is CLOSED (PLASTICITY_LADDER.md §10): **state = f(imposed salience) ⊕ noise at every
@@ -127,4 +127,52 @@ defined.* No softening language ("routes to", "definitional locus") is permitted
 - Cost/cap realism; OpenRouter model availability; temp-0 determinism across API versions.
 - The three-branch logic: any path where a verdict is reachable without its gates? Any softening leak?
 
-## 9. Pressure-test record (rule-12) — RESERVED.
+## 9. Pressure-test record (rule-12) — RESERVED (PT8 round 1, 3 agents).
+
+## 10. V2 REVISION — measured on three pilot rounds (all exploratory, EXCLUDED from confirmatory; $2.89)
+**Pilot 1 ($0.90, all-neutral tasks, unstripped):** acc 0.554 bimodal; rotation agreement 0.486;
+sig_t≈0.82. DESIGN CATCHES: neutral tasks give the reader no OCCASION to surface identity (GATE-INERT
+unmeasurable as v1-drafted); majority-of-3 is VOID at temp-0 (deterministic judge) — the real within-item
+nuisance is the reference draw. **Pilot 2 ($1.83):** with identity-ELICITING tasks the reader's use of the
+loaded identity is total — **unstripped eliciting acc 1.000 (46/46)**; neutral stays ~chance (0.417) even
+at K=5 (no passive leak into unrelated work); rotation agreement 0.909 (protocol healthy once references
+are content-rich); long-history payloads (120cy) do NOT enrich the persona (surface saturates — dead
+knob); gemini-2.5-pro judge arm 100% unparsed (reasoning burn; flash stays primary). **Pilot 2b ($0.16,
+the strip dress rehearsal on cached deeds):** **stripped eliciting acc 0.837** (n=43, 90% CI ≈
+[0.74, 0.93]) while the domain-leak probe on the same stripped deeds is ~chance (0.520) — a
+topic-content-removed, cross-task-recognizable signature EXISTS at pilot scale. Post-strip task/pair
+spread ≈ 0 (sizing-friendly). Leak positive control weak (unstripped 0.688) → masker + leak probe must be
+strengthened before lock.
+
+**V2 design (supersedes the corresponding v1 sections):**
+- **CONFIRMATORY (REAL) = STRIPPED, IDENTITY-ELICITING arm.** Tasks give the reader occasion to enact its
+  identity; the strip removes topic content; the judge tests for a transferable signature. **KNOWN-
+  TAUTOLOGY / power anchor = the UNSTRIPPED eliciting arm** (measured 1.000 — GATE-INERT threshold now
+  trivially exceeded at pilot; re-verified in-run at modest n). **NULL = same-disposition stripped
+  eliciting** (GATE-MANUFACTURE). **Neutral tier demoted to a small SECONDARY** (passive-leak read;
+  pilot-measured ~chance; expected null, reported not verdict-bearing).
+- **Volumes (sized from measured nuisance: sig_s≈0, post-strip sig_t≈0–0.4 band):** **T=20 frozen
+  eliciting tasks × S=24 seeds/disposition, crossed, 40 sampled pairs/task → n=800 confirmatory
+  judgments** (+~100 anchor, ~100 null, ~100 leak-gate, ~60 neutral-secondary). Deeds = 2×24×20 = 960.
+  power_sim (committed sweep): det@0.60 ≥ 0.91, TOST@0.50 ≥ 0.91 at sig_t=0.4; both ≥0.95 at the measured
+  ≈0.2. Single judgment per item (temp-0; no majority voting), rotation NOT aggregated (agreement
+  0.76–0.91 measured).
+- **Protocol pins:** reader anthropic/claude-sonnet-4.6; judge google/gemini-2.5-flash (disjoint family);
+  K=5 references drawn from other eliciting tasks; judge n_predict 700; hardened ANSWER parse + ONE
+  re-ask on unparse (re-ask prompt: "Reply with only ANSWER: X or ANSWER: Y"); unparse after re-ask =
+  excluded + counted (pilot rate ≈6–14%; >20% in-run = protocol failure, halt).
+- **Masker v2 (frozen at lock):** static goalset/subtopic lexicon + a **DATA-DRIVEN divergence pass** —
+  words statistically A-vs-C divergent in the CACHED pilot deeds (a $0 dev-set, disjoint from the fresh
+  main-run deeds) are added to the mask list. **Leak gate strengthened:** 3-deed concatenated domain
+  probe; stripped must be ≈chance AND the unstripped positive control must clear ≥0.85 (else the leak
+  gate itself is uninformative — the pilot's 0.688 single-deed control was too weak).
+- **The content/stance line (pre-registered interpretation, PT8 must adjudicate):** the fixture imposes
+  per-topic success rates, so the poles differ in valence profile; a judge reading transferred
+  confidence/wariness reads something imposed. **Position taken: the topic-strip defines the tautology
+  boundary — identity re-expressed as generalized stance/priorities/style in NOVEL deeds (the reader's
+  nonlinear transform) IS the phenomenon under test (functional distinguishability), not a readback;**
+  the state-arc tautologies were measurement-readbacks of stored representations, not transfers. A
+  results reviewer may contest this line; it is pre-registered HERE so the verdict cannot be re-litigated
+  post-hoc. (Cross-ref: the state arc's cell-② valence debate, RESOLVING_ANGLE_PROBE.md §10.)
+- **14 additional eliciting tasks** (to reach T=20) written + frozen at lock; same genre as the measured
+  six; no post-hoc task selection.

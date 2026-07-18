@@ -1,0 +1,30 @@
+{
+ "round": 2,
+ "reader": "anthropic/claude-sonnet-4.6",
+ "gate_flash_acc": 1.0,
+ "n_gate_flash": 46,
+ "gate_pro_acc": NaN,
+ "n_gate_pro": 0,
+ "neutral_flash_acc": 0.4166666666666667,
+ "n_neutral": 36,
+ "long_payload_gate_acc": 0.875,
+ "n_long": 24,
+ "rotation_agreement": 0.9090909090909091,
+ "n_rot": 22,
+ "judge_cross_agreement": null,
+ "n_xjudge": 0,
+ "per_task_gate_flash": {
+  "0": 1.0,
+  "1": 1.0,
+  "2": 1.0,
+  "3": 1.0,
+  "4": 1.0,
+  "5": 1.0
+ },
+ "sd_task_gate": 0.0,
+ "payload_len_std": 1266,
+ "payload_len_long": 1280,
+ "unparsed": 54,
+ "spent_usd": 1.8318,
+ "cache": "C:\\Users\\joshe\\cdms_cache\\tost_pilot2_20260717_224533"
+}
