@@ -1,10 +1,6 @@
 # The functional TOST — the terminal falsifier of the CDMS-A individuation thesis (task #10)
 
-**STATUS: DRAFT v2 (2026-07-17) — revised on MEASURED pilot data (see §10); NOT locked, NOT run. Pipeline:
-v2 → PT8 rule-12 pressure-test (3 agents) → fold → LOCK → run. Josh pre-authorized the ARM at $50 total
-(thesis-breaker exception) with autonomous execution; spent through pilots: **$2.89** (0.8976 + 1.8318 +
-0.1617 + $0.0001 smoke — the earlier "~$4.7" here was an arithmetic error, caught by PT8-legit S3; no
-unaccounted spend).** On branch `research/differentiation`.
+**STATUS: LOCKED (2026-07-18) — v3-FINAL, after PT8 (3 agents) + five measuring rounds ($5.04, all exploratory/excluded). Runner: tools/eval_harness/tost_main.py; sizing gate: tools/eval_harness/tost_power_sim_v3.py. Run authorized under Josh's $50 arm grant (2026-07-17: 'make it as far as you can'; hard stops = budget >$50, INCONCLUSIVE follow-on). No design change after this stamp; any deviation = a disclosed amendment.** On branch `research/differentiation`.
 
 ## FINAL DESIGN (v3, LOCKED) — every number pinned; §§9–11 = the audit trail that produced it
 
