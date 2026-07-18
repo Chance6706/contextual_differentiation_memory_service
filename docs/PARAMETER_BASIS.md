@@ -179,3 +179,11 @@ The ceiling/floor branches were made **symmetric and statistically reachable** i
   favor of the power law (deviation M1; `docs/validation/forgetting_curve/`). The half-life
   itself remains a chosen, unmeasured anchor.
 - Whether the four S0 weights should remain equal is untested; equal is a simplicity choice.
+
+### TOST equivalence margin (functional falsifier, task #10)
+
+- `δ = 0.10` (judge 2AFC accuracy within [0.40, 0.60] = "practically indistinguishable") is **FREE, not
+  derived** — pre-committed before any data (FUNCTIONAL_TOST_PREREG.md §1). Stated basis: acc 0.60 ≈ the
+  weakest tell a downstream consumer could act on. Sensitivity at δ = 0.05 (INCONCLUSIVE) and 0.15
+  (EQUIVALENT) reported in FUNCTIONAL_TOST_RESULTS.md; the verdict is stable in the pre-registered
+  direction at and above the pinned margin.
