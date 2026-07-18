@@ -133,7 +133,76 @@ defined.* No softening language ("routes to", "definitional locus") is permitted
 - Cost/cap realism; OpenRouter model availability; temp-0 determinism across API versions.
 - The three-branch logic: any path where a verdict is reachable without its gates? Any softening leak?
 
-## 9. Pressure-test record (rule-12) — RESERVED (PT8 round 1, 3 agents).
+## 9. Pressure-test record (rule-12) — PT8 ROUND 1 DONE (3 agents, 2026-07-17). v2 NOT lockable; → v3.
+**Consolidated verdict:** salvageable; thesis still live; one fold-and-pin pass + ONE more measuring round
+(pilot 3, blocking) → lock. Key findings + dispositions (all three reports verbatim in session log):
+
+**PT8-construct (empirical, $0 on cached deeds) — the round's decisive result:**
+- **The 0.837 DECOMPOSES: ~47% seed-fingerprinting** (same-seed references let the judge identify the
+  particular HISTORY: BOW LOTO 0.854 → LOSO 0.688; within-disposition seed-2AFC 0.83–0.97 ≥ the
+  cross-disposition signal) **+ ~50% imposed-valence readback** (fixture wires A-goalset mean success 0.71
+  vs C 0.54 → "A" ≡ "the more confident persona" by construction — the state arc's cell-② tautology in
+  prose) **+ ~10–15% residual domain lexemes. Format: 0%** (honest negative). **A bag-of-words classifier
+  reproduces the LLM judge (0.854 ≈ 0.837)** — the signature is linearly decodable; the "nonlinear reader
+  transform" story unsupported. **§10's content/stance line: UNTENABLE as pre-registered.**
+- **HONEST NEGATIVE THAT KEEPS THE THESIS ALIVE: a real cross-seed signal ≈0.69 LOSO survives** — failure
+  is attribution/confound + protocol, NOT signal absence.
+- **DISPOSITIONS → v3:** (1) **POOLED-across-seed references** (test disposition, not history);
+  (2) **VALENCE-MATCHED fixture** (equal mean success across goalsets via a TOST-specific success table —
+  do NOT edit the committed `_ENTITY_SUCCESS`, parameterize; the state-arc artifacts must reproduce);
+  (3) **stance-eliciting, inventory-suppressing task genre** (T=20 ALL-FRESH — also resolves legit-M3's
+  discovery-task contamination; guardrail: reject tasks whose reference answers enumerate areas/counts);
+  (4) **masker v3 = static topic lexicon only** (+ plurals/stems, curated short words, MASK NUMERIC
+  READBACKS "(17 trouble / 38 seen)") — the data-driven divergence pass is KILLED (circular: strips the
+  signal itself; unpinned threshold = verdict knob); (5) **leak gate = trained BOW classifier, honest
+  split, CI must include 0.5** (the LLM probe read 0.520 while BOW recovered 0.688 from the same deeds).
+**PT8-stats (independent sim rebuild) —** det@0.60 replicates (0.91✓); tost 0.88 (not 0.91 — restate);
+  valid ONLY at sig_t≤0.4 (at 0.8: power collapses, false-thesis-kill ≈0.10); 3-way (task,seedA,seedC)
+  bootstrap is the RIGHT dependence model incl. shared-deed reuse (1-way fails, false-eq 0.185); the SETS
+  resample variant is conservative-to-nominal at the operating point (pin it EXPLICITLY — variant choice
+  swings tost power 0.55→0.96). **DISPOSITIONS:** commit the v2/v3 sizing sim as the lock-gate artifact
+  (replace the dead n=200 sim); pin bootstrap=3-way-SETS + B; **branch disjointness fix: EQUIVALENT ≡
+  TOST-rejects AND diff-NOT-rejects** (both-fire cell confirmed P 0.002–0.01; at true 0.55 verdicts
+  coin-flip — precedence pinned); **in-run sig_t guard** (measured on the actual 20 tasks; >~0.4 ⇒ an
+  EQUIVALENT verdict downgrades to INCONCLUSIVE); **unparse dual-analysis** (excluded AND impute-as-miss
+  must AGREE on the branch; halt tightened ≤12%); power detection at 0.65 (margin-edge tension); NULL-gate
+  permutation band = within-item label shuffle, 95th pct; exact position balancing; anchor re-verify n +
+  threshold + mid-run-fail branch; BCa robustness re-analysis.
+**PT8-legit —** M1 doc-migration (interim stamp committed cd8d33e; full §§1–6 consolidation AT LOCK);
+  **M2 branch-1 sentence PINNED (see §11) + anti-inflation bar**; M3 → superseded by all-fresh tasks;
+  M4 → δ folded into the §0 operational definition ("…distinguishable BY A MARGIN ≥ δ"), validity gates
+  walled off from INCONCLUSIVE (protocol-failure = remediate + fresh re-run, NOT a verdict); **M5 per-item
+  JSONL retention + cache dirs RETAINED (not burned)** — required by the pre-authorized $0
+  INCONCLUSIVE/INERT worktree paths; M6 → moot (divergence pass killed); S2 δ=0.10 basis → one-line
+  justification + PARAMETER_BASIS (free); S3 cost header fixed ($2.89 verified); S4 wall-clock envelope
+  (~3–4 h serial); S5 report ALL arms with CIs regardless of verdict; **S6 registered limitation: the
+  leak gate excludes domain-RECOVERABILITY, not content-correlated STYLE** — baked into the branch-1
+  sentence; S7 neutral-demotion disclosure sentence pinned (construct-validity move, pilots exploratory
+  + excluded, neutral retained as secondary).
+
+**→ PILOT 3 (BLOCKING, ~$1.5–2.5):** valence-matched payloads + pooled refs + stance-genre tasks +
+masker v3 + classifier leak gate → measures the post-fix REAL preview + post-strip sig_t/sig_s on the
+ACTUAL protocol → final sizing → full §§1–6 v3 consolidation → LOCK → main run. Expected REAL after
+de-confounding: ≤0.69 and possibly ~chance — the outcome is genuinely open, as a terminal falsifier
+should be.
+
+## 11. Pinned branch sentences (PT8-legit M2; the ceiling and the floor of any results narrative)
+**Branch-1 (DISTINGUISHABLE) — pinned ceiling, no inflating language permitted ("CDMS creates identity",
+"individuation confirmed", "distinct selves", "personality" are all barred):** *"With one frontier reader
+(anthropic/claude-sonnet-4.6) and one blind cross-family judge (google/gemini-2.5-flash), enacted deeds
+from two valence-matched imposed-disposition identities were distinguishable above chance by ≥ δ=0.10
+after topic-content stripping, on identity-eliciting tasks, on this eval fixture. This establishes
+above-chance functional distinguishability for this reader/judge/substrate when the task occasions
+identity enactment — a mechanism-tier positive — and no more: it does NOT show CDMS creates identity;
+does NOT generalize beyond these dispositions, reader, or task genre (neutral-task distinguishability was
+~chance); 'content-stripped' means topic-content not domain-recoverable, NOT proven free of
+content-correlated style; and no claim about phenomenology (I10)."*
+**Branch-2 (EQUIVALENT) — unchanged from §6:** thesis FALSE as operationally defined, HALT.
+**Neutral-demotion disclosure (pinned, must appear in results):** *"The confirmatory arm was moved from
+neutral to identity-eliciting tasks after exploratory pilots (excluded from confirmatory) showed neutral
+tasks give the reader no occasion to enact its disposition (neutral 2AFC ≈ chance), making the hypothesis
+untestable on that tier; the neutral arm is retained and reported as a secondary passive-leak read, and
+branch-1 distinguishability is therefore scoped to identity-eliciting tasks."*
 
 ## 10. V2 REVISION — measured on three pilot rounds (all exploratory, EXCLUDED from confirmatory; $2.89)
 **Pilot 1 ($0.90, all-neutral tasks, unstripped):** acc 0.554 bimodal; rotation agreement 0.486;
