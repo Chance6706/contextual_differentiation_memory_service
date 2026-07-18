@@ -188,6 +188,22 @@ not just asserted. The headline results to date (full method + caveats in
   and distinct over time, and **absence never ages it** (decay is
   activity-based — a project you don't touch doesn't lose its personality).
 
+- **Disposition individuation in deeds: tested to a pre-registered terminal verdict — FALSE
+  at this substrate (2026-07).** The store-level distinctness above is real and stands. The
+  *stronger* claim — that disposition-driven salience/forgetting produces identities
+  distinguishable in enacted behavior — was tested to destruction: six structural
+  investigations all resolve to tautological-readback-XOR-null (the surviving state is a
+  function of the imposed salience weights plus noise, at every plasticity setting), and a
+  powered equivalence test (TOST, n=799 blind judgments, valence-matched dispositions,
+  content-stripped outputs, adversarially audited) established behavioral equivalence within
+  δ=0.10 — while an expression gate (0.958) confirmed the reader actively uses the loaded
+  memory. Identity, as far as this substrate can express it, is per-history, not
+  per-disposition. Full record:
+  [`docs/validation/eval_harness/FUNCTIONAL_TOST_RESULTS.md`](docs/validation/eval_harness/FUNCTIONAL_TOST_RESULTS.md)
+  and [`PLASTICITY_LADDER.md`](docs/validation/eval_harness/PLASTICITY_LADDER.md) §10. CDMS-A
+  remains the memory substrate; its identity claims are scoped accordingly (this bullet is
+  the scope).
+
 - **The steering boundary: recall yes, disposition no.** A key question for a
   memory that shapes behavior: *what kind of influence is it?* Injected CDMS memory
   reliably steers a model via **recalled content and override** (it can pull a
