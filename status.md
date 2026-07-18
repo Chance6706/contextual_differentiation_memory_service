@@ -1,6 +1,20 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-12 (LOCALJUDGE arc DONE — **FAIL: no local judge adopted, the 5-vendor A′ panel
+_Last updated: 2026-07-18 (**THE DIFFERENTIATION PROGRAM IS CLOSED — both arcs, on pre-registered
+terms.** STATE ARC: six investigations (frozen → erasure → tiered → drift → probe v1/v2 → capstone →
+plasticity ladder) all resolve to tautological-readback XOR null; proven WHY: the salience gate is a scalar
+⇒ state = f(imposed) ⊕ noise, no fourth term (PLASTICITY_LADDER.md §10, unconditional-over-plasticity, byte-
+deterministic ×2). BEHAVIORAL ARC: the functional TOST (task #10) — 5 measuring rounds ($5.04) stripped the
+topic tautology, valence tautology, and seed-fingerprinting; PT8 3-agent round forced the honest protocol;
+the LOCKED v3-FINAL run (n=799, $10.44, every validity gate passed) returned **EQUIVALENT — THESIS FALSE,
+HALT**: REAL 0.532, 90% CI [0.476, 0.588] ⊂ (0.40, 0.60); expression gate 0.958 (the reader richly enacts
+its payload); same-seed 0.958 vs pooled 0.53 ⇒ **identity in deeds is per-HISTORY, not per-DISPOSITION**;
+BOW stylometric trace 0.75 persists (machine-traceable, not judge-distinguishable). Pre-agreed sentence
+verbatim in FUNCTIONAL_TOST_RESULTS.md; PT9 3-reviewer post-verdict audit ran. Arm spend $15.48/$50
+authorized. HALT binds: no new state/behavioral arms; publication write-up remains; new theses = new
+preregs + Josh. Sparky LOCALJUDGE2 (task #7) unaffected, ~2 wks to run.)_
+
+_Prior status (2026-07-12):_ (LOCALJUDGE arc DONE (LOCALJUDGE arc DONE — **FAIL: no local judge adopted, the 5-vendor A′ panel
 stays the default instrument**. All three Phase B candidates fail the locked corpus gates on the full
 62,103-row committed record: GLM-4.5-Air pooled κ 0.711 (gate 0.80; misses breaches 6:1 — the
 silent-corruption direction), nemotron-30B-A3B 0.569 (recall precision 0.101 — false-alarm spray),
