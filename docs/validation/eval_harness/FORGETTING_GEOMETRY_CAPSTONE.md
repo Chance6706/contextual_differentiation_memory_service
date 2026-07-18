@@ -1,9 +1,41 @@
 # The forgetting-geometry capstone — does disposition-driven forgetting create readable structure BEYOND the salience we impose?
 
-**STATUS: DRAFT (2026-07-17) — the terminal STRUCTURAL test of the CDMS-A individuation thesis. NOT run.
-Goes through a focused rule-12 pressure-test → lock → build (dedicated research venv) → run. $0 local.**
-On branch `research/differentiation`. Supersedes the state-probe line (`RESOLVING_ANGLE_PROBE.md` v1/v2,
-both tautological — see its §10). The behavioral arm (task #10 functional TOST) remains the terminal court (§7).
+**STATUS: DEMOTED (2026-07-17) — an instrumented structural NEGATIVE, NOT a confirmatory search. The focused
+rule-12 pressure-test (PT6, 2 agents), reproduced on real fastembed, showed the confirmatory primary (channel A)
+is degenerate BY CONSTRUCTION — see the VERDICT below. The full 4-channel run is NOT executed. The behavioral
+functional TOST (task #10) is the sole terminal court.** On branch `research/differentiation`. Supersedes the
+state-probe line (`RESOLVING_ANGLE_PROBE.md` v1/v2, both tautological — see its §10).
+
+## VERDICT (2026-07-17) — the state-arm is structurally degenerate; DEMOTED to an instrumented negative
+The focused rule-12 pressure-test (PT6-fixture empirical / PT6-legit design), reproduced by main on real
+fastembed (`tools/eval_harness/capstone_buildability_probe.py`, seed 1 @ 60 cycles), converged:
+
+- **What the fixture got RIGHT (real advances, keep):** holding content constant via shared input genuinely
+  forecloses the v1/v2 lexeme leak — per-slot centroids stay cos **0.947–0.992** across poles (no content
+  readback) — AND it avoids the erasure-arm's endpoint-degeneracy: the survival mask stays FULL (8/8), ≠ goalset.
+- **Why it's degenerate (the finding):** the salience gate is a per-topic **scalar**, so it can only move
+  **support** (support diverges strongly — database 29 vs 13). But support **is** the imposed weight **is**
+  channel A's own known-tautology axis. The only non-weight degree of freedom — the centroid residual — is a
+  **noise-grade wobble that does not track the support gap**, so channel A residualizes away the only real
+  signal and is left with noise → **null by construction**, and is structurally blind to any emergent structure
+  sharing the weight's slot-pattern (the most likely kind). The power gate is invalid too (it fires only on the
+  raw support axis that REAL deletes).
+- **The structural law (the real result):** at the state level a disposition has exactly **two** ways to express
+  itself — **how much** survives (support = imposed weight = tautology) or **which** content survives (= lexeme
+  = the v2 tautology; differential survival already **flips the relation token** — the S1 caveat, so any channel
+  touching `search_text`/`relation` reacquires v2 and must be barred by a tested invariant). The residual is
+  noise. **There is no content-orthogonal, non-weight channel for "emergence" to occupy** → the memory state is
+  provably **f(imposed salience) ⊕ noise, with no fourth term.** This is the STRUCTURAL reason behind all five
+  prior empirical nulls — not a sixth one.
+- **Conclusion:** individuation-as-emergence cannot be a property of the stored **state** — only of the enacted
+  **deed**, where a reader applies the nonlinear transform the state lacks. (The operational definition —
+  above-chance distinguishability of enacted deeds — already located it there; Jung: *"the self appears in your
+  deeds."*) The state-arm is DEMOTED to this instrumented negative; the full 4-channel confirmatory run is NOT
+  executed (channel A can't yield a non-tautological positive; B/C/D read the same weight-driven survival). The
+  behavioral functional **TOST (task #10)** is the sole terminal court and the next build.
+
+**The design record below (§0–§9) is retained** as what was designed and why it is demoted; the reproducible
+evidence is `tools/eval_harness/capstone_buildability_probe.py`.
 
 ## 0. Why this is the capstone (and why full breadth, knowing it will likely be null)
 Five structural attempts — frozen NULL → erasure ENDPOINT-DEGENERATE → tiered STRUCTURAL NEGATIVE → drift
