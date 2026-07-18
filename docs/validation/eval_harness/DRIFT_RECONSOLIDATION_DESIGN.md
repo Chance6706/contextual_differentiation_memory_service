@@ -96,8 +96,12 @@ retrieval — the human top-of-mind / sit-and-recall division.
 1. This DRAFT → **rule-12 double pressure-test** → fold → **build** (eval harness, $0).
 2. Run drift-ON/OFF → adjudicate H-drift (shuffle null) + H-disp (disposition-specificity).
 3. Only if both hold: consider real-CDMS wiring, behind its **own** integration safety review.
-4. **Stage-2 (gated on Stage-1 signal):** the alternative-attractor map — drop the tautological
-   temperament-vector target, bound the runaway surfaced-gestalt target.
+4. ~~**Stage-2 (gated on Stage-1 signal):** the alternative-attractor map — drop the tautological
+   temperament-vector target, bound the runaway surfaced-gestalt target.~~ **CLOSED/SUPERSEDED
+   (2026-07-17, PT7-quarantine M3):** this gate was the "last exploration" re-relocation loophole. The
+   plasticity ladder (`PLASTICITY_LADDER.md`) is the final state-arm act; BOTH of its outcomes terminate
+   the state arc into the behavioral court (task #10). No Stage-2, no alternative-attractor map, no further
+   state ladder is licensed by any ladder outcome.
 
 ## 8. Pressure-test record (rule-12) — RESERVED. Attack these hardest:
 - **THE key risk — disposition-SPECIFICITY, not "recency vs disposition".** Recency-homogenization is an

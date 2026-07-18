@@ -46,7 +46,10 @@ from datetime import timedelta
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
+# src FIRST (sibling-clone editable-install shadowing; verified inert for this probe 2026-07-17 —
+# identical numbers both sources — but pinned + asserted so provenance is never ambient again).
 sys.path.insert(0, str(REPO))
+sys.path.insert(0, str(REPO / "src"))
 
 from cdms.config import Config
 from cdms.consolidate import Consolidator
@@ -55,6 +58,9 @@ from cdms.store import MemoryService, TurnEvent
 from tools.eval_harness.differentiation_experiment import (
     _shared_history, _goal_hint, _canonical_entity, _DISPOSITIONS, _ENTITIES,
     _EPOCH, _DAYS_PER_CYCLE, _PROJECT, _cfg_for)
+from tools.eval_harness.provenance import assert_worktree_cdms
+
+assert_worktree_cdms()
 
 
 def run_pole(dispo, home, seed, emb, cycles, gate_floor):

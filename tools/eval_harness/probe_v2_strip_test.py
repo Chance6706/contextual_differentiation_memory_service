@@ -25,8 +25,18 @@ os.environ["CDMS_EMBED_BACKEND"] = "fastembed"
 import numpy as np
 from pathlib import Path
 import tempfile
+
+_REPO = Path(__file__).resolve().parents[2]
+# src FIRST (sibling-clone editable-install shadowing; verified inert for this probe — identical
+# numbers both sources, embeddings.py is identical — but pinned + asserted for provenance).
+sys.path.insert(0, str(_REPO))
+sys.path.insert(0, str(_REPO / "src"))
+
 from cdms.config import Config
 from cdms.embeddings import Embedder
+from tools.eval_harness.provenance import assert_worktree_cdms
+
+assert_worktree_cdms()
 
 emb = Embedder(Config(home=Path(tempfile.mkdtemp(prefix="probev2-"))))
 assert emb.backend == "fastembed", emb.backend

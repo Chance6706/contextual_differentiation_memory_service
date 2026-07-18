@@ -1,9 +1,21 @@
 # The plasticity ladder — does UNSAFE plasticity buy state individuation? (the last state exploration)
 
-**STATUS: DRAFT (2026-07-17) — NOT run. Pipeline: this draft → rule-12 double pressure-test → lock (pin all
-numbers) → build → run → burn. $0 local.** On branch `research/differentiation`. Task #16; precedes the
-task-#10 functional TOST build, which remains the **sole terminal court for the thesis** regardless of this
-run's outcome. **Josh: this arm is THE LAST state exploration unless a real finding falls out.**
+**STATUS: RE-SCOPED (2026-07-17) after the rule-12 pressure-test (PT7, §9) → LOCKED as a
+CHARACTERIZATION-LITE run — a pre-scoped NEGATIVE characterization, NOT a search.** PT7 established
+(empirically, reproduced by main) that the ladder is **squeezed**: at low α the residual is the
+capstone-proven noise; at high α the coupling geometry **mechanically collapses** (offdiag variance 8×
+down — no structure left to read); and the plausible **on-pattern** emergent coupling is **observationally
+equivalent to a stronger imposed weight** (an identifiability limit — ~6% survives residualization — likely
+unfixable at the state level). The run therefore commits the **powered dose-response curve of the squeeze**
+(collapse curve, T + max-T primary, tautology anchor, relabel rate), with the verdict pre-known. Runner:
+`tools/eval_harness/plasticity_ladder_run.py`; mechanical guard: `tools/eval_harness/unguarded_sandbox.py`
+(+ `tests/test_unguarded_sandbox.py`). On branch `research/differentiation`. Task #16; precedes the task-#10
+functional TOST build, which remains the **sole terminal court for the thesis** regardless of outcome.
+**BOTH outcomes of this run TERMINATE the state arc into the behavioral court (Josh: THE LAST state
+exploration):** a null closes it (scoped: unconditional over THIS reconsolidation-drift mechanism's
+plasticity axis — not over all conceivable state mechanisms); a real finding is a mechanism/trade-off-curve
+result HANDED TO the TOST, and does NOT reopen `DRIFT_RECONSOLIDATION_DESIGN.md` §7.4's Stage-2 gate or any
+further state ladder — that gate is hereby **CLOSED/SUPERSEDED.**
 
 ## 0. Why — the scope condition on the no-fourth-term law
 The structural arc closed with a law (capstone VERDICT, commit 61f3a9e): at the state level a disposition
@@ -127,4 +139,53 @@ seeds — nothing weaker counts, and even then it is a mechanism finding routed 
 - Quarantine integrity: can any code path write outside temp / survive the burn?
 - Separable-domains arm: does semantic separation reintroduce a content axis into the geometry measures?
 
-## 9. Pressure-test record (rule-12) — RESERVED.
+## 9. Pressure-test record (rule-12) — DONE (PT7, 2 agents, 2026-07-17). Findings + dispositions.
+**PT7-empirical** (real fastembed loop + sims; headline numbers reproduced by main):
+- **MF1 CONFIRMED — the primary is measurement-degenerate at the unguarded rungs.** offdiag_std collapses
+  8× (0.034 → 0.004) at R4; REAL T never positive and MORE negative at R4 (−0.209) = PT3's homogenization,
+  harder. → **Disposition: re-scoped to characterization (status header); the squeeze IS the result.**
+- **MF2 CONFIRMED — S1-compliant slot key scrambles under drift** (37–71 reassignments; 9-gist pileups);
+  the committed `_canonical_entity` reads text (S1-violating). → **Disposition: slots frozen at gist BIRTH
+  (geometry-only nearest-anchor at first sight), implemented in the runner; live-relabel rate kept as a
+  measured quantity.**
+- **MF3 CONFIRMED — on-pattern emergent coupling is unidentifiable** (corr 0.996 with w⊗w; 6.1% survives
+  residualization; off-pattern survives 85%). → **Disposition: the injection power gate is OFF-pattern only
+  and every null is scoped "no OFF-pattern emergent coupling beyond weights"; the on-pattern identifiability
+  limit is registered here as an inherent limitation of ANY state-level readout of this mechanism.**
+- **SF1 CONFIRMED — collapse suppresses the chaos index** (a collapsed rung reads "stable"). →
+  **Disposition: no standalone chaos index; the run reports the ABSOLUTE spread trajectory (referenced to
+  R0) + relabel rate jointly; no independent chaos/collapse coordinates are claimed.**
+- **SF2 CONFIRMED calibrated with pins** — max-T FP ≈ 0.05 IF the null is a SINGLE label permutation shared
+  across rungs with the (1+k)/(1+B) convention; the any-rung cheat inflates 5× (0.25). → **Disposition:
+  implemented exactly so in the runner (shared perms, +1 convention, B=1000).**
+- **N2 — separable-domains secondary re-imports the content axis** (topic distance IS the geometry when
+  domains separate). → **Disposition: the separable-domains arm is DROPPED from this run** (PT3's best-shot
+  door stays closed; noted as out-of-scope rather than run-uninterpretable).
+**PT7-quarantine** (design/quarantine/epistemics):
+- **M1 CONFIRMED — burn was happy-path; repo precedent orphans temp dirs; Windows locks openly-held DBs.**
+  → **Disposition: `UnguardedSandbox` context manager — close-services-then-rmtree on success AND
+  exception, atexit backstop, verified-gone assert. Lock-tested (burn-on-exception test).**
+- **M2 CONFIRMED — deviation unregistered.** → **Disposition: DEVIATIONS.md I11 + inline note in the
+  module.**
+- **M3 CONFIRMED — "last exploration" loophole vs DRIFT §7.4 Stage-2.** → **Disposition: closed in the
+  status header (both outcomes terminate; §7.4 superseded).**
+- **SF4/SF7/SF8 — "unconditional" scope, cost pins, dose-not-attribution.** → **Dispositions: scoped in the
+  header; pinned in the runner (16 seeds × 40 cycles × 5 rungs × 2 disp, B=1000, α=0.6, cap 0.1,
+  δ_inj=0.05); §2 note stands — the ladder is a DOSE ladder; per-guardrail attribution would need a named
+  factorial which is MORE state work and is NOT licensed (see header).**
+- **SF5 — arming choke-point + ambient-home + worktree-import.** → **Disposition: the assert lives inside
+  `drift_gists` itself; the sandbox refuses ambient CDMS_HOME; `assert_worktree_cdms` in the arming path —
+  which then CAUGHT, live, that the eval venv editable-installs cdms from the sibling clone (all
+  pre-guard probes had silently imported it; verified empirically inert — both committed probes reproduce
+  to the digit against the correct source — and all committed runners now pin `src` first + assert).**
+- **SF9 — NON-STATIONARY / ROW-IDENTITY-UNSTABLE verdict branches.** → **Disposition: birth-frozen slots
+  remove the row-identity instability from the statistic; the relabel rate + spread trajectory are reported
+  so a non-stationary rung is visibly flagged rather than silently averaged.**
+**Standing rule adopted (Josh):** no agent executes guardrail-removed code until the mechanical guard is
+committed; unguarded execution goes ONLY through `UnguardedSandbox`/`drift_gists`. (Banked to memory.)
+**Build addendum (smoke, 2026-07-17): R1 ≡ R2 exactly at drive α=0.6** — the magnitude cap binds before the
+support-resistance (0.6/√support > 0.1 for support < 36), so removing resistance under an intact cap is a
+no-op. A real guardrail-redundancy characterization: at high drive the CAP is the binding guardrail. The
+dose ladder is unaffected (R2→R3, cap removal, is the operative step).
+
+## 10. RESULTS — see `plasticity_ladder_metrics.json` + the results section appended after the run.

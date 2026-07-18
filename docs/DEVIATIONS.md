@@ -616,6 +616,26 @@ external review, 2026-06.)
   distinguishability only** — an explicitly NON-phenomenal measure, no consciousness or "what-it's-like"
   claim (companion to the simulacrum functional-not-faithful framing).
 
+### I11. Plasticity-ladder ablation removes product safety guardrails (sealed sandbox, non-shipped)
+
+- **Standard form:** the product's anti-poisoning / anti-confabulation plasticity guardrails
+  (support-weighted resistance `ema/√support`, drift magnitude cap, touched-only selectivity) and the BEM
+  provenance discipline are **inviolable in the product**; experiments measure shipped behavior.
+- **What we do:** the plasticity-ladder characterization (`PLASTICITY_LADDER.md`, task #16) deliberately
+  ABLATES those guardrails — cumulatively, to fully unguarded reconsolidation drift — inside a sealed
+  sandbox: eval-harness-only code (`tools/eval_harness/unguarded_sandbox.py`; nothing in `src/cdms`
+  references it, lock-tested), double-key arming (`CDMS_EVAL_MODE` + `CDMS_UNGUARDED_DRIFT` + minted
+  temp-home-only, asserted inside the drift function), synthetic corpus only, crash-safe burn (every
+  unguarded store deleted post-analysis; aggregated scalars are all that survives).
+- **Why:** the structural arc closed with "state = f(imposed) ⊕ noise" proven on the BOUNDED mechanism, and
+  PT3 showed safety and effect are in tension (the bounding starves the coupling). The ablation closes the
+  scope condition: does UNSAFE plasticity buy state individuation? (Pre-known from PT7: no — the ladder is
+  squeezed; the run commits the dose-response curve.)
+- **Disclaimed:** unguarded mode is **NOT shipped, not shippable, and unreachable from product code**; the
+  shipped defaults are unchanged and re-asserted by existing lock tests. Results are mechanism-tier
+  characterization only — no product behavior claim, and no individuation claim (the behavioral TOST is the
+  thesis's sole terminal court).
+
 ### N1. Component proper names use a Chinese (wuxia/Daoist/Buddhist) vocabulary
 
 - **Standard form:** components carry either bare technical identifiers or Western/classical project
