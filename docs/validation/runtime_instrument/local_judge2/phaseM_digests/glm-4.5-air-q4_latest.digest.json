@@ -1,0 +1,10 @@
+{
+ "glm-4.5-air-q4:latest": {
+  "digest": "d070acd8e14d",
+  "size": 72975748431,
+  "modified": "2026-07-11T02:52:15.307572863-05:00",
+  "family": "glm4moe",
+  "param_size": "110.5B",
+  "quant": "Q4_K_M"
+ }
+}

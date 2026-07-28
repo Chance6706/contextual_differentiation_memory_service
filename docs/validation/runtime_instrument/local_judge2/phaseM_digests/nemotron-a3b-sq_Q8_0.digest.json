@@ -1,0 +1,10 @@
+{
+ "nemotron-a3b-sq:Q8_0": {
+  "digest": "32768ae7b848",
+  "size": 33585495666,
+  "modified": "2026-06-26T11:14:50.875326132-05:00",
+  "family": "nemotron_h_moe",
+  "param_size": "31.6B",
+  "quant": "Q8_0"
+ }
+}

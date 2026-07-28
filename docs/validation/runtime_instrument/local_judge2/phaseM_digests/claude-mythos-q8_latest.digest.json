@@ -1,0 +1,10 @@
+{
+ "claude-mythos-q8:latest": {
+  "digest": "deaefa3f6c6b",
+  "size": 9527502089,
+  "modified": "2026-06-27T08:04:26.22534841-05:00",
+  "family": "qwen35",
+  "param_size": "9.0B",
+  "quant": "Q8_0"
+ }
+}

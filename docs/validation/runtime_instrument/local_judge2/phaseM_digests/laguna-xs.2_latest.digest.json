@@ -1,0 +1,10 @@
+{
+ "laguna-xs.2:latest": {
+  "digest": "ba9ecde43b0e",
+  "size": 23098061820,
+  "modified": "2026-06-26T01:28:38.416398996-05:00",
+  "family": "laguna",
+  "param_size": "33.4B",
+  "quant": "Q4_K_M"
+ }
+}

@@ -1,0 +1,10 @@
+{
+ "olmo2-7b-q8:latest": {
+  "digest": "f7c5cd538f3f",
+  "size": 7759896391,
+  "modified": "2026-06-27T12:30:32.808047116-05:00",
+  "family": "olmo2",
+  "param_size": "7.3B",
+  "quant": "Q8_0"
+ }
+}

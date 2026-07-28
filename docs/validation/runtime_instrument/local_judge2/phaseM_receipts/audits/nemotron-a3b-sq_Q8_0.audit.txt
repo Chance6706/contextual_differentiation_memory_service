@@ -1,0 +1,45 @@
+== verdict-blind audit: nemotron-a3b-sq:Q8_0 (37 files) ==
+  batch1_granite_mistral_JUDGE.jsonl: judged=368 pass=372 mech=30 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  batch2_expansion_JUDGE.jsonl: judged=301 pass=575 mech=34 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_b_JUDGE.jsonl: judged=2202 pass=1498 mech=44 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_c_JUDGE.jsonl: judged=1556 pass=2141 mech=47 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_perm_JUDGE.jsonl: judged=1282 pass=254 mech=0 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_s11_JUDGE.jsonl: judged=1244 pass=268 mech=24 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_s12_JUDGE.jsonl: judged=1193 pass=316 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_s13_JUDGE.jsonl: judged=1227 pass=295 mech=14 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_t0_JUDGE.jsonl: judged=1260 pass=273 mech=3 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cleanstrata_JUDGE.jsonl: judged=1163 pass=2247 mech=94 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p1_s11_JUDGE.jsonl: judged=2463 pass=1201 mech=80 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p1_s12_JUDGE.jsonl: judged=2444 pass=1237 mech=63 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p1_s13_JUDGE.jsonl: judged=2381 pass=1281 mech=82 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p2_JUDGE.jsonl: judged=2131 pass=695 mech=54 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p3_JUDGE.jsonl: judged=2463 pass=1201 mech=80 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p4_JUDGE.jsonl: judged=2524 pass=1131 mech=89 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  disambig_a_JUDGE.jsonl: judged=2283 pass=1380 mech=81 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  disambig_c_JUDGE.jsonl: judged=1556 pass=2141 mech=47 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  disambig_h_JUDGE.jsonl: judged=1924 pass=1782 mech=38 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  disambig_m_JUDGE.jsonl: judged=2078 pass=1631 mech=35 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  filler_filler_JUDGE.jsonl: judged=2283 pass=1380 mech=81 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  filler_single_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  filler_triple_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_filler_JUDGE.jsonl: judged=2283 pass=1380 mech=81 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_outofblock_JUDGE.jsonl: judged=680 pass=553 mech=15 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_single_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_single_RETEST_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_team_JUDGE.jsonl: judged=2193 pass=1459 mech=92 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_triple_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_triple_RETEST_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  gen4_JUDGE.jsonl: judged=1059 pass=1809 mech=108 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  identity_power_JUDGE.jsonl: judged=1652 pass=2906 mech=146 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  multifact_single_JUDGE.jsonl: judged=931 pass=1356 mech=49 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  multifact_triple_JUDGE.jsonl: judged=3593 pass=3317 mech=98 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  padding_padded_JUDGE.jsonl: judged=730 pass=503 mech=15 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  padding_single_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  padding_triple_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+meta sidecar: judged=64206 ctx_skipped=0 num_ctx=8192 model=nemotron-a3b-sq:Q8_0
+
+TOTALS judged=62103 passthrough=43442 mech_invalid=2103 ctx_skipped=0 parse_fail=0 self_family=0
+decided universe=60646  pooled coverage=1.0000 (gate line 0.98, enforced by scorer)
+label marginals: OBSERVED=42243 (0.680), SELF_ATTRIBUTED=10051 (0.162), ABSENT=8650 (0.139), OWNED=878 (0.014), INVALID=281 (0.005)
+
+AUDIT PASS (structural). Coverage/degeneracy above are informational here; the scorer gates them.

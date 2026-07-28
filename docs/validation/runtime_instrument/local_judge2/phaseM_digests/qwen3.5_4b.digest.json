@@ -1,0 +1,10 @@
+{
+ "qwen3.5:4b": {
+  "digest": "2a654d98e6fb",
+  "size": 3389983735,
+  "modified": "2026-06-25T19:42:48.930107118-05:00",
+  "family": "qwen35",
+  "param_size": "4.7B",
+  "quant": "Q4_K_M"
+ }
+}

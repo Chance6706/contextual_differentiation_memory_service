@@ -1,0 +1,10 @@
+{
+ "internlm2.5-20b-q8:latest": {
+  "digest": "241095bd20ba",
+  "size": 21106375013,
+  "modified": "2026-06-27T12:07:28.398084164-05:00",
+  "family": "internlm2",
+  "param_size": "19.9B",
+  "quant": "Q8_0"
+ }
+}

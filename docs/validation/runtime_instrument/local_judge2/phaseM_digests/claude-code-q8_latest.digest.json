@@ -1,0 +1,10 @@
+{
+ "claude-code-q8:latest": {
+  "digest": "e482801c8ae8",
+  "size": 9527501417,
+  "modified": "2026-06-27T09:33:34.315232154-05:00",
+  "family": "qwen35",
+  "param_size": "9.0B",
+  "quant": "Q8_0"
+ }
+}

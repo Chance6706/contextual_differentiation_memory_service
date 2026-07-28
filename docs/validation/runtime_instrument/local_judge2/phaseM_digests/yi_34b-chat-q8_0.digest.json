@@ -1,0 +1,10 @@
+{
+ "yi:34b-chat-q8_0": {
+  "digest": "7dd8011e29f0",
+  "size": 36542300520,
+  "modified": "2026-06-30T17:47:44.939911578-05:00",
+  "family": "llama",
+  "param_size": "34B",
+  "quant": "Q8_0"
+ }
+}

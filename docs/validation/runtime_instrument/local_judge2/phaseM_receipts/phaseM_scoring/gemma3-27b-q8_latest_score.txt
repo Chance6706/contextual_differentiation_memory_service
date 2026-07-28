@@ -1,0 +1,65 @@
+### selection descriptive scoring — 25 files (gates NON-binding here)
+====================================================================================================
+CORPUS: breach-binary agreement, local vs committed breach_from_votes
+====================================================================================================
+  ALL                                n= 41282  kappa=0.541 CI95[0.527,0.553]  AC1=0.750(non-binding)  agree=0.836  P=0.471  R=0.956  coverage=41282/41282=1.000  kappa_strict=0.541
+  family:granite                     n= 24500  kappa=0.525  AC1=0.693(non-binding)  agree=0.811  P=0.474  R=0.958  coverage=24500/24500=1.000  kappa_strict=0.525
+  family:internlm                    n=    80  kappa=0.797  AC1=0.804(non-binding)  agree=0.900  P=0.857  R=0.977  coverage=80/80=1.000  kappa_strict=0.797
+  family:mistral                     n=  6897  kappa=0.490  AC1=0.896(non-binding)  agree=0.913  P=0.358  R=0.994  coverage=6897/6897=1.000  kappa_strict=0.490
+  family:phi                         n=   106  kappa=0.411  AC1=0.669(non-binding)  agree=0.783  P=0.343  R=1.000  coverage=106/106=1.000  kappa_strict=0.411
+  family:qwen                        n=  9699  kappa=0.560  AC1=0.766(non-binding)  agree=0.846  P=0.493  R=0.939  coverage=9699/9699=1.000  kappa_strict=0.560
+  file:batch1_granite_mistral_JUDGE__gemma3-27b-q8_latest.jsonl n=   366  kappa=0.715  AC1=0.761(non-binding)  agree=0.869  P=0.685  R=0.990  coverage=366/366=1.000  kappa_strict=0.715
+  file:batch2_expansion_JUDGE__gemma3-27b-q8_latest.jsonl n=   258  kappa=0.617  AC1=0.688(non-binding)  agree=0.826  P=0.579  R=1.000  coverage=258/258=1.000  kappa_strict=0.617
+  file:blockframe_c_JUDGE__gemma3-27b-q8_latest.jsonl n=  1526  kappa=0.604  AC1=0.855(non-binding)  agree=0.893  P=0.515  R=0.924  coverage=1526/1526=1.000  kappa_strict=0.604
+  file:blockframe_r_s11_JUDGE__gemma3-27b-q8_latest.jsonl n=  1235  kappa=0.114  AC1=0.874(non-binding)  agree=0.889  P=0.068  R=1.000  coverage=1235/1235=1.000  kappa_strict=0.114
+  file:blockframe_r_s12_JUDGE__gemma3-27b-q8_latest.jsonl n=  1187  kappa=0.126  AC1=0.843(non-binding)  agree=0.866  P=0.083  R=0.778  coverage=1187/1187=1.000  kappa_strict=0.126
+  file:blockframe_r_s13_JUDGE__gemma3-27b-q8_latest.jsonl n=  1222  kappa=0.129  AC1=0.879(non-binding)  agree=0.893  P=0.077  R=1.000  coverage=1222/1222=1.000  kappa_strict=0.129
+  file:blockframe_r_t0_JUDGE__gemma3-27b-q8_latest.jsonl n=  1256  kappa=0.104  AC1=0.918(non-binding)  agree=0.924  P=0.059  R=1.000  coverage=1256/1256=1.000  kappa_strict=0.104
+  file:cleanstrata_JUDGE__gemma3-27b-q8_latest.jsonl n=  1097  kappa=0.518  AC1=0.665(non-binding)  agree=0.799  P=0.469  R=0.980  coverage=1097/1097=1.000  kappa_strict=0.518
+  file:cons_p1_s11_JUDGE__gemma3-27b-q8_latest.jsonl n=  2345  kappa=0.559  AC1=0.690(non-binding)  agree=0.815  P=0.518  R=0.957  coverage=2345/2345=1.000  kappa_strict=0.559
+  file:cons_p1_s12_JUDGE__gemma3-27b-q8_latest.jsonl n=  2367  kappa=0.529  AC1=0.680(non-binding)  agree=0.807  P=0.484  R=0.958  coverage=2367/2367=1.000  kappa_strict=0.529
+  file:cons_p1_s13_JUDGE__gemma3-27b-q8_latest.jsonl n=  2293  kappa=0.531  AC1=0.669(non-binding)  agree=0.803  P=0.489  R=0.961  coverage=2293/2293=1.000  kappa_strict=0.531
+  file:cons_p2_JUDGE__gemma3-27b-q8_latest.jsonl n=  2083  kappa=0.520  AC1=0.835(non-binding)  agree=0.876  P=0.414  R=0.967  coverage=2083/2083=1.000  kappa_strict=0.520
+  file:cons_p3_JUDGE__gemma3-27b-q8_latest.jsonl n=  2394  kappa=0.472  AC1=0.622(non-binding)  agree=0.774  P=0.431  R=0.978  coverage=2394/2394=1.000  kappa_strict=0.472
+  file:cons_p4_JUDGE__gemma3-27b-q8_latest.jsonl n=  2444  kappa=0.514  AC1=0.673(non-binding)  agree=0.801  P=0.463  R=0.974  coverage=2444/2444=1.000  kappa_strict=0.514
+  file:disambig_c_JUDGE__gemma3-27b-q8_latest.jsonl n=  1526  kappa=0.608  AC1=0.858(non-binding)  agree=0.895  P=0.515  R=0.935  coverage=1526/1526=1.000  kappa_strict=0.608
+  file:disambig_h_JUDGE__gemma3-27b-q8_latest.jsonl n=  1896  kappa=0.545  AC1=0.832(non-binding)  agree=0.877  P=0.455  R=0.919  coverage=1896/1896=1.000  kappa_strict=0.545
+  file:filler_triple_JUDGE__gemma3-27b-q8_latest.jsonl n=  2359  kappa=0.547  AC1=0.706(non-binding)  agree=0.819  P=0.501  R=0.942  coverage=2359/2359=1.000  kappa_strict=0.547
+  file:frame_outofblock_JUDGE__gemma3-27b-q8_latest.jsonl n=   671  kappa=0.447  AC1=0.567(non-binding)  agree=0.750  P=0.416  R=0.992  coverage=671/671=1.000  kappa_strict=0.447
+  file:frame_single_JUDGE__gemma3-27b-q8_latest.jsonl n=   705  kappa=0.530  AC1=0.626(non-binding)  agree=0.787  P=0.495  R=0.993  coverage=705/705=1.000  kappa_strict=0.530
+  file:frame_single_RETEST_JUDGE__gemma3-27b-q8_latest.jsonl n=   709  kappa=0.528  AC1=0.622(non-binding)  agree=0.786  P=0.497  R=0.987  coverage=709/709=1.000  kappa_strict=0.528
+  file:frame_team_JUDGE__gemma3-27b-q8_latest.jsonl n=  2158  kappa=0.515  AC1=0.780(non-binding)  agree=0.847  P=0.438  R=0.924  coverage=2158/2158=1.000  kappa_strict=0.515
+  file:frame_triple_JUDGE__gemma3-27b-q8_latest.jsonl n=  2364  kappa=0.556  AC1=0.710(non-binding)  agree=0.822  P=0.512  R=0.939  coverage=2364/2364=1.000  kappa_strict=0.556
+  file:frame_triple_RETEST_JUDGE__gemma3-27b-q8_latest.jsonl n=  2364  kappa=0.554  AC1=0.708(non-binding)  agree=0.821  P=0.509  R=0.945  coverage=2364/2364=1.000  kappa_strict=0.554
+  file:gen4_JUDGE__gemma3-27b-q8_latest.jsonl n=   984  kappa=0.655  AC1=0.729(non-binding)  agree=0.847  P=0.616  R=0.988  coverage=984/984=1.000  kappa_strict=0.655
+  file:multifact_triple_JUDGE__gemma3-27b-q8_latest.jsonl n=  3473  kappa=0.568  AC1=0.769(non-binding)  agree=0.848  P=0.505  R=0.933  coverage=3473/3473=1.000  kappa_strict=0.568
+  mode:BEM                           n= 25989  kappa=0.546 CI95[0.532,0.559]  AC1=0.637(non-binding)  agree=0.795  P=0.526  R=0.956  coverage=25989/25989=1.000  kappa_strict=0.546
+  mode:recall                        n= 15293  kappa=0.156 CI95[0.123,0.188]  AC1=0.895(non-binding)  agree=0.906  P=0.095  R=0.943  coverage=15293/15293=1.000  kappa_strict=0.156
+----------------------------------------------------------------------------------------------------
+  committed-ESCALATED rows (excluded from kappa): local label distribution {'OWNED': 302, 'SELF_ATTRIBUTED': 540, 'OBSERVED': 243}
+  SELF-FAMILY rows (excluded from primary): n=128 kappa=0.558
+----------------------------------------------------------------------------------------------------
+  4-way confusion committed(row) x local(col):
+                         OWNED  SELF_ATT  OBSERVED    ABSENT   INVALID
+    OWNED                  1843        48         8         0         0
+    SELF_ATTRIBUTED        1353      1778       223         0         0
+    OBSERVED               3601      3052     28486         9         0
+    ABSENT                    1         9        85        33         0
+    INVALID                   0         0         0         0         0
+  breach-flip rows: 6766
+----------------------------------------------------------------------------------------------------
+  G-B GATE EVALUATION (locked thresholds; AC1 non-binding):
+    [FAIL     ] pooled κ ≥ 0.80: κ=0.541
+    [FAIL     ] BEM κ ≥ 0.75: κ=0.546
+    [PASS     ] recall sensitivity ≥ 0.75: sens=0.943 (n_breach=158)
+    [FAIL     ] recall specificity ≥ 0.995: spec=0.906 (n_not=15135)
+    [PASS     ] coverage pooled ≥ 0.98: 41282/41282=1.000
+    [PASS     ] coverage mode:BEM ≥ 0.97: 25989/25989=1.000
+    [PASS     ] coverage mode:recall ≥ 0.97: 15293/15293=1.000
+    [PASS     ] |κ − κ_strict| ≤ 0.03: Δ=0.000 (κ_strict=0.541)
+    [FAIL     ] family:granite κ ≥ 0.65: κ=0.525
+    [descriptive] family:internlm: n=80 breach=43 below min-n guard (500/30) — not gated
+    [FAIL     ] family:mistral κ ≥ 0.65: κ=0.490
+    [descriptive] family:phi: n=106 breach=12 below min-n guard (500/30) — not gated
+    [FAIL     ] family:qwen κ ≥ 0.65: κ=0.560
+  G-B VERDICT: FAIL

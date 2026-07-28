@@ -1,0 +1,10 @@
+{
+ "nemotron-super-q4:latest": {
+  "digest": "fc323bdb97fe",
+  "size": 86051079573,
+  "modified": "2026-07-14T02:22:53.080365524-05:00",
+  "family": "nemotron_h_moe",
+  "param_size": "120.7B",
+  "quant": "Q4_K_M"
+ }
+}

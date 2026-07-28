@@ -1,0 +1,10 @@
+{
+ "qwen3.6-35b-a3b-sq:Q8_0": {
+  "digest": "6f990978d92a",
+  "size": 36903139696,
+  "modified": "2026-06-26T20:45:59.576205969-05:00",
+  "family": "qwen35moe",
+  "param_size": "34.7B",
+  "quant": "Q8_0"
+ }
+}

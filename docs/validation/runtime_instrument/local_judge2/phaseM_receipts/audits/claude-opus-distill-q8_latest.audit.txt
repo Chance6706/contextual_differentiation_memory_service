@@ -1,0 +1,45 @@
+== verdict-blind audit: claude-opus-distill-q8:latest (37 files) ==
+  batch1_granite_mistral_JUDGE.jsonl: judged=364 pass=372 mech=30 ctx_skip=0 parse_fail=4 decided_cov=0.9891
+  batch2_expansion_JUDGE.jsonl: judged=300 pass=575 mech=34 ctx_skip=0 parse_fail=1 decided_cov=0.9966
+  blockframe_b_JUDGE.jsonl: judged=2199 pass=1498 mech=44 ctx_skip=0 parse_fail=3 decided_cov=0.9986
+  blockframe_c_JUDGE.jsonl: judged=1553 pass=2141 mech=47 ctx_skip=0 parse_fail=3 decided_cov=0.9980
+  blockframe_r_perm_JUDGE.jsonl: judged=1282 pass=254 mech=0 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_s11_JUDGE.jsonl: judged=1242 pass=268 mech=24 ctx_skip=0 parse_fail=2 decided_cov=0.9984
+  blockframe_r_s12_JUDGE.jsonl: judged=1193 pass=316 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  blockframe_r_s13_JUDGE.jsonl: judged=1224 pass=295 mech=14 ctx_skip=0 parse_fail=3 decided_cov=0.9975
+  blockframe_r_t0_JUDGE.jsonl: judged=1260 pass=273 mech=3 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cleanstrata_JUDGE.jsonl: judged=1162 pass=2247 mech=94 ctx_skip=0 parse_fail=1 decided_cov=0.9991
+  cons_p1_s11_JUDGE.jsonl: judged=2460 pass=1201 mech=80 ctx_skip=0 parse_fail=3 decided_cov=0.9987
+  cons_p1_s12_JUDGE.jsonl: judged=2444 pass=1237 mech=63 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p1_s13_JUDGE.jsonl: judged=2374 pass=1281 mech=82 ctx_skip=0 parse_fail=7 decided_cov=0.9969
+  cons_p2_JUDGE.jsonl: judged=2131 pass=695 mech=54 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  cons_p3_JUDGE.jsonl: judged=2457 pass=1201 mech=80 ctx_skip=0 parse_fail=6 decided_cov=0.9975
+  cons_p4_JUDGE.jsonl: judged=2522 pass=1131 mech=89 ctx_skip=0 parse_fail=2 decided_cov=0.9992
+  disambig_a_JUDGE.jsonl: judged=2276 pass=1380 mech=81 ctx_skip=0 parse_fail=7 decided_cov=0.9969
+  disambig_c_JUDGE.jsonl: judged=1553 pass=2141 mech=47 ctx_skip=0 parse_fail=3 decided_cov=0.9980
+  disambig_h_JUDGE.jsonl: judged=1922 pass=1782 mech=38 ctx_skip=0 parse_fail=2 decided_cov=0.9989
+  disambig_m_JUDGE.jsonl: judged=2071 pass=1631 mech=35 ctx_skip=0 parse_fail=7 decided_cov=0.9966
+  filler_filler_JUDGE.jsonl: judged=2276 pass=1380 mech=81 ctx_skip=0 parse_fail=7 decided_cov=0.9969
+  filler_single_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  filler_triple_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_filler_JUDGE.jsonl: judged=2276 pass=1380 mech=81 ctx_skip=0 parse_fail=7 decided_cov=0.9969
+  frame_outofblock_JUDGE.jsonl: judged=677 pass=553 mech=15 ctx_skip=0 parse_fail=3 decided_cov=0.9955
+  frame_single_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_single_RETEST_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_team_JUDGE.jsonl: judged=2184 pass=1459 mech=92 ctx_skip=0 parse_fail=9 decided_cov=0.9958
+  frame_triple_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  frame_triple_RETEST_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  gen4_JUDGE.jsonl: judged=1049 pass=1809 mech=108 ctx_skip=0 parse_fail=10 decided_cov=0.9903
+  identity_power_JUDGE.jsonl: judged=1641 pass=2906 mech=146 ctx_skip=0 parse_fail=11 decided_cov=0.9932
+  multifact_single_JUDGE.jsonl: judged=930 pass=1356 mech=49 ctx_skip=0 parse_fail=1 decided_cov=0.9989
+  multifact_triple_JUDGE.jsonl: judged=3591 pass=3317 mech=98 ctx_skip=0 parse_fail=2 decided_cov=0.9994
+  padding_padded_JUDGE.jsonl: judged=730 pass=503 mech=15 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  padding_single_JUDGE.jsonl: judged=720 pass=501 mech=27 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+  padding_triple_JUDGE.jsonl: judged=2444 pass=1214 mech=86 ctx_skip=0 parse_fail=0 decided_cov=1.0000
+meta sidecar: judged=64206 ctx_skipped=0 num_ctx=8192 model=claude-opus-distill-q8:latest
+
+TOTALS judged=61999 passthrough=43442 mech_invalid=2103 ctx_skipped=0 parse_fail=104 self_family=15854
+decided universe=60646  pooled coverage=0.9983 (gate line 0.98, enforced by scorer)
+label marginals: ABSENT=46342 (0.747), OBSERVED=15627 (0.252), OWNED=23 (0.000), INVALID=6 (0.000), SELF_ATTRIBUTED=1 (0.000)
+
+AUDIT PASS (structural). Coverage/degeneracy above are informational here; the scorer gates them.

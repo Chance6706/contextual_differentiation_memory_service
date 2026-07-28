@@ -1,0 +1,10 @@
+{
+ "mistral-small:24b": {
+  "digest": "8039dd90c113",
+  "size": 14333921662,
+  "modified": "2026-06-30T14:16:42.810904676-05:00",
+  "family": "llama",
+  "param_size": "23.6B",
+  "quant": "Q4_K_M"
+ }
+}

@@ -1,0 +1,10 @@
+{
+ "gemma3:12b": {
+  "digest": "f4031aab637d",
+  "size": 8149190253,
+  "modified": "2026-06-23T07:53:51.213273775-05:00",
+  "family": "gemma3",
+  "param_size": "12.2B",
+  "quant": "Q4_K_M"
+ }
+}

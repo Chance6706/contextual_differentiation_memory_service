@@ -1,0 +1,10 @@
+{
+ "falcon3-7b-q8:latest": {
+  "digest": "3c1eaf5c3ae0",
+  "size": 7926783687,
+  "modified": "2026-06-27T15:20:55.276081045-05:00",
+  "family": "llama",
+  "param_size": "7.5B",
+  "quant": "Q8_0"
+ }
+}

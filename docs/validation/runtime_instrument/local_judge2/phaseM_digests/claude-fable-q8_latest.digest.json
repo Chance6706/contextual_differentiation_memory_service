@@ -1,0 +1,10 @@
+{
+ "claude-fable-q8:latest": {
+  "digest": "3e21ca0fda93",
+  "size": 9527501801,
+  "modified": "2026-06-27T10:01:33.61497443-05:00",
+  "family": "qwen35",
+  "param_size": "9.0B",
+  "quant": "Q8_0"
+ }
+}
