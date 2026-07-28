@@ -14,7 +14,18 @@ Closed roster of **62 judges** (64 locked minus 2 in-flight exclusions, §7) × 
 frozen epoch-file split, sha `b673e2a5…`). Phase M 2026-07-12 → 07-28, serial model-outer on
 Sparky, instrument byte-identical to LOCALJUDGE-1 (RUBRIC_A4 `cd715d79…`, temp 0, n_predict 16).
 Per-model instrument digests: `phaseM_digests/` (62). Raw judge mirrors (6.7 GB) stay uncommitted
-per NOTE 16; every number below reproduces from the committed receipts in `phaseM_receipts/`.
+per prereg NOTE 16 — they live at `D:\cdms_localjudge2_pull\phaseM\` (Windows box; run tree on
+Sparky at `~/cdms_localjudge2/`); every number below reproduces from the committed receipts in
+`phaseM_receipts/`: `matrix_report.txt` (leaderboard, two-sided error, difficulty map, self-family,
+redundancy), `pairwise.jsonl` (full pairwise matrix), `ensemble_selection.txt`, `phaseM_scoring/`
+(14 heavyweight per-judge selection receipts), `labelnoise_worksheet.md`, `audits/` (62 + SUMMARY),
+`determinism_report.txt`, `confirmation_single.txt` / `confirmation_ensemble.txt`, and the run
+ledgers `phaseM_ledger.txt` / `determ_ledger.txt`. NOT committed: `difficulty_rows.jsonl` (per-row
+difficulty; pull dir only). Corpus: `docs/validation/runtime_instrument/gen_sweep/*_JUDGE.jsonl`.
+Terms: **BEM** and **recall** are the instrument's two judged channels (Bem-firewall
+self-attribution probes vs workspace-fact recall; see `../local_judge/`); **-sq** = salience-quant
+builds (`roster.txt`); shorthands N11/M1/M2/S4–S9 are red-team findings and NOTE 12/15/16 are
+locked notes, all in `LOCALJUDGE2_PREREG.md` §4/§9–10.
 
 ## 2. PRIMARY RESULT — judging failure is one-dimensional to first order
 
@@ -27,9 +38,10 @@ ERROR) sorts 62 heterogeneous judges onto a single **conservative↔liberal axis
 - **Conservative pole (silent missers):** claude-opus-distill miss 0.998 (constant-NOT),
   claude-code miss 0.889, granite-3.0-8b miss 0.745, qwen3.5:9b miss 0.580, glm miss 0.368 at
   FA 0.009, mistral-small miss 0.306 at FA 0.007.
-- **The balanced middle is nearly empty:** only the qwen3.5/3.6 27–35B block (miss 0.09–0.15,
-  FA 0.008–0.02) and, more loosely, nemotron-super (miss 0.179 / FA 0.046) and laguna-xs.2
-  (miss 0.064 / FA 0.159) sit near balance.
+- **The balanced-and-accurate middle is nearly empty:** only the qwen3.5/3.6 27–35B block (miss
+  0.09–0.15, FA 0.008–0.02) and, more loosely, nemotron-super (miss 0.179 / FA 0.046) and
+  laguna-xs.2 (miss 0.064 / FA 0.159) combine balance with skill. Balanced-but-poor judges exist
+  (command-r 0.179/0.184, falcon3-7b 0.146/0.156) — balance alone buys nothing.
 
 Capability doesn't buy balance — it buys a *choice* of pole (yi:34b sits at the liberal pole with
 the 2B models; its nearest behavioral neighbour is gemma1-2b, agree 0.928). This replicates and
@@ -37,14 +49,17 @@ scales LJ-1's directional finding (GLM misses 6:1 vs nemotron/qwen spraying).
 
 ## 3. Generation moves judging skill; parameter count mostly doesn't
 
-Within qwen at constant-ish scale: qwen2.5:32b 0.629 → qwen3.5:27b 0.885 (+0.26 across one
-generation); meanwhile qwen2.5:32b → qwen2.5:72b goes *backwards* (0.596). The mistral line:
-v0.1/v0.2/v0.3 7B ≈ 0.27–0.43 → mistral-small 24B 0.771. Granite 3.0→3.3 wobbles within
-0.23–0.35 with no monotone size effect (2B beats 8B in two of four generations). Judge-side skill
-tracks **training recipe/generation**, echoing the subject-side generation-isolation result from
-the opposite chair. Quant is inert here too: every -sq/Q8 twin lands within ~0.02 of its base
-(32b-sq actually +0.020), replicating the quant-replication arc's "generation moves leak, quant
-moves coherence" from the judge side.
+Within qwen at constant-ish scale: qwen2.5:32b 0.629 → qwen3.5:27b 0.885 (+0.26 across the
+2.5→3.5 gap); meanwhile qwen2.5:32b → qwen2.5:72b goes *backwards* (0.596). The mistral 7B line:
+v0.2/v0.3 ≈ 0.42–0.43, with the -g arm putting v0.1 at 0.270 (plain mistral-v0.1-7b scored
+nothing at all — §6) → mistral-small 24B 0.771. Granite 3.0→3.3 wobbles within 0.03–0.35 with no
+monotone size effect (2B beats 8B in two of four generations). Judge-side skill tracks **training
+recipe/generation**, echoing the subject-side generation-isolation result from the opposite
+chair. Quant is scale-dependently inert: every ≥24B twin lands within ~0.02 of its base (32b-sq
++0.020, 27b-sq −0.002, mistral-small-q8 −0.003), while small twins move up to ~0.06 (3b-sq
+−0.060, 7b-q8 +0.031; the nemotron-nano Q8→Q4 pair, which also changes bit-width, −0.044) —
+direction-consistent with the quant-replication arc's "generation moves leak, quant moves
+coherence", now carrying a small-model caveat.
 
 **Flagged anomalies (kept, not smoothed):** (a) qwen3.5-9b-BASE scored 0.658 — top-11 overall,
 beating the 72B instruct and every mistral-7B/granite — the prereg's "expect weak floor anchor"
@@ -71,11 +86,14 @@ causal family effect is claimed. The family-disjoint adoption rule stands regard
 
 ## 6. Failure modes include MUTE and BROKEN, not just wrong
 
-- **mistral-v0.1-7b: zero parseable labels across 60,646 decided rows** (JUDGED ledger line,
-  coverage 0.000) — a judge can complete a three-day run and say nothing.
-- **phi-3-mini: 17 usable rows** (62,086 parse-failures); its audit exit-1 is the degeneracy
-  tripwire firing on that vanishing sample (line-pairing and universe accounting reconciled clean)
-  — receipt committed as-is (`phaseM_receipts/audits/`).
+- **mistral-v0.1-7b: zero parseable labels across 60,646 decided rows** (`phaseM_ledger.txt`
+  JUDGED line; leaderboard κ=n/a n=0 cov 0.000; audit TOTALS judged=0 / parse_fail=62,103 —
+  `phaseM_receipts/audits/mistral-v0.1-7b-q8_latest.audit.txt`) — a judge can complete a
+  three-day run and say nothing.
+- **phi-3-mini: 17 usable rows of 62,103 label-attempted** (62,086 parse-failures; a further
+  2,103 rows mechanically invalid — `phaseM_receipts/audits/phi-3-mini-q8_latest.audit.txt`); its
+  audit exit-1 is the degeneracy tripwire firing on that vanishing sample (line-pairing and
+  universe accounting reconciled clean) — receipt committed as-is.
 - **gemma1-2b coverage 0.450, claude-code 0.849** — partial mutes.
 - **yi:34b-chat κ 0.035 at full coverage** — fluent, confident, and uncorrelated with the panel.
 
@@ -98,19 +116,29 @@ shared-bias expected to dominate. Worksheet: `phaseM_receipts/labelnoise_workshe
 frozen n_predict=16; exclusion, not contract relaxation). olmo3-7b — NOT a load-stall: its GGUF
 chat template invokes `tools | tojson`, unparseable by the pinned ollama build (deterministic
 llama-server exit 1, ×2); excluded (Josh-ratified 2026-07-28), olmo family covered by olmo2-7b.
-Known stall-class attempt-once: gemma4:31b, llama3.3:70b (as locked).
+Known stall-class attempt-once: gemma4:31b, llama3.3:70b (as locked). **New-pull G-A rows (prereg
+§11):** nemotron-super-q4 G-A PASS 2026-07-15 — breach R=0.967/P=0.967 vs gates 0.90/0.80
+(`roster.txt` header); gpt-oss failed its parse gate as above.
 
 ## 8. SIDEBAR — the pre-registered adoption gates
 
-Selection leaderboard (all 62) is in the committed matrix report; freezes committed BEFORE any
-confirmation look (commit `65c0938`):
+Selection leaderboard (all 62) is in the committed matrix report; freeze files `nominee.json` +
+`ensemble_members.json` committed BEFORE any confirmation look (freeze commit `65c0938`,
+confirmation receipts land later in `b9a4a94`; `matrix_report.txt` has a single-commit history,
+never rewritten — the git ordering IS the blinding receipt). Post-exclusion only **10 of the 62**
+completed judges are fully family-disjoint (`roster_selffamily.txt` is the pre-exclusion 12/64
+table and still lists gpt-oss + olmo3):
 
-- **Single nominee: qwen3.5_27b** — selection pooled 0.885 / BEM 0.877, cov 1.000 (self-family-
-  reduced n=31,711, NOTE 15). Per-family selection: granite 0.880, mistral 0.929, internlm 0.850.
+- **Single nominee: qwen3.5_27b** — selection pooled 0.885 / BEM 0.877, cov 1.000
+  (self-family-reduced n=31,711 — 23.7% of decided rows are dropped for any qwen judge, prereg
+  NOTE 15). Per-family selection: granite 0.880, mistral 0.929, internlm 0.850.
 - **Ensemble nominee (locked rule, no free search): k=3 unweighted** {qwen3.5_27b, 27b-sq,
   3.6-27b-sq} — selection pooled 0.892, but the all-qwen membership drops all votes on qwen rows →
   **selection coverage 0.766 = the red-team M2 coverage-crater scenario, visible pre-confirmation**
-  (k=5 runner-up: 0.847, cov 1.000 — recorded in the receipt, not nominated).
+  (k=5 runner-up: 0.847, cov 1.000 — recorded in the receipt, not nominated). The κ-weighted k=3
+  twin ties the nominee exactly (0.892/0.885, same members) and weighting is inert at every k —
+  the tool's fixed candidate order (unweighted first) breaks the tie; a finding in itself:
+  κ-weighting bought nothing.
 - Best fully-family-disjoint single judge: **nemotron-super-q4 0.747/0.743 (n=41,410, cov 1.000,
   miss 0.179 / FA 0.046)** — the new-pull thesis (§8 row 7 of the prereg) gets a best-disjoint
   judge but NOT a gate-clearer on selection numbers; +0.220 over its Nano-30B sibling. GLM holds
@@ -141,28 +169,46 @@ pass) is false. Ensemble G-C remains DEFERRED per the ratified §4 narrowing.
 ## 9. Integrity receipts, deviations, cost
 
 **Audits:** 62/62 run verdict-blind BEFORE any official receipt; 61 PASS, 1 exit-1 (phi-3-mini
-degeneracy tripwire, §6). **Determinism:** 20-coord fresh-cache re-judge per model against the
-LJ-1 manifest (sha16 `24328bd9…` verified pre-ship), Sparky ledger 62/62 DETERM-DONE, comparator
-receipt `phaseM_receipts/determinism_report.txt`: **46/62 models 20/20 byte-exact (label+raw);
-all frozen nominees, nemotron-super, and glm byte-stable.** The 16 non-exact models decompose as:
-13/25 diff-rows **label-identical** (raw drift only, zero scoring impact — 8 of them phi-3-mini's
-None→None degenerate garbage varying byte-wise) + **12 single-row label flips** (1/20 each; 2/20
-for nemotron-nano) concentrated on **8 corpus rows shared across models** (frame_single:234 flips
-or drifts in 5 judges, cons_p4:826 in 4, frame_triple:1977 in 3). The shared-coordinate signature
-says these are near-tie rows tipping under temp-0 llama.cpp numerics, not cache corruption (which
-would scatter per-model); byte-determinism is itself a judge phenotype here — every heavyweight
-except yi:34b is byte-stable, instability pools in small/degenerate judges + boundary rows.
-Co-residency (determ pass kept up to 3 small models loaded; Phase M was strictly one-resident) is
-a plausible but unproven amplifier — flagged, not asserted. **Disclosure (analysis order):** two provisional SELECTION looks (07-27,
-07-28) preceded the audits; the official pass was regenerated post-audit and is numerically
-identical to the provisional runs (diff = embedded paths only). **Disclosures (run):** nemotron-
+degeneracy tripwire, §6). Audit PASS is **structural** (line-pairing + universe accounting +
+degeneracy tripwire) — coverage is informational at audit time and gated downstream by the scorer
+(mistral-v0.1 PASSes structurally while emitting nothing). **Determinism:** 20-coord fresh-cache
+re-judge per model against the LJ-1 manifest (sha16 `24328bd9…` verified pre-ship), committed
+`determ_ledger.txt` 62/62 DETERM-DONE, comparator receipt
+`phaseM_receipts/determinism_report.txt`: **46/62 models 20/20 byte-exact (label+raw); all frozen
+nominees, nemotron-super, and glm byte-stable.** The 16 non-exact models decompose as (hand-
+tallied from the per-model MISMATCH blocks in the receipt): 13/25 diff-rows **label-identical**
+(raw drift only, zero scoring impact — 8 of them phi-3-mini's None→None degenerate garbage
+varying byte-wise) + **12 single-row label flips** (1/20 each; 2/20 for nemotron-nano)
+concentrated on **8 corpus rows shared across models** (frame_single:234 flips or drifts in 5
+judges, cons_p4:826 in 4, frame_triple:1977 in 3). The shared-coordinate signature says these are
+near-tie rows tipping under temp-0 llama.cpp numerics, not cache corruption (which would scatter
+per-model); byte-determinism is itself a judge phenotype here — **10 of the 13 heavyweight-tier
+judges are byte-exact**, yi:34b, internlm2.5-20b and laguna-xs.2 each move one row of 20
+(nemotron-nano-30B Q4: two), the rest of the instability pools in small/degenerate judges, and
+all of it concentrates on the 8 boundary rows. Co-residency (determ pass kept up to 3 small
+models loaded; Phase M was strictly one-resident) is a plausible but unproven amplifier —
+flagged, not asserted.
+
+**Disclosure (analysis order — read this before trusting the selection numbers):** two
+provisional SELECTION looks (07-27, 07-28) preceded the audits; the official pass was regenerated
+post-audit and is numerically identical to the provisional runs (diff = embedded paths only). The
+provisional outputs were not retained, so that identity claim rests on the author's attestation,
+not a committed diff.
+
+**Disclosures (run):** nemotron-
 super loaded on 2nd attempt after an infra fix (OLLAMA_LOAD_TIMEOUT + NVMe); the Phase-M driver
 buffers the roster at launch, so a mid-run roster addition (nemotron-super, added 07-20) was
 invisible until a driver re-run — cost ~4 idle hours on 07-27, no data impact (idempotent ledger).
 
-**Cost (plain dollars):** this arc $0 API + ~2.5 weeks Sparky GPU. Frontier panel baseline stays
-~$25–30/epoch (LJ-1 §5). An adopted single local judge ≈ $0/epoch + GPU-hours; the nominated
-ensemble would be 3× inference PLUS an emitter/deploy build (deferred) — decision matrix in §10.
+**Cost (plain dollars):** this arc $0 API + ~2.5 weeks Sparky GPU.
+
+| option | $/epoch | GPU/epoch | one-time build |
+|---|---|---|---|
+| frontier panel (status quo, LJ-1 §5) | ~$25–30 | — | — |
+| single local judge (none cleared) | $0 | ~1 GPU-h order-of-magnitude (scaled from Phase M full-corpus wall-clock; unmeasured per-epoch) | — |
+| k=3 ensemble (did not clear) | $0 | 3× single | emitter/deploy build, ~1–2 days eng (deferred) |
+
+The label-noise re-adjudication option is separately priced at ~$2–3 (§7, Josh-gated).
 
 ## 10. Outcome → consequence (prereg §8)
 
@@ -176,7 +222,10 @@ prompt-fixable:
   pole of §2), not a comprehension hole. A liberal-ward rubric nudge trading spec for sens is the
   obvious candidate; it requires a NEW prereg and is NOT run here.
 - **Row 4 (FT-judge follow-on)** stays licensed to *draft* only if prompt adaptation is judged
-  not viable; both follow-ons are draft-licenses, neither auto-runs.
+  not viable; both follow-ons are draft-licenses, neither auto-runs. **Holdout status for that
+  path:** the confirmation holdout took exactly the two pre-registered looks recorded here
+  (single + ensemble), was never trained on, and remains the FT test set per prereg §5 — with the
+  caveat that its κ is now known for these two specific candidates.
 - **Row 5 (self-family):** replicates but **sign-flips by lineage** (§5) — documented; the
   family-matched-FT design-axis consequence carries the lineage caveat.
 - **Row 7 (new-pull/200B thesis):** UNSUPPORTED — nemotron-super is best-disjoint (0.747) but
@@ -185,8 +234,11 @@ prompt-fixable:
   moot; the k=5 shape is a candidate for a future prereg only.
 
 Standing queue for Josh: (a) label-noise re-adjudication option (~$2–3, Josh-gated, §7); (b)
-rubric-adaptation vs FT-judge follow-on choice (each needs a new prereg); (c) nothing else — the
-adoption question is closed negative for this roster + rubric.
+rubric-adaptation vs FT-judge follow-on choice — each needs a new prereg, and the effort
+asymmetry is large: rubric adaptation ≈ $0 API + days of Sparky (re-judge a handful of candidate
+judges on the SELECTION partition only), FT ≈ a training run on SELECTION plus spending the
+holdout's single remaining clean shot; (c) nothing else — the adoption question is closed
+negative for this roster + rubric.
 
 ## §11 checklist coverage
 
@@ -195,6 +247,7 @@ judges ✅ · redundancy/pairwise + committed matrix ✅ · self-family table �
 leaderboard ✅ · frozen nominees ✅ · confirmation locked-vs-realized ✅(§8) · recall sens/spec
 ✅(§8) · ensemble composition/combiner ✅ · G-C per-analyzer ✅ condition-not-met (§8) · ensemble
 G-C-deferred flag ✅ · label-noise stratum ✅ · cost table ✅ · adoption decision ✅ NO ADOPTION
-(§10) · new-pull G-A rows ✅(roster header) · gpt-oss parse gate ✅ · roster self-family
-verification ✅(`roster_selffamily.txt`) · determinism receipt ✅(§9, 46/62 byte-exact, nominees
-clean).
+(§10) · new-pull G-A rows ✅(`roster.txt` header + §7) · gpt-oss parse gate ✅ · roster
+self-family verification ✅(`roster_selffamily.txt`, pre-exclusion 12/64 → 10/62 live, §8) ·
+determinism receipt ✅(§9, 46/62 byte-exact, nominees clean) · run ledgers ✅(`phaseM_ledger.txt`,
+`determ_ledger.txt`).
