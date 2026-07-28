@@ -1,0 +1,285 @@
+### matrix: 62 judges × 41410 committed-decided rows (partition=selection)
+
+DIFFICULTY MAP (family-disjoint judges per row):
+  ALL                        n= 41410  correct=   682 split= 40728 blind-spot=    0 no-disjoint=   0
+  mode:BEM                   n= 26072  correct=   268 split= 25804 blind-spot=    0 no-disjoint=   0
+  mode:recall                n= 15338  correct=   414 split= 14924 blind-spot=    0 no-disjoint=   0
+  family:gemma               n=   128  correct=     1 split=   127 blind-spot=    0 no-disjoint=   0
+  family:granite             n= 24500  correct=    30 split= 24470 blind-spot=    0 no-disjoint=   0
+  family:internlm            n=    80  correct=     0 split=    80 blind-spot=    0 no-disjoint=   0
+  family:mistral             n=  6897  correct=     4 split=  6893 blind-spot=    0 no-disjoint=   0
+  family:phi                 n=   106  correct=     3 split=   103 blind-spot=    0 no-disjoint=   0
+  family:qwen                n=  9699  correct=   644 split=  9055 blind-spot=    0 no-disjoint=   0
+  file:batch1_granite_mistral_JUDGE.jsonl n=   366  correct=     1 split=   365 blind-spot=    0 no-disjoint=   0
+  file:batch2_expansion_JUDGE.jsonl n=   290  correct=    15 split=   275 blind-spot=    0 no-disjoint=   0
+  file:blockframe_c_JUDGE.jsonl n=  1526  correct=    33 split=  1493 blind-spot=    0 no-disjoint=   0
+  file:blockframe_r_s11_JUDGE.jsonl n=  1235  correct=    34 split=  1201 blind-spot=    0 no-disjoint=   0
+  file:blockframe_r_s12_JUDGE.jsonl n=  1187  correct=    30 split=  1157 blind-spot=    0 no-disjoint=   0
+  file:blockframe_r_s13_JUDGE.jsonl n=  1222  correct=    42 split=  1180 blind-spot=    0 no-disjoint=   0
+  file:blockframe_r_t0_JUDGE.jsonl n=  1256  correct=    29 split=  1227 blind-spot=    0 no-disjoint=   0
+  file:cleanstrata_JUDGE.jsonl n=  1145  correct=    17 split=  1128 blind-spot=    0 no-disjoint=   0
+  file:cons_p1_s11_JUDGE.jsonl n=  2345  correct=    33 split=  2312 blind-spot=    0 no-disjoint=   0
+  file:cons_p1_s12_JUDGE.jsonl n=  2367  correct=    32 split=  2335 blind-spot=    0 no-disjoint=   0
+  file:cons_p1_s13_JUDGE.jsonl n=  2293  correct=    33 split=  2260 blind-spot=    0 no-disjoint=   0
+  file:cons_p2_JUDGE.jsonl   n=  2083  correct=    35 split=  2048 blind-spot=    0 no-disjoint=   0
+  file:cons_p3_JUDGE.jsonl   n=  2394  correct=    28 split=  2366 blind-spot=    0 no-disjoint=   0
+  file:cons_p4_JUDGE.jsonl   n=  2444  correct=    25 split=  2419 blind-spot=    0 no-disjoint=   0
+  file:disambig_c_JUDGE.jsonl n=  1526  correct=    33 split=  1493 blind-spot=    0 no-disjoint=   0
+  file:disambig_h_JUDGE.jsonl n=  1896  correct=    41 split=  1855 blind-spot=    0 no-disjoint=   0
+  file:filler_triple_JUDGE.jsonl n=  2359  correct=    27 split=  2332 blind-spot=    0 no-disjoint=   0
+  file:frame_outofblock_JUDGE.jsonl n=   671  correct=    20 split=   651 blind-spot=    0 no-disjoint=   0
+  file:frame_single_JUDGE.jsonl n=   705  correct=    17 split=   688 blind-spot=    0 no-disjoint=   0
+  file:frame_single_RETEST_JUDGE.jsonl n=   709  correct=    17 split=   692 blind-spot=    0 no-disjoint=   0
+  file:frame_team_JUDGE.jsonl n=  2158  correct=    29 split=  2129 blind-spot=    0 no-disjoint=   0
+  file:frame_triple_JUDGE.jsonl n=  2364  correct=    27 split=  2337 blind-spot=    0 no-disjoint=   0
+  file:frame_triple_RETEST_JUDGE.jsonl n=  2364  correct=    27 split=  2337 blind-spot=    0 no-disjoint=   0
+  file:gen4_JUDGE.jsonl      n=  1032  correct=    28 split=  1004 blind-spot=    0 no-disjoint=   0
+  file:multifact_triple_JUDGE.jsonl n=  3473  correct=    29 split=  3444 blind-spot=    0 no-disjoint=   0
+
+ROW-DIFFICULTY HISTOGRAM (# disjoint judges disagreeing w/ committed → # rows):
+  0:682  1:1249  2:1302  3:1508  4:1849  5:1996  6:2057  7:2099  8:2195  9:1990  10:1993  11:1918  12:1789  13:1616  14:1572  15:1450  16:1351  17:1201  18:1161  19:1108  20:1047  21:914  22:836  23:813  24:672  25:734  26:552  27:520  28:457  29:437  30:494  31:370  32:368  33:292  34:226  35:209  36:136  37:100  38:70  39:34  40:17  41:15  42:3  43:5  44:2  46:1
+
+SINGLE-JUDGE LEADERBOARD (selection nomination signal: pooled+BEM κ):
+  qwen3.5_27b                        pooled κ=0.885  BEM κ=0.877  n= 31711  cov=1.000
+  qwen3.5-27b-sq_Q8_0                pooled κ=0.883  BEM κ=0.875  n= 31710  cov=1.000
+  qwen3.6-27b-sq_Q8_0                pooled κ=0.880  BEM κ=0.870  n= 31678  cov=0.999
+  qwen3.6-35b-a3b-sq_Q8_0            pooled κ=0.878  BEM κ=0.872  n= 31711  cov=1.000
+  mistral-small_24b                  pooled κ=0.771  BEM κ=0.756  n= 34510  cov=1.000
+  mistral-small_24b-instruct-2501-q8_0 pooled κ=0.768  BEM κ=0.751  n= 34510  cov=1.000
+  qwen3.5_4b                         pooled κ=0.751  BEM κ=0.740  n= 31701  cov=1.000
+  nemotron-super-q4_latest           pooled κ=0.747  BEM κ=0.743  n= 41410  cov=1.000
+  glm-4.5-air-q4_latest              pooled κ=0.717  BEM κ=0.700  n= 41410  cov=1.000
+  claude-fable-q8_latest             pooled κ=0.661  BEM κ=0.644  n= 31711  cov=1.000
+  qwen3.5-9b-base-q8_latest          pooled κ=0.658  BEM κ=0.640  n= 31711  cov=1.000
+  qwen2.5-32b-sq_Q8_0                pooled κ=0.649  BEM κ=0.660  n= 31711  cov=1.000
+  qwen2.5_32b                        pooled κ=0.629  BEM κ=0.642  n= 31711  cov=1.000
+  qwen2.5_72b                        pooled κ=0.596  BEM κ=0.582  n= 31703  cov=1.000
+  nemotron-a3b-sq_Q8_0               pooled κ=0.571  BEM κ=0.584  n= 41242  cov=0.996
+  laguna-xs.2_latest                 pooled κ=0.570  BEM κ=0.619  n= 31697  cov=1.000
+  qwen3.5_9b                         pooled κ=0.551  BEM κ=0.529  n= 31711  cov=1.000
+  gemma3-27b-q8_latest               pooled κ=0.541  BEM κ=0.546  n= 41282  cov=1.000
+  falcon3-7b-q8_latest               pooled κ=0.531  BEM κ=0.541  n= 40924  cov=0.988
+  hf.co_lmstudio-community_NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF_Q4_K_M pooled κ=0.527  BEM κ=0.539  n= 41233  cov=0.996
+  gemma3_12b                         pooled κ=0.491  BEM κ=0.532  n= 41282  cov=1.000
+  claude-mythos-q8_latest            pooled κ=0.480  BEM κ=0.457  n= 31711  cov=1.000
+  command-r_35b-08-2024-q8_0         pooled κ=0.465  BEM κ=0.522  n= 41401  cov=1.000
+  mistral-v0.3-7b-q8_latest          pooled κ=0.431  BEM κ=0.434  n= 34513  cov=1.000
+  mistral-g-v0.2_latest              pooled κ=0.419  BEM κ=0.443  n= 34163  cov=0.990
+  mistral-v0.2-7b-q8_latest          pooled κ=0.416  BEM κ=0.440  n= 34116  cov=0.988
+  mistral-g-v0.3_latest              pooled κ=0.416  BEM κ=0.410  n= 34510  cov=1.000
+  gemma2-2b-q8_latest                pooled κ=0.389  BEM κ=0.446  n= 41254  cov=0.999
+  qwen2.5_14b                        pooled κ=0.380  BEM κ=0.361  n= 31711  cov=1.000
+  granite-3.3-8b-q8_latest           pooled κ=0.353  BEM κ=0.348  n= 16890  cov=0.999
+  qwen2.5-7b-q8_latest               pooled κ=0.325  BEM κ=0.347  n= 31709  cov=1.000
+  mistral-nemo_latest                pooled κ=0.321  BEM κ=0.315  n= 34513  cov=1.000
+  qwen3-8b-q8_latest                 pooled κ=0.301  BEM κ=0.291  n= 31711  cov=1.000
+  qwen2.5_7b                         pooled κ=0.294  BEM κ=0.314  n= 31700  cov=1.000
+  mistral-g-v0.1_latest              pooled κ=0.270  BEM κ=0.298  n= 34513  cov=1.000
+  granite-3.2-2b-q8_latest           pooled κ=0.268  BEM κ=0.341  n= 16910  cov=1.000
+  olmo2-7b-q8_latest                 pooled κ=0.266  BEM κ=0.346  n= 41410  cov=1.000
+  llama3-8b-q8_latest                pooled κ=0.260  BEM κ=0.277  n= 41410  cov=1.000
+  granite-3.2-8b-q8_latest           pooled κ=0.247  BEM κ=0.211  n= 16910  cov=1.000
+  qwen2.5_3b                         pooled κ=0.233  BEM κ=0.264  n= 31569  cov=0.996
+  granite-3.0-8b-q8_latest           pooled κ=0.233  BEM κ=0.223  n= 16900  cov=0.999
+  granite-3.1-2b-q8_latest           pooled κ=0.230  BEM κ=0.279  n= 16910  cov=1.000
+  granite-3.1-8b-q8_latest           pooled κ=0.225  BEM κ=0.201  n= 16910  cov=1.000
+  phi-4-mini-q8_latest               pooled κ=0.216  BEM κ=0.294  n= 41304  cov=1.000
+  llama3.1-8b-q8_latest              pooled κ=0.214  BEM κ=0.186  n= 41410  cov=1.000
+  phi-3.5-mini-q8_latest             pooled κ=0.181  BEM κ=0.173  n= 41304  cov=1.000
+  claude-code-q8_latest              pooled κ=0.180  BEM κ=0.169  n= 26921  cov=0.849
+  qwen2.5-3b-sq_Q8_0                 pooled κ=0.173  BEM κ=0.222  n= 31711  cov=1.000
+  qwen2-7b-q8_latest                 pooled κ=0.148  BEM κ=0.169  n= 31697  cov=1.000
+  internlm2.5-20b-q8_latest          pooled κ=0.108  BEM κ=0.121  n= 41320  cov=1.000
+  qwen3.5_2b                         pooled κ=0.085  BEM κ=0.146  n= 31708  cov=1.000
+  qwen2.5_1.5b                       pooled κ=0.070  BEM κ=0.059  n= 31711  cov=1.000
+  qwen1.5-7b-q8_latest               pooled κ=0.067  BEM κ=0.058  n= 31711  cov=1.000
+  granite-3.0-2b-q8_latest           pooled κ=0.050  BEM κ=0.047  n= 16882  cov=0.998
+  internlm2.5-7b-q8_latest           pooled κ=0.043  BEM κ=0.040  n= 41168  cov=0.996
+  yi_34b-chat-q8_0                   pooled κ=0.035  BEM κ=0.023  n= 41222  cov=0.995
+  granite-3.3-2b-q8_latest           pooled κ=0.028  BEM κ=0.048  n= 16910  cov=1.000
+  qwen2.5_0.5b                       pooled κ=0.010  BEM κ=0.013  n= 31627  cov=0.997
+  claude-opus-distill-q8_latest      pooled κ=0.003  BEM κ=0.003  n= 31678  cov=0.999
+  gemma1-2b-q8_latest                pooled κ=0.001  BEM κ=0.002  n= 18567  cov=0.450
+  phi-3-mini-q8_latest               pooled κ=0.000  BEM κ=0.000  n=    11  cov=0.000
+  mistral-v0.1-7b-q8_latest          pooled κ=n/a  BEM κ=n/a  n=     0  cov=0.000
+
+JUDGE REDUNDANCY (nearest neighbour by agreement) -> full matrix D:\cdms_localjudge2_pull\analysis_20260728_official\pairwise.jsonl:
+  claude-code-q8_latest              ~ phi-3-mini-q8_latest               agree=1.000
+  claude-fable-q8_latest             ~ qwen3.5-9b-base-q8_latest          agree=0.985
+  claude-mythos-q8_latest            ~ qwen3.5_9b                         agree=0.977
+  claude-opus-distill-q8_latest      ~ phi-3-mini-q8_latest               agree=1.000
+  command-r_35b-08-2024-q8_0         ~ granite-3.3-8b-q8_latest           agree=0.846
+  falcon3-7b-q8_latest               ~ qwen2.5_32b                        agree=0.847
+  gemma1-2b-q8_latest                ~ qwen2.5_0.5b                       agree=0.956
+  gemma2-2b-q8_latest                ~ phi-3-mini-q8_latest               agree=0.818
+  gemma3-27b-q8_latest               ~ qwen2.5_72b                        agree=0.855
+  gemma3_12b                         ~ gemma3-27b-q8_latest               agree=0.839
+  glm-4.5-air-q4_latest              ~ claude-fable-q8_latest             agree=0.954
+  granite-3.0-2b-q8_latest           ~ yi_34b-chat-q8_0                   agree=0.873
+  granite-3.0-8b-q8_latest           ~ mistral-small_24b                  agree=0.912
+  granite-3.1-2b-q8_latest           ~ granite-3.2-2b-q8_latest           agree=0.889
+  granite-3.1-8b-q8_latest           ~ granite-3.2-8b-q8_latest           agree=0.923
+  granite-3.2-2b-q8_latest           ~ granite-3.1-2b-q8_latest           agree=0.889
+  granite-3.2-8b-q8_latest           ~ granite-3.1-8b-q8_latest           agree=0.923
+  granite-3.3-2b-q8_latest           ~ gemma1-2b-q8_latest                agree=0.922
+  granite-3.3-8b-q8_latest           ~ mistral-small_24b                  agree=0.899
+  hf.co_lmstudio-community_NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF_Q4_K_M ~ nemotron-a3b-sq_Q8_0               agree=0.913
+  internlm2.5-20b-q8_latest          ~ qwen1.5-7b-q8_latest               agree=0.810
+  internlm2.5-7b-q8_latest           ~ gemma1-2b-q8_latest                agree=0.898
+  laguna-xs.2_latest                 ~ nemotron-super-q4_latest           agree=0.859
+  llama3-8b-q8_latest                ~ granite-3.1-8b-q8_latest           agree=0.789
+  llama3.1-8b-q8_latest              ~ llama3-8b-q8_latest                agree=0.758
+  mistral-g-v0.1_latest              ~ olmo2-7b-q8_latest                 agree=0.771
+  mistral-g-v0.2_latest              ~ mistral-v0.2-7b-q8_latest          agree=0.987
+  mistral-g-v0.3_latest              ~ mistral-v0.3-7b-q8_latest          agree=0.928
+  mistral-nemo_latest                ~ granite-3.1-8b-q8_latest           agree=0.763
+  mistral-small_24b                  ~ mistral-small_24b-instruct-2501-q8_0 agree=0.989
+  mistral-small_24b-instruct-2501-q8_0 ~ mistral-small_24b                  agree=0.989
+  mistral-v0.2-7b-q8_latest          ~ mistral-g-v0.2_latest              agree=0.987
+  mistral-v0.3-7b-q8_latest          ~ mistral-g-v0.3_latest              agree=0.928
+  nemotron-a3b-sq_Q8_0               ~ hf.co_lmstudio-community_NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF_Q4_K_M agree=0.913
+  nemotron-super-q4_latest           ~ qwen3.5-27b-sq_Q8_0                agree=0.934
+  olmo2-7b-q8_latest                 ~ granite-3.2-2b-q8_latest           agree=0.791
+  phi-3-mini-q8_latest               ~ claude-code-q8_latest              agree=1.000
+  phi-3.5-mini-q8_latest             ~ qwen1.5-7b-q8_latest               agree=0.771
+  phi-4-mini-q8_latest               ~ mistral-g-v0.1_latest              agree=0.770
+  qwen1.5-7b-q8_latest               ~ yi_34b-chat-q8_0                   agree=0.864
+  qwen2-7b-q8_latest                 ~ granite-3.1-2b-q8_latest           agree=0.788
+  qwen2.5-32b-sq_Q8_0                ~ qwen2.5_32b                        agree=0.962
+  qwen2.5-3b-sq_Q8_0                 ~ qwen2.5_3b                         agree=0.854
+  qwen2.5-7b-q8_latest               ~ qwen2.5_7b                         agree=0.916
+  qwen2.5_0.5b                       ~ gemma1-2b-q8_latest                agree=0.956
+  qwen2.5_1.5b                       ~ qwen1.5-7b-q8_latest               agree=0.863
+  qwen2.5_14b                        ~ gemma3-27b-q8_latest               agree=0.792
+  qwen2.5_32b                        ~ qwen2.5-32b-sq_Q8_0                agree=0.962
+  qwen2.5_3b                         ~ qwen2.5-3b-sq_Q8_0                 agree=0.854
+  qwen2.5_72b                        ~ qwen3.6-27b-sq_Q8_0                agree=0.864
+  qwen2.5_7b                         ~ qwen2.5-7b-q8_latest               agree=0.916
+  qwen3-8b-q8_latest                 ~ phi-3-mini-q8_latest               agree=0.800
+  qwen3.5-27b-sq_Q8_0                ~ qwen3.5_27b                        agree=0.991
+  qwen3.5-9b-base-q8_latest          ~ claude-fable-q8_latest             agree=0.985
+  qwen3.5_27b                        ~ qwen3.5-27b-sq_Q8_0                agree=0.991
+  qwen3.5_2b                         ~ internlm2.5-7b-q8_latest           agree=0.798
+  qwen3.5_4b                         ~ qwen3.5-27b-sq_Q8_0                agree=0.938
+  qwen3.5_9b                         ~ claude-mythos-q8_latest            agree=0.977
+  qwen3.6-27b-sq_Q8_0                ~ qwen3.5_27b                        agree=0.975
+  qwen3.6-35b-a3b-sq_Q8_0            ~ qwen3.6-27b-sq_Q8_0                agree=0.973
+  yi_34b-chat-q8_0                   ~ gemma1-2b-q8_latest                agree=0.928
+
+PER-JUDGE TWO-SIDED ERROR (disjoint rows):
+  gemma1-2b-q8_latest                miss=0.001 (n_b= 3643)  false_alarm=0.997 (n_n= 14924)
+  qwen2.5_0.5b                       miss=0.021 (n_b= 4588)  false_alarm=0.945 (n_n= 27039)
+  yi_34b-chat-q8_0                   miss=0.002 (n_b= 6059)  false_alarm=0.890 (n_n= 35163)
+  granite-3.3-2b-q8_latest           miss=0.017 (n_b= 1856)  false_alarm=0.869 (n_n= 15054)
+  internlm2.5-7b-q8_latest           miss=0.016 (n_b= 6014)  false_alarm=0.853 (n_n= 35154)
+  qwen1.5-7b-q8_latest               miss=0.003 (n_b= 4605)  false_alarm=0.798 (n_n= 27106)
+  granite-3.0-2b-q8_latest           miss=0.014 (n_b= 1855)  false_alarm=0.794 (n_n= 15027)
+  qwen3.5_2b                         miss=0.006 (n_b= 4605)  false_alarm=0.753 (n_n= 27103)
+  qwen2.5_1.5b                       miss=0.028 (n_b= 4605)  false_alarm=0.772 (n_n= 27106)
+  internlm2.5-20b-q8_latest          miss=0.012 (n_b= 6016)  false_alarm=0.697 (n_n= 35304)
+  qwen2-7b-q8_latest                 miss=0.022 (n_b= 4602)  false_alarm=0.611 (n_n= 27095)
+  phi-3.5-mini-q8_latest             miss=0.058 (n_b= 6047)  false_alarm=0.533 (n_n= 35257)
+  llama3.1-8b-q8_latest              miss=0.039 (n_b= 6059)  false_alarm=0.494 (n_n= 35351)
+  qwen2.5-3b-sq_Q8_0                 miss=0.108 (n_b= 4605)  false_alarm=0.512 (n_n= 27106)
+  qwen3-8b-q8_latest                 miss=0.018 (n_b= 4605)  false_alarm=0.394 (n_n= 27106)
+  phi-4-mini-q8_latest               miss=0.134 (n_b= 6047)  false_alarm=0.435 (n_n= 35257)
+  mistral-nemo_latest                miss=0.086 (n_b= 5724)  false_alarm=0.366 (n_n= 28789)
+  qwen2.5_3b                         miss=0.137 (n_b= 4596)  false_alarm=0.410 (n_n= 26973)
+  qwen2.5_14b                        miss=0.045 (n_b= 4605)  false_alarm=0.302 (n_n= 27106)
+  qwen2.5_7b                         miss=0.103 (n_b= 4604)  false_alarm=0.359 (n_n= 27096)
+  llama3-8b-q8_latest                miss=0.147 (n_b= 6059)  false_alarm=0.375 (n_n= 35351)
+  granite-3.1-2b-q8_latest           miss=0.140 (n_b= 1856)  false_alarm=0.355 (n_n= 15054)
+  gemma3_12b                         miss=0.039 (n_b= 6047)  false_alarm=0.219 (n_n= 35235)
+  mistral-g-v0.1_latest              miss=0.204 (n_b= 5724)  false_alarm=0.355 (n_n= 28789)
+  qwen2.5-7b-q8_latest               miss=0.154 (n_b= 4605)  false_alarm=0.302 (n_n= 27104)
+  gemma3-27b-q8_latest               miss=0.044 (n_b= 6047)  false_alarm=0.184 (n_n= 35235)
+  qwen2.5_72b                        miss=0.023 (n_b= 4605)  false_alarm=0.158 (n_n= 27098)
+  olmo2-7b-q8_latest                 miss=0.208 (n_b= 6059)  false_alarm=0.334 (n_n= 35351)
+  laguna-xs.2_latest                 miss=0.064 (n_b= 4603)  false_alarm=0.159 (n_n= 27094)
+  falcon3-7b-q8_latest               miss=0.146 (n_b= 6000)  false_alarm=0.156 (n_n= 34924)
+  command-r_35b-08-2024-q8_0         miss=0.179 (n_b= 6059)  false_alarm=0.184 (n_n= 35342)
+  mistral-v0.1-7b-q8_latest          miss=n/a (n_b=    0)  false_alarm=n/a (n_n=     0)
+  granite-3.2-2b-q8_latest           miss=0.274 (n_b= 1856)  false_alarm=0.251 (n_n= 15054)
+  qwen2.5-32b-sq_Q8_0                miss=0.129 (n_b= 4605)  false_alarm=0.099 (n_n= 27106)
+  gemma2-2b-q8_latest                miss=0.252 (n_b= 6046)  false_alarm=0.206 (n_n= 35208)
+  hf.co_lmstudio-community_NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF_Q4_K_M miss=0.197 (n_b= 6039)  false_alarm=0.140 (n_n= 35194)
+  qwen3.6-27b-sq_Q8_0                miss=0.090 (n_b= 4604)  false_alarm=0.020 (n_n= 27074)
+  qwen3.6-35b-a3b-sq_Q8_0            miss=0.093 (n_b= 4605)  false_alarm=0.020 (n_n= 27106)
+  qwen2.5_32b                        miss=0.177 (n_b= 4605)  false_alarm=0.095 (n_n= 27106)
+  qwen3.5_27b                        miss=0.119 (n_b= 4605)  false_alarm=0.012 (n_n= 27106)
+  qwen3.5_4b                         miss=0.163 (n_b= 4600)  false_alarm=0.048 (n_n= 27101)
+  nemotron-super-q4_latest           miss=0.179 (n_b= 6059)  false_alarm=0.046 (n_n= 35351)
+  qwen3.5-27b-sq_Q8_0                miss=0.145 (n_b= 4605)  false_alarm=0.008 (n_n= 27105)
+  mistral-g-v0.3_latest              miss=0.317 (n_b= 5724)  false_alarm=0.174 (n_n= 28786)
+  mistral-v0.2-7b-q8_latest          miss=0.317 (n_b= 5551)  false_alarm=0.172 (n_n= 28565)
+  mistral-g-v0.2_latest              miss=0.324 (n_b= 5578)  false_alarm=0.167 (n_n= 28585)
+  granite-3.1-8b-q8_latest           miss=0.412 (n_b= 1856)  false_alarm=0.224 (n_n= 15054)
+  nemotron-a3b-sq_Q8_0               miss=0.311 (n_b= 6030)  false_alarm=0.081 (n_n= 35212)
+  mistral-small_24b                  miss=0.306 (n_b= 5721)  false_alarm=0.007 (n_n= 28789)
+  mistral-small_24b-instruct-2501-q8_0 miss=0.309 (n_b= 5721)  false_alarm=0.007 (n_n= 28789)
+  mistral-v0.3-7b-q8_latest          miss=0.430 (n_b= 5724)  false_alarm=0.114 (n_n= 28789)
+  glm-4.5-air-q4_latest              miss=0.368 (n_b= 6059)  false_alarm=0.009 (n_n= 35351)
+  granite-3.2-8b-q8_latest           miss=0.524 (n_b= 1856)  false_alarm=0.152 (n_n= 15054)
+  granite-3.3-8b-q8_latest           miss=0.520 (n_b= 1856)  false_alarm=0.092 (n_n= 15034)
+  qwen3.5-9b-base-q8_latest          miss=0.461 (n_b= 4605)  false_alarm=0.003 (n_n= 27106)
+  claude-fable-q8_latest             miss=0.461 (n_b= 4605)  false_alarm=0.001 (n_n= 27106)
+  qwen3.5_9b                         miss=0.580 (n_b= 4605)  false_alarm=0.001 (n_n= 27106)
+  claude-mythos-q8_latest            miss=0.648 (n_b= 4605)  false_alarm=0.001 (n_n= 27106)
+  granite-3.0-8b-q8_latest           miss=0.745 (n_b= 1856)  false_alarm=0.054 (n_n= 15044)
+  claude-code-q8_latest              miss=0.889 (n_b= 2901)  false_alarm=0.001 (n_n= 24020)
+  claude-opus-distill-q8_latest      miss=0.998 (n_b= 4581)  false_alarm=0.000 (n_n= 27097)
+  phi-3-mini-q8_latest               miss=1.000 (n_b=    2)  false_alarm=0.000 (n_n=     9)
+
+SELF-FAMILY AT SCALE (own-family vs disjoint κ, same rows' judge):
+  claude-code-q8_latest              own κ=0.114 (n= 7207)  disjoint κ=0.180 (n= 26921)
+  claude-fable-q8_latest             own κ=0.480 (n= 9699)  disjoint κ=0.661 (n= 31711)
+  claude-mythos-q8_latest            own κ=0.366 (n= 9699)  disjoint κ=0.480 (n= 31711)
+  claude-opus-distill-q8_latest      own κ=0.008 (n= 9665)  disjoint κ=0.003 (n= 31678)
+  gemma1-2b-q8_latest                own κ=0.020 (n=   43)  disjoint κ=0.001 (n= 18567)
+  gemma2-2b-q8_latest                own κ=0.474 (n=  128)  disjoint κ=0.389 (n= 41254)
+  gemma3-27b-q8_latest               own κ=0.558 (n=  128)  disjoint κ=0.541 (n= 41282)
+  gemma3_12b                         own κ=0.504 (n=  128)  disjoint κ=0.491 (n= 41282)
+  granite-3.0-2b-q8_latest           own κ=0.030 (n=24493)  disjoint κ=0.050 (n= 16882)
+  granite-3.0-8b-q8_latest           own κ=0.146 (n=24500)  disjoint κ=0.233 (n= 16900)
+  granite-3.1-2b-q8_latest           own κ=0.229 (n=24500)  disjoint κ=0.230 (n= 16910)
+  granite-3.1-8b-q8_latest           own κ=0.197 (n=24500)  disjoint κ=0.225 (n= 16910)
+  granite-3.2-2b-q8_latest           own κ=0.291 (n=24500)  disjoint κ=0.268 (n= 16910)
+  granite-3.2-8b-q8_latest           own κ=0.221 (n=24500)  disjoint κ=0.247 (n= 16910)
+  granite-3.3-2b-q8_latest           own κ=0.017 (n=24500)  disjoint κ=0.028 (n= 16910)
+  granite-3.3-8b-q8_latest           own κ=0.309 (n=24500)  disjoint κ=0.353 (n= 16890)
+  internlm2.5-20b-q8_latest          own κ=0.147 (n=   80)  disjoint κ=0.108 (n= 41320)
+  internlm2.5-7b-q8_latest           own κ=0.087 (n=   80)  disjoint κ=0.043 (n= 41168)
+  laguna-xs.2_latest                 own κ=0.616 (n= 9689)  disjoint κ=0.570 (n= 31697)
+  mistral-g-v0.1_latest              own κ=0.137 (n= 6897)  disjoint κ=0.270 (n= 34513)
+  mistral-g-v0.2_latest              own κ=0.466 (n= 6880)  disjoint κ=0.419 (n= 34163)
+  mistral-g-v0.3_latest              own κ=0.285 (n= 6897)  disjoint κ=0.416 (n= 34510)
+  mistral-nemo_latest                own κ=0.111 (n= 6897)  disjoint κ=0.321 (n= 34513)
+  mistral-small_24b                  own κ=0.931 (n= 6897)  disjoint κ=0.771 (n= 34510)
+  mistral-small_24b-instruct-2501-q8_0 own κ=0.914 (n= 6897)  disjoint κ=0.768 (n= 34510)
+  mistral-v0.2-7b-q8_latest          own κ=0.461 (n= 6874)  disjoint κ=0.416 (n= 34116)
+  mistral-v0.3-7b-q8_latest          own κ=0.460 (n= 6897)  disjoint κ=0.431 (n= 34513)
+  phi-3.5-mini-q8_latest             own κ=0.155 (n=  106)  disjoint κ=0.181 (n= 41304)
+  phi-4-mini-q8_latest               own κ=0.234 (n=  106)  disjoint κ=0.216 (n= 41304)
+  qwen1.5-7b-q8_latest               own κ=0.077 (n= 9699)  disjoint κ=0.067 (n= 31711)
+  qwen2-7b-q8_latest                 own κ=0.206 (n= 9607)  disjoint κ=0.148 (n= 31697)
+  qwen2.5-32b-sq_Q8_0                own κ=0.764 (n= 9693)  disjoint κ=0.649 (n= 31711)
+  qwen2.5-3b-sq_Q8_0                 own κ=0.330 (n= 9696)  disjoint κ=0.173 (n= 31711)
+  qwen2.5-7b-q8_latest               own κ=0.462 (n= 9684)  disjoint κ=0.325 (n= 31709)
+  qwen2.5_0.5b                       own κ=0.025 (n= 9654)  disjoint κ=0.010 (n= 31627)
+  qwen2.5_1.5b                       own κ=0.087 (n= 9680)  disjoint κ=0.070 (n= 31711)
+  qwen2.5_14b                        own κ=0.622 (n= 9699)  disjoint κ=0.380 (n= 31711)
+  qwen2.5_32b                        own κ=0.751 (n= 9698)  disjoint κ=0.629 (n= 31711)
+  qwen2.5_3b                         own κ=0.360 (n= 9658)  disjoint κ=0.233 (n= 31569)
+  qwen2.5_72b                        own κ=0.690 (n= 9699)  disjoint κ=0.596 (n= 31703)
+  qwen2.5_7b                         own κ=0.420 (n= 9688)  disjoint κ=0.294 (n= 31700)
+  qwen3-8b-q8_latest                 own κ=0.340 (n= 9699)  disjoint κ=0.301 (n= 31711)
+  qwen3.5-27b-sq_Q8_0                own κ=0.842 (n= 9697)  disjoint κ=0.883 (n= 31710)
+  qwen3.5-9b-base-q8_latest          own κ=0.513 (n= 9699)  disjoint κ=0.658 (n= 31711)
+  qwen3.5_27b                        own κ=0.843 (n= 9699)  disjoint κ=0.885 (n= 31711)
+  qwen3.5_2b                         own κ=0.179 (n= 9697)  disjoint κ=0.085 (n= 31708)
+  qwen3.5_4b                         own κ=0.506 (n= 9699)  disjoint κ=0.751 (n= 31701)
+  qwen3.5_9b                         own κ=0.482 (n= 9699)  disjoint κ=0.551 (n= 31711)
+  qwen3.6-27b-sq_Q8_0                own κ=0.826 (n= 9679)  disjoint κ=0.880 (n= 31678)
+  qwen3.6-35b-a3b-sq_Q8_0            own κ=0.764 (n= 9699)  disjoint κ=0.878 (n= 31711)
+
+per-row difficulty -> D:\cdms_localjudge2_pull\analysis_20260728_official\difficulty_rows.jsonl

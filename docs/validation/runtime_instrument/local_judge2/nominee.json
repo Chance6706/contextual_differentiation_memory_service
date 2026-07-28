@@ -1,0 +1,6 @@
+{
+  "single": ["qwen3.5_27b"],
+  "frozen": "2026-07-28",
+  "basis": "best SELECTION pooled+BEM kappa (0.885/0.877, n=31711 disjoint rows, cov 1.000) per prereg par-4 E-single; self-family-reduced nominee (qwen family, NOTE 15) - documented pre-run",
+  "receipt": "phaseM_receipts/matrix_report.txt SINGLE-JUDGE LEADERBOARD"
+}
