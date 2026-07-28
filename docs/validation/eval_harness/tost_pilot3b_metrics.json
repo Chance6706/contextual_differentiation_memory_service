@@ -1,0 +1,13 @@
+{
+ "round": "3b",
+ "cell_R_refs": 0.5652173913043478,
+ "n_R": 23,
+ "cell_F_fixture": 0.5909090909090909,
+ "n_F": 22,
+ "cell_G_genre": 0.4583333333333333,
+ "n_G": 24,
+ "ref_pilot2_sameseed": 1.0,
+ "ref_pilot3_all_new": 0.5,
+ "spent_usd": 0.8858,
+ "cache": "C:\\Users\\joshe\\cdms_cache\\tost_pilot3b_20260718_001705"
+}

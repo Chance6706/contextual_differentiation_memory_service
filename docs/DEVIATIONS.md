@@ -298,6 +298,31 @@ external review, 2026-06.)
   `len(sub) * 5`, so a silent under-sample on the paid run is impossible. A first-class
   `--rephrasings-exclude FILE` flag is a natural follow-on but is a separate change.
 
+### O2. Secret scrubber deliberately over-redacts some non-secret high-entropy tokens
+
+- **Stated form:** a "secret scrubber" should redact credentials and leave everything else intact
+  (zero false positives is the intuitive ideal).
+- **What we do:** `store.py::_SECRET_PATTERNS` matches credentials by **prefix + shape**, not by
+  decoding/validating them. Several rules therefore also match non-secret look-alikes: the
+  `\beyJ[A-Za-z0-9_/+=-]{30,}` blob rule (added for Cloudflare-tunnel tokens) redacts **any**
+  base64-encoded JSON ≥30 chars — inline JS sourcemaps (`…base64,eyJ2ZXJzaW9u…`), config blobs,
+  illustrative JWTs in docs; `key-[0-9a-f]{32}` (Mailgun) also matches a `key-<md5>` cache/ETag
+  key; `SK[0-9a-f]{32}` (Twilio SID) also matches any `SK<32-hex>`; `secret_[A-Za-z0-9]{40,}`
+  (Notion) also matches any `secret_<40+ alnum>`. All collapse to `[REDACTED]`.
+- **Why:** the scrubber runs at capture time on content persisted to plaintext SQLite and
+  re-injected at every SessionStart. In that setting the asymmetry is stark — redacting an opaque
+  non-secret blob costs a little recall signal (opaque tokens are semantic noise anyway), while
+  leaking a real credential is permanent. So we deliberately bias toward over-redaction rather than
+  add fragile decode-and-validate logic to a best-effort scrubber. Verified linear-time (no ReDoS)
+  and idempotent.
+- **Disclaimed / open:** the scrubber is NOT a false-positive-free classifier and is NOT a
+  guarantee of *complete* redaction (prefix-less secrets — Twilio auth tokens, AWS secret keys,
+  bare 32-hex — remain uncatchable; the AWS/Twilio prefix rules catch identifiers, not the secret).
+  `tests/test_scrubber_hardening.py` pins BOTH the intended redactions and the accepted
+  over-redactions as known current behavior, so a future tightening/loosening is a conscious edit,
+  not an accident. Narrowing the blob rule (e.g. skip `base64,`-preceded blobs to spare sourcemaps)
+  is a possible refinement but trades security for recall and is deferred.
+
 ---
 
 ---
@@ -554,6 +579,62 @@ external review, 2026-06.)
   — so an above-floor band does NOT auto-widen the test; it **HALTS the pipeline for human review**
   (P0 tool exits non-zero; analyzer requires an explicit approval flag; decision recorded in the
   prereg §9). The realized M is reported next to every verdict.
+
+### I8. Erasure-differentiation ceiling arm lifts `goal_gate_floor` to 0 (non-shipped)
+
+- **Standard form:** an experiment characterizing a product measures the product's shipped configuration.
+- **What we do:** `DIFFERENTIATION_ERASURE_PREREG.md` runs the ablation at BOTH `goal_gate_floor=0.25`
+  (as-shipped, the **primary**) and `goal_gate_floor=0.0` (a **ceiling** arm), the latter a non-default config.
+- **Why:** shipped CDMS floors off-goal salience at 0.25 to avoid *total* amnesia of memories outside the
+  current goal (a deliberate anti-erasure choice). The ceiling arm asks a distinct question — can the
+  mechanism individuate *at all* when that floor is removed — bracketing the shipped result with the
+  mechanism's potential.
+- **Disclaimed:** `gf=0.0` is **NOT the shipped product**; only the `gf=0.25` arm speaks to CDMS-as-shipped.
+  Every verdict states which floor produced it; the ceiling is reported as ceiling, never as headline.
+
+### I9. "Disposition" denotes a topic GOAL SET, not temperament
+
+- **Standard meaning:** *disposition/temperament* connotes a broad, multi-dimensional character (the repo's
+  own construct is the 8 temperament dials).
+- **What we do:** in the erasure experiment a "disposition" is operationalized narrowly as a **goal set over
+  ~8 engineering topics** — i.e. topic-interest, which drives what stays in front of the agent.
+- **Why:** topic-goal-relevance is the one facet that maps cleanly onto CDMS's `goal_hint`/`G_goal` lever and
+  onto what memory-evals actually measure; it makes the forgetting-driven individuation testable.
+- **Disclaimed:** results speak to **topic-selection individuation only**, not personality/temperament in
+  general. No claim that CDMS individuates *character* is made from this proxy.
+
+### I10. Functional-distinguishability secondary reaches into the -D/agent layer
+
+- **Standard scope:** a CDMS-**A** (memory core) experiment measures -A's state; retrieval/agent behavior is
+  the -D layer's concern.
+- **What we do:** the erasure experiment's **secondary** metric injects an identity into a real capable
+  reader and asks whether a blind judge can tell two identities apart by the reader's **behavior** — an
+  effect measured at the -A/-D boundary.
+- **Why:** the point of individuation is its effect on the loaded agent (Josh); we want to know *if and by how
+  much* an identity changes what a Claude/ChatGPT-class model does — which only shows at the behavioral layer.
+- **Disclaimed:** reported as **secondary**, not the -A structural primary; it is **functional/behavioral
+  distinguishability only** — an explicitly NON-phenomenal measure, no consciousness or "what-it's-like"
+  claim (companion to the simulacrum functional-not-faithful framing).
+
+### I11. Plasticity-ladder ablation removes product safety guardrails (sealed sandbox, non-shipped)
+
+- **Standard form:** the product's anti-poisoning / anti-confabulation plasticity guardrails
+  (support-weighted resistance `ema/√support`, drift magnitude cap, touched-only selectivity) and the BEM
+  provenance discipline are **inviolable in the product**; experiments measure shipped behavior.
+- **What we do:** the plasticity-ladder characterization (`PLASTICITY_LADDER.md`, task #16) deliberately
+  ABLATES those guardrails — cumulatively, to fully unguarded reconsolidation drift — inside a sealed
+  sandbox: eval-harness-only code (`tools/eval_harness/unguarded_sandbox.py`; nothing in `src/cdms`
+  references it, lock-tested), double-key arming (`CDMS_EVAL_MODE` + `CDMS_UNGUARDED_DRIFT` + minted
+  temp-home-only, asserted inside the drift function), synthetic corpus only, crash-safe burn (every
+  unguarded store deleted post-analysis; aggregated scalars are all that survives).
+- **Why:** the structural arc closed with "state = f(imposed) ⊕ noise" proven on the BOUNDED mechanism, and
+  PT3 showed safety and effect are in tension (the bounding starves the coupling). The ablation closes the
+  scope condition: does UNSAFE plasticity buy state individuation? (Pre-known from PT7: no — the ladder is
+  squeezed; the run commits the dose-response curve.)
+- **Disclaimed:** unguarded mode is **NOT shipped, not shippable, and unreachable from product code**; the
+  shipped defaults are unchanged and re-asserted by existing lock tests. Results are mechanism-tier
+  characterization only — no product behavior claim, and no individuation claim (the behavioral TOST is the
+  thesis's sole terminal court).
 
 ### N1. Component proper names use a Chinese (wuxia/Daoist/Buddhist) vocabulary
 

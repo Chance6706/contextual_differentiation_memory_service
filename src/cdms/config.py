@@ -70,6 +70,13 @@ class Config:
     reinforce_alpha: float = 1.15       # retrieval-induced strengthening base (testing effect)
     reinforce_cap: float = 2.0          # attentional ceiling on a single hot memory
     retention_floor: float = 0.10       # s_floor: below this accessibility, an episode is evictable
+    # Discard policy — WHICH episodes forgetting removes each cycle. "salience" (default, shipped)
+    # evicts those below the retention floor by accessibility. "random" is an EVAL-ONLY ablation
+    # control: it evicts the SAME COUNT the salience policy would, but chosen at seeded-random from
+    # ALL episodes — the null for "does forgetting BY SALIENCE differ from forgetting anything?".
+    # MUST be a no-op vs shipped behavior when "salience" (asserted in tests). Not for production.
+    discard_policy: str = "salience"    # "salience" | "random"
+    discard_random_seed: int = 0        # seed for "random" (combined with the cycle counter)
 
     # ---- Consolidation ("sleep") -------------------------------------------
     crisis_threshold: float = 3.0       # s_crisis: S0 >= this is a candidate for scar elevation
@@ -179,11 +186,17 @@ class Config:
     # (e.g., trust the agent's own session against in-session prompt injection) or want
     # faithfulness-to-flashbulb over function. See docs/DEVIATIONS.md M3 for the tradeoff.
     flashbulb_immediate_elevation: bool = False
-    # Layer 3 (capture-time provenance): when True, only "trusted"-provenance episodes may elevate to
-    # an authoritative guardrail, and "untrusted" episodes (external reads — web fetch, foreign files,
-    # external MCP) are excluded from gist-trait formation. "ambiguous" content can gist but not
-    # elevate. Set False to ignore provenance (treat all content as trusted for gating). The hook
-    # capture path classifies provenance via classify_provenance(); manual/seeded turns are trusted.
+    # Layer 3 (capture-time provenance): a single switch over BOTH the write and read fences.
+    # WRITE side: only "trusted"-provenance episodes may elevate to an authoritative guardrail,
+    # and "untrusted" episodes (external reads — web fetch, foreign files, external MCP) are
+    # excluded from gist-trait formation ("ambiguous" content can gist but not elevate).
+    # READ side (2026-07-15): "untrusted" episodes are also filtered from every MODEL-facing
+    # episodic read — recall (retrieve), the MCP history timeline, and the self-layer preamble —
+    # so external content is never surfaced back to the model AS self (the CDMS-D Phase-2 recall
+    # gate). Operator/maintenance paths (cdms retrieve/history, viewport, consolidation) keep full
+    # visibility. Set False to ignore provenance entirely (both fences off; all content treated as
+    # trusted). The hook capture path classifies provenance via classify_provenance(); manual/
+    # seeded turns default to trusted. See docs/redteam/LAYER3_PROVENANCE_DESIGN.md.
     enforce_provenance: bool = True
 
     # ---- Input bounds ------------------------------------------------------
@@ -441,6 +454,8 @@ def _validate(cfg: "Config") -> None:
         ("gist_retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
         ("gist_support_decay_cap", lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= 1),
         ("retention_floor", lambda v: _num(v) and 0 <= v <= 1e6),
+        ("discard_policy", lambda v: v in ("salience", "random")),
+        ("discard_random_seed", lambda v: isinstance(v, int) and not isinstance(v, bool)),
         ("reinforce_alpha", lambda v: _num(v) and 1.0 < v <= 1e3),
         ("reinforce_cap", lambda v: _num(v) and 1.0 <= v <= 1e6),
         ("decay_halflife_days", lambda v: _num(v) and 0 < v <= 1e6),

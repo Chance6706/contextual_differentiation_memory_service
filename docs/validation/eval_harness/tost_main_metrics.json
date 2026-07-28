@@ -1,0 +1,30 @@
+{
+ "design": "v3-FINAL",
+ "acc_real": 0.5319148936170213,
+ "n_real": 799,
+ "ci90": [
+  0.4755244755244755,
+  0.5882352941176471
+ ],
+ "diff_rejects": false,
+ "tost_rejects": true,
+ "impute_ci90": [
+  0.47692307692307695,
+  0.5897435897435898
+ ],
+ "fresh14_lb": 0.44044312169312166,
+ "sig_t_est": 0.23351078879041845,
+ "unparse_rate": 0.0013,
+ "expression_acc": 0.9583333333333334,
+ "expression_lb90": 0.9166666666666666,
+ "pooled_unstripped_acc": 0.52,
+ "null_x_rate": 0.5104166666666666,
+ "null_in_band": true,
+ "bow_leak": 0.75,
+ "bow_loso": 0.75,
+ "pro_subset_acc": 0.52,
+ "neutral_acc": 0.5208333333333334,
+ "verdict": "EQUIVALENT \u2014 THESIS FALSE, HALT",
+ "spent_usd": 10.4441,
+ "cache": "C:\\Users\\joshe\\cdms_cache\\tost_main_20260718_005820"
+}

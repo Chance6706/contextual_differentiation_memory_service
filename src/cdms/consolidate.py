@@ -90,6 +90,16 @@ def _matches_catastrophe(text: str) -> bool:
     danger = any(c in low for c in _DANGER_CMD) or bool(_CATASTROPHE_RE.search(text))
     return danger and any(h in low for h in _HARM_TOKENS)
 
+
+# Provenance trust order (most → least). Dedup's fold promotes a survivor to the
+# most-trusted class of the pair so an arbitrary rowid-order fold cannot bury a
+# trusted episode inside a read-fenced untrusted survivor.
+_PROV_RANK = {"trusted": 2, "ambiguous": 1, "untrusted": 0}
+
+
+def _most_trusted(a: str, b: str) -> str:
+    return a if _PROV_RANK.get(a, 0) >= _PROV_RANK.get(b, 0) else b
+
 _STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in", "on",
     "for", "with", "is", "are", "was", "were", "be", "been", "it", "this", "that",
@@ -465,6 +475,18 @@ class Consolidator:
                         merged = max(survivor.base_salience, e.base_salience)
                         self.db.set_salience([(survivor.id, merged)])
                         survivor.base_salience = merged
+                        # The survivor adopts the MOST-TRUSTED provenance of the fold. Fold
+                        # direction is rowid-order (arbitrary w.r.t. provenance), so without this
+                        # a trusted episode folded into an earlier untrusted near-duplicate would
+                        # be deleted, leaving its content in an untrusted survivor that the
+                        # read-side fence hides from the model — silent loss of a trusted memory.
+                        # ">= 0.95 similar" means the content is effectively corroborated, so
+                        # promoting to the more-trusted class surfaces nothing the trusted copy
+                        # would not have surfaced anyway. (No demotion: max-trust only.)
+                        best_prov = _most_trusted(survivor.provenance, e.provenance)
+                        if best_prov != survivor.provenance:
+                            self.db.set_provenance([(survivor.id, best_prov)])
+                            survivor.provenance = best_prov
                         if e.s0 is not None and (survivor.s0 is None or e.s0 > survivor.s0):
                             # the fold must not erase a crisis copy's write-time S0
                             # marker (core #1) — the survivor inherits the max
@@ -503,8 +525,36 @@ class Consolidator:
                                 fresh.access_count, self.cfg)
             if acc < self.cfg.retention_floor:
                 doomed.append(fresh.id)
+
+        # EVAL-ONLY random-discard ablation (default "salience" is a no-op vs shipped behavior,
+        # asserted in tests): forget the SAME COUNT the salience policy chose, but from ALL
+        # episodes at seeded-random — the null for "does forgetting BY SALIENCE matter?".
+        if getattr(self.cfg, "discard_policy", "salience") == "random":
+            doomed = self._random_victims(episodes, n=len(doomed))
+
         rep.episodes_evicted = self.db.delete_episodic(doomed)
         return set(doomed)
+
+    def _random_victims(self, episodes: list[Episodic], n: int) -> list[str]:
+        """Pick n episodes uniformly at random (seeded) from the whole snapshot, rate-matched
+        by COUNT to what salience would evict this cycle. Deterministic: the seed combines
+        ``discard_random_seed`` with the cycle counter so each pass draws a distinct-but-fixed
+        subset. Re-checks each pick still exists (like the salience path) before deleting."""
+        import os
+        # EVAL-ONLY hard gate (rule-12 S2): random discard would silently evict high-salience
+        # memories in a live store (violates facts-bounded-mortal). Refuse unless explicitly in
+        # eval mode — production never sets this, and the default discard_policy is "salience".
+        if os.environ.get("CDMS_EVAL_MODE") != "1":
+            raise RuntimeError("discard_policy='random' is EVAL-ONLY; set CDMS_EVAL_MODE=1 to run it.")
+        if n <= 0 or not episodes:
+            return []
+        import random as _random
+        cycle = int(self.db.get_meta("cycle", "0") or "0")
+        rng = _random.Random(f"{int(self.cfg.discard_random_seed)}:{cycle}")
+        # Sort ids for an order-independent, deterministic sample.
+        ids = sorted(e.id for e in episodes)
+        picked = rng.sample(ids, min(n, len(ids)))
+        return [pid for pid in picked if self.db.get_episodic(pid) is not None]
 
     # -- Step 3 + 4: Competition then conserved-budget renormalization ----- #
     def _compete_and_renormalize(self, episodes: list[Episodic], rep: ConsolidationReport) -> None:

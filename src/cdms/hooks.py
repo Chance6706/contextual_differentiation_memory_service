@@ -87,6 +87,26 @@ def _dedupe_scars(scars: list) -> list:
     return out
 
 
+def _recent_accessible_eps(svc, cfg: Config, scoped, limit: int = 5) -> list:
+    """Cold-start fallback: the most-*accessible* recent episodic memories, surfaced when
+    too few gists exist to fill the preamble so SessionStart is useful from day one.
+
+    Read-side Layer-3 fence (SINGLE SOURCE for both preamble builders — do not inline it,
+    or the shipped and harness builders drift): the preamble is the self-layer -D shows the
+    model, so untrusted-provenance episodes must not surface here. ``all_episodic()`` is used
+    raw by consolidation, which must SEE untrusted content to evict it, so the filter lives at
+    this model-facing use, not at the source."""
+    from .salience import accessibility, age_days
+    eps = [e for e in svc.db.all_episodic()
+           if scoped(e.project)
+           and (not cfg.enforce_provenance or e.provenance != "untrusted")]
+    scored = [(accessibility(e.base_salience, age_days(e.timestamp), e.access_count, cfg), e)
+              for e in eps]
+    scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [e for _a, e in scored[:limit]]
+
+
 def _session_start_context(cfg: Config, payload: dict) -> str:
     """Build the read-only memory preamble injected at session start.
 
@@ -94,7 +114,6 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
     All injected content is sanitized (no control chars / forged structure) and
     fenced as untrusted DATA, never trusted instructions.
     """
-    from .salience import accessibility, age_days
     from .store import MemoryService
 
     svc = MemoryService(cfg)
@@ -128,13 +147,10 @@ def _session_start_context(cfg: Config, payload: dict) -> str:
 
             # Cold-start fallback: until episodes consolidate into gist, surface the most
             # *accessible* recent episodic memories so SessionStart is useful from day one.
+            # (Read-side Layer-3 provenance fence lives in the shared helper.)
             recent = []
             if len(gists) < 5:
-                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
-                scored = [(accessibility(e.base_salience, age_days(e.timestamp), e.access_count, cfg), e) for e in eps]
-                scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
-                scored.sort(key=lambda x: x[0], reverse=True)
-                recent = [e for _a, e in scored[:5]]
+                recent = _recent_accessible_eps(svc, cfg, _scoped)
     finally:
         svc.close()
 
@@ -391,7 +407,6 @@ def _session_start_context_v2d(cfg: Config, payload: dict) -> str:
 def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str:
     """Shared builder used by v1/v2/v3. v1 emits the SHIPPED preamble verbatim
     (byte-identical to `_session_start_context`); v2/v3 emit the variants."""
-    from .salience import accessibility, age_days
     from .store import MemoryService
 
     svc = MemoryService(cfg)
@@ -410,12 +425,7 @@ def _build_preamble_text(cfg: Config, payload: dict, variant: str = "v1") -> str
             gists = svc.db.top_gist(limit=12, project=project)
             recent = []
             if len(gists) < 5:
-                eps = [e for e in svc.db.all_episodic() if _scoped(e.project)]
-                scored = [(accessibility(e.base_salience, age_days(e.timestamp),
-                                         e.access_count, cfg), e) for e in eps]
-                scored = [(a, e) for a, e in scored if a >= cfg.retention_floor]
-                scored.sort(key=lambda x: x[0], reverse=True)
-                recent = [e for _a, e in scored[:5]]
+                recent = _recent_accessible_eps(svc, cfg, _scoped)
     finally:
         svc.close()
 

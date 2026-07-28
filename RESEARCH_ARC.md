@@ -366,3 +366,23 @@ below (Claude-SFT vs matched non-Claude-SFT, same base/recipe/volume) — an obs
 
 *Maintenance: append the next phase as it resolves, keep the motivated-by → found → therefore-next shape, and
 promote in-flight entries to their result docs when they land.*
+
+
+---
+
+## Companion thread — the differentiation program (CLOSED, 2026-07-18)
+
+This file's thread asks *does injected memory leak into identity?* The companion thread asked the
+inverse: *does the memory **create** an identity at all?* It ran to a pre-registered terminal verdict
+and is **closed**: six structural investigations (frozen → erasure → tiered → drift → resolving-angle
+probe → forgetting-geometry capstone → plasticity ladder) each resolve to tautological-readback XOR
+null — the surviving state is `f(imposed salience) ⊕ noise` at every plasticity setting — and the
+behavioral court (a powered TOST, n=799, δ=0.10, three-reviewer adversarial audit) returned
+**EQUIVALENT: the thesis is false as operationally defined**. The de-confounding arc (topic tautology →
+valence tautology → seed fingerprinting) and the verdict record live under
+`docs/validation/eval_harness/` (`FUNCTIONAL_TOST_PREREG.md` §§9–11 is the audit trail;
+`FUNCTIONAL_TOST_RESULTS.md` is the verdict; `PLASTICITY_LADDER.md` §10 is the state-arc law).
+Repository state at the verdict: tag `paper-selfattr-v3.1`. The two threads meet at the boundary:
+recall steers and can leak into self-description (this arc); disposition-level identity neither forms
+nor transfers (the companion). A successor program (reflexive/relational individuation) is mapped but
+deliberately not started.

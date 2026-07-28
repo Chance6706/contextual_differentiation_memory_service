@@ -188,6 +188,22 @@ not just asserted. The headline results to date (full method + caveats in
   and distinct over time, and **absence never ages it** (decay is
   activity-based — a project you don't touch doesn't lose its personality).
 
+- **Disposition individuation in deeds: tested to a pre-registered terminal verdict — FALSE
+  at this substrate (2026-07).** The store-level distinctness above is real and stands. The
+  *stronger* claim — that disposition-driven salience/forgetting produces identities
+  distinguishable in enacted behavior — was tested to destruction: six structural
+  investigations all resolve to tautological-readback-XOR-null (the surviving state is a
+  function of the imposed salience weights plus noise, at every plasticity setting), and a
+  powered equivalence test (TOST, n=799 blind judgments, valence-matched dispositions,
+  content-stripped outputs, adversarially audited) established behavioral equivalence within
+  δ=0.10 — while an expression gate (0.958) confirmed the reader actively uses the loaded
+  memory. Identity, as far as this substrate can express it, is per-history, not
+  per-disposition. Full record:
+  [`docs/validation/eval_harness/FUNCTIONAL_TOST_RESULTS.md`](docs/validation/eval_harness/FUNCTIONAL_TOST_RESULTS.md)
+  and [`PLASTICITY_LADDER.md`](docs/validation/eval_harness/PLASTICITY_LADDER.md) §10. CDMS-A
+  remains the memory substrate; its identity claims are scoped accordingly (this bullet is
+  the scope).
+
 - **The steering boundary: recall yes, disposition no.** A key question for a
   memory that shapes behavior: *what kind of influence is it?* Injected CDMS memory
   reliably steers a model via **recalled content and override** (it can pull a
@@ -318,7 +334,7 @@ All cognitive parameters live in `cdms/config.py` and are overridable via
 | `CDMS_RECALL_EXEMPLARS` | `true` | Attach a verbatim `e.g.` quote to surfaced gists. |
 | `CDMS_RECALL_EXEMPLAR_TOP_N` | `6` | How many top-support gists carry an exemplar (`0` = terse). |
 | `CDMS_FLASHBULB_FLOOR_CATASTROPHES` | `true` | Floor a genuine catastrophe's S0 to the crisis gate. |
-| `CDMS_ENFORCE_PROVENANCE` | `true` | Block untrusted-origin content from forming gists/scars. |
+| `CDMS_ENFORCE_PROVENANCE` | `true` | Block untrusted-origin content from forming gists/scars **and** from surfacing on model-facing reads (recall / history / preamble). Operator paths keep full visibility. |
 | `CDMS_EMBED_BACKEND` | _(unset)_ | Set to `hash` to force the offline deterministic embedder (tests/CI). |
 
 ---
@@ -414,9 +430,11 @@ external review had blessed a stale revision) — see
 * **Trust boundary + capture-time provenance.** Stored memory is partially
   untrusted; it is sanitized and fenced as `<memory:*>` DATA at injection, never as
   instructions. Each episode also carries an origin label (`trusted` /
-  `untrusted` / `synthetic`); **untrusted-origin content can never form a gist
-  trait, and only trusted-origin content can mint a scar guardrail** — so
-  external/quoted text can never poison the persona's identity layer.
+  `untrusted` / `ambiguous`); **untrusted-origin content can never form a gist
+  trait, can never mint a scar guardrail, and (read-side fence) is never surfaced
+  back to the model on recall / history / preamble** — so external/quoted text can
+  never poison *or* masquerade as the persona's identity layer. Operator tools see
+  everything.
 * **Crash/concurrency safe.** WAL + per-statement transactions, a cross-process lock
   serializing consolidation/forget, orphan-claim reclaim after a killed drain, a
   bounded spool, and a corrupt-DB quarantine that never fires on mere lock contention.

@@ -52,17 +52,51 @@ Three provenance states, with authority that climbs only as trust is established
 |---|---|---|---|
 | trusted | ✓ | ✓ | ✓ |
 | ambiguous (quarantine) | ✗ | ✓ | ✓ |
-| untrusted | ✗ | ✗ | ✓ (low-authority recent only) |
+| untrusted | ✗ | ✗ | ✗ (read-side fence, 2026-07-15 — was ✓ low-authority) |
 
 **Load-bearing invariant: only trusted-provenance content can become an authoritative guardrail.**
 That alone closes the 20/20 persistent bypass for everything the classifier doesn't positively
 trust. Untrusted additionally cannot become a persona *trait* (no gist). Ambiguous content still
 learns (gist + recent) but can never be enshrined as a rule.
 
-**Accepted residual (explicit):** untrusted content may still surface in the low-authority *recent*
-tier, where the pressure test showed benign content can still steer (~11/20, strongest in
-cold-start). This was a deliberate call — retain external-read context for usefulness, deny it
-authority — accepting that recent-tier residual rather than dropping the info entirely.
+**Re-decision 2026-07-15 — the recent-tier residual is now CLOSED (read-side fence).**
+The row above previously read "✓ (low-authority recent only)" and was recorded as a deliberate
+accepted residual (text retained below, struck). CDMS-D Phase-2 changed the calculus: its recall
+gate requires that an episode ingested `provenance="untrusted"` MUST NOT appear on *any* model-facing
+recall / retrieve / recent surface unless explicitly asked for — because -D surfaces -A's recall +
+preamble to the model AS its own self-layer, so "low-authority recent" untrusted content is exactly
+a self-attribution leak (the BLOCK/DISAMBIG arcs measured a single assistant-attributed sentence at
++52pp). The read-side fence (`store.retrieve`, `MemoryService.history`, the preamble builders; gated
+on the same `enforce_provenance` switch) now drops untrusted from model-facing episodic reads.
+Operator/maintenance paths (`cdms retrieve`/`history`, viewport, and consolidation's `all_episodic`
+eviction sight) keep full visibility. This SUPERSEDES the deliberate call below, which predated the
+-D Phase-2 requirement.
+
+> ~~**Accepted residual (explicit):** untrusted content may still surface in the low-authority *recent*
+> tier, where the pressure test showed benign content can still steer (~11/20, strongest in
+> cold-start). This was a deliberate call — retain external-read context for usefulness, deny it
+> authority — accepting that recent-tier residual rather than dropping the info entirely.~~
+
+**Provenance value canonicalization (2026-07-15).** Both fences key on exact strings (`== "trusted"`
+for elevation; `!= "untrusted"` for the gist and read fences). A non-canonical value would slip past
+the `!=` fences, so ingest normalizes every provenance to the canonical set {trusted, untrusted,
+ambiguous} via `models.canon_provenance`, failing **closed to untrusted** for any unrecognized value
+(deliberately stricter than the classifier's ambiguous-default for unknown *tools*: an unrecognized
+pre-assigned *value* is unattributable, and every near-term source of such values — bulk importers,
+the untrusted-by-design dreaming tier — is itself untrusted). Dedup's fold promotes a survivor to the
+most-trusted provenance of the folded pair, so a rowid-arbitrary fold cannot bury a trusted episode
+inside a now-fenced untrusted survivor.
+
+**Known residuals after the read-side fence (deferred, tracked):**
+- *Rank displacement.* Untrusted rows still occupy candidate-list rank positions before the post-pool
+  filter drops them, so an untrusted flood can depress a trusted hit's RRF score (recall suppression
+  without surfacing content). Same root as the pre-existing project-scope post-filter seam; the clean
+  fix is a pre-rank provenance filter (needs provenance carried into the vec/FTS candidate layer).
+- *Cost on untrusted-heavy stores.* The widen loop re-materializes per iteration; a tier dominated by
+  untrusted rows (the -D Phase-2 target state) makes model-facing recall walk most of the tier. Same
+  structural fix (candidate-layer prefilter).
+- *Direct `db.insert_episodic` is not normalized* — the future importer-hygiene work owns canonical
+  stamping at that primitive; `canon_provenance` is exported for it to call.
 
 **The fundamental limit (state it up front):** provenance is undecidable in general. `cat
 poisoned.md` run under the user's own Bash command yields trusted-LOOKING output that is actually
