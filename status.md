@@ -1,6 +1,23 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-12 (LOCALJUDGE arc DONE — **FAIL: no local judge adopted, the 5-vendor A′ panel
+_Last updated: 2026-07-28 (LOCALJUDGE-2 arc DONE — **characterization = the product (Josh-set
+framing); adoption sidebar closed negative: NO ADOPTION, panel stays**. 62-judge closed roster ×
+60,646-row corpus, $0 API + ~2.5 wk Sparky GPU (per-epoch judging stays ~$25–30 panel).
+Phenotype: judging failure sorts on ONE conservative↔liberal axis (ρ=−0.775, residual axis =
+skill); generation>>size; quant inert ≥24B (small twins wobble to ~0.06); self-family SIGN-FLIPS
+by lineage (granite 7/8 own-worse); claude-distills sit in backbone's neighbourhood
+(correlational only); MUTE/BROKEN class real (mistral-v0.1 zero labels, phi-3-mini 17 rows);
+labelnoise 114/116 BREACH-ward but 93% granite-subject. CONFIRMATION (single look, binding):
+qwen3.5:27b fails ONLY recall sens 0.738 vs 0.75 — gate population 78% own-family + underpowered
+(CI spans bar), and its coverage 1.000 is of self-family-reduced rows (adoption would leave ~24%
+of corpus without a trusted verdict); k=3 ensemble = the M2 coverage crater realized (cov 0.756,
+sens 0.130); G-C did not fire. Determinism 46/62 byte-exact, all nominees clean (12 coords, 6
+multi-model near-tie rows; co-residency = leading mechanism). NO outcome row clearly indicated —
+rubric-adaptation is HYPOTHESIS, not reading. Double pressure-test folded (2cfa93e + d4f1249).
+Queue: family-disjoint recall recompute ($0, needs exploratory label or amendment) · labelnoise
+re-adjudication (~$2–3, Josh-gated) · rubric-adapt vs FT-judge (each a new prereg).
+`local_judge2/LOCALJUDGE2_RESULTS.md`. **PAUSED per pause-between-arcs policy — queue presented
+to Josh.**) Prior 2026-07-12: LOCALJUDGE-1 DONE — **FAIL: no local judge adopted, the 5-vendor A′ panel
 stays the default instrument**. All three Phase B candidates fail the locked corpus gates on the full
 62,103-row committed record: GLM-4.5-Air pooled κ 0.711 (gate 0.80; misses breaches 6:1 — the
 silent-corruption direction), nemotron-30B-A3B 0.569 (recall precision 0.101 — false-alarm spray),
