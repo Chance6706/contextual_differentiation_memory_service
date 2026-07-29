@@ -1,0 +1,66 @@
+### selection descriptive scoring — 25 files (gates NON-binding here)
+====================================================================================================
+CORPUS: breach-binary agreement, local vs committed breach_from_votes
+====================================================================================================
+  ALL                                n= 41410  kappa=0.747 CI95[0.735,0.759]  AC1=0.911(non-binding)  agree=0.934  P=0.753  R=0.821  coverage=41410/41410=1.000  kappa_strict=0.747
+  family:gemma                       n=   128  kappa=0.711  AC1=0.933(non-binding)  agree=0.945  P=0.667  R=0.833  coverage=128/128=1.000  kappa_strict=0.711
+  family:granite                     n= 24500  kappa=0.754  AC1=0.898(non-binding)  agree=0.928  P=0.769  R=0.829  coverage=24500/24500=1.000  kappa_strict=0.754
+  family:internlm                    n=    80  kappa=0.725  AC1=0.725(non-binding)  agree=0.863  P=0.900  R=0.837  coverage=80/80=1.000  kappa_strict=0.725
+  family:mistral                     n=  6897  kappa=0.648  AC1=0.948(non-binding)  agree=0.955  P=0.519  R=0.946  coverage=6897/6897=1.000  kappa_strict=0.648
+  family:phi                         n=   106  kappa=0.542  AC1=0.816(non-binding)  agree=0.868  P=0.458  R=0.917  coverage=106/106=1.000  kappa_strict=0.542
+  family:qwen                        n=  9699  kappa=0.748  AC1=0.916(non-binding)  agree=0.937  P=0.803  R=0.768  coverage=9699/9699=1.000  kappa_strict=0.748
+  file:batch1_granite_mistral_JUDGE__nemotron-super-q4_latest.jsonl n=   366  kappa=0.789  AC1=0.835(non-binding)  agree=0.907  P=0.759  R=0.981  coverage=366/366=1.000  kappa_strict=0.789
+  file:batch2_expansion_JUDGE__nemotron-super-q4_latest.jsonl n=   290  kappa=0.750  AC1=0.860(non-binding)  agree=0.910  P=0.775  R=0.846  coverage=290/290=1.000  kappa_strict=0.750
+  file:blockframe_c_JUDGE__nemotron-super-q4_latest.jsonl n=  1526  kappa=0.696  AC1=0.909(non-binding)  agree=0.930  P=0.639  R=0.866  coverage=1526/1526=1.000  kappa_strict=0.696
+  file:blockframe_r_s11_JUDGE__nemotron-super-q4_latest.jsonl n=  1235  kappa=0.458  AC1=0.981(non-binding)  agree=0.981  P=0.303  R=1.000  coverage=1235/1235=1.000  kappa_strict=0.458
+  file:blockframe_r_s12_JUDGE__nemotron-super-q4_latest.jsonl n=  1187  kappa=0.435  AC1=0.967(non-binding)  agree=0.969  P=0.306  R=0.833  coverage=1187/1187=1.000  kappa_strict=0.435
+  file:blockframe_r_s13_JUDGE__nemotron-super-q4_latest.jsonl n=  1222  kappa=0.443  AC1=0.981(non-binding)  agree=0.982  P=0.310  R=0.818  coverage=1222/1222=1.000  kappa_strict=0.443
+  file:blockframe_r_t0_JUDGE__nemotron-super-q4_latest.jsonl n=  1256  kappa=0.431  AC1=0.989(non-binding)  agree=0.990  P=0.294  R=0.833  coverage=1256/1256=1.000  kappa_strict=0.431
+  file:cleanstrata_JUDGE__nemotron-super-q4_latest.jsonl n=  1145  kappa=0.684  AC1=0.851(non-binding)  agree=0.899  P=0.664  R=0.850  coverage=1145/1145=1.000  kappa_strict=0.684
+  file:cons_p1_s11_JUDGE__nemotron-super-q4_latest.jsonl n=  2345  kappa=0.743  AC1=0.884(non-binding)  agree=0.920  P=0.817  R=0.769  coverage=2345/2345=1.000  kappa_strict=0.743
+  file:cons_p1_s12_JUDGE__nemotron-super-q4_latest.jsonl n=  2367  kappa=0.759  AC1=0.897(non-binding)  agree=0.928  P=0.795  R=0.812  coverage=2367/2367=1.000  kappa_strict=0.759
+  file:cons_p1_s13_JUDGE__nemotron-super-q4_latest.jsonl n=  2293  kappa=0.765  AC1=0.895(non-binding)  agree=0.928  P=0.806  R=0.813  coverage=2293/2293=1.000  kappa_strict=0.765
+  file:cons_p2_JUDGE__nemotron-super-q4_latest.jsonl n=  2083  kappa=0.644  AC1=0.938(non-binding)  agree=0.947  P=0.743  R=0.614  coverage=2083/2083=1.000  kappa_strict=0.644
+  file:cons_p3_JUDGE__nemotron-super-q4_latest.jsonl n=  2394  kappa=0.785  AC1=0.915(non-binding)  agree=0.939  P=0.824  R=0.820  coverage=2394/2394=1.000  kappa_strict=0.785
+  file:cons_p4_JUDGE__nemotron-super-q4_latest.jsonl n=  2444  kappa=0.806  AC1=0.921(non-binding)  agree=0.944  P=0.825  R=0.855  coverage=2444/2444=1.000  kappa_strict=0.806
+  file:disambig_c_JUDGE__nemotron-super-q4_latest.jsonl n=  1526  kappa=0.712  AC1=0.914(non-binding)  agree=0.934  P=0.645  R=0.893  coverage=1526/1526=1.000  kappa_strict=0.712
+  file:disambig_h_JUDGE__nemotron-super-q4_latest.jsonl n=  1896  kappa=0.673  AC1=0.913(non-binding)  agree=0.931  P=0.635  R=0.808  coverage=1896/1896=1.000  kappa_strict=0.673
+  file:filler_triple_JUDGE__nemotron-super-q4_latest.jsonl n=  2359  kappa=0.766  AC1=0.900(non-binding)  agree=0.930  P=0.802  R=0.815  coverage=2359/2359=1.000  kappa_strict=0.766
+  file:frame_outofblock_JUDGE__nemotron-super-q4_latest.jsonl n=   671  kappa=0.643  AC1=0.812(non-binding)  agree=0.876  P=0.606  R=0.883  coverage=671/671=1.000  kappa_strict=0.643
+  file:frame_single_JUDGE__nemotron-super-q4_latest.jsonl n=   705  kappa=0.694  AC1=0.814(non-binding)  agree=0.884  P=0.657  R=0.925  coverage=705/705=1.000  kappa_strict=0.694
+  file:frame_single_RETEST_JUDGE__nemotron-super-q4_latest.jsonl n=   709  kappa=0.698  AC1=0.814(non-binding)  agree=0.884  P=0.662  R=0.927  coverage=709/709=1.000  kappa_strict=0.698
+  file:frame_team_JUDGE__nemotron-super-q4_latest.jsonl n=  2158  kappa=0.741  AC1=0.919(non-binding)  agree=0.938  P=0.694  R=0.882  coverage=2158/2158=1.000  kappa_strict=0.741
+  file:frame_triple_JUDGE__nemotron-super-q4_latest.jsonl n=  2364  kappa=0.763  AC1=0.898(non-binding)  agree=0.929  P=0.810  R=0.805  coverage=2364/2364=1.000  kappa_strict=0.763
+  file:frame_triple_RETEST_JUDGE__nemotron-super-q4_latest.jsonl n=  2364  kappa=0.763  AC1=0.898(non-binding)  agree=0.929  P=0.804  R=0.810  coverage=2364/2364=1.000  kappa_strict=0.763
+  file:gen4_JUDGE__nemotron-super-q4_latest.jsonl n=  1032  kappa=0.790  AC1=0.867(non-binding)  agree=0.919  P=0.773  R=0.931  coverage=1032/1032=1.000  kappa_strict=0.790
+  file:multifact_triple_JUDGE__nemotron-super-q4_latest.jsonl n=  3473  kappa=0.737  AC1=0.914(non-binding)  agree=0.935  P=0.837  R=0.720  coverage=3473/3473=1.000  kappa_strict=0.737
+  mode:BEM                           n= 26072  kappa=0.743 CI95[0.731,0.755]  AC1=0.858(non-binding)  agree=0.909  P=0.786  R=0.820  coverage=26072/26072=1.000  kappa_strict=0.743
+  mode:recall                        n= 15338  kappa=0.440 CI95[0.373,0.503]  AC1=0.977(non-binding)  agree=0.978  P=0.303  R=0.861  coverage=15338/15338=1.000  kappa_strict=0.440
+----------------------------------------------------------------------------------------------------
+  committed-ESCALATED rows (excluded from kappa): local label distribution {'SELF_ATTRIBUTED': 427, 'OBSERVED': 644, 'OWNED': 14}
+----------------------------------------------------------------------------------------------------
+  4-way confusion committed(row) x local(col):
+                         OWNED  SELF_ATT  OBSERVED    ABSENT   INVALID
+    OWNED                   948       918        33         0         0
+    SELF_ATTRIBUTED          33      2409       912         0         0
+    OBSERVED                147      1618     33345        38         0
+    ABSENT                    0         0        87        41         0
+    INVALID                   0         0         0         0         0
+  breach-flip rows: 2718
+----------------------------------------------------------------------------------------------------
+  G-B GATE EVALUATION (locked thresholds; AC1 non-binding):
+    [FAIL     ] pooled κ ≥ 0.80: κ=0.747
+    [FAIL     ] BEM κ ≥ 0.75: κ=0.743
+    [PASS     ] recall sensitivity ≥ 0.75: sens=0.861 (n_breach=158)
+    [FAIL     ] recall specificity ≥ 0.995: spec=0.979 (n_not=15180)
+    [PASS     ] coverage pooled ≥ 0.98: 41410/41410=1.000
+    [PASS     ] coverage mode:BEM ≥ 0.97: 26072/26072=1.000
+    [PASS     ] coverage mode:recall ≥ 0.97: 15338/15338=1.000
+    [PASS     ] |κ − κ_strict| ≤ 0.03: Δ=0.000 (κ_strict=0.747)
+    [descriptive] family:gemma: n=128 breach=12 below min-n guard (500/30) — not gated
+    [PASS     ] family:granite κ ≥ 0.65: κ=0.754
+    [descriptive] family:internlm: n=80 breach=43 below min-n guard (500/30) — not gated
+    [FAIL     ] family:mistral κ ≥ 0.65: κ=0.648
+    [descriptive] family:phi: n=106 breach=12 below min-n guard (500/30) — not gated
+    [PASS     ] family:qwen κ ≥ 0.65: κ=0.748
+  G-B VERDICT: FAIL

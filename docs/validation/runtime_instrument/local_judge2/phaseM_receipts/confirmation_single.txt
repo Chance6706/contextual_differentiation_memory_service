@@ -1,0 +1,16 @@
+----------------------------------------------------------------------------------------------------
+  G-B GATE EVALUATION — single:qwen3.5_27b (κ/family/coverage/strict on CONFIRMATION; recall sens/spec on FULL-corpus recall):
+    [PASS     ] pooled κ ≥ 0.80: κ=0.862
+    [PASS     ] BEM κ ≥ 0.75: κ=0.857
+    [FAIL     ] recall sensitivity ≥ 0.75: sens=0.738 (full-corpus recall n_breach=206)
+    [PASS     ] recall specificity ≥ 0.995: spec=0.999 (full-corpus recall n_not=21118)
+    [PASS     ] coverage pooled ≥ 0.98: 14552/14552=1.000
+    [PASS     ] coverage mode:BEM ≥ 0.97: 10340/10340=1.000
+    [PASS     ] coverage mode:recall ≥ 0.97: 4212/4212=1.000
+    [PASS     ] |κ − κ_strict| ≤ 0.03: Δ=0.000 (κ_strict=0.862)
+    [descriptive] family:gemma: n=68 breach=6 below min-n guard (500/30) — not gated
+    [PASS     ] family:granite κ ≥ 0.65: κ=0.851
+    [descriptive] family:internlm: n=51 breach=37 below min-n guard (500/30) — not gated
+    [PASS     ] family:mistral κ ≥ 0.65: κ=0.944
+    [descriptive] family:phi: n=59 breach=8 below min-n guard (500/30) — not gated
+  G-B VERDICT (single:qwen3.5_27b): FAIL

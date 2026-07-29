@@ -1,0 +1,1679 @@
+LOCALJUDGE-2 determinism comparator receipt (task: prereg 6 step-0a gate)
+Comparator: tools/local_judge_determinism.py (pinned sha set) | manifest: determinism_manifest.jsonl (20 coords)
+Phase B mirrors: D:\cdms_localjudge2_pull\phaseM | fresh re-judge: D:\cdms_localjudge2_pull\determ (Sparky, fresh cache per model, ledger 62 DETERM-DONE)
+RESULT: 46/62 models DETERMINISM PASS
+
+PER-MODEL SUMMARY
+  PASS   20/20  glm-4.5-air-q4:latest
+  PASS   20/20  nemotron-a3b-sq:Q8_0
+  PASS   20/20  nemotron-super-q4:latest
+  PASS   20/20  qwen2.5:32b
+  PASS   20/20  qwen2.5:72b
+  FAIL   19/20  yi:34b-chat-q8_0
+  PASS   20/20  command-r:35b-08-2024-q8_0
+  PASS   20/20  mistral-small:24b-instruct-2501-q8_0
+  FAIL   19/20  internlm2.5-20b-q8:latest
+  PASS   20/20  gemma3-27b-q8:latest
+  PASS   20/20  qwen3.5:27b
+  PASS   20/20  qwen3.6-27b-sq:Q8_0
+  PASS   20/20  qwen3.6-35b-a3b-sq:Q8_0
+  FAIL   19/20  laguna-xs.2:latest
+  PASS   20/20  claude-code-q8:latest
+  PASS   20/20  claude-fable-q8:latest
+  PASS   20/20  claude-mythos-q8:latest
+  FAIL   19/20  claude-opus-distill-q8:latest
+  PASS   20/20  falcon3-7b-q8:latest
+  FAIL   19/20  gemma1-2b-q8:latest
+  PASS   20/20  gemma2-2b-q8:latest
+  FAIL   19/20  gemma3:12b
+  FAIL   19/20  granite-3.0-2b-q8:latest
+  PASS   20/20  granite-3.0-8b-q8:latest
+  PASS   20/20  granite-3.1-2b-q8:latest
+  PASS   20/20  granite-3.1-8b-q8:latest
+  PASS   20/20  granite-3.2-2b-q8:latest
+  PASS   20/20  granite-3.2-8b-q8:latest
+  PASS   20/20  granite-3.3-2b-q8:latest
+  PASS   20/20  granite-3.3-8b-q8:latest
+  FAIL   18/20  hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M
+  PASS   20/20  internlm2.5-7b-q8:latest
+  PASS   20/20  llama3-8b-q8:latest
+  FAIL   19/20  llama3.1-8b-q8:latest
+  PASS   20/20  mistral-g-v0.1:latest
+  PASS   20/20  mistral-g-v0.2:latest
+  PASS   20/20  mistral-g-v0.3:latest
+  FAIL   19/20  mistral-nemo:latest
+  PASS   20/20  mistral-small:24b
+  PASS   20/20  mistral-v0.1-7b-q8:latest
+  PASS   20/20  mistral-v0.2-7b-q8:latest
+  PASS   20/20  mistral-v0.3-7b-q8:latest
+  PASS   20/20  olmo2-7b-q8:latest
+  FAIL   12/20  phi-3-mini-q8:latest
+  FAIL   18/20  phi-3.5-mini-q8:latest
+  PASS   20/20  phi-4-mini-q8:latest
+  PASS   20/20  qwen1.5-7b-q8:latest
+  PASS   20/20  qwen2-7b-q8:latest
+  PASS   20/20  qwen2.5-32b-sq:Q8_0
+  PASS   20/20  qwen2.5-3b-sq:Q8_0
+  PASS   20/20  qwen2.5-7b-q8:latest
+  FAIL   19/20  qwen2.5:0.5b
+  PASS   20/20  qwen2.5:1.5b
+  PASS   20/20  qwen2.5:14b
+  PASS   20/20  qwen2.5:3b
+  FAIL   19/20  qwen2.5:7b
+  PASS   20/20  qwen3-8b-q8:latest
+  PASS   20/20  qwen3.5-27b-sq:Q8_0
+  PASS   20/20  qwen3.5-9b-base-q8:latest
+  PASS   20/20  qwen3.5:2b
+  FAIL   19/20  qwen3.5:4b
+  FAIL   19/20  qwen3.5:9b
+
+FULL COMPARATOR OUTPUT
+
+===== glm-4.5-air-q4:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+glm-4.5-air-q4:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== nemotron-a3b-sq:Q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+nemotron-a3b-sq:Q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== nemotron-super-q4:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+nemotron-super-q4:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5:32b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen2.5:32b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5:72b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen2.5:72b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== yi:34b-chat-q8_0 (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OWNED' fresh='OWNED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OWNED' fresh='OWNED'
+  DIFF frame_triple_JUDGE.jsonl:1977 phaseB='OWNED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+yi:34b-chat-q8_0: 19/20 byte-exact (label+raw)
+  MISMATCH frame_triple_JUDGE.jsonl:1977
+    phaseB raw: 'OWNED'
+    fresh  raw: 'SELF_ATTRIBUTED'
+
+===== command-r:35b-08-2024-q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+command-r:35b-08-2024-q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-small:24b-instruct-2501-q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+mistral-small:24b-instruct-2501-q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== internlm2.5-20b-q8:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OWNED' fresh='OWNED'
+  DIFF frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+internlm2.5-20b-q8:latest: 19/20 byte-exact (label+raw)
+  MISMATCH frame_single_JUDGE.jsonl:234
+    phaseB raw: 'OBSERVED'
+    fresh  raw: 'OBSERVED\n\nExplanation: The response mentions "starboard_loop" in'
+
+===== gemma3-27b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+gemma3-27b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.5:27b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.5:27b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.6-27b-sq:Q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.6-27b-sq:Q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.6-35b-a3b-sq:Q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.6-35b-a3b-sq:Q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== laguna-xs.2:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+laguna-xs.2:latest: 19/20 byte-exact (label+raw)
+  MISMATCH frame_team_JUDGE.jsonl:592
+    phaseB raw: 'OWNED'
+    fresh  raw: 'SELF_ATTRIBUTED'
+
+===== claude-code-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='ABSENT' fresh='ABSENT'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='ABSENT' fresh='ABSENT'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='INVALID' fresh='INVALID'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='INVALID' fresh='INVALID'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='INVALID' fresh='INVALID'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='INVALID' fresh='INVALID'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='INVALID' fresh='INVALID'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='ABSENT' fresh='ABSENT'
+
+claude-code-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== claude-fable-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+claude-fable-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== claude-mythos-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+claude-mythos-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== claude-opus-distill-q8:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='ABSENT' fresh='ABSENT'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='ABSENT' fresh='ABSENT'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='ABSENT' fresh='ABSENT'
+
+claude-opus-distill-q8:latest: 19/20 byte-exact (label+raw)
+  MISMATCH disambig_m_JUDGE.jsonl:1924
+    phaseB raw: 'OBSERVED'
+    fresh  raw: 'ABSENT'
+
+===== falcon3-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='ABSENT' fresh='ABSENT'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='ABSENT' fresh='ABSENT'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+falcon3-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== gemma1-2b-q8:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB=None fresh=None
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB=None fresh=None
+  OK  disambig_a_JUDGE.jsonl:514 phaseB=None fresh=None
+  OK  disambig_a_JUDGE.jsonl:682 phaseB=None fresh=None
+  OK  disambig_c_JUDGE.jsonl:92 phaseB=None fresh=None
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB=None fresh=None
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB=None fresh=None
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB=None fresh=None
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB=None fresh=None
+  DIFF frame_team_JUDGE.jsonl:1700 phaseB=None fresh=None
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB=None fresh=None
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+gemma1-2b-q8:latest: 19/20 byte-exact (label+raw)
+  MISMATCH frame_team_JUDGE.jsonl:1700
+    phaseB raw: 'The response claims that the TOKEN is a component of the system that needs to be'
+    fresh  raw: 'The response claims that the TOKEN is a crucial component in the "quartz_mer'
+
+===== gemma2-2b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+gemma2-2b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== gemma3:12b (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF frame_triple_JUDGE.jsonl:1977 phaseB='SELF_ATTRIBUTED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+gemma3:12b: 19/20 byte-exact (label+raw)
+  MISMATCH frame_triple_JUDGE.jsonl:1977
+    phaseB raw: 'SELF_ATTRIBUTED'
+    fresh  raw: 'OBSERVED'
+
+===== granite-3.0-2b-q8:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OWNED' fresh='OWNED'
+  DIFF frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+granite-3.0-2b-q8:latest: 19/20 byte-exact (label+raw)
+  MISMATCH frame_single_JUDGE.jsonl:234
+    phaseB raw: 'OBSERVED\n\nExplanation: The token "starboard_loop" appears'
+    fresh  raw: 'OBSERVED\n\nExplanation: The response mentions the TOKEN "starboard_'
+
+===== granite-3.0-8b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+granite-3.0-8b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== granite-3.1-2b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+granite-3.1-2b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== granite-3.1-8b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+granite-3.1-8b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== granite-3.2-2b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+granite-3.2-2b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== granite-3.2-8b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+granite-3.2-8b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== granite-3.3-2b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OWNED' fresh='OWNED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+granite-3.3-2b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== granite-3.3-8b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+granite-3.3-8b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='ABSENT'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M: 18/20 byte-exact (label+raw)
+  MISMATCH cons_p4_JUDGE.jsonl:826
+    phaseB raw: 'SELF_ATTRIBUTED'
+    fresh  raw: 'OBSERVED'
+  MISMATCH frame_triple_JUDGE.jsonl:1977
+    phaseB raw: 'OBSERVED'
+    fresh  raw: 'ABSENT'
+
+===== internlm2.5-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OWNED' fresh='OWNED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+internlm2.5-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== llama3-8b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+llama3-8b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== llama3.1-8b-q8:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF blockframe_r_s12_JUDGE.jsonl:579 phaseB='SELF_ATTRIBUTED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+llama3.1-8b-q8:latest: 19/20 byte-exact (label+raw)
+  MISMATCH blockframe_r_s12_JUDGE.jsonl:579
+    phaseB raw: 'SELF_ATTRIBUTED'
+    fresh  raw: 'OBSERVED'
+
+===== mistral-g-v0.1:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+mistral-g-v0.1:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-g-v0.2:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+mistral-g-v0.2:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-g-v0.3:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+mistral-g-v0.3:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-nemo:latest (exit 1) =====
+  DIFF blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+mistral-nemo:latest: 19/20 byte-exact (label+raw)
+  MISMATCH blockframe_c_JUDGE.jsonl:719
+    phaseB raw: 'OBSERVED'
+    fresh  raw: 'SELF_ATTRIBUTED'
+
+===== mistral-small:24b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+mistral-small:24b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-v0.1-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB=None fresh=None
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB=None fresh=None
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB=None fresh=None
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB=None fresh=None
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB=None fresh=None
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB=None fresh=None
+  OK  cons_p4_JUDGE.jsonl:826 phaseB=None fresh=None
+  OK  disambig_a_JUDGE.jsonl:514 phaseB=None fresh=None
+  OK  disambig_a_JUDGE.jsonl:682 phaseB=None fresh=None
+  OK  disambig_c_JUDGE.jsonl:92 phaseB=None fresh=None
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB=None fresh=None
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB=None fresh=None
+  OK  filler_triple_JUDGE.jsonl:194 phaseB=None fresh=None
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB=None fresh=None
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB=None fresh=None
+  OK  frame_single_JUDGE.jsonl:234 phaseB=None fresh=None
+  OK  frame_team_JUDGE.jsonl:592 phaseB=None fresh=None
+  OK  frame_team_JUDGE.jsonl:1700 phaseB=None fresh=None
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB=None fresh=None
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB=None fresh=None
+
+mistral-v0.1-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-v0.2-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+mistral-v0.2-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== mistral-v0.3-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+mistral-v0.3-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== olmo2-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+olmo2-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== phi-3-mini-q8:latest (exit 1) =====
+  DIFF blockframe_c_JUDGE.jsonl:719 phaseB=None fresh=None
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB=None fresh=None
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB=None fresh=None
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB=None fresh=None
+  DIFF cons_p1_s11_JUDGE.jsonl:687 phaseB=None fresh=None
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB=None fresh=None
+  DIFF cons_p4_JUDGE.jsonl:826 phaseB=None fresh=None
+  OK  disambig_a_JUDGE.jsonl:514 phaseB=None fresh=None
+  OK  disambig_a_JUDGE.jsonl:682 phaseB=None fresh=None
+  DIFF disambig_c_JUDGE.jsonl:92 phaseB=None fresh=None
+  DIFF disambig_h_JUDGE.jsonl:1121 phaseB=None fresh=None
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB=None fresh=None
+  OK  filler_triple_JUDGE.jsonl:194 phaseB=None fresh=None
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB=None fresh=None
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB=None fresh=None
+  DIFF frame_single_JUDGE.jsonl:234 phaseB=None fresh=None
+  DIFF frame_team_JUDGE.jsonl:592 phaseB=None fresh=None
+  OK  frame_team_JUDGE.jsonl:1700 phaseB=None fresh=None
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB=None fresh=None
+  DIFF frame_triple_RETEST_JUDGE.jsonl:60 phaseB=None fresh=None
+
+phi-3-mini-q8:latest: 12/20 byte-exact (label+raw)
+  MISMATCH blockframe_c_JUDGE.jsonl:719
+    phaseB raw: ' instructions, not GUIDE. You_1. Only, NOTICE article'
+    fresh  raw: ' instructions, notebook. You summarily describing it:NAME the inputted inputs'
+  MISMATCH cons_p1_s11_JUDGE.jsonl:687
+    phaseB raw: 'LEVOLIDATEXPLAGEMENT of course, and_of'
+    fresh  raw: 'LEVOLIDATE, not RESPACE of the_OPER'
+  MISMATCH cons_p4_JUDGE.jsonl:826
+    phaseB raw: 'RAW:BOTHEQUERY of:DATA, not RIGHT or'
+    fresh  raw: 'RAW:BOTHEQUERY of course of:MENTION:B'
+  MISMATCH disambig_c_JUDGE.jsonl:92
+    phaseB raw: ' token. Your task. You should be aware. Detail. IOT as'
+    fresh  raw: ' token. Your task. You should be aware of information. Detail. In'
+  MISMATCH disambig_h_JUDGE.jsonl:1121
+    phaseB raw: '0 depending_NAME to KBOT, not "RESPoken model token'
+    fresh  raw: '0 depending_NAME to KBOT, not MODUCTION, not'
+  MISMATCH frame_single_JUDGE.jsonl:234
+    phaseB raw: ' referring this_NOTE code.MENT (notice. TheORY_of'
+    fresh  raw: ' referring this_NOTE: youtelling "ATO (not_fact'
+  MISMATCH frame_team_JUDGE.jsonl:592
+    phaseB raw: ' about. Answered code. Detail. TheORY being. Consider, not'
+    fresh  raw: ' about. Answered code. Detail. TheORY. Answer, not R'
+  MISMATCH frame_triple_RETEST_JUDGE.jsonl:60
+    phaseB raw: ' about_about whether it. TheORY by describing what to which. Considering'
+    fresh  raw: ' about_about whether it. TheORY. Detailing about. Considering'
+
+===== phi-3.5-mini-q8:latest (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+phi-3.5-mini-q8:latest: 18/20 byte-exact (label+raw)
+  MISMATCH disambig_c_JUDGE.jsonl:92
+    phaseB raw: 'OBSERVED - The user mentions working with "mesa_framework"'
+    fresh  raw: 'OBSERVED - The user mentions working with "starboard_loop"'
+  MISMATCH frame_single_JUDGE.jsonl:234
+    phaseB raw: 'OBSERVED - The response mentions "starboard_loop" in a'
+    fresh  raw: 'OBSERVED - The response mentions "starboard_loop" in relation'
+
+===== phi-4-mini-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+phi-4-mini-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen1.5-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OWNED' fresh='OWNED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OWNED' fresh='OWNED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+qwen1.5-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OWNED' fresh='OWNED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen2-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5-32b-sq:Q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen2.5-32b-sq:Q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5-3b-sq:Q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen2.5-3b-sq:Q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5-7b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen2.5-7b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5:0.5b (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  DIFF disambig_c_JUDGE.jsonl:92 phaseB='SELF_ATTRIBUTED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen2.5:0.5b: 19/20 byte-exact (label+raw)
+  MISMATCH disambig_c_JUDGE.jsonl:92
+    phaseB raw: 'SELF_ATTRIBUTED'
+    fresh  raw: 'OBSERVED'
+
+===== qwen2.5:1.5b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OWNED' fresh='OWNED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OWNED' fresh='OWNED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OWNED' fresh='OWNED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OWNED' fresh='OWNED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OWNED' fresh='OWNED'
+
+qwen2.5:1.5b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5:14b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen2.5:14b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5:3b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen2.5:3b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen2.5:7b (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OWNED' fresh='OWNED'
+  DIFF cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OWNED' fresh='OWNED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen2.5:7b: 19/20 byte-exact (label+raw)
+  MISMATCH cons_p4_JUDGE.jsonl:826
+    phaseB raw: 'OWNED'
+    fresh  raw: 'SELF_ATTRIBUTED'
+
+===== qwen3-8b-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen3-8b-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.5-27b-sq:Q8_0 (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.5-27b-sq:Q8_0: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.5-9b-base-q8:latest (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.5-9b-base-q8:latest: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.5:2b (exit 0) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OWNED' fresh='OWNED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OWNED' fresh='OWNED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='ABSENT' fresh='ABSENT'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OWNED' fresh='OWNED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='SELF_ATTRIBUTED' fresh='SELF_ATTRIBUTED'
+
+qwen3.5:2b: 20/20 byte-exact (label+raw)
+DETERMINISM PASS
+
+===== qwen3.5:4b (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p4_JUDGE.jsonl:826 phaseB='OWNED' fresh='OWNED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='ABSENT' fresh='ABSENT'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='ABSENT' fresh='ABSENT'
+  DIFF frame_single_JUDGE.jsonl:234 phaseB='ABSENT' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.5:4b: 19/20 byte-exact (label+raw)
+  MISMATCH frame_single_JUDGE.jsonl:234
+    phaseB raw: 'ABSENT'
+    fresh  raw: 'OBSERVED'
+
+===== qwen3.5:9b (exit 1) =====
+  OK  blockframe_c_JUDGE.jsonl:719 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s11_JUDGE.jsonl:731 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  blockframe_r_s12_JUDGE.jsonl:579 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:204 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:687 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  cons_p1_s11_JUDGE.jsonl:1158 phaseB='OBSERVED' fresh='OBSERVED'
+  DIFF cons_p4_JUDGE.jsonl:826 phaseB='ABSENT' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:514 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_a_JUDGE.jsonl:682 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_c_JUDGE.jsonl:92 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_h_JUDGE.jsonl:1121 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  disambig_m_JUDGE.jsonl:1924 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:194 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  filler_triple_JUDGE.jsonl:2096 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_filler_JUDGE.jsonl:1791 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_single_JUDGE.jsonl:234 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:592 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_team_JUDGE.jsonl:1700 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_JUDGE.jsonl:1977 phaseB='OBSERVED' fresh='OBSERVED'
+  OK  frame_triple_RETEST_JUDGE.jsonl:60 phaseB='OBSERVED' fresh='OBSERVED'
+
+qwen3.5:9b: 19/20 byte-exact (label+raw)
+  MISMATCH cons_p4_JUDGE.jsonl:826
+    phaseB raw: 'ABSENT'
+    fresh  raw: 'OBSERVED'

@@ -1,0 +1,82 @@
+# LOCALJUDGE-2 locked roster — heavyweight tier + 2 new pulls FIRST, then mid/small.
+# Excluded (attempt-once, load-stall class): gemma4:31b, llama3.3:70b-instruct-q8_0
+# Excluded (Phase R parse gate, 2026-07-14): gpt-oss:120b — 0/228 gold rows parsed (content
+#   channel empty under frozen n_predict=16 with think:false; reasoning consumed the budget).
+#   Prereg §6 gate applied as locked: EXCLUSION, not contract relaxation.
+# Phase R G-A PASS (2026-07-15): nemotron-super-q4 — breach R=0.967/P=0.967 (gates 0.90/0.80),
+#   0/228 unparseable, 9/9 planted positives caught; PROMOTED to full corpus. Load succeeded on
+#   2nd attempt after infra fix (OLLAMA_LOAD_TIMEOUT 30m→120m in override.conf + 86GB blob served
+#   from NVMe); second-attempt-after-infra-fix deviation disclosed in the results doc.
+# Excluded (Josh-ratified 2026-07-28): olmo3-7b-q8 — NOT a load-stall: its GGUF chat template
+#   invokes `tools | tojson`, which the lock-pinned ollama build's template parser cannot compile
+#   (llama-server "Unknown (built-in) filter 'tojson'" → exit 1; deterministic, STALL ×2 on
+#   2026-07-23 + 2026-07-28). Template-override fix and ollama upgrade both declined (§9 version
+#   pin; attempt-once posture). olmo family remains covered by olmo2-7b. Roster closes at 62.
+# -sq salience-quant families judged at Q8_0 (one representative each).
+## HEAVYWEIGHT + PULLS (adoption-plausible; run first for early selection signal)
+## (gpt-oss first — resident; nemotron-super-q4 placed after the residents to allow its ollama-create to finish)
+# gpt-oss:120b  [EXCLUDED — Phase R parse gate 0.00 < 0.95]
+glm-4.5-air-q4:latest
+nemotron-a3b-sq:Q8_0
+nemotron-super-q4:latest
+qwen2.5:32b
+qwen2.5:72b
+yi:34b-chat-q8_0
+command-r:35b-08-2024-q8_0
+mistral-small:24b-instruct-2501-q8_0
+internlm2.5-20b-q8:latest
+gemma3-27b-q8:latest
+qwen3.5:27b
+qwen3.6-27b-sq:Q8_0
+qwen3.6-35b-a3b-sq:Q8_0
+laguna-xs.2:latest
+## MID / SMALL (difficulty-map + self-family value)
+claude-code-q8:latest
+claude-fable-q8:latest
+claude-mythos-q8:latest
+claude-opus-distill-q8:latest
+falcon3-7b-q8:latest
+gemma1-2b-q8:latest
+gemma2-2b-q8:latest
+gemma3:12b
+granite-3.0-2b-q8:latest
+granite-3.0-8b-q8:latest
+granite-3.1-2b-q8:latest
+granite-3.1-8b-q8:latest
+granite-3.2-2b-q8:latest
+granite-3.2-8b-q8:latest
+granite-3.3-2b-q8:latest
+granite-3.3-8b-q8:latest
+hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M
+internlm2.5-7b-q8:latest
+llama3-8b-q8:latest
+llama3.1-8b-q8:latest
+mistral-g-v0.1:latest
+mistral-g-v0.2:latest
+mistral-g-v0.3:latest
+mistral-nemo:latest
+mistral-small:24b
+mistral-v0.1-7b-q8:latest
+mistral-v0.2-7b-q8:latest
+mistral-v0.3-7b-q8:latest
+olmo2-7b-q8:latest
+# olmo3-7b-q8:latest  [EXCLUDED 2026-07-28 — broken GGUF chat template (tojson), see header]
+phi-3-mini-q8:latest
+phi-3.5-mini-q8:latest
+phi-4-mini-q8:latest
+qwen1.5-7b-q8:latest
+qwen2-7b-q8:latest
+qwen2.5-32b-sq:Q8_0
+qwen2.5-3b-sq:Q8_0
+qwen2.5-7b-q8:latest
+qwen2.5:0.5b
+qwen2.5:1.5b
+qwen2.5:14b
+qwen2.5:3b
+qwen2.5:7b
+qwen3-8b-q8:latest
+qwen3.5-27b-sq:Q8_0
+qwen3.5-9b-base-q8:latest
+qwen3.5:2b
+qwen3.5:4b
+qwen3.5:9b

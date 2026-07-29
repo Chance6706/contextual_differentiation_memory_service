@@ -1,0 +1,10 @@
+{
+ "command-r:35b-08-2024-q8_0": {
+  "digest": "1b245c03674e",
+  "size": 34326905054,
+  "modified": "2026-06-30T15:00:38.906786426-05:00",
+  "family": "command-r",
+  "param_size": "32.3B",
+  "quant": "Q8_0"
+ }
+}

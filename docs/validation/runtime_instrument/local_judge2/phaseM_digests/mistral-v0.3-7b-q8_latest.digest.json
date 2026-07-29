@@ -1,0 +1,10 @@
+{
+ "mistral-v0.3-7b-q8:latest": {
+  "digest": "1e68f071fd9f",
+  "size": 7702565776,
+  "modified": "2026-06-27T00:44:48.573155832-05:00",
+  "family": "llama",
+  "param_size": "7.2B",
+  "quant": "Q8_0"
+ }
+}

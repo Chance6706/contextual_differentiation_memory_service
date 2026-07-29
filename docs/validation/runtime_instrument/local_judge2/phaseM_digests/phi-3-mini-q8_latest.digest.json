@@ -1,0 +1,10 @@
+{
+ "phi-3-mini-q8:latest": {
+  "digest": "4ec2c633dbc0",
+  "size": 4061221969,
+  "modified": "2026-06-27T07:53:32.766321077-05:00",
+  "family": "phi3",
+  "param_size": "3.8B",
+  "quant": "Q8_0"
+ }
+}

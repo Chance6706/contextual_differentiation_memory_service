@@ -1,0 +1,22 @@
+{
+ "seed": "holdout20260712",
+ "method": "per-era sha256-ranked file draw to ~30% decided rows/era",
+ "purpose": "frozen CONFIRMATION partition \u2014 pooled/BEM/family kappa gates for the single pre-nominated candidate ONLY; never used for matrix descriptives, ensemble construction, or FT training",
+ "decided_rows": 19236,
+ "fraction": 0.317,
+ "confirmation_files": [
+  "blockframe_b_JUDGE.jsonl",
+  "blockframe_r_perm_JUDGE.jsonl",
+  "disambig_a_JUDGE.jsonl",
+  "disambig_m_JUDGE.jsonl",
+  "filler_filler_JUDGE.jsonl",
+  "filler_single_JUDGE.jsonl",
+  "frame_filler_JUDGE.jsonl",
+  "identity_power_JUDGE.jsonl",
+  "multifact_single_JUDGE.jsonl",
+  "padding_padded_JUDGE.jsonl",
+  "padding_single_JUDGE.jsonl",
+  "padding_triple_JUDGE.jsonl"
+ ],
+ "sha256": "b673e2a598a50530bdb435a651c3ef4692fcaaee79e104594dda4b5b8a90f16f"
+}

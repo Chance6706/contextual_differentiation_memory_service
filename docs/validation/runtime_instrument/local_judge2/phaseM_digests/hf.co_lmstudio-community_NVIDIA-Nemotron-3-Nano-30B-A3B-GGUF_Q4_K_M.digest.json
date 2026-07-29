@@ -1,0 +1,10 @@
+{
+ "hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M": {
+  "digest": "54746df619f0",
+  "size": 24515130475,
+  "modified": "2026-06-25T20:38:36.094593472-05:00",
+  "family": "nemotron_h_moe",
+  "param_size": "31.6B",
+  "quant": "unknown"
+ }
+}

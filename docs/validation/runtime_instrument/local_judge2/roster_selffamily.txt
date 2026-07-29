@@ -1,0 +1,69 @@
+# LOCALJUDGE-2 roster self-family verification (NOTE 15) — decided rows = 60646
+# subject-family distribution: {'granite': 35801, 'qwen': 14383, 'mistral': 9970, 'gemma': 196, 'phi': 165, 'internlm': 131}
+# A judge's own-family rows are excluded from its primary κ (scored separately). Fully
+# family-disjoint judges are decision-bearing on the whole corpus.
+# family-DISJOINT judges: 12/64
+DISJOINT  nemotron-super-q4:latest
+DISJOINT  gpt-oss:120b
+DISJOINT  glm-4.5-air-q4:latest
+DISJOINT  nemotron-a3b-sq:Q8_0
+DISJOINT  yi:34b-chat-q8_0
+DISJOINT  command-r:35b-08-2024-q8_0
+DISJOINT  falcon3-7b-q8:latest
+DISJOINT  hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M
+DISJOINT  llama3-8b-q8:latest
+DISJOINT  llama3.1-8b-q8:latest
+DISJOINT  olmo2-7b-q8:latest
+DISJOINT  olmo3-7b-q8:latest
+SELF-FAM  qwen2.5:32b                                          qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5:72b                                          qwen     14383 rows (23.7%)
+SELF-FAM  mistral-small:24b-instruct-2501-q8_0                 mistral  9970 rows (16.4%)
+SELF-FAM  internlm2.5-20b-q8:latest                            internlm 131 rows (0.2%)
+SELF-FAM  gemma3-27b-q8:latest                                 gemma    196 rows (0.3%)
+SELF-FAM  qwen3.5:27b                                          qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.6-27b-sq:Q8_0                                  qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.6-35b-a3b-sq:Q8_0                              qwen     14383 rows (23.7%)
+SELF-FAM  laguna-xs.2:latest                                   qwen     14383 rows (23.7%)
+SELF-FAM  claude-code-q8:latest                                qwen     14383 rows (23.7%)
+SELF-FAM  claude-fable-q8:latest                               qwen     14383 rows (23.7%)
+SELF-FAM  claude-mythos-q8:latest                              qwen     14383 rows (23.7%)
+SELF-FAM  claude-opus-distill-q8:latest                        qwen     14383 rows (23.7%)
+SELF-FAM  gemma1-2b-q8:latest                                  gemma    196 rows (0.3%)
+SELF-FAM  gemma2-2b-q8:latest                                  gemma    196 rows (0.3%)
+SELF-FAM  gemma3:12b                                           gemma    196 rows (0.3%)
+SELF-FAM  granite-3.0-2b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.0-8b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.1-2b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.1-8b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.2-2b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.2-8b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.3-2b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  granite-3.3-8b-q8:latest                             granite  35801 rows (59.0%)
+SELF-FAM  internlm2.5-7b-q8:latest                             internlm 131 rows (0.2%)
+SELF-FAM  mistral-g-v0.1:latest                                mistral  9970 rows (16.4%)
+SELF-FAM  mistral-g-v0.2:latest                                mistral  9970 rows (16.4%)
+SELF-FAM  mistral-g-v0.3:latest                                mistral  9970 rows (16.4%)
+SELF-FAM  mistral-nemo:latest                                  mistral  9970 rows (16.4%)
+SELF-FAM  mistral-small:24b                                    mistral  9970 rows (16.4%)
+SELF-FAM  mistral-v0.1-7b-q8:latest                            mistral  9970 rows (16.4%)
+SELF-FAM  mistral-v0.2-7b-q8:latest                            mistral  9970 rows (16.4%)
+SELF-FAM  mistral-v0.3-7b-q8:latest                            mistral  9970 rows (16.4%)
+SELF-FAM  phi-3-mini-q8:latest                                 phi      165 rows (0.3%)
+SELF-FAM  phi-3.5-mini-q8:latest                               phi      165 rows (0.3%)
+SELF-FAM  phi-4-mini-q8:latest                                 phi      165 rows (0.3%)
+SELF-FAM  qwen1.5-7b-q8:latest                                 qwen     14383 rows (23.7%)
+SELF-FAM  qwen2-7b-q8:latest                                   qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5-32b-sq:Q8_0                                  qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5-3b-sq:Q8_0                                   qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5-7b-q8:latest                                 qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5:0.5b                                         qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5:1.5b                                         qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5:14b                                          qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5:3b                                           qwen     14383 rows (23.7%)
+SELF-FAM  qwen2.5:7b                                           qwen     14383 rows (23.7%)
+SELF-FAM  qwen3-8b-q8:latest                                   qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.5-27b-sq:Q8_0                                  qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.5-9b-base-q8:latest                            qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.5:2b                                           qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.5:4b                                           qwen     14383 rows (23.7%)
+SELF-FAM  qwen3.5:9b                                           qwen     14383 rows (23.7%)

@@ -1,0 +1,10 @@
+{
+ "granite-3.1-8b-q8:latest": {
+  "digest": "a7227ed9da4b",
+  "size": 8684246667,
+  "modified": "2026-06-27T00:51:30.285260905-05:00",
+  "family": "granite",
+  "param_size": "8.2B",
+  "quant": "Q8_0"
+ }
+}

@@ -1,0 +1,10 @@
+{
+ "mistral-nemo:latest": {
+  "digest": "e7e06d107c6c",
+  "size": 7071713227,
+  "modified": "2026-06-23T12:19:56.928515126-05:00",
+  "family": "llama",
+  "param_size": "12.2B",
+  "quant": "Q4_0"
+ }
+}

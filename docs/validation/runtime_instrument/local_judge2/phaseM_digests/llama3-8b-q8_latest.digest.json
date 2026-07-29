@@ -1,0 +1,10 @@
+{
+ "llama3-8b-q8:latest": {
+  "digest": "734b33081b9c",
+  "size": 8540771540,
+  "modified": "2026-06-27T12:43:43.895871781-05:00",
+  "family": "llama",
+  "param_size": "8.0B",
+  "quant": "Q8_0"
+ }
+}

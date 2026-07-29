@@ -1,0 +1,17 @@
+### CONFIRMATION ensemble k=3 unweighted  members(selection-ranked)=['qwen3.5_27b', 'qwen3.5-27b-sq_Q8_0', 'qwen3.6-27b-sq_Q8_0']
+----------------------------------------------------------------------------------------------------
+  G-B GATE EVALUATION — ensemble:k3:unweighted (κ/family/coverage/strict on CONFIRMATION; recall sens/spec on FULL-corpus recall):
+    [PASS     ] pooled κ ≥ 0.80: κ=0.869
+    [PASS     ] BEM κ ≥ 0.75: κ=0.865
+    [FAIL     ] recall sensitivity ≥ 0.75: sens=0.130 (full-corpus recall n_breach=46)
+    [PASS     ] recall specificity ≥ 0.995: spec=1.000 (full-corpus recall n_not=15111)
+    [FAIL     ] coverage pooled ≥ 0.98: 14552/19236=0.756
+    [FAIL     ] coverage mode:BEM ≥ 0.97: 10340/13250=0.780
+    [FAIL     ] coverage mode:recall ≥ 0.97: 4212/5986=0.704
+    [FAIL     ] |κ − κ_strict| ≤ 0.03: Δ=0.118 (κ_strict=0.751)
+    [descriptive] family:gemma: n=68 breach=6 below min-n guard (500/30) — not gated
+    [PASS     ] family:granite κ ≥ 0.65: κ=0.859
+    [descriptive] family:internlm: n=51 breach=37 below min-n guard (500/30) — not gated
+    [PASS     ] family:mistral κ ≥ 0.65: κ=0.944
+    [descriptive] family:phi: n=59 breach=8 below min-n guard (500/30) — not gated
+  G-B VERDICT (ensemble:k3:unweighted): FAIL

@@ -1,0 +1,10 @@
+{
+ "mistral-small:24b-instruct-2501-q8_0": {
+  "digest": "20ffe5db0161",
+  "size": 25054792060,
+  "modified": "2026-06-30T14:33:28.632428899-05:00",
+  "family": "llama",
+  "param_size": "23.6B",
+  "quant": "Q8_0"
+ }
+}

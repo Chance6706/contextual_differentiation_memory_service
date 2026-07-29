@@ -1,0 +1,8 @@
+{
+  "k": 3,
+  "combiner": "unweighted",
+  "members": ["qwen3.5_27b", "qwen3.5-27b-sq_Q8_0", "qwen3.6-27b-sq_Q8_0"],
+  "frozen": "2026-07-28",
+  "basis": "best SELECTION pooled kappa (0.892, BEM 0.885) of the 6 pre-registered candidates per prereg par-4 E-ensemble; NOTE: all-qwen membership drops all votes on qwen-family rows -> selection coverage 0.766 (the red-team M2 coverage-crater scenario, visible pre-confirmation; k=5 runner-up 0.847/cov 1.000 recorded in receipt). Locked rule applied as written - no free search.",
+  "receipt": "phaseM_receipts/ensemble_selection.txt"
+}

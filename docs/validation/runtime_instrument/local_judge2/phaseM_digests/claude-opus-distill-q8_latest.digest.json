@@ -1,0 +1,10 @@
+{
+ "claude-opus-distill-q8:latest": {
+  "digest": "62103630efe1",
+  "size": 9527501385,
+  "modified": "2026-06-27T09:23:52.666313263-05:00",
+  "family": "qwen35",
+  "param_size": "9.0B",
+  "quant": "Q8_0"
+ }
+}

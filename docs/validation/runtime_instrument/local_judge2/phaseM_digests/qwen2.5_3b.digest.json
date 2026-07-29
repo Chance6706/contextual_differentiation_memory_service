@@ -1,0 +1,10 @@
+{
+ "qwen2.5:3b": {
+  "digest": "357c53fb659c",
+  "size": 1929912432,
+  "modified": "2026-06-25T19:36:09.107963049-05:00",
+  "family": "qwen2",
+  "param_size": "3.1B",
+  "quant": "Q4_K_M"
+ }
+}

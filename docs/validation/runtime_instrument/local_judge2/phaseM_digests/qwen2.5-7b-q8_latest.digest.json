@@ -1,0 +1,10 @@
+{
+ "qwen2.5-7b-q8:latest": {
+  "digest": "ff3de499749e",
+  "size": 8098526151,
+  "modified": "2026-06-27T10:33:55.347751806-05:00",
+  "family": "qwen2",
+  "param_size": "7.6B",
+  "quant": "Q8_0"
+ }
+}

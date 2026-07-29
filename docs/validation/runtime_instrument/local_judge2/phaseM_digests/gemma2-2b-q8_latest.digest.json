@@ -1,0 +1,10 @@
+{
+ "gemma2-2b-q8:latest": {
+  "digest": "2cfa03e438fc",
+  "size": 2784496379,
+  "modified": "2026-06-27T13:31:40.026471141-05:00",
+  "family": "gemma2",
+  "param_size": "2.6B",
+  "quant": "Q8_0"
+ }
+}
