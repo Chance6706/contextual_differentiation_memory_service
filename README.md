@@ -498,8 +498,15 @@ line ✅ Built vs 📐 Designed):
   is that the leak is **enumeration-mode-only** (recall is clean). The quant-vs-architecture
   follow-up **completed** (#86): "MoE leaks less" proved **unidentifiable** at n=2 MoE
   families — what moves the leak is model **generation**, not architecture or bit-width;
-  quantization moves coherence only. See
-  [`docs/validation/runtime_instrument/`](docs/validation/runtime_instrument).
+  quantization moves coherence only. The **local-judge program** then asked whether open
+  local models can *administer* A′ instead of the frontier panel: two pre-registered arcs
+  (LJ-1 #(local_judge), LJ-2 #128/#129) answered **no — no local judge adopted** — and
+  LJ-2's 62-judge survey characterized *why*: judging failure sorts on one
+  conservative↔liberal axis, tracks training generation rather than parameter count, and
+  the best nominee's near-miss inverted to a structural failure (sens 0.217) on the
+  family-disjoint population. See
+  [`docs/validation/runtime_instrument/`](docs/validation/runtime_instrument) and
+  [`docs/validation/runtime_instrument/local_judge2/LOCALJUDGE2_RESULTS.md`](docs/validation/runtime_instrument/local_judge2/LOCALJUDGE2_RESULTS.md).
   The disposition/recall re-validation up the within-family ladder
   ([`docs/validation/SCALE_LADDER.md`](docs/validation/SCALE_LADDER.md)) is the separate,
   still-pending design.
