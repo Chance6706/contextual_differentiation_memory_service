@@ -280,6 +280,47 @@ a handful of candidate judges on the SELECTION partition only), FT ≈ a trainin
 plus spending the holdout's single remaining clean shot; (d) nothing else — the adoption question
 is closed negative for this roster + rubric.
 
+## Addendum — post-merge exploratory follow-ups (Josh-authorized 2026-07-28)
+
+Both §10 queue items (a) and (b) were run after the arc merged (PR #128). Neither is a gate;
+neither retro-changes any arc number.
+
+**(a) Family-disjoint recall recomputation (EXPLORATORY, $0;
+`phaseM_receipts/exploratory_disjoint_recall.txt`).** The own-family stratum was PROPPING the
+recall gate UP, not dragging it down:
+
+| population | n_breach | sens | Wilson 95% |
+|---|---|---|---|
+| full (locked scorer) | 206 | 0.738 | [0.674, 0.793] |
+| **family-disjoint** | **46** | **0.217** | **[0.123, 0.356]** |
+| own-family only | 160 | 0.887 | [0.829, 0.928] |
+
+On the population where its verdicts would be trusted, the nominee catches 10/46 breaches — the
+CI's upper bound (0.356) is nowhere near the 0.75 bar, and the ensemble's 0.130 (6/46) on the
+same rows corroborates. Two readings, not distinguished here: family familiarity, or qwen-subject
+breaches simply being blatant (qwen subjects breach at ~8× the disjoint rate: 160 breaches in
+6,167 qwen recall rows vs 46 in 15,157). Either way the §10 conclusion sharpens: the recall
+failure is not a 0.012 calibration miss but a ~0.53 gap on the clean population — **the
+rubric-adaptation hypothesis is further deflated; no nudge closes that.** Note the same κ/recall
+inversion as §5's caveat: this judge is BETTER disjoint on pooled κ (0.885 vs 0.843) yet far
+worse disjoint on breach recall.
+
+**(b) Label-noise panel re-adjudication (💵 $0.31 actual vs ~$2–3 estimate, cap $5;
+`phaseM_receipts/labelnoise_readjudication.jsonl`).** All 116 worksheet rows re-judged with the
+same A′ panel protocol (RUBRIC_A4, subject-vendor excluded) under a FRESH cache (a reused cache
+would have replayed the original votes and silently no-op'd the probe); 116/116 identity-checked
+against the committed rows before any spend; 4 single-token-era rows judged with the legacy
+implicit token per `local_judge.py` NOTE. Result: **110/116 reaffirm the committed label —
+the §7 shared-local-bias reading stands.** **6/116 flip to the locals' side** (all granite-subject
+BEM rows, committed NOT → fresh BREACH; the fresh panel votes OWNED/SELF_ATTRIBUTED-heavy on
+re-look). Corpus-quality note per prereg §8 row 6: ~5% panel instability on this
+adversarially-selected subset ≈ 0.014% of selection rows corpus-wide — negligible for every arc
+conclusion; the 6 coordinates are in the receipt for any future re-adjudication prereg.
+
+**Queue after this addendum:** only the rubric-adaptation vs FT-judge choice remains (each needs
+a new prereg), with both exploratory results weighing toward the FT side or toward keeping the
+panel: the sensitivity gap is structural (0.53 on clean rows), not calibrational.
+
 ## Pressure-test record (rule 12, both sides of usage)
 
 Two independent reviewers ran post-draft, pre-ship (2026-07-28), each verified against the

@@ -1,0 +1,13 @@
+EXPLORATORY (Josh-authorized 2026-07-28, post-arc): family-disjoint recall recomputation
+for single nominee qwen3.5_27b. NOT a gate; locked tool unmodified (functions imported
+read-only). Script: session scratchpad disjoint_recall.py. Does not retro-change LJ-2 numbers.
+
+FULL (locked-scorer population, cross-check):
+  n_breach=206  sens=0.738  Wilson95=[0.674,0.793]  (tp=152 fn=54)
+  n_not=21118  spec=0.9992  (tn=21101 fp=17)
+FAMILY-DISJOINT (exploratory):
+  n_breach=46  sens=0.217  Wilson95=[0.123,0.356]  (tp=10 fn=36)
+  n_not=15111  spec=0.9998  (tn=15108 fp=3)
+OWN-FAMILY-ONLY (the excluded stratum):
+  n_breach=160  sens=0.887  Wilson95=[0.829,0.928]  (tp=142 fn=18)
+  n_not=6007  spec=0.9977  (tn=5993 fp=14)
