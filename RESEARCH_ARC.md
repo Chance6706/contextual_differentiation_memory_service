@@ -338,6 +338,42 @@ rubric-adaptation follow-on — NEW prereg required, not licensed. Register: LJ-
 tooling gaps: manifest absent-file hole, digest capture). Then STOP per pause-between-arcs; queue to
 Josh. (Doc: `docs/validation/runtime_instrument/local_judge/LOCALJUDGE_RESULTS.md`.)
 
+## 4.15. Local-judge matrix (LJ-2) — characterization shipped; NO ADOPTION; the sole failing gate inverted on the clean population — #128/#129
+**Motivated by:** Josh reframed the follow-on (2026-07-17): not a second adoption hunt but a **survey of
+HOW open local models judge self-attribution** — the failure-mode characterization is the product; the
+pre-registered adoption gates ride along as a sidebar.
+**Did:** locked prereg (2026-07-12; SELECTION/CONFIRMATION epoch-file split, single-look blinding via
+committed freeze files, ensemble family top-k∈{3,5,7}×2 with no free search). Closed roster of 62
+judges (64 − gpt-oss parse-gate − olmo3 broken GGUF template) × the full 60,646-row committed corpus,
+~2.5 wk Sparky GPU, $0 API. Verdict-blind audits 62/62; fresh-cache determinism re-judge 62/62 with
+comparator 46/62 byte-exact (all nominees clean; 25 diff-rows on 12 coords, 6 multi-model near-tie
+rows). Double pressure-test folded (legit-use + red-team; the red-team caught two structural
+population mix-ups in the locked scorer's behavior — disclosed, tool unchanged).
+**Found (the survey):** judging failure sorts on ONE conservative↔liberal axis (ρ(miss,FA)=−0.775,
+n=61; residual axis = skill); **generation ≫ parameter count** (echoing #86 from the judge's chair);
+quant inert ≥24B, small twins wobble to ~0.06; self-family reading **sign-flips by lineage** (qwen2.5
+own-better replicating LJ-1, qwen3.5/granite own-worse 7/8); claude-distills sit in their backbone's
+neighbourhood (correlational only); a MUTE/BROKEN judge class exists (mistral-v0.1: zero labels across
+a 3-day run; phi-3-mini: 17 usable rows); strict-unanimity difficulty strata died at 62 heterogeneous
+judges exactly as pre-registered (N11); labelnoise probe 114/116 BREACH-ward but 93% granite-subject.
+**Sidebar (gates):** single nominee qwen3.5:27b failed ONLY recall sens 0.738 vs 0.75 (pooled 0.862,
+spec 0.999, cov 1.000); all-qwen k=3 ensemble realized the pre-identified coverage crater (0.756).
+**Post-arc exploratory addendum (Josh-authorized) INVERTED the near-miss reading:** the recall gate's
+population is 78% own-family and that stratum PROPPED IT UP — own-family sens 0.887 vs
+**family-disjoint 0.217** [0.123, 0.356]; the failure is structural, not calibrational. Panel
+re-adjudication of all 116 labelnoise rows ($0.31): **110 reaffirm the committed labels**; 6
+granite-BEM flips ≈ 0.014% of selection rows (corpus-quality note only).
+> **Bounds:** subjects appear in both partitions (confirmation ≠ independent subject draw); recall
+> gate evaluated on the full corpus per the locked scorer (disclosed); no gpt-oss Phase-R receipt
+> committed; provisional-selection identity rests on attestation; 20-coord determinism probe bounds
+> little corpus-wide; addendum results are labeled exploratory.
+**→ Therefore next:** NO ADOPTION — the frontier panel stays the verdict authority. No "nothing
+clears" outcome row is clearly indicated (blind-spot stratum empty; labelnoise points FA-ward while
+the nominee failed conservative-side; gate underpowered + contaminated). Remaining queue: rubric-
+adaptation vs FT-judge — each requires a NEW prereg; FT would train on SELECTION only, with the
+holdout preserved as its single clean test shot. (Doc:
+`docs/validation/runtime_instrument/local_judge2/LOCALJUDGE2_RESULTS.md`.)
+
 ## 5. Claude-distillation flavor-sweep — concluded: UNMEASURABLE / confounded (descriptive)
 **Motivated by:** a parallel question — does training a model on *Claude* outputs move the firewall metric?
 **Did:** a first pressure-test killed the naive design (Magnum is a *roleplay* model — and the metric measures

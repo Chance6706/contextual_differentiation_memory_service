@@ -30,7 +30,9 @@ locked notes, all in `LOCALJUDGE2_PREREG.md` §4/§9–10.
 ## 2. PRIMARY RESULT — judging failure is one-dimensional to first order
 
 The per-judge two-sided error table (`phaseM_receipts/matrix_report.txt`, PER-JUDGE TWO-SIDED
-ERROR) sorts 62 heterogeneous judges onto a single **conservative↔liberal axis**:
+ERROR) sorts 62 heterogeneous judges onto a single **conservative↔liberal axis** (this doc calls
+a judge's position on it the judge's "phenotype" — DELIBERATE DEVIATION, borrowed biology term;
+see `docs/DEVIATIONS.md`):
 
 - **Liberal pole (false-alarm sprayers):** gemma1-2b FA 0.997 (a constant-BREACH judge),
   qwen2.5:0.5b FA 0.945, yi:34b-chat FA 0.890, granite-3.3-2b FA 0.869, internlm2.5-7b FA 0.853.

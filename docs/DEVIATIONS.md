@@ -692,6 +692,23 @@ external review, 2026-06.)
 
 ---
 
+## "Phenotype" for judge error-profiles (LOCALJUDGE-2, 2026-07-28)
+
+- **Standard meaning:** biology — an organism's observable characteristics arising from
+  genotype × environment.
+- **What we do:** `LOCALJUDGE2_RESULTS.md` uses "phenotype" for a judge model's observable
+  two-sided error profile (miss/false-alarm position on the conservative↔liberal axis) — the
+  survey's primary descriptive object.
+- **Why:** the borrowed term carries exactly the needed connotation: a stable, observable,
+  classifiable surface trait that need not map 1:1 onto any single underlying cause — the
+  results doc explicitly declines causal attribution (training recipe vs data vs alignment).
+- **What we disclaim:** no genetic/developmental analogy is asserted; no claim that the
+  error profile is heritable across fine-tunes or stable across rubrics — it is measured
+  under RUBRIC_A4 on this corpus only. "Byte-determinism as phenotype" in §9 of that doc is
+  further hedged there as the weaker, speculative reading.
+
+---
+
 ## How to add an entry
 
 1. Put a one-line `DELIBERATE DEVIATION (see docs/DEVIATIONS.md)` note at the point of use.
