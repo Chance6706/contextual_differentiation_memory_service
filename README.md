@@ -552,6 +552,35 @@ a deterministic hashing embedder so they run offline; a separate non-hash path
 (`tests/test_real_embedder.py`) exercises the real model and skips cleanly when it
 is unavailable.
 
+## Citation
+
+The measurement program behind this repository is published as:
+
+> Nissen, J. (2026). *Whose Memory Is This? Measuring and Fencing Self-Attribution
+> of Injected Memory in LLM Agents.* Zenodo. https://doi.org/10.5281/zenodo.21429368
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21429368.svg)](https://doi.org/10.5281/zenodo.21429368)
+
+- **Concept DOI** `10.5281/zenodo.21429368` — always resolves to the latest version. **Cite this one.**
+- **Version DOI** `10.5281/zenodo.21429369` — the v1 record, published 2026-07-18 (CC-BY-4.0).
+- Repository state at the paper's verdict is tagged [`paper-selfattr-v3.1`](https://github.com/Chance6706/contextual_differentiation_memory_service/releases/tag/paper-selfattr-v3.1).
+
+Machine-readable metadata is in [`CITATION.cff`](CITATION.cff). BibTeX:
+
+```bibtex
+@article{nissen2026whose,
+  author    = {Nissen, Joshua},
+  title     = {Whose Memory Is This? Measuring and Fencing Self-Attribution
+               of Injected Memory in LLM Agents},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.21429368},
+  url       = {https://doi.org/10.5281/zenodo.21429368}
+}
+```
+
+Note that the paper (CC-BY-4.0) and this software (MIT) carry different licenses.
+
 ## License
 
 MIT

@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+title: "Contextual Differentiation Memory Service (CDMS)"
+message: >-
+  If you use this software, please cite both the software itself and the
+  paper below. The paper is the citable record of the measurement program;
+  the software is the reference implementation it measures.
+type: software
+authors:
+  - family-names: Nissen
+    given-names: Joshua
+    orcid: "https://orcid.org/0009-0004-5098-640X"
+abstract: >-
+  A local-first, forgetting-driven memory daemon for the Claude Code CLI.
+  CDMS applies surprisal-gated salience, Ebbinghaus decay and a five-step
+  sleep consolidation to an agent's own history, on the thesis that what
+  survives forgetting is what individuates.
+license: MIT
+repository-code: "https://github.com/Chance6706/contextual_differentiation_memory_service"
+keywords:
+  - memory
+  - claude-code
+  - mcp
+  - agent
+  - consolidation
+  - self-attribution
+preferred-citation:
+  type: article
+  title: >-
+    Whose Memory Is This? Measuring and Fencing Self-Attribution of Injected
+    Memory in LLM Agents
+  authors:
+    - family-names: Nissen
+      given-names: Joshua
+      orcid: "https://orcid.org/0009-0004-5098-640X"
+  year: 2026
+  month: 7
+  doi: 10.5281/zenodo.21429368
+  url: "https://doi.org/10.5281/zenodo.21429368"
+  publisher:
+    name: Zenodo
+  license: CC-BY-4.0
+  identifiers:
+    - type: doi
+      value: 10.5281/zenodo.21429368
+      description: Concept DOI — always resolves to the latest version.
+    - type: doi
+      value: 10.5281/zenodo.21429369
+      description: Version DOI — the v1 record published 2026-07-18.

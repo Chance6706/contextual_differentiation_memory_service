@@ -28,8 +28,10 @@ Josh)** — and both exploratory results weigh AGAINST rubric-adaptation (no nud
 toward the FT side, or toward simply keeping the panel. Docs synced in PR #130 (README + RESEARCH_ARC;
 'phenotype' registered in `DEVIATIONS.md`). One unrelated merge since: **PR #131 (2026-09-15) — a closed
 stderr must not turn a lock-busy hook skip into a failed hook.**
-`local_judge2/LOCALJUDGE2_RESULTS.md` §10 + Addendum. **STILL PAUSED per the pause-between-arcs
-policy.**)_
+`local_judge2/LOCALJUDGE2_RESULTS.md` §10 + Addendum. Also corrected below: the 2026-07-18 HALT line
+claimed the publication write-up was outstanding — it was deposited on Zenodo that same day (DOI
+10.5281/zenodo.21429368); `CITATION.cff` + a README citation block now carry it. **STILL PAUSED per the
+pause-between-arcs policy.**)_
 
 _Prior 2026-07-18:_ (**THE DIFFERENTIATION PROGRAM IS CLOSED — both arcs, on pre-registered
 terms.** STATE ARC: six investigations (frozen → erasure → tiered → drift → probe v1/v2 → capstone →
@@ -42,8 +44,11 @@ HALT**: REAL 0.532, 90% CI [0.476, 0.588] ⊂ (0.40, 0.60); expression gate 0.95
 its payload); same-seed 0.958 vs pooled 0.53 ⇒ **identity in deeds is per-HISTORY, not per-DISPOSITION**;
 BOW stylometric trace 0.75 persists (machine-traceable, not judge-distinguishable). Pre-agreed sentence
 verbatim in FUNCTIONAL_TOST_RESULTS.md; PT9 3-reviewer post-verdict audit ran. Arm spend $15.48/$50
-authorized. HALT binds: no new state/behavioral arms; publication write-up remains; new theses = new
-preregs + Josh. Sparky LOCALJUDGE2 (task #7) unaffected, ~2 wks to run.)_
+authorized. HALT binds: no new state/behavioral arms; new theses = new preregs + Josh.
+**The publication write-up is DONE** — *Whose Memory Is This? Measuring and Fencing
+Self-Attribution of Injected Memory in LLM Agents*, Zenodo, published 2026-07-18, CC-BY-4.0: concept DOI
+**10.5281/zenodo.21429368** (v1 `10.5281/zenodo.21429369`); repo state at the verdict = tag
+`paper-selfattr-v3.1`. Sparky LOCALJUDGE2 (task #7) unaffected, ~2 wks to run.)_
 
 _Prior status (2026-07-12):_ (LOCALJUDGE arc DONE — **FAIL: no local judge adopted, the 5-vendor A′ panel
 stays the default instrument**. All three Phase B candidates fail the locked corpus gates on the full
