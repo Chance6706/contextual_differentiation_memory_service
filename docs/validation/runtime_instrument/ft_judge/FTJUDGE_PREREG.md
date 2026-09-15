@@ -3,8 +3,10 @@
 > **STATUS: 🟡 DRAFT — NOT LOCKED. NOT LICENSED TO RUN. VENUE-GATED.**
 > Drafted 2026-09-15. This document is a *proposal* and a *decision request*, not a lock.
 > **Ratified so far (Josh, 2026-09-15):** the FT backbone **must be fully family-disjoint**
-> (§7), and the run **waits for the scientific repo** (§4a) — `Salient-Tuning` is exploratory
-> by decision and cannot host a binding adoption verdict.
+> (§7); the arc trains a **paired dense + MoE** backbone for an architecture cross-reference,
+> descriptive only, with **one** of the two taking the single holdout look (§7a); and the run
+> **waits for the scientific repo** (§4a) — `Salient-Tuning` is exploratory by decision and
+> cannot host a binding adoption verdict.
 > **Still required before lock:** (1) that the arc is licensed at all (§0 — the licensing
 > basis rests on an exploratory result); (2) which costed option in §5 is taken; (3) the
 > `CLAUDE.md` rule-12 double pressure-test (§13, still empty).
@@ -355,11 +357,63 @@ nominee would leave ~24% of the corpus needing another verdict authority."*
 > than doubles the recall test set (22 → 48), and it eliminates the 24% coverage hole that made the
 > LJ-2 nominee unadoptable *even on paper*.
 
-Candidate backbones, from LJ-2's 10 fully-disjoint completers — **nemotron-super-q4** is the
-standout prior (best fully-disjoint single at pooled κ **0.747**, miss 0.179 / FA 0.046, G-A PASS
-breach R 0.967 / P 0.967, and **+0.220 over its Nano-30B sibling**). Also disjoint: glm (Q4,
-`DEVIATIONS.md` I2), nemotron-a3b, yi, command-r, falcon3-7b, nemotron-nano-30B, llama3-8b,
-llama3.1-8b, olmo2-7b. Final roster freezes at lock.
+### 7a. Paired DENSE + MoE backbones — RATIFIED (Josh, 2026-09-15)
+
+**Decision: the arc trains a dense AND an MoE backbone, both family-disjoint**, so the program
+gains a cross-referenced architecture dataset rather than a single point. Recorded intent: the MoE
+arm is **not expected to move much** — it is a cross-reference, and it is pre-registered as such.
+
+`roster_selffamily.txt` supplies both classes inside the disjoint set, and — usefully — inside one
+vendor line, which is the same same-backbone-pair logic `Salient-Tuning` used for E1:
+
+| class | candidate (LJ-2 judge tag) | notes |
+|---|---|---|
+| **dense** | `nemotron-super-q4:latest` | best fully-disjoint single: pooled κ **0.747**, miss 0.179 / FA 0.046, G-A PASS (breach R 0.967 / P 0.967) |
+| **MoE** | `NVIDIA-Nemotron-3-Nano-30B-A3B`, `nemotron-a3b-sq` | ~3B active |
+| other disjoint | glm-4.5-air (MoE, Q4 — `DEVIATIONS.md` I2), yi:34b, command-r:35b, falcon3-7b, llama3-8b, llama3.1-8b, olmo2-7b | fallbacks |
+
+**Why this pair is the strong candidate:** LJ-2 already measured the *pre-FT* gap between them —
+nemotron-super sits **+0.220 κ above its Nano-30B sibling**. So the FT contrast is not starting
+blind: it asks whether fine-tuning narrows a gap whose baseline is already on the record. That is
+what makes this a cross-reference rather than a fresh unanchored comparison.
+
+**Three conditions, all pre-registered, none optional:**
+
+1. **Checkpoint-existence gate, before any scheduling.** The roster tags above are **ollama GGUFs**.
+   Fine-tuning needs a **trainable HF checkpoint**, which is not the same artifact. Verify each
+   candidate exists as an HF base checkpoint *before* it enters the plan. The precedent is
+   `Salient-Tuning`'s 27B cell: *"`Qwen/Qwen3.5-27B-Base` was never released… Ollama's
+   `qwen3.5:27b` is a GGUF of the instruct model and is not a trainable HF checkpoint. This is not
+   a scheduling problem and waiting does not resolve it."* Do not price an arm before this passes.
+
+2. **Trainable-surface confound — must be controlled or reported, never ignored.** An MoE's routed
+   experts are fused tensors and structurally untargetable by LoRA (measured at 35B-A3B: **11.3M
+   params, 0.033%, attention-side only**), while a dense model of similar total size exposes far
+   more surface. So *"the MoE moved less"* is confounded with *"we tuned less of it."*
+   **Pre-committed:** report the trainable-parameter count for every arm, and run the contrast at a
+   **matched trainable-parameter budget** (rank-adjust the dense arm down to the MoE's reachable
+   surface) — OR run both budgets and report both. An unmatched single comparison is not a finding.
+
+3. **DESCRIPTIVE ONLY — this cannot support a causal architecture claim.** With one model per
+   class, n=1 per cell. This program has already been burned here: the quant-replication arc (#86)
+   found *"MoE leaks less"* **unidentifiable at n=2 MoE**, and family/architecture effects in LJ-2
+   sign-flipped by lineage. **Pre-registered:** the dense-vs-MoE contrast is labelled
+   **exploratory/descriptive** in the results doc, and a difference between the two arms is
+   reported as a *coordinate*, never attributed to architecture. Upgrading it to a claim needs
+   ≥2 models per class, which this arc does not fund.
+
+> **⚠ Holdout consequence — the single-look rule still binds, and two arms do not buy two looks.**
+> Both backbones train, and both are scored on **SELECTION**. **Exactly ONE is frozen as the
+> nominee** (by SELECTION pooled+BEM κ, the LJ-2 nomination rule) and takes the arc's single
+> CONFIRMATION look; **the other arm's confirmation metrics are never computed.** The cross-
+> reference therefore lives entirely on SELECTION — which is the correct home for a descriptive
+> contrast anyway, and costs the corpus nothing.
+
+> **Cost of pairing.** Two configurations → **two mandatory timing smokes** (§7), roughly double
+> the training GPU, and a longer negotiation against Sparky's existing queue (§8a). The MoE arm is
+> **BF16-only** — MoE × 4-bit is architecturally void (§8a).
+
+Final roster freezes at lock.
 
 **Not licensed:** family-matched judging (§0 — the enabling row did not fire). `Salient-Tuning`'s
 `FT_20-40B_DESIGN.md` §3 called family-disjointness "the open design fight" and floated testing
@@ -457,10 +511,11 @@ re-smoke and bundle-sync after the 2026-08-07 OS updates), then the next-corpus 
 | **R0 — ratify** | Josh answers §0 (licensed?) and §5 (which option?). ✅ §7 backbone and §4a venue ratified 2026-09-15 | $0 | explicit ratification, recorded here |
 | **R0.5 — venue** | the scientific repo exists, with its non-exploratory posture stated | — | **blocks P2+** (§4a) |
 | **R1 — pressure-test + lock** | fold rule-12 double review; freeze manifest §11 | $0 | both reviews folded; Josh locks |
-| **P0 — infra pre-flight** | stand up the §8a pinned stack in the scientific repo; **timing smoke on the chosen disjoint backbone** (mandatory, §7); **G-SERVE** | ~hours GPU | smoke recorded + G-SERVE ≥ 0.99 |
+| **P0 — infra pre-flight** | stand up the §8a pinned stack in the scientific repo; **checkpoint-existence gate** then a **timing smoke per configuration** — two, dense + MoE (mandatory, §7a); **G-SERVE** | ~hours GPU | smoke recorded + G-SERVE ≥ 0.99 |
 | **P1 — smoke** | train on ≤2k SELECTION rows; verify the artifact emits a bare LABELS_A4 label within n_predict=16 | ~hour | ≥95% parse on 228 gold rows |
-| **P2 — train** | full SELECTION train, fully-disjoint backbone (§7) | GPU | G-A: gold breach R ≥0.90, P ≥0.80 |
-| **P3 — select** | all tuning/checkpoint choice on **SELECTION only**; freeze ONE artifact by sha256 into `ft_nominee.json` | GPU | freeze file committed **before** P4 |
+| **P2 — train** | full SELECTION train, **both** disjoint backbones (dense + MoE, §7a), at a matched trainable-parameter budget | GPU ×2 | G-A per arm: gold breach R ≥0.90, P ≥0.80 |
+| **P2.5 — cross-ref** | score BOTH arms on **SELECTION**; record the dense-vs-MoE coordinate as descriptive (§7a) | — | trainable-param counts reported per arm |
+| **P3 — select** | all tuning/checkpoint choice on **SELECTION only**; freeze **ONE** artifact by sha256 into `ft_nominee.json` (the other arm's confirmation metrics are never computed) | GPU | freeze file committed **before** P4 |
 | **P4 — confirm** | **the single holdout look**, G-B on CONFIRMATION | ~hours | G-B all gates |
 | **P5 — G-C** | verdict reproduction via `local_swap.py` | ~hours | category identity + ±0.05 |
 
@@ -482,7 +537,9 @@ recall test set.
 train-on-test); take a second holdout look under any framing, including "a better checkpoint";
 relax specificity to buy sensitivity (§2a/§2b); change any committed label; adopt on a point
 estimate while *describing* it as certified (§4); re-open the n_predict=16 contract inside this arc
-(§6); use family-matched judging as a licensed design axis (§0).
+(§6); use family-matched judging as a licensed design axis (§0); **attribute any dense-vs-MoE
+difference to architecture** (§7a — n=1 per class, descriptive only); or spend a second holdout
+look on the non-nominated arm (§7a).
 
 ---
 
@@ -514,7 +571,8 @@ document can be locked. **This draft is not lockable until this section is fille
 Every G-B gate with Wilson/bootstrap CIs · the joint (sens, spec) endpoint and the miss/FA
 coordinate · the realized n_breach on the confirmation recall channel · G-SERVE agreement · gold
 G-A with its in-sample discount restated · parse coverage and any `ctx_overflow` skips ·
-false-alarm behaviour on the 116 labelnoise coordinates (§2b) · the number of holdout looks spent
-to date (this arc makes it 3) · every deviation registered in `docs/DEVIATIONS.md` · determinism
+false-alarm behaviour on the 116 labelnoise coordinates (§2b) · the trainable-parameter count per arm and whether the budget was matched (§7a) ·
+the dense-vs-MoE SELECTION coordinate, labelled descriptive · the number of holdout looks spent
+to date (this arc makes it 3, NOT 4 — one nominee only) · every deviation registered in `docs/DEVIATIONS.md` · determinism
 re-check · full cost in dollars and GPU-hours · **and, whatever the outcome, the §4 power
 limitation restated** so no reader mistakes an underpowered pass for a certification.
