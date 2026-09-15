@@ -12,6 +12,7 @@ import os
 import sys
 
 from .config import Config
+from ._warn import warn
 
 
 def _over_cap(cfg: Config) -> bool:
@@ -55,8 +56,8 @@ def spool_event(cfg: Config, payload: dict) -> None:
     """
     cfg.ensure_home()
     if _over_cap(cfg):
-        print(f"cdms: spool at {cfg.queue_path} exceeds {cfg.spool_max_bytes} bytes; "
-              f"shedding event (is the drain running? run `cdms drain`).", file=sys.stderr)
+        warn(f"cdms: spool at {cfg.queue_path} exceeds {cfg.spool_max_bytes} bytes; "
+             f"shedding event (is the drain running? run `cdms drain`).")
         return
     data = (json.dumps(payload, ensure_ascii=False, default=str) + "\n").encode("utf-8")
     _append_bytes(cfg.queue_path, data)
