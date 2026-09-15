@@ -1,23 +1,35 @@
 # CDMS — Working Status
 
-_Last updated: 2026-07-28 (LOCALJUDGE-2 arc DONE — **characterization = the product (Josh-set
-framing); adoption sidebar closed negative: NO ADOPTION, panel stays**. 62-judge closed roster ×
-60,646-row corpus, $0 API + ~2.5 wk Sparky GPU (per-epoch judging stays ~$25–30 panel).
-Phenotype: judging failure sorts on ONE conservative↔liberal axis (ρ=−0.775, residual axis =
-skill); generation>>size; quant inert ≥24B (small twins wobble to ~0.06); self-family SIGN-FLIPS
-by lineage (granite 7/8 own-worse); claude-distills sit in backbone's neighbourhood
-(correlational only); MUTE/BROKEN class real (mistral-v0.1 zero labels, phi-3-mini 17 rows);
-labelnoise 114/116 BREACH-ward but 93% granite-subject. CONFIRMATION (single look, binding):
-qwen3.5:27b fails ONLY recall sens 0.738 vs 0.75 — gate population 78% own-family + underpowered
-(CI spans bar), and its coverage 1.000 is of self-family-reduced rows (adoption would leave ~24%
-of corpus without a trusted verdict); k=3 ensemble = the M2 coverage crater realized (cov 0.756,
-sens 0.130); G-C did not fire. Determinism 46/62 byte-exact, all nominees clean (12 coords, 6
-multi-model near-tie rows; co-residency = leading mechanism). NO outcome row clearly indicated —
-rubric-adaptation is HYPOTHESIS, not reading. Double pressure-test folded (2cfa93e + d4f1249).
-Queue: family-disjoint recall recompute ($0, needs exploratory label or amendment) · labelnoise
-re-adjudication (~$2–3, Josh-gated) · rubric-adapt vs FT-judge (each a new prereg).
-`local_judge2/LOCALJUDGE2_RESULTS.md`. **PAUSED per pause-between-arcs policy — queue presented
-to Josh.**)_
+_Last updated: 2026-09-15 (**housekeeping sync — no new arc, no new measurement.** This header had
+fallen behind three merges and carried a reading that a later result superseded; it now folds them.
+**LOCALJUDGE-2 stands DONE — NO ADOPTION, the 5-vendor A′ panel remains the verdict authority**
+(characterization = the product, Josh-set framing). 62-judge closed roster × 60,646-row corpus, $0 API
++ ~2.5 wk Sparky GPU (per-epoch judging stays ~$25–30 panel). Phenotype: judging failure sorts on ONE
+conservative↔liberal axis (ρ=−0.775, residual axis = skill); generation>>size; quant inert ≥24B (small
+twins wobble to ~0.06); self-family SIGN-FLIPS by lineage (granite 7/8 own-worse); claude-distills sit in
+backbone's neighbourhood (correlational only); MUTE/BROKEN class real (mistral-v0.1 zero labels,
+phi-3-mini 17 rows); labelnoise probe 114/116 BREACH-ward but 93% granite-subject. CONFIRMATION (single
+look, binding): qwen3.5:27b failed ONLY recall sens 0.738 vs 0.75; k=3 ensemble = the M2 coverage crater
+realized (cov 0.756, sens 0.130); G-C did not fire. Determinism 46/62 byte-exact, all nominees clean (12
+coords, 6 multi-model near-tie rows; co-residency = leading mechanism). Double pressure-test folded
+(2cfa93e + d4f1249).
+**⚠ The "0.012 near-miss" reading is SUPERSEDED.** The Josh-authorized post-merge addendum (PR #129,
+2026-07-28) ran both open queue items, both labeled EXPLORATORY — neither is a gate, neither
+retro-changes an arc number: **(a) family-disjoint recall recompute** found the 78%-own-family stratum
+was PROPPING the gate UP, not dragging it down — family-disjoint sens **0.217** [0.123, 0.356] (10/46)
+vs own-family 0.887, i.e. a **~0.53 structural gap on the very population where the judge's verdicts
+would be trusted, not a 0.012 calibration miss** (the ensemble's 0.130 on the same rows corroborates;
+two undistinguished readings — family familiarity, or qwen-subject breaches simply being blatant);
+**(b) labelnoise panel re-adjudication** (💵 $0.31 actual vs ~$2–3 estimate, fresh cache, 116/116
+identity-checked) **reaffirmed 110/116** committed labels — the §7 shared-local-bias reading stands; the
+6 granite-BEM flips ≈ 0.014% of selection rows are a corpus-quality note only.
+**Queue after the addendum: ONLY rubric-adaptation vs FT-judge remains (each needs a NEW prereg +
+Josh)** — and both exploratory results weigh AGAINST rubric-adaptation (no nudge closes a 0.53 gap) and
+toward the FT side, or toward simply keeping the panel. Docs synced in PR #130 (README + RESEARCH_ARC;
+'phenotype' registered in `DEVIATIONS.md`). One unrelated merge since: **PR #131 (2026-09-15) — a closed
+stderr must not turn a lock-busy hook skip into a failed hook.**
+`local_judge2/LOCALJUDGE2_RESULTS.md` §10 + Addendum. **STILL PAUSED per the pause-between-arcs
+policy.**)_
 
 _Prior 2026-07-18:_ (**THE DIFFERENTIATION PROGRAM IS CLOSED — both arcs, on pre-registered
 terms.** STATE ARC: six investigations (frozen → erasure → tiered → drift → probe v1/v2 → capstone →
