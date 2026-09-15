@@ -27,6 +27,7 @@ from .embeddings import EmbedderUnavailableError
 from .models import canon_provenance, utc_now_iso  # canon_provenance re-exported here (provenance policy home)
 from .spool import spool_event  # re-exported for backwards compatibility
 from .store import MemoryService, TurnEvent, redact_secrets
+from ._warn import warn
 
 __all__ = ["spool_event", "reconstruct_turns", "drain_and_ingest"]
 
@@ -396,9 +397,8 @@ def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
             service.db.set_meta("last_drain_abort", utc_now_iso())
         except Exception:
             pass
-        print(f"cdms: drain aborted (embedder unavailable); total aborted={n}. The queued "
-              f"events are preserved and will be retried by a later drain. Cause: {exc}",
-              file=sys.stderr)
+        warn(f"cdms: drain aborted (embedder unavailable); total aborted={n}. The queued "
+             f"events are preserved and will be retried by a later drain. Cause: {exc}")
         return 0
     except TimeoutError:
         # Make the skip OBSERVABLE (review-B finding): a silently-skipped drain can let the
@@ -411,9 +411,8 @@ def drain_and_ingest(cfg: Config, service: MemoryService) -> int:
             service.db.set_meta("last_drain_skip", utc_now_iso())
         except Exception:
             pass
-        print(f"cdms: drain skipped (lock busy); total skipped={n}. Queued events are "
-              f"deferred to the next drain; repeated skips can back the spool up to its cap.",
-              file=sys.stderr)
+        warn(f"cdms: drain skipped (lock busy); total skipped={n}. Queued events are "
+             f"deferred to the next drain; repeated skips can back the spool up to its cap.")
         return 0
 
 

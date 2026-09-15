@@ -25,6 +25,7 @@ from typing import Iterable, Iterator, Sequence
 from .config import Config
 from .embeddings import EmbedderUnavailableError, serialize_f32
 from .models import Episodic, Gist, Scar, utc_now_iso
+from ._warn import warn
 
 SCHEMA_VERSION = 4
 
@@ -229,9 +230,8 @@ class Database:
                         main_dest = dest
                 except OSError:
                     pass
-        print(f"cdms: memory store at {path} is corrupt ({exc}); quarantined to "
-              f"*.corrupt-{stamp} and starting fresh. Restore from a backup if you have one.",
-              file=sys.stderr)
+        warn(f"cdms: memory store at {path} is corrupt ({exc}); quarantined to "
+             f"*.corrupt-{stamp} and starting fresh. Restore from a backup if you have one.")
         return main_dest
 
     def integrity_ok(self) -> bool:
@@ -490,10 +490,10 @@ class Database:
             return
         if pinned != cur:
             import sys
-            print(f"cdms: sqlite-vec version changed since this store was built "
-                  f"({pinned!r} -> {cur!r}). The vec0 index FORMAT may have changed; if recall "
-                  f"looks wrong, rebuild the vector index. (The embedder fingerprint covers the "
-                  f"vector SPACE, not the index format.)", file=sys.stderr)
+            warn(f"cdms: sqlite-vec version changed since this store was built "
+                 f"({pinned!r} -> {cur!r}). The vec0 index FORMAT may have changed; if recall "
+                 f"looks wrong, rebuild the vector index. (The embedder fingerprint covers the "
+                 f"vector SPACE, not the index format.)")
             self.set_meta("vec_version", cur)   # warn once per transition, then reconcile
 
     @contextmanager

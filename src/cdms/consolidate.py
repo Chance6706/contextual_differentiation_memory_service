@@ -34,6 +34,7 @@ from .db import Database
 from .embeddings import Embedder, cosine, get_embedder
 from .lock import cross_process_lock
 from .models import Episodic, Gist, Scar, new_id, utc_now_iso
+from ._warn import warn
 from .salience import (
     accessibility,
     age_days,
@@ -182,8 +183,8 @@ class Consolidator:
                 self.db.set_meta("last_consolidation_skip", utc_now_iso())
             except Exception:
                 pass
-            print(f"cdms: consolidation skipped (lock busy); total skipped={n}. "
-                  f"Repeated skips may mean a consolidation/forget is wedged.", file=sys.stderr)
+            warn(f"cdms: consolidation skipped (lock busy); total skipped={n}. "
+                 f"Repeated skips may mean a consolidation/forget is wedged.")
             return rep
 
     def _run_locked(self, now: datetime | None = None) -> ConsolidationReport:
