@@ -418,7 +418,9 @@ behavioral court (a powered TOST, n=799, δ=0.10, three-reviewer adversarial aud
 valence tautology → seed fingerprinting) and the verdict record live under
 `docs/validation/eval_harness/` (`FUNCTIONAL_TOST_PREREG.md` §§9–11 is the audit trail;
 `FUNCTIONAL_TOST_RESULTS.md` is the verdict; `PLASTICITY_LADDER.md` §10 is the state-arc law).
-Repository state at the verdict: tag `paper-selfattr-v3.1`. The two threads meet at the boundary:
+Repository state at the verdict: tag `paper-selfattr-v3.1`; the write-up is published on Zenodo as
+*Whose Memory Is This? Measuring and Fencing Self-Attribution of Injected Memory in LLM Agents*
+(2026-07-18, CC-BY-4.0, concept DOI **10.5281/zenodo.21429368**). The two threads meet at the boundary:
 recall steers and can leak into self-description (this arc); disposition-level identity neither forms
 nor transfers (the companion). A successor program (reflexive/relational individuation) is mapped but
 deliberately not started.
