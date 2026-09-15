@@ -409,9 +409,9 @@ what makes this a cross-reference rather than a fresh unanchored comparison.
 > reference therefore lives entirely on SELECTION — which is the correct home for a descriptive
 > contrast anyway, and costs the corpus nothing.
 
-> **Cost of pairing.** Two configurations → **two mandatory timing smokes** (§7), roughly double
-> the training GPU, and a longer negotiation against Sparky's existing queue (§8a). The MoE arm is
-> **BF16-only** — MoE × 4-bit is architecturally void (§8a).
+> **Cost of pairing.** Two configurations → **two mandatory timing smokes** (§7) and roughly
+> double the training GPU. Sparky is free (§8a), so this is wall-clock, not contention. The MoE
+> arm is **BF16-only** — MoE × 4-bit is architecturally void (§8a).
 
 Final roster freezes at lock.
 
@@ -500,9 +500,17 @@ document is that prereg.
 > that size closes a 0.53 sensitivity gap. A dense disjoint backbone gives a larger effective
 > tuning surface and is preferred on those grounds, independent of the §4 power argument.
 
-**Sparky is not idle.** That repo's queue as of 2026-08-07: multiple-permuted arms (pending a
-re-smoke and bundle-sync after the 2026-08-07 OS updates), then the next-corpus design
-(coding + deep math). Scheduling for this arc must be negotiated against that queue, not assumed.
+**Sparky is available (Josh, 2026-09-15).** An earlier revision of this section said scheduling
+"must be negotiated against that queue" — that was inferred from a 2026-08-07 handoff and is
+**wrong as a statement about today**. The box has been unused for a while, there is one operator,
+and sequencing is simply his call: `Salient-Tuning`'s `CONTINUATION.md` lists two intended next
+items (multiple-permuted arms, then the coding + deep-math corpus design), but neither is running.
+Taking this arc first means those wait — a choice, not a contention problem.
+
+> **One real prerequisite survives the correction**, and it is practical rather than political:
+> that repo records **OS updates on 2026-08-07 with a re-smoke and bundle-sync still required**
+> before the next non-exploratory run. Whatever runs next on Sparky pays that cost once. Fold it
+> into P0 rather than discovering it at launch.
 
 ## 9. Phases
 
@@ -511,7 +519,7 @@ re-smoke and bundle-sync after the 2026-08-07 OS updates), then the next-corpus 
 | **R0 — ratify** | Josh answers §0 (licensed?) and §5 (which option?). ✅ §7 backbone and §4a venue ratified 2026-09-15 | $0 | explicit ratification, recorded here |
 | **R0.5 — venue** | the scientific repo exists, with its non-exploratory posture stated | — | **blocks P2+** (§4a) |
 | **R1 — pressure-test + lock** | fold rule-12 double review; freeze manifest §11 | $0 | both reviews folded; Josh locks |
-| **P0 — infra pre-flight** | stand up the §8a pinned stack in the scientific repo; **checkpoint-existence gate** then a **timing smoke per configuration** — two, dense + MoE (mandatory, §7a); **G-SERVE** | ~hours GPU | smoke recorded + G-SERVE ≥ 0.99 |
+| **P0 — infra pre-flight** | post-OS-update **re-smoke + bundle-sync** (§8a); stand up the §8a pinned stack in the scientific repo; **checkpoint-existence gate** then a **timing smoke per configuration** — two, dense + MoE (mandatory, §7a); **G-SERVE** | ~hours GPU | re-smoke clean + smokes recorded + G-SERVE ≥ 0.99 |
 | **P1 — smoke** | train on ≤2k SELECTION rows; verify the artifact emits a bare LABELS_A4 label within n_predict=16 | ~hour | ≥95% parse on 228 gold rows |
 | **P2 — train** | full SELECTION train, **both** disjoint backbones (dense + MoE, §7a), at a matched trainable-parameter budget | GPU ×2 | G-A per arm: gold breach R ≥0.90, P ≥0.80 |
 | **P2.5 — cross-ref** | score BOTH arms on **SELECTION**; record the dense-vs-MoE coordinate as descriptive (§7a) | — | trainable-param counts reported per arm |
