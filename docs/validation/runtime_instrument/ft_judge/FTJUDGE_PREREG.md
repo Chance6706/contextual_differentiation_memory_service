@@ -1,11 +1,14 @@
 # FT-JUDGE pre-registration — a fine-tuned A′ judge
 
-> **STATUS: 🟡 DRAFT — NOT LOCKED. NOT LICENSED TO RUN.**
+> **STATUS: 🟡 DRAFT — NOT LOCKED. NOT LICENSED TO RUN. VENUE-GATED.**
 > Drafted 2026-09-15. This document is a *proposal* and a *decision request*, not a lock.
-> It requires Josh's explicit ratification on two separate points before it can be locked:
-> **(1)** that the arc is licensed at all (§0), and **(2)** which of the three costed design
-> options in §5 is taken. Per `CLAUDE.md` rule 12 it also needs its double pressure-test
-> folded before lock. **Nothing here authorizes GPU time, API spend, or a holdout look.**
+> **Ratified so far (Josh, 2026-09-15):** the FT backbone **must be fully family-disjoint**
+> (§7), and the run **waits for the scientific repo** (§4a) — `Salient-Tuning` is exploratory
+> by decision and cannot host a binding adoption verdict.
+> **Still required before lock:** (1) that the arc is licensed at all (§0 — the licensing
+> basis rests on an exploratory result); (2) which costed option in §5 is taken; (3) the
+> `CLAUDE.md` rule-12 double pressure-test (§13, still empty).
+> **Nothing here authorizes GPU time, API spend, or a holdout look.**
 
 **One-line summary of what the drafting found:** the gate this arc exists to close —
 breach recall sensitivity — **cannot be honestly evaluated at adequate statistical power on any
@@ -224,6 +227,23 @@ and it is Josh's call, not a drafting decision.
 
 ---
 
+## 4a. Venue — RATIFIED: this run waits for the scientific repo
+
+**Decision (Josh, 2026-09-15): the FT-judge run does not happen in `Salient-Tuning`.**
+
+The sibling repo has the harness, but it is **exploratory by decision, not by accident** — its
+own `CONTINUATION.md` says so, its corpora carry `scientific_use: false`, `--exploratory` is
+"the correct and expected mode for every run", and it states plainly: *"A separate repository
+will be built for scientific work when the time comes."*
+
+An FT-judge that renders a **binding adoption verdict against locked gates**, and that spends
+the CONFIRMATION holdout's last clean look to do it, cannot inherit that posture. Labelling
+exploratory output as evidence is the exact failure that repo's operator stance forbids.
+
+**Consequence:** every phase in §9 from P2 onward is blocked until the scientific repo exists.
+Phases R0/R1 (ratify, pressure-test, lock) and the design work are **not** blocked. Option A
+in §5 is likewise unblocked — rubric-adaptation spends no holdout and renders no FT verdict.
+
 ## 5. 🔴 DECISION REQUIRED — three costed options
 
 This draft does **not** choose. Each option is internally coherent; they differ in what they buy.
@@ -304,11 +324,12 @@ Verdict-CATEGORY identity on every gated line of `disambig_analyze` / `multifact
 Fires only on a G-B confirmation pass.
 
 ### G-SERVE — NEW gate (this arc's own)
-> **Rationale.** All 62 LJ-2 judges were served through ollama `/api/chat`. This repo contains
-> **no training stack whatsoever** — runtime deps are mcp/sqlite-vec/fastembed/numpy, and every
-> model call in the program is stdlib `urllib` to ollama. An FT adapter introduces a second serving
-> path, and a difference between the FT judge and its baseline could then be **the serving path
-> rather than the training**.
+> **Rationale.** All 62 LJ-2 judges were served through ollama `/api/chat`. Training, however,
+> happens in the HF/PEFT stack (see §8a) — so an FT adapter necessarily introduces a **second
+> serving path**, and a difference between the FT judge and its baseline could then be **the
+> serving path rather than the training**.
+> *(Correction to an earlier draft of this document, which asserted "no training stack
+> whatsoever." That is true of THIS repo and false of the program — see §8a.)*
 >
 > **Gate:** before any FT artifact is evaluated, the **untuned backbone** is judged on a
 > pre-registered 500-row SELECTION sample through **both** the incumbent ollama path and the FT
@@ -326,7 +347,8 @@ RESULTS §8(a) records that the qwen nominee's coverage 1.000 was of **self-fami
 the 4,684 qwen-subject holdout rows (24.4%) never entered its denominator, so *"adopting this
 nominee would leave ~24% of the corpus needing another verdict authority."*
 
-> **Pre-committed:** the FT backbone **MUST be fully family-disjoint from all 24 corpus subjects**
+> **RATIFIED (Josh, 2026-09-15) — pre-committed:** the FT backbone **MUST be fully
+> family-disjoint from all 24 corpus subjects**
 > (i.e. not granite / qwen / mistral / phi / internlm / gemma; note `local_judge.model_family`
 > deliberately maps laguna and the four Claude distills to **qwen**).
 > This is the rare choice that improves three things at once: it removes the S7 confound, it more
@@ -339,7 +361,19 @@ breach R 0.967 / P 0.967, and **+0.220 over its Nano-30B sibling**). Also disjoi
 `DEVIATIONS.md` I2), nemotron-a3b, yi, command-r, falcon3-7b, nemotron-nano-30B, llama3-8b,
 llama3.1-8b, olmo2-7b. Final roster freezes at lock.
 
-**Not licensed:** family-matched judging (§0 — the enabling row did not fire).
+**Not licensed:** family-matched judging (§0 — the enabling row did not fire). `Salient-Tuning`'s
+`FT_20-40B_DESIGN.md` §3 called family-disjointness "the open design fight" and floated testing
+whether FT washes the family effect out; **Josh ratified the conservative branch on 2026-09-15**,
+so that question is explicitly NOT this arc's, and may not be smuggled back in as a secondary arm.
+
+> **⚠ Cost of this ratification, stated plainly.** The only backbone pair with a *measured*
+> timing smoke on Sparky — `Qwen3.5-35B-A3B-Base` / `Qwen-AgentWorld-35B-A3B` — is **qwen-family
+> and therefore EXCLUDED here**. So none of `Salient-Tuning`'s 35B timing numbers transfer, and
+> per that repo's own standing rule (*"Timing smokes are mandatory per configuration… Do not
+> launch on an estimate"*) **a new timing smoke on the chosen disjoint backbone is mandatory
+> before any matrix launch.** Budget it as a phase, not an afterthought. Note also that
+> `Qwen3.5-27B-Base` does not exist (that generation's dense-base line stops at 9B), so a dense
+> qwen fallback is not available either.
 
 ---
 
@@ -374,13 +408,56 @@ known-contested), which is pre-committed here.
 
 ---
 
+## 8a. What the `Salient-Tuning` program already provides (and what it does not)
+
+`Chance6706/Salient-Tuning` is the sibling salience-matrix repo. It already sketched this arc —
+`FT_20-40B_DESIGN.md` §3, *"E2 sketch — FT-judge (design authority: a NEW CDMS prereg)"* — and
+independently reached three of this document's commitments: train on **LJ-2 SELECTION only
+(41,410 rows)**, holdout as the test set with **one look** against the locked G-B bars, and
+rubric-in-prompt / label-as-target rendered as assistant-only SFT, which its harness "fits as-is."
+Its §5 item 4 confirms **"E2 was not started and still needs its own CDMS-side prereg"** — this
+document is that prereg.
+
+**Transfers (retires most of the infrastructure risk):**
+- A **validated, pinned aarch64-CUDA stack**: torch 2.12.1+cu130, transformers 5.14.1, peft 0.19,
+  accelerate, datasets — stamped in `constraints/validated-linux-aarch64-cu130.txt`, with the
+  standing warning that changing a compute-path pin mid-matrix invalidates cross-arm comparability.
+- The **FLA fast path** (flash-linear-attention 0.5.2 + causal-conv1d 1.6.2.post1 + Triton),
+  measured at **1.48×** (28.21 → 19.06 s/step) with same-seed loss drift only in the 3rd decimal.
+- A model-agnostic single-GPU LoRA/QLoRA SFT harness with assistant-only loss, fail-closed
+  preflight, run manifests, adapter-hash verification, and **manifest-aware skip-on-complete
+  resume** — the resume discipline this arc should copy verbatim.
+- The empirical proof that the aarch64 path works: E1 completed 8 arms + 2 stratified evals,
+  `failures=0` (2026-07-31), and the **18-arm seed replicate COMPLETE/CONFIRMED 2026-08-07**
+  (seeds 43/44/45; with seed 42 that is four seeds, clearing the ≥3-seed bar).
+
+**Does NOT transfer:**
+- **The model pair and its timing** — qwen-family, excluded by §7. New smoke required.
+- **The exploratory posture** — see §4a. That repo's results are `scientific_use: false`.
+- **Any 4-bit path at MoE scale.** Measured there: **91.8% of Qwen3.5-35B-A3B-Base's parameters
+  are fused routed-expert tensors**, unreachable by bitsandbytes (only 4.1% quantizable), after
+  which `prepare_model_for_kbit_training` upcasts the untouched 34.5B to FP32 (~138 GB) against a
+  121 GB pool. **MoE × 4-bit is not a valid cell.** If the chosen disjoint backbone is MoE, this
+  arc is BF16-only; if dense, 4-bit is back on the table but needs its own smoke.
+
+> **⚠ Capacity caveat inherited.** At 35B-A3B the LoRA surface was **11.3M trainable params
+> (0.033%), attention-side only** — routed experts are fused tensors and structurally untargetable.
+> If the disjoint backbone is MoE, expect a comparable ceiling, and temper the prior that a LoRA of
+> that size closes a 0.53 sensitivity gap. A dense disjoint backbone gives a larger effective
+> tuning surface and is preferred on those grounds, independent of the §4 power argument.
+
+**Sparky is not idle.** That repo's queue as of 2026-08-07: multiple-permuted arms (pending a
+re-smoke and bundle-sync after the 2026-08-07 OS updates), then the next-corpus design
+(coding + deep math). Scheduling for this arc must be negotiated against that queue, not assumed.
+
 ## 9. Phases
 
 | phase | what | cost | gate to advance |
 |---|---|---|---|
-| **R0 — ratify** | Josh answers §0 (licensed?) and §5 (which option?) | $0 | explicit ratification, recorded here |
+| **R0 — ratify** | Josh answers §0 (licensed?) and §5 (which option?). ✅ §7 backbone and §4a venue ratified 2026-09-15 | $0 | explicit ratification, recorded here |
+| **R0.5 — venue** | the scientific repo exists, with its non-exploratory posture stated | — | **blocks P2+** (§4a) |
 | **R1 — pressure-test + lock** | fold rule-12 double review; freeze manifest §11 | $0 | both reviews folded; Josh locks |
-| **P0 — infra pre-flight** | training stack builds/runs on aarch64 GB10; **G-SERVE** | ~hours GPU | G-SERVE ≥ 0.99 |
+| **P0 — infra pre-flight** | stand up the §8a pinned stack in the scientific repo; **timing smoke on the chosen disjoint backbone** (mandatory, §7); **G-SERVE** | ~hours GPU | smoke recorded + G-SERVE ≥ 0.99 |
 | **P1 — smoke** | train on ≤2k SELECTION rows; verify the artifact emits a bare LABELS_A4 label within n_predict=16 | ~hour | ≥95% parse on 228 gold rows |
 | **P2 — train** | full SELECTION train, fully-disjoint backbone (§7) | GPU | G-A: gold breach R ≥0.90, P ≥0.80 |
 | **P3 — select** | all tuning/checkpoint choice on **SELECTION only**; freeze ONE artifact by sha256 into `ft_nominee.json` | GPU | freeze file committed **before** P4 |
